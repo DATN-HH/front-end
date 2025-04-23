@@ -1,6 +1,6 @@
-import Image from "next/image"
-import { ShoppingCart, ChevronRight, Star } from "lucide-react"
-import Link from "next/link"
+import Image from 'next/image';
+import { ShoppingCart, ChevronRight, Star } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -10,7 +10,10 @@ export default function Home() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <div className="text-red-600 font-bold text-xl mr-8">
-              <span className="bg-red-600 text-white rounded-full p-1 mr-1">🍔</span> FoodHub
+              <span className="bg-red-600 text-white rounded-full p-1 mr-1">
+                🍔
+              </span>{' '}
+              FoodHub
             </div>
             <nav className="hidden md:flex space-x-6">
               <Link href="#" className="text-gray-800 hover:text-red-600">
@@ -43,7 +46,9 @@ export default function Home() {
       <section className="relative bg-red-900 text-white overflow-hidden">
         <div className="container mx-auto py-16 px-4 md:px-8 flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 z-10">
-            <div className="text-yellow-500 italic mb-2">Hungry? Find Food!</div>
+            <div className="text-yellow-500 italic mb-2">
+              Hungry? Find Food!
+            </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               HOT SPICY
               <br />
@@ -73,7 +78,9 @@ export default function Home() {
       {/* Popular Food Items */}
       <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4 md:px-8">
-          <h2 className="text-2xl font-bold mb-8 text-center">Popular Food Items</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center">
+            Popular Food Items
+          </h2>
           <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto">
             <div className="flex flex-col items-center">
               <div className="bg-white rounded-full p-2 shadow-md mb-2">
@@ -136,8 +143,12 @@ export default function Home() {
                 <h3 className="text-xl font-bold mb-1">SUPER</h3>
                 <h3 className="text-xl font-bold mb-4">DELICIOUS</h3>
                 <div className="flex items-center text-xs mb-4">
-                  <span className="bg-gray-800 px-2 py-1 rounded mr-2">BURGER</span>
-                  <span className="bg-gray-800 px-2 py-1 rounded">SUPER HAMBURGER DEALS</span>
+                  <span className="bg-gray-800 px-2 py-1 rounded mr-2">
+                    BURGER
+                  </span>
+                  <span className="bg-gray-800 px-2 py-1 rounded">
+                    SUPER HAMBURGER DEALS
+                  </span>
                 </div>
                 <div className="text-3xl font-bold">$20.99</div>
               </div>
@@ -172,8 +183,12 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-8 md:mb-0">
-              <h2 className="text-2xl font-bold mb-2">Today's Available Day</h2>
-              <p className="text-gray-400 mb-4">Special Offer For Limited Time</p>
+              <h2 className="text-2xl font-bold mb-2">
+                Today&apos;s Available Day
+              </h2>
+              <p className="text-gray-400 mb-4">
+                Special Offer For Limited Time
+              </p>
               <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md font-medium">
                 SEE MENU
               </button>
@@ -194,10 +209,15 @@ export default function Home() {
       {/* Popular Fast Foods */}
       <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4 md:px-8">
-          <h2 className="text-2xl font-bold mb-8 text-center">Popular Fast Foods</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center">
+            Popular Fast Foods
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-8">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-              <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div
+                key={item}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
                 <div className="relative">
                   <Image
                     src="/placeholder.svg?height=150&width=150"
@@ -246,7 +266,9 @@ export default function Home() {
               <div className="bg-gray-800 rounded-lg p-4 mb-4">
                 <div className="flex items-center">
                   <span className="text-yellow-500 font-bold mr-2">Combo</span>
-                  <span className="text-sm">Beef Burger + French Fries + Drink</span>
+                  <span className="text-sm">
+                    Beef Burger + French Fries + Drink
+                  </span>
                 </div>
               </div>
 
@@ -254,7 +276,10 @@ export default function Home() {
                 <div className="flex items-center">
                   <span className="text-yellow-500 font-bold mr-2">Price</span>
                   <span className="text-sm">
-                    $12.99 <span className="line-through text-gray-500 ml-2">$18.99</span>
+                    $12.99{' '}
+                    <span className="line-through text-gray-500 ml-2">
+                      $18.99
+                    </span>
                   </span>
                 </div>
               </div>
@@ -307,8 +332,8 @@ export default function Home() {
                 Excellent Service
               </h2>
               <p className="text-gray-600 mb-6">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis,
-                pulvinar dapibus leo.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit
+                tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
               </p>
               <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium">
                 ORDER NOW
@@ -333,7 +358,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             <div className="bg-black text-white rounded-lg overflow-hidden relative p-6">
               <div className="z-10 relative">
-                <div className="text-yellow-500 italic mb-2">Hungry? Find Food!</div>
+                <div className="text-yellow-500 italic mb-2">
+                  Hungry? Find Food!
+                </div>
                 <h3 className="text-xl font-bold mb-4">
                   Special
                   <br />
@@ -353,7 +380,9 @@ export default function Home() {
             </div>
             <div className="bg-red-600 text-white rounded-lg overflow-hidden relative p-6">
               <div className="z-10 relative">
-                <div className="text-yellow-500 italic mb-2">Hungry? Find Food!</div>
+                <div className="text-yellow-500 italic mb-2">
+                  Hungry? Find Food!
+                </div>
                 <h3 className="text-xl font-bold mb-4">
                   FAST Foods
                   <br />
@@ -434,12 +463,16 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-gray-500 mb-4">Tasty Reviews</p>
             <blockquote className="text-xl italic mb-6">
-              "Thank You For Warm Last Night, It Was Amazing! I Want To Try The Best Meal I Have Had In A Long Time,
-              Will Definitely Be Coming Back Again"
+              &quot;Thank You For Warm Last Night, It Was Amazing! I Want To Try
+              The Best Meal I Have Had In A Long Time, Will Definitely Be Coming
+              Back Again&quot;
             </blockquote>
             <div className="flex justify-center space-x-2 mb-4">
               {[1, 2, 3].map((item) => (
-                <div key={item} className="w-8 h-8 rounded-full overflow-hidden">
+                <div
+                  key={item}
+                  className="w-8 h-8 rounded-full overflow-hidden"
+                >
                   <Image
                     src="/placeholder.svg?height=32&width=32"
                     alt={`Customer ${item}`}
@@ -507,7 +540,8 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-red-600 mb-4">FOODHUB</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit
+                tellus, luctus nec ullamcorper.
               </p>
             </div>
             <div>
@@ -528,7 +562,9 @@ export default function Home() {
             </div>
             <div>
               <h3 className="font-bold mb-4">Newsletter</h3>
-              <p className="text-sm text-gray-600 mb-4">Subscribe to our newsletter for updates.</p>
+              <p className="text-sm text-gray-600 mb-4">
+                Subscribe to our newsletter for updates.
+              </p>
               <div className="flex">
                 <input
                   type="email"
@@ -547,5 +583,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
