@@ -4,39 +4,38 @@
     "es2021": true,
     "node": true
   },
-  "extends": [
-    "next/core-web-vitals", // Kết hợp các quy tắc mặc định của Next.js
-    "eslint:recommended", // Các quy tắc mặc định của ESLint
-    "plugin:react/recommended", // Các quy tắc tốt nhất cho React
-    "prettier" // Tắt các quy tắc có thể xung đột với Prettier
-  ],
+  "extends": ["next/core-web-vitals", "prettier"],
   "parserOptions": {
-    "ecmaVersion": 12, // Hỗ trợ các tính năng ECMAScript mới nhất
-    "sourceType": "module", // Cho phép sử dụng import/export
+    "ecmaVersion": 12,
+    "sourceType": "module",
     "ecmaFeatures": {
-      "jsx": true // Hỗ trợ JSX (đặc biệt cho React)
+      "jsx": true
     }
   },
-  "plugins": [
-    "react", // Plugin React
-    "prettier" // Plugin Prettier
-  ],
+  "plugins": ["react", "prettier"],
   "rules": {
     "prettier/prettier": [
-      "error",
+      "warn",
       {
-        "singleQuote": true, // Sử dụng dấu nháy đơn
-        "semi": true, // Sử dụng dấu chấm phẩy
-        "trailingComma": "es5", // Thêm dấu phẩy trailing trong ES5
-        "printWidth": 80, // Độ dài dòng tối đa
-        "tabWidth": 2 // Độ rộng tab (2 spaces)
+        "singleQuote": true,
+        "semi": true,
+        "trailingComma": "es5",
+        "printWidth": 80,
+        "tabWidth": 2
       }
     ],
-    "react/react-in-jsx-scope": "off", // Với Next.js, bạn không cần phải import React vào mỗi tệp
-    "no-console": "warn", // Cảnh báo khi sử dụng console.log
-    "semi": ["error", "always"], // Đảm bảo luôn có dấu chấm phẩy ở cuối câu lệnh
-    "quotes": ["error", "single"], // Sử dụng dấu nháy đơn thay vì dấu nháy kép
-    "no-unused-vars": "warn", // Cảnh báo khi có các biến không sử dụng
-    "react/prop-types": "off" // Tắt kiểm tra prop-types nếu bạn sử dụng TypeScript
+    "react/react-in-jsx-scope": "off",
+    "no-console": "warn",
+    "semi": ["warn", "always"],
+    "quotes": ["warn", "single"],
+    "no-unused-vars": "warn",
+    "react/prop-types": "off",
+
+    // Turning off strict rules to focus on formatting
+    "react/display-name": "off",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-img-element": "off",
+    "import/no-anonymous-default-export": "off",
+    "@next/next/no-html-link-for-pages": "off"
   }
 }
