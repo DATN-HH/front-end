@@ -1,25 +1,39 @@
-'use client';
-
+import { ReactNode } from 'react';
+import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/auth-context';
-import { Permission } from '@/lib/rbac';
-import { hasPermission } from '@/lib/rbac';
+import { Role, Permission } from '@/lib/rbac';
 
-interface ProtectedComponentProps {
-  children: React.ReactNode;
-  permission: Permission;
-  fallback?: React.ReactNode;
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requiredRoles?: Role | Role[];
+  requiredPermissions?: Permission | Permission[];
 }
 
-export function ProtectedComponent({ children, permission, fallback }: ProtectedComponentProps) {
-  const { user, isLoading } = useAuth();
-  
+export const ProtectedRoute = ({
+  children,
+  requiredRoles,
+  requiredPermissions,
+}: ProtectedRouteProps) => {
+  const { user, isLoading, hasRole, hasPermission } = useAuth();
+  const router = useRouter();
+
   if (isLoading) {
-    return null; // Or a loading spinner
+    return <div>Loading...</div>;
   }
-  
-  if (!user || !hasPermission(user.role, permission)) {
-    return fallback || null;
+
+  if (!user) {
+    router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
+    return null;
   }
-  
+
+  const hasRequiredRole = !requiredRoles || hasRole(requiredRoles);
+  const hasRequiredPermission =
+    !requiredPermissions || hasPermission(requiredPermissions);
+
+  if (!hasRequiredRole || !hasRequiredPermission) {
+    router.push('/unauthorized');
+    return null;
+  }
+
   return <>{children}</>;
-}
+};

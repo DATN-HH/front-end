@@ -1,25 +1,22 @@
 'use client';
 
-import type React from 'react';
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
+import { useAuth } from '@/contexts/auth-context';
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const { login, isLoading } = useAuth();
+
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    login({ email, password });
   }
 
   return (
@@ -31,6 +28,8 @@ export function LoginForm() {
             id="email"
             type="email"
             placeholder="name@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             disabled={isLoading}
           />
@@ -42,7 +41,14 @@ export function LoginForm() {
               Forgot password?
             </Button>
           </div>
-          <Input id="password" type="password" required disabled={isLoading} />
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isLoading}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? 'Signing in...' : 'Sign in'}
