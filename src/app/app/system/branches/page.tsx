@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,145 +44,135 @@ import {
     Trash,
     Loader2,
 } from 'lucide-react';
-import {
-    getRoles,
-    createRole,
-    updateRole,
-    deleteRole,
-    RoleResponse,
-    RoleRequest,
-} from '@/features/system/api/api-role';
 import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
+import {
+    BranchRequest,
+    BranchResponse,
+    getBranches,
+} from '@/features/system/api/api-branch';
 
 export default function JobRolesPage() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [currentRole, setCurrentRole] = useState<RoleResponse | null>(null);
-    const [newRole, setNewRole] = useState<RoleRequest>({
-        name: Role.CUSTOMER,
-        hexColor: '#FF9500',
-        description: '',
+    const [currentBranch, setCurrentBranch] = useState<BranchResponse | null>(
+        null
+    );
+    const [newBranch, setNewBranch] = useState<BranchRequest>({
+        name: '',
+        address: '',
+        phone: '',
+        managerId: null,
         status: 'ACTIVE',
     });
+
     const [searchQuery, setSearchQuery] = useState('');
 
-    const {
-        error: toastError,
-        success,
-        // info,
-        // warning,
-        // default: defaultToast,
-    } = useCustomToast();
+    const { error: toastError, success } = useCustomToast();
 
     const queryClient = useQueryClient();
 
-    // Fetch roles using React Query
+    // Fetch branch using React Query
     const {
-        data: roles = [],
+        data: branch = [],
         isLoading,
         error,
     } = useQuery({
-        queryKey: ['roles'],
-        queryFn: getRoles,
+        queryKey: ['branches'],
+        queryFn: getBranches,
     });
 
-    // Create role mutation
-    const createRoleMutation = useMutation({
-        mutationFn: createRole,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['roles'] });
-            success('Success', 'Role created successfully');
-            setIsCreateDialogOpen(false);
-            resetNewRoleForm();
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to create role'
-            );
-            console.error('Create role error:', error);
-        },
-    });
+    //   // Create role mutation
+    //   const createRoleMutation = useMutation({
+    //     mutationFn: createRole,
+    //     onSuccess: () => {
+    //       queryClient.invalidateQueries({ queryKey: ['roles'] });
+    //       success('Success', 'Role created successfully');
+    //       setIsCreateDialogOpen(false);
+    //       resetNewRoleForm();
+    //     },
+    //     onError: (error: any) => {
+    //       toastError(
+    //         'Error',
+    //         error?.response?.data?.message || 'Failed to create role'
+    //       );
+    //       console.error('Create role error:', error);
+    //     },
+    //   });
 
-    // Update role mutation
-    const updateRoleMutation = useMutation({
-        mutationFn: (role: RoleResponse) =>
-            updateRole(role.id, role as RoleRequest),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['roles'] });
-            success('Success', 'Role updated successfully');
-            setIsEditDialogOpen(false);
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to update role'
-            );
-            console.error('Update role error:', error);
-        },
-    });
+    //   // Update role mutation
+    //   const updateRoleMutation = useMutation({
+    //     mutationFn: (role: RoleResponse) =>
+    //       updateRole(role.id, role as RoleRequest),
+    //     onSuccess: () => {
+    //       queryClient.invalidateQueries({ queryKey: ['roles'] });
+    //       success('Success', 'Role updated successfully');
+    //       setIsEditDialogOpen(false);
+    //     },
+    //     onError: (error: any) => {
+    //       toastError(
+    //         'Error',
+    //         error?.response?.data?.message || 'Failed to update role'
+    //       );
+    //       console.error('Update role error:', error);
+    //     },
+    //   });
 
-    // Delete role mutation
-    const deleteRoleMutation = useMutation({
-        mutationFn: deleteRole,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['roles'] });
-            success('Success', 'Role deleted successfully');
-            setIsDeleteDialogOpen(false);
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to delete role'
-            );
-            console.error('Delete role error:', error);
-        },
-    });
-
-    // Filter roles based on search query
-    const filteredRoles = roles.filter(
-        (role) =>
-            role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            role.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    //   // Delete role mutation
+    //   const deleteRoleMutation = useMutation({
+    //     mutationFn: deleteRole,
+    //     onSuccess: () => {
+    //       queryClient.invalidateQueries({ queryKey: ['roles'] });
+    //       success('Success', 'Role deleted successfully');
+    //       setIsDeleteDialogOpen(false);
+    //     },
+    //     onError: (error: any) => {
+    //       toastError(
+    //         'Error',
+    //         error?.response?.data?.message || 'Failed to delete role'
+    //       );
+    //       console.error('Delete role error:', error);
+    //     },
+    //   });
 
     // Reset new role form
     const resetNewRoleForm = () => {
-        setNewRole({
-            name: Role.CUSTOMER,
-            hexColor: '#FF9500',
-            description: '',
+        setNewBranch({
+            name: '',
+            address: '',
+            phone: '',
+            managerId: null,
             status: 'ACTIVE',
         });
     };
 
-    // Handle create role
-    const handleCreateRole = () => {
-        createRoleMutation.mutate(newRole);
-    };
+    // // Handle create role
+    // const handleCreateRole = () => {
+    //     createRoleMutation.mutate(newRole);
+    // };
 
-    // Handle edit role
-    const handleEditRole = () => {
-        if (currentRole) {
-            updateRoleMutation.mutate(currentRole);
-        }
-    };
+    // // Handle edit role
+    // const handleEditRole = () => {
+    //     if (currentRole) {
+    //         updateRoleMutation.mutate(currentRole);
+    //     }
+    // };
 
-    // Handle delete role
-    const handleDeleteRole = () => {
-        if (currentRole) {
-            deleteRoleMutation.mutate(currentRole.id);
-        }
-    };
+    // // Handle delete role
+    // const handleDeleteRole = () => {
+    //     if (currentRole) {
+    //         deleteRoleMutation.mutate(currentRole.id);
+    //     }
+    // };
 
     return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">Job Roles</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Branches</h1>
                 <p className="text-muted-foreground">
-                    Manage job roles for scheduling and employee assignments
+                    Manage your restaurant branches, including adding, editing,
+                    and removing branches
                 </p>
             </div>
 
@@ -191,24 +181,22 @@ export default function JobRolesPage() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder="Search roles..."
+                        placeholder="Search branches..."
                         className="w-full pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
-                {/* 
-          Modal for creating a new role
-        */}
-                <Dialog
+                {/* MODAL FOR CREATING A NEW BRANCH */}
+                {/* <Dialog
                     open={isCreateDialogOpen}
                     onOpenChange={setIsCreateDialogOpen}
                 >
                     <DialogTrigger asChild>
                         <Button className="bg-orange-500 hover:bg-orange-600">
                             <Plus className="mr-2 h-4 w-4" />
-                            Create Role
+                            Create Branch
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -225,10 +213,10 @@ export default function JobRolesPage() {
                                 <Input
                                     id="name"
                                     placeholder="e.g., Head Chef"
-                                    value={newRole.name}
+                                    value={newBranch.name}
                                     onChange={(e) =>
-                                        setNewRole({
-                                            ...newRole,
+                                        setNewBranch({
+                                            ...newBranch,
                                             name: e.target.value,
                                         })
                                     }
@@ -241,10 +229,10 @@ export default function JobRolesPage() {
                                         id="color"
                                         type="color"
                                         className="w-12 h-10 p-1"
-                                        value={newRole.hexColor}
+                                        value={newBranch.hexColor}
                                         onChange={(e) =>
-                                            setNewRole({
-                                                ...newRole,
+                                            setNewBranch({
+                                                ...newBranch,
                                                 hexColor: e.target.value,
                                             })
                                         }
@@ -300,18 +288,15 @@ export default function JobRolesPage() {
                             </Button>
                         </DialogFooter>
                     </DialogContent>
-                </Dialog>
+                </Dialog> */}
             </div>
 
-            {/* 
-          Table for displaying branches
-        */}
-
+            {/* TABLE FOR DISPLAYING BRANCHES */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Job Roles List</CardTitle>
+                    <CardTitle>Branches List</CardTitle>
                     <CardDescription>
-                        View and manage all job roles in the system
+                        View and manage all branches in the system
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -327,57 +312,61 @@ export default function JobRolesPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-12">
-                                        Color
-                                    </TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead className="hidden md:table-cell">
-                                        Description
+                                        Address
                                     </TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Phone
+                                    </TableHead>
+                                    <TableHead>Manager</TableHead>
                                     <TableHead className="hidden md:table-cell">
                                         Status
                                     </TableHead>
-                                    <TableHead className="w-12"></TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Last Updated
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredRoles.length === 0 ? (
+                                {branch.length === 0 ? (
                                     <TableRow>
                                         <TableCell
                                             colSpan={5}
                                             className="text-center py-6 text-muted-foreground"
                                         >
-                                            No job roles found
+                                            No branches found
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredRoles.map((role) => (
-                                        <TableRow key={role.id}>
-                                            <TableCell>
-                                                <div
-                                                    className="w-6 h-6 rounded-full"
-                                                    style={{
-                                                        backgroundColor:
-                                                            role.hexColor,
-                                                    }}
-                                                />
-                                            </TableCell>
+                                    branch.map((branch) => (
+                                        <TableRow key={branch.id}>
+                                            <TableCell>{branch.name}</TableCell>
                                             <TableCell className="font-medium">
-                                                {role.name}
+                                                {branch.address}
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell">
-                                                {role.description}
+                                                {branch.phone}
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {branch.managerName}
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell">
                                                 <span
                                                     className={`px-2 py-1 rounded-full text-xs ${
-                                                        role.status === 'ACTIVE'
+                                                        branch.status ===
+                                                        'ACTIVE'
                                                             ? 'bg-green-100 text-green-800'
                                                             : 'bg-gray-100 text-gray-800'
                                                     }`}
                                                 >
-                                                    {role.status}
+                                                    {branch.status}
                                                 </span>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {new Date(
+                                                    branch.updateAt
+                                                ).toLocaleDateString()}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
@@ -394,8 +383,8 @@ export default function JobRolesPage() {
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem
                                                             onClick={() => {
-                                                                setCurrentRole(
-                                                                    role
+                                                                setCurrentBranch(
+                                                                    branch
                                                                 );
                                                                 setIsEditDialogOpen(
                                                                     true
@@ -408,8 +397,8 @@ export default function JobRolesPage() {
                                                         <DropdownMenuItem
                                                             className="text-red-600"
                                                             onClick={() => {
-                                                                setCurrentRole(
-                                                                    role
+                                                                setCurrentBranch(
+                                                                    branch
                                                                 );
                                                                 setIsDeleteDialogOpen(
                                                                     true
@@ -431,8 +420,8 @@ export default function JobRolesPage() {
                 </CardContent>
             </Card>
 
-            {/* Edit Role Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            {/* MODAL FOR EDITING A ROLE */}
+            {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Edit Job Role</DialogTitle>
@@ -448,9 +437,6 @@ export default function JobRolesPage() {
                                     id="edit-name"
                                     value={currentRole.name}
                                     disabled
-                                    // onChange={(e) =>
-                                    //   setCurrentRole({ ...currentRole, name: e.target.value })
-                                    // }
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -536,10 +522,10 @@ export default function JobRolesPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
 
-            {/* Delete Role Dialog */}
-            <Dialog
+            {/* MODAL FOR DELETING A BRANCH */}
+            {/* <Dialog
                 open={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
             >
@@ -582,7 +568,7 @@ export default function JobRolesPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
         </div>
     );
 }
