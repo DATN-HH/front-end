@@ -1,738 +1,661 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { format, parseISO } from 'date-fns';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { Check, X, Calendar, Clock } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    CheckCircle,
+    XCircle,
+    Calendar,
+    Clock,
+    User,
+    FileText,
+} from 'lucide-react';
+import { useCustomToast } from '@/lib/show-toast';
 
-// Sample data for employees
-const employees = [
-  { id: 1, name: 'John Smith', roleId: 3, avatar: '/avatars/john.png' },
-  { id: 2, name: 'Sarah Johnson', roleId: 5, avatar: '/avatars/sarah.png' },
-  { id: 3, name: 'Michael Brown', roleId: 1, avatar: '/avatars/michael.png' },
-  { id: 4, name: 'Emily Davis', roleId: 2, avatar: '/avatars/emily.png' },
-  { id: 5, name: 'David Wilson', roleId: 4, avatar: '/avatars/david.png' },
+// Mock shift requests
+const mockShiftRequests = [
+    {
+        id: 1,
+        targetShiftId: 101,
+        type: 'EXCHANGE',
+        requestStatus: 'PENDING',
+        reason: 'Family event',
+        createdAt: '2025-05-20T10:30:00Z',
+        staff: {
+            id: 201,
+            fullName: 'John Doe',
+            displayName: 'John D.',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        },
+        targetShift: {
+            id: 101,
+            date: '2025-05-23',
+            shift: {
+                startTime: '08:00:00',
+                endTime: '12:00:00',
+            },
+        },
+    },
+    {
+        id: 2,
+        targetShiftId: 102,
+        type: 'LEAVE',
+        requestStatus: 'PENDING',
+        reason: 'Doctor appointment',
+        createdAt: '2025-05-21T14:15:00Z',
+        staff: {
+            id: 202,
+            fullName: 'Sarah Adams',
+            displayName: 'Sarah A.',
+            userRoles: [{ role: { name: 'CASHIER', hexColor: '#2196F3' } }],
+        },
+        targetShift: {
+            id: 102,
+            date: '2025-05-24',
+            shift: {
+                startTime: '12:00:00',
+                endTime: '16:00:00',
+            },
+        },
+    },
+    {
+        id: 3,
+        targetShiftId: 103,
+        type: 'EXCHANGE',
+        requestStatus: 'APPROVED',
+        reason: 'Personal matter',
+        createdAt: '2025-05-19T09:45:00Z',
+        staff: {
+            id: 203,
+            fullName: 'Mike Johnson',
+            displayName: 'Mike J.',
+            userRoles: [{ role: { name: 'KITCHEN', hexColor: '#FF5722' } }],
+        },
+        targetShift: {
+            id: 103,
+            date: '2025-05-22',
+            shift: {
+                startTime: '16:00:00',
+                endTime: '20:00:00',
+            },
+        },
+    },
+    {
+        id: 4,
+        targetShiftId: 104,
+        type: 'LEAVE',
+        requestStatus: 'REJECTED',
+        reason: 'Family vacation',
+        createdAt: '2025-05-18T16:20:00Z',
+        staff: {
+            id: 204,
+            fullName: 'Emily Clark',
+            displayName: 'Emily C.',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        },
+        targetShift: {
+            id: 104,
+            date: '2025-05-25',
+            shift: {
+                startTime: '09:00:00',
+                endTime: '17:00:00',
+            },
+        },
+    },
 ];
 
-// Sample data for time-off requests
-const initialRequests = [
-  {
-    id: 1,
-    employeeId: 1,
-    type: 'time-off',
-    startDate: new Date(2025, 4, 15),
-    endDate: new Date(2025, 4, 16),
-    status: 'pending',
-    reason: 'Family vacation',
-    requestDate: new Date(2025, 4, 1),
-  },
-  {
-    id: 2,
-    employeeId: 3,
-    type: 'time-off',
-    startDate: new Date(2025, 4, 20),
-    endDate: new Date(2025, 4, 20),
-    status: 'approved',
-    reason: "Doctor's appointment",
-    requestDate: new Date(2025, 3, 25),
-  },
-  {
-    id: 3,
-    employeeId: 2,
-    type: 'shift-change',
-    shiftDate: new Date(2025, 4, 10),
-    shiftId: 12,
-    targetEmployeeId: 5,
-    status: 'pending',
-    reason: 'Personal commitment',
-    requestDate: new Date(2025, 4, 3),
-  },
-  {
-    id: 4,
-    employeeId: 4,
-    type: 'time-off',
-    startDate: new Date(2025, 4, 25),
-    endDate: new Date(2025, 4, 27),
-    status: 'rejected',
-    reason: 'Wedding attendance',
-    requestDate: new Date(2025, 4, 2),
-    rejectionReason: 'Busy period, insufficient staff coverage',
-  },
+// Mock unavailability requests
+const mockUnavailabilityRequests = [
+    {
+        id: 1,
+        startTime: '2025-05-26T09:00:00Z',
+        endTime: '2025-05-26T17:00:00Z',
+        reason: 'Family event',
+        requestStatus: 'PENDING',
+        createdAt: '2025-05-22T08:30:00Z',
+        staff: {
+            id: 201,
+            fullName: 'John Doe',
+            displayName: 'John D.',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        },
+    },
+    {
+        id: 2,
+        startTime: '2025-05-27T12:00:00Z',
+        endTime: '2025-05-29T20:00:00Z',
+        reason: 'Vacation',
+        requestStatus: 'PENDING',
+        createdAt: '2025-05-21T14:45:00Z',
+        staff: {
+            id: 202,
+            fullName: 'Sarah Adams',
+            displayName: 'Sarah A.',
+            userRoles: [{ role: { name: 'CASHIER', hexColor: '#2196F3' } }],
+        },
+    },
+    {
+        id: 3,
+        startTime: '2025-05-30T08:00:00Z',
+        endTime: '2025-05-30T12:00:00Z',
+        reason: 'Doctor appointment',
+        requestStatus: 'APPROVED',
+        createdAt: '2025-05-20T10:15:00Z',
+        staff: {
+            id: 203,
+            fullName: 'Mike Johnson',
+            displayName: 'Mike J.',
+            userRoles: [{ role: { name: 'KITCHEN', hexColor: '#FF5722' } }],
+        },
+    },
 ];
 
 export default function RequestsPage() {
-  const [requests, setRequests] = useState(initialRequests);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [currentRequest, setCurrentRequest] = useState<any>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [replacementEmployee, setReplacementEmployee] = useState<string>('');
-
-  // Get employee by ID
-  const getEmployee = (id: number) => {
-    return employees.find((emp) => emp.id === id);
-  };
-
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-  };
-
-  // Handle approving a request
-  const handleApproveRequest = () => {
-    setRequests(
-      requests.map((req) => {
-        if (req.id === currentRequest.id) {
-          if (req.type === 'shift-change' && replacementEmployee) {
-            return {
-              ...req,
-              status: 'approved',
-              targetEmployeeId: Number.parseInt(replacementEmployee),
-            };
-          }
-          return { ...req, status: 'approved' };
-        }
-        return req;
-      })
+    const [activeTab, setActiveTab] = useState('shift-requests');
+    const [shiftRequests, setShiftRequests] = useState(mockShiftRequests);
+    const [unavailabilityRequests, setUnavailabilityRequests] = useState(
+        mockUnavailabilityRequests
     );
-    setIsApproveDialogOpen(false);
-  };
+    const [selectedRequest, setSelectedRequest] = useState<any>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [responseNote, setResponseNote] = useState('');
+    const [responseAction, setResponseAction] = useState<
+        'approve' | 'reject' | null
+    >(null);
 
-  // Handle rejecting a request
-  const handleRejectRequest = () => {
-    setRequests(
-      requests.map((req) => {
-        if (req.id === currentRequest.id) {
-          return { ...req, status: 'rejected', rejectionReason };
+    const { error: toastError, success } = useCustomToast();
+
+    // Format date for display
+    const formatDate = (dateString: string) => {
+        return format(parseISO(dateString), 'MMM d, yyyy');
+    };
+
+    // Format time for display
+    const formatTime = (timeString: string) => {
+        return timeString.substring(0, 5);
+    };
+
+    // Format datetime for display
+    const formatDateTime = (dateTimeString: string) => {
+        return format(parseISO(dateTimeString), 'MMM d, yyyy h:mm a');
+    };
+
+    // Open response dialog
+    const openResponseDialog = (request: any, action: 'approve' | 'reject') => {
+        setSelectedRequest(request);
+        setResponseAction(action);
+        setResponseNote('');
+        setIsDialogOpen(true);
+    };
+
+    // Handle request response (approve/reject)
+    const handleRequestResponse = () => {
+        if (!selectedRequest || !responseAction) return;
+
+        const isShiftRequest = 'targetShiftId' in selectedRequest;
+        const newStatus =
+            responseAction === 'approve' ? 'APPROVED' : 'REJECTED';
+
+        if (isShiftRequest) {
+            // Update shift request
+            setShiftRequests((prev) =>
+                prev.map((req) =>
+                    req.id === selectedRequest.id
+                        ? { ...req, requestStatus: newStatus }
+                        : req
+                )
+            );
+        } else {
+            // Update unavailability request
+            setUnavailabilityRequests((prev) =>
+                prev.map((req) =>
+                    req.id === selectedRequest.id
+                        ? { ...req, requestStatus: newStatus }
+                        : req
+                )
+            );
         }
-        return req;
-      })
-    );
-    setRejectionReason('');
-    setIsRejectDialogOpen(false);
-  };
 
-  // Filter requests by status
-  const pendingRequests = requests.filter((req) => req.status === 'pending');
-  const approvedRequests = requests.filter((req) => req.status === 'approved');
-  const rejectedRequests = requests.filter((req) => req.status === 'rejected');
+        success(
+            `Request ${responseAction === 'approve' ? 'approved' : 'rejected'}`,
+            `Request ${responseAction === 'approve' ? 'approved' : 'rejected'}`
+        );
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Time-Off & Shift Change Requests
-        </h1>
-        <p className="text-muted-foreground">
-          Manage employee requests for time off and shift changes
-        </p>
-      </div>
+        setIsDialogOpen(false);
+    };
 
-      <Tabs defaultValue="pending">
-        <TabsList>
-          <TabsTrigger value="pending">
-            Pending ({pendingRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="approved">
-            Approved ({approvedRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="rejected">
-            Rejected ({rejectedRequests.length})
-          </TabsTrigger>
-        </TabsList>
+    // Get status badge
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'PENDING':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-yellow-50 text-yellow-700 border-yellow-300"
+                    >
+                        Pending
+                    </Badge>
+                );
+            case 'APPROVED':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-300"
+                    >
+                        Approved
+                    </Badge>
+                );
+            case 'REJECTED':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-300"
+                    >
+                        Rejected
+                    </Badge>
+                );
+            default:
+                return <Badge variant="outline">Unknown</Badge>;
+        }
+    };
 
-        <TabsContent value="pending">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Requests</CardTitle>
-              <CardDescription>Requests awaiting your approval</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pendingRequests.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No pending requests
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingRequests.map((request) => {
-                    const employee = getEmployee(request.employeeId);
-                    return (
-                      <div key={request.id} className="border rounded-md p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-start gap-3">
-                            <Avatar>
-                              <AvatarImage
-                                src={employee?.avatar || '/placeholder.svg'}
-                                alt={employee?.name}
-                              />
-                              <AvatarFallback>
-                                {employee ? getInitials(employee.name) : '??'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">{employee?.name}</h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-orange-500">
-                                  {request.type === 'time-off'
-                                    ? 'Time Off'
-                                    : 'Shift Change'}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  Requested on{' '}
-                                  {format(request.requestDate, 'MMM d, yyyy')}
-                                </span>
-                              </div>
+    return (
+        <div className="container py-6">
+            <h1 className="text-2xl font-bold mb-6">Time-off Requests</h1>
 
-                              {request.type === 'time-off' ? (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    {format(request.startDate, 'MMM d, yyyy')}
-                                    {request.startDate.getTime() !==
-                                      request.endDate.getTime() &&
-                                      ` - ${format(request.endDate, 'MMM d, yyyy')}`}
-                                  </span>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4">
+                    <TabsTrigger value="shift-requests">
+                        Shift Change Requests
+                    </TabsTrigger>
+                    <TabsTrigger value="unavailability-requests">
+                        Time-off Requests
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="shift-requests">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Shift Change Requests</CardTitle>
+                            <CardDescription>
+                                Manage employee requests to exchange or drop
+                                shifts
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Employee</TableHead>
+                                        <TableHead>Request Type</TableHead>
+                                        <TableHead>Shift Date</TableHead>
+                                        <TableHead>Shift Time</TableHead>
+                                        <TableHead>Reason</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {shiftRequests.map((request) => (
+                                        <TableRow key={request.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{
+                                                            backgroundColor:
+                                                                request.staff
+                                                                    .userRoles[0]
+                                                                    .role
+                                                                    .hexColor,
+                                                        }}
+                                                    />
+                                                    {request.staff.fullName}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {request.type === 'EXCHANGE'
+                                                    ? 'Shift Exchange'
+                                                    : 'Leave Request'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDate(
+                                                    request.targetShift.date
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatTime(
+                                                    request.targetShift.shift
+                                                        .startTime
+                                                )}{' '}
+                                                -{' '}
+                                                {formatTime(
+                                                    request.targetShift.shift
+                                                        .endTime
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {request.reason}
+                                            </TableCell>
+                                            <TableCell>
+                                                {getStatusBadge(
+                                                    request.requestStatus
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {request.requestStatus ===
+                                                    'PENDING' && (
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-green-600 border-green-200 hover:bg-green-50"
+                                                            onClick={() =>
+                                                                openResponseDialog(
+                                                                    request,
+                                                                    'approve'
+                                                                )
+                                                            }
+                                                        >
+                                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                                            Approve
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-red-600 border-red-200 hover:bg-red-50"
+                                                            onClick={() =>
+                                                                openResponseDialog(
+                                                                    request,
+                                                                    'reject'
+                                                                )
+                                                            }
+                                                        >
+                                                            <XCircle className="h-4 w-4 mr-1" />
+                                                            Reject
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="unavailability-requests">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Time-off Requests</CardTitle>
+                            <CardDescription>
+                                Manage employee requests for time off
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Employee</TableHead>
+                                        <TableHead>Start Time</TableHead>
+                                        <TableHead>End Time</TableHead>
+                                        <TableHead>Reason</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {unavailabilityRequests.map((request) => (
+                                        <TableRow key={request.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{
+                                                            backgroundColor:
+                                                                request.staff
+                                                                    .userRoles[0]
+                                                                    .role
+                                                                    .hexColor,
+                                                        }}
+                                                    />
+                                                    {request.staff.fullName}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDateTime(
+                                                    request.startTime
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDateTime(
+                                                    request.endTime
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {request.reason}
+                                            </TableCell>
+                                            <TableCell>
+                                                {getStatusBadge(
+                                                    request.requestStatus
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {request.requestStatus ===
+                                                    'PENDING' && (
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-green-600 border-green-200 hover:bg-green-50"
+                                                            onClick={() =>
+                                                                openResponseDialog(
+                                                                    request,
+                                                                    'approve'
+                                                                )
+                                                            }
+                                                        >
+                                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                                            Approve
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-red-600 border-red-200 hover:bg-red-50"
+                                                            onClick={() =>
+                                                                openResponseDialog(
+                                                                    request,
+                                                                    'reject'
+                                                                )
+                                                            }
+                                                        >
+                                                            <XCircle className="h-4 w-4 mr-1" />
+                                                            Reject
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+
+            {/* Response Dialog */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {responseAction === 'approve'
+                                ? 'Approve Request'
+                                : 'Reject Request'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {responseAction === 'approve'
+                                ? 'Are you sure you want to approve this request?'
+                                : 'Are you sure you want to reject this request?'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedRequest && (
+                        <div className="py-4">
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                    <div>
+                                        <p className="font-medium">
+                                            {selectedRequest.staff.fullName}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {
+                                                selectedRequest.staff
+                                                    .userRoles[0].role.name
+                                            }
+                                        </p>
+                                    </div>
                                 </div>
-                              ) : (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    Shift on{' '}
-                                    {format(request.shiftDate, 'MMM d, yyyy')}
-                                  </span>
-                                </div>
-                              )}
 
-                              <p className="text-sm mt-2">{request.reason}</p>
+                                {'targetShiftId' in selectedRequest ? (
+                                    <>
+                                        <div className="flex items-start gap-3">
+                                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                            <div>
+                                                <p className="font-medium">
+                                                    Shift Date
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatDate(
+                                                        selectedRequest
+                                                            .targetShift.date
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3">
+                                            <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                            <div>
+                                                <p className="font-medium">
+                                                    Shift Time
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatTime(
+                                                        selectedRequest
+                                                            .targetShift.shift
+                                                            .startTime
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {formatTime(
+                                                        selectedRequest
+                                                            .targetShift.shift
+                                                            .endTime
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-start gap-3">
+                                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                            <div>
+                                                <p className="font-medium">
+                                                    Time Off Period
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {formatDateTime(
+                                                        selectedRequest.startTime
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {formatDateTime(
+                                                        selectedRequest.endTime
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="flex items-start gap-3">
+                                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                    <div>
+                                        <p className="font-medium">Reason</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {selectedRequest.reason}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-green-500"
-                              onClick={() => {
-                                setCurrentRequest(request);
-                                setIsApproveDialogOpen(true);
-                              }}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-500"
-                              onClick={() => {
-                                setCurrentRequest(request);
-                                setIsRejectDialogOpen(true);
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="approved">
-          <Card>
-            <CardHeader>
-              <CardTitle>Approved Requests</CardTitle>
-              <CardDescription>Previously approved requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {approvedRequests.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No approved requests
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {approvedRequests.map((request) => {
-                    const employee = getEmployee(request.employeeId);
-                    return (
-                      <div key={request.id} className="border rounded-md p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-start gap-3">
-                            <Avatar>
-                              <AvatarImage
-                                src={employee?.avatar || '/placeholder.svg'}
-                                alt={employee?.name}
-                              />
-                              <AvatarFallback>
-                                {employee ? getInitials(employee.name) : '??'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">{employee?.name}</h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-green-500">Approved</Badge>
-                                <Badge className="bg-orange-500">
-                                  {request.type === 'time-off'
-                                    ? 'Time Off'
-                                    : 'Shift Change'}
-                                </Badge>
-                              </div>
-
-                              {request.type === 'time-off' ? (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    {format(request.startDate, 'MMM d, yyyy')}
-                                    {request.startDate.getTime() !==
-                                      request.endDate.getTime() &&
-                                      ` - ${format(request.endDate, 'MMM d, yyyy')}`}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    Shift on{' '}
-                                    {format(request.shiftDate, 'MMM d, yyyy')}
-                                  </span>
-                                </div>
-                              )}
-
-                              <p className="text-sm mt-2">{request.reason}</p>
+                            <div className="mt-4">
+                                <label className="text-sm font-medium">
+                                    Response Note (Optional)
+                                </label>
+                                <Textarea
+                                    placeholder="Add a note to your response..."
+                                    value={responseNote}
+                                    onChange={(e) =>
+                                        setResponseNote(e.target.value)
+                                    }
+                                    className="mt-1"
+                                />
                             </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setCurrentRequest(request);
-                              setIsViewDialogOpen(true);
-                            }}
-                          >
-                            View
-                          </Button>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="rejected">
-          <Card>
-            <CardHeader>
-              <CardTitle>Rejected Requests</CardTitle>
-              <CardDescription>Previously rejected requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {rejectedRequests.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No rejected requests
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {rejectedRequests.map((request) => {
-                    const employee = getEmployee(request.employeeId);
-                    return (
-                      <div key={request.id} className="border rounded-md p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-start gap-3">
-                            <Avatar>
-                              <AvatarImage
-                                src={employee?.avatar || '/placeholder.svg'}
-                                alt={employee?.name}
-                              />
-                              <AvatarFallback>
-                                {employee ? getInitials(employee.name) : '??'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-medium">{employee?.name}</h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="destructive">Rejected</Badge>
-                                <Badge className="bg-orange-500">
-                                  {request.type === 'time-off'
-                                    ? 'Time Off'
-                                    : 'Shift Change'}
-                                </Badge>
-                              </div>
-
-                              {request.type === 'time-off' ? (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    {format(request.startDate, 'MMM d, yyyy')}
-                                    {request.startDate.getTime() !==
-                                      request.endDate.getTime() &&
-                                      ` - ${format(request.endDate, 'MMM d, yyyy')}`}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 mt-2 text-sm">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    Shift on{' '}
-                                    {format(request.shiftDate, 'MMM d, yyyy')}
-                                  </span>
-                                </div>
-                              )}
-
-                              <p className="text-sm mt-2">{request.reason}</p>
-
-                              {request.rejectionReason && (
-                                <div className="mt-2 p-2 bg-red-50 text-sm rounded-md">
-                                  <span className="font-medium">
-                                    Rejection reason:
-                                  </span>{' '}
-                                  {request.rejectionReason}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setCurrentRequest(request);
-                              setIsViewDialogOpen(true);
-                            }}
-                          >
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* View Request Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Details</DialogTitle>
-            <DialogDescription>
-              View the details of this request
-            </DialogDescription>
-          </DialogHeader>
-          {currentRequest && (
-            <div className="py-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        getEmployee(currentRequest.employeeId)?.avatar ||
-                        '/placeholder.svg'
-                      }
-                      alt={getEmployee(currentRequest.employeeId)?.name}
-                    />
-                    <AvatarFallback>
-                      {getEmployee(currentRequest.employeeId)
-                        ? getInitials(
-                            getEmployee(currentRequest.employeeId)?.name
-                          )
-                        : '??'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">
-                      {getEmployee(currentRequest.employeeId)?.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        className={
-                          currentRequest.status === 'approved'
-                            ? 'bg-green-500'
-                            : currentRequest.status === 'rejected'
-                              ? 'bg-red-500'
-                              : 'bg-orange-500'
-                        }
-                      >
-                        {currentRequest.status.charAt(0).toUpperCase() +
-                          currentRequest.status.slice(1)}
-                      </Badge>
-                      <Badge className="bg-orange-500">
-                        {currentRequest.type === 'time-off'
-                          ? 'Time Off'
-                          : 'Shift Change'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-sm">
-                    <span className="font-medium">Request Date:</span>{' '}
-                    {format(currentRequest.requestDate, 'MMMM d, yyyy')}
-                  </div>
-
-                  {currentRequest.type === 'time-off' ? (
-                    <div className="text-sm">
-                      <span className="font-medium">Time Off Period:</span>{' '}
-                      {format(currentRequest.startDate, 'MMMM d, yyyy')}
-                      {currentRequest.startDate.getTime() !==
-                        currentRequest.endDate.getTime() &&
-                        ` - ${format(currentRequest.endDate, 'MMMM d, yyyy')}`}
-                    </div>
-                  ) : (
-                    <div className="text-sm">
-                      <span className="font-medium">Shift Date:</span>{' '}
-                      {format(currentRequest.shiftDate, 'MMMM d, yyyy')}
-                    </div>
-                  )}
-
-                  <div className="text-sm">
-                    <span className="font-medium">Reason:</span>{' '}
-                    {currentRequest.reason}
-                  </div>
-
-                  {currentRequest.status === 'rejected' &&
-                    currentRequest.rejectionReason && (
-                      <div className="text-sm p-2 bg-red-50 rounded-md">
-                        <span className="font-medium">Rejection Reason:</span>{' '}
-                        {currentRequest.rejectionReason}
-                      </div>
                     )}
 
-                  {currentRequest.type === 'shift-change' &&
-                    currentRequest.targetEmployeeId && (
-                      <div className="text-sm">
-                        <span className="font-medium">Replacement:</span>{' '}
-                        {getEmployee(currentRequest.targetEmployeeId)?.name}
-                      </div>
-                    )}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Approve Request Dialog */}
-      <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Approve Request</DialogTitle>
-            <DialogDescription>
-              Confirm approval of this request
-            </DialogDescription>
-          </DialogHeader>
-          {currentRequest && (
-            <div className="py-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        getEmployee(currentRequest.employeeId)?.avatar ||
-                        '/placeholder.svg'
-                      }
-                      alt={getEmployee(currentRequest.employeeId)?.name}
-                    />
-                    <AvatarFallback>
-                      {getEmployee(currentRequest.employeeId)
-                        ? getInitials(
-                            getEmployee(currentRequest.employeeId)?.name
-                          )
-                        : '??'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">
-                      {getEmployee(currentRequest.employeeId)?.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className="bg-orange-500">
-                        {currentRequest.type === 'time-off'
-                          ? 'Time Off'
-                          : 'Shift Change'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {currentRequest.type === 'time-off' ? (
-                  <div className="text-sm">
-                    <span className="font-medium">Time Off Period:</span>{' '}
-                    {format(currentRequest.startDate, 'MMMM d, yyyy')}
-                    {currentRequest.startDate.getTime() !==
-                      currentRequest.endDate.getTime() &&
-                      ` - ${format(currentRequest.endDate, 'MMMM d, yyyy')}`}
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-sm">
-                      <span className="font-medium">Shift Date:</span>{' '}
-                      {format(currentRequest.shiftDate, 'MMMM d, yyyy')}
-                    </div>
-                    <div className="grid gap-2">
-                      <label className="text-sm font-medium">
-                        Select Replacement Employee
-                      </label>
-                      <Select
-                        value={replacementEmployee}
-                        onValueChange={setReplacementEmployee}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an employee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {employees
-                            .filter(
-                              (emp) => emp.id !== currentRequest.employeeId
-                            )
-                            .map((emp) => (
-                              <SelectItem
-                                key={emp.id}
-                                value={emp.id.toString()}
-                              >
-                                {emp.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsApproveDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-green-500 hover:bg-green-600"
-              onClick={handleApproveRequest}
-              disabled={
-                currentRequest?.type === 'shift-change' && !replacementEmployee
-              }
-            >
-              Approve
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Request Dialog */}
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Request</DialogTitle>
-            <DialogDescription>
-              Provide a reason for rejecting this request
-            </DialogDescription>
-          </DialogHeader>
-          {currentRequest && (
-            <div className="py-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        getEmployee(currentRequest.employeeId)?.avatar ||
-                        '/placeholder.svg'
-                      }
-                      alt={getEmployee(currentRequest.employeeId)?.name}
-                    />
-                    <AvatarFallback>
-                      {getEmployee(currentRequest.employeeId)
-                        ? getInitials(
-                            getEmployee(currentRequest.employeeId)?.name
-                          )
-                        : '??'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">
-                      {getEmployee(currentRequest.employeeId)?.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className="bg-orange-500">
-                        {currentRequest.type === 'time-off'
-                          ? 'Time Off'
-                          : 'Shift Change'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">
-                    Reason for Rejection
-                  </label>
-                  <Textarea
-                    placeholder="Provide a reason for rejecting this request"
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsRejectDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRejectRequest}
-              disabled={!rejectionReason.trim()}
-            >
-              Reject
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleRequestResponse}
+                            variant={
+                                responseAction === 'approve'
+                                    ? 'default'
+                                    : 'destructive'
+                            }
+                        >
+                            {responseAction === 'approve'
+                                ? 'Approve'
+                                : 'Reject'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 }
