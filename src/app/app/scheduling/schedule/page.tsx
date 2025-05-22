@@ -1,838 +1,1198 @@
 'use client';
 
-import { useState } from 'react';
+import type React from 'react';
+
+import { useState, useRef, useEffect } from 'react';
+import {
+    format,
+    addDays,
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    parseISO,
+    isWithinInterval,
+} from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+    Filter,
+    Edit,
+    Trash2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-// Sample data for job roles
-const jobRoles = [
-  { id: 1, name: 'Head Chef', color: '#FF5733' },
-  { id: 2, name: 'Sous Chef', color: '#33FF57' },
-  { id: 3, name: 'Waiter', color: '#3357FF' },
-  { id: 4, name: 'Bartender', color: '#F033FF' },
-  { id: 5, name: 'Host/Hostess', color: '#FF33A8' },
+// Mock data for staff shifts
+const mockStaffShifts = [
+    {
+        id: 1,
+        date: '2025-05-22',
+        note: 'Regular shift',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 101,
+            fullName: 'John Doe',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+            displayName: 'John D.',
+        },
+        shift: {
+            id: 201,
+            startTime: '08:00:00',
+            endTime: '12:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
+    {
+        id: 2,
+        date: '2025-05-22',
+        note: 'Covering for Sarah',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 102,
+            fullName: 'Mike Johnson',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+            displayName: 'Mike J.',
+        },
+        shift: {
+            id: 201,
+            startTime: '08:00:00',
+            endTime: '12:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
+    {
+        id: 3,
+        date: '2025-05-22',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 103,
+            fullName: 'Emily Clark',
+            userRoles: [{ role: { name: 'CASHIER', hexColor: '#2196F3' } }],
+            displayName: 'Emily C.',
+        },
+        shift: {
+            id: 202,
+            startTime: '09:00:00',
+            endTime: '13:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'CASHIER', quantity: 1 }],
+        },
+    },
+    {
+        id: 4,
+        date: '2025-05-22',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 104,
+            fullName: 'Robert Wilson',
+            userRoles: [{ role: { name: 'KITCHEN', hexColor: '#FF5722' } }],
+            displayName: 'Robert W.',
+        },
+        shift: {
+            id: 203,
+            startTime: '07:00:00',
+            endTime: '15:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'KITCHEN', quantity: 3 }],
+        },
+    },
+    {
+        id: 5,
+        date: '2025-05-23',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 101,
+            fullName: 'John Doe',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+            displayName: 'John D.',
+        },
+        shift: {
+            id: 204,
+            startTime: '12:00:00',
+            endTime: '20:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
+    {
+        id: 6,
+        date: '2025-05-23',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        staff: {
+            id: 105,
+            fullName: 'Sarah Adams',
+            userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+            displayName: 'Sarah A.',
+        },
+        shift: {
+            id: 204,
+            startTime: '12:00:00',
+            endTime: '20:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
 ];
 
-// Sample data for employees
-const employees = [
-  { id: 1, name: 'John Smith', roleId: 3, avatar: '/avatars/john.png' },
-  { id: 2, name: 'Sarah Johnson', roleId: 5, avatar: '/avatars/sarah.png' },
-  { id: 3, name: 'Michael Brown', roleId: 1, avatar: '/avatars/michael.png' },
-  { id: 4, name: 'Emily Davis', roleId: 2, avatar: '/avatars/emily.png' },
-  { id: 5, name: 'David Wilson', roleId: 4, avatar: '/avatars/david.png' },
-  { id: 6, name: 'Jessica Taylor', roleId: 3, avatar: '/avatars/jessica.png' },
-  { id: 7, name: 'Daniel Martinez', roleId: 2, avatar: '/avatars/daniel.png' },
-  { id: 8, name: 'Olivia Anderson', roleId: 3, avatar: '/avatars/olivia.png' },
+// Mock data for staff
+const mockStaff = [
+    {
+        id: 101,
+        fullName: 'John Doe',
+        userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        displayName: 'John D.',
+    },
+    {
+        id: 102,
+        fullName: 'Mike Johnson',
+        userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        displayName: 'Mike J.',
+    },
+    {
+        id: 103,
+        fullName: 'Emily Clark',
+        userRoles: [{ role: { name: 'CASHIER', hexColor: '#2196F3' } }],
+        displayName: 'Emily C.',
+    },
+    {
+        id: 104,
+        fullName: 'Robert Wilson',
+        userRoles: [{ role: { name: 'KITCHEN', hexColor: '#FF5722' } }],
+        displayName: 'Robert W.',
+    },
+    {
+        id: 105,
+        fullName: 'Sarah Adams',
+        userRoles: [{ role: { name: 'WAITER', hexColor: '#4CAF50' } }],
+        displayName: 'Sarah A.',
+    },
 ];
 
-// Sample data for shifts with assignments
-const initialShifts = [
-  {
-    id: 1,
-    date: new Date(2025, 4, 5), // May 5, 2025 (Monday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-    roleRequirements: [
-      { roleId: 1, count: 1, assignments: [{ employeeId: 3 }] },
-      {
-        roleId: 2,
-        count: 2,
-        assignments: [{ employeeId: 4 }, { employeeId: 7 }],
-      },
-      {
-        roleId: 3,
-        count: 4,
-        assignments: [{ employeeId: 1 }, { employeeId: 6 }, { employeeId: 8 }],
-      },
-    ],
-  },
-  {
-    id: 2,
-    date: new Date(2025, 4, 6), // May 6, 2025 (Tuesday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-    roleRequirements: [
-      { roleId: 1, count: 1, assignments: [{ employeeId: 3 }] },
-      {
-        roleId: 2,
-        count: 2,
-        assignments: [{ employeeId: 4 }, { employeeId: 7 }],
-      },
-      {
-        roleId: 3,
-        count: 4,
-        assignments: [{ employeeId: 1 }, { employeeId: 6 }, { employeeId: 8 }],
-      },
-      { roleId: 5, count: 1, assignments: [{ employeeId: 2 }] },
-    ],
-  },
-  {
-    id: 3,
-    date: new Date(2025, 4, 7), // May 7, 2025 (Wednesday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-    roleRequirements: [
-      { roleId: 1, count: 1, assignments: [{ employeeId: 3 }] },
-      {
-        roleId: 2,
-        count: 2,
-        assignments: [{ employeeId: 4 }, { employeeId: 7 }],
-      },
-      {
-        roleId: 3,
-        count: 4,
-        assignments: [{ employeeId: 1 }, { employeeId: 6 }, { employeeId: 8 }],
-      },
-      { roleId: 4, count: 1, assignments: [{ employeeId: 5 }] },
-      { roleId: 5, count: 1, assignments: [{ employeeId: 2 }] },
-    ],
-  },
-  {
-    id: 4,
-    date: new Date(2025, 4, 5), // May 5, 2025 (Monday)
-    startTime: '17:00',
-    endTime: '01:00', // Next day
-    status: 'published',
-    roleRequirements: [
-      { roleId: 1, count: 1, assignments: [{ employeeId: 3 }] },
-      {
-        roleId: 3,
-        count: 2,
-        assignments: [{ employeeId: 1 }, { employeeId: 8 }],
-      },
-      { roleId: 4, count: 1, assignments: [{ employeeId: 5 }] },
-    ],
-  },
-  {
-    id: 5,
-    date: new Date(2025, 4, 6), // May 6, 2025 (Tuesday)
-    startTime: '17:00',
-    endTime: '01:00', // Next day
-    status: 'published',
-    roleRequirements: [
-      { roleId: 2, count: 1, assignments: [{ employeeId: 7 }] },
-      {
-        roleId: 3,
-        count: 2,
-        assignments: [{ employeeId: 6 }, { employeeId: 8 }],
-      },
-      { roleId: 4, count: 1, assignments: [{ employeeId: 5 }] },
-    ],
-  },
-  {
-    id: 6,
-    date: new Date(2025, 4, 8), // May 8, 2025 (Thursday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'draft',
-    roleRequirements: [
-      { roleId: 1, count: 1, assignments: [{ employeeId: 3 }] },
-      { roleId: 2, count: 2, assignments: [{ employeeId: 4 }] }, // Missing one assignment - conflict
-      {
-        roleId: 3,
-        count: 4,
-        assignments: [{ employeeId: 1 }, { employeeId: 6 }, { employeeId: 8 }],
-      },
-      { roleId: 5, count: 1, assignments: [{ employeeId: 2 }] },
-    ],
-  },
+// Mock roles
+const mockRoles = [
+    { name: 'WAITER', hexColor: '#4CAF50' },
+    { name: 'CASHIER', hexColor: '#2196F3' },
+    { name: 'KITCHEN', hexColor: '#FF5722' },
+    { name: 'MANAGER', hexColor: '#9C27B0' },
+    { name: 'SUPPORT', hexColor: '#607D8B' },
 ];
 
-// Sample conflicts
-const initialConflicts = [
-  {
-    id: 1,
-    employeeId: 1,
-    shiftId1: 1,
-    shiftId2: 4,
-    date: new Date(2025, 4, 5), // May 5, 2025
-    description: 'John Smith is assigned to two overlapping shifts on Monday',
-  },
-  {
-    id: 2,
-    employeeId: null,
-    shiftId1: 6,
-    shiftId2: null,
-    date: new Date(2025, 4, 8), // May 8, 2025
-    description: 'Missing one Sous Chef assignment for Thursday morning shift',
-  },
+// Mock shifts
+const mockShifts = [
+    {
+        id: 201,
+        startTime: '08:00:00',
+        endTime: '12:00:00',
+        branchName: 'Downtown Branch',
+        requirements: [{ role: 'WAITER', quantity: 2 }],
+    },
+    {
+        id: 202,
+        startTime: '09:00:00',
+        endTime: '13:00:00',
+        branchName: 'Downtown Branch',
+        requirements: [{ role: 'CASHIER', quantity: 1 }],
+    },
+    {
+        id: 203,
+        startTime: '07:00:00',
+        endTime: '15:00:00',
+        branchName: 'Downtown Branch',
+        requirements: [{ role: 'KITCHEN', quantity: 3 }],
+    },
+    {
+        id: 204,
+        startTime: '12:00:00',
+        endTime: '20:00:00',
+        branchName: 'Downtown Branch',
+        requirements: [{ role: 'WAITER', quantity: 2 }],
+    },
 ];
 
 export default function SchedulePage() {
-  const [currentWeekStart, setCurrentWeekStart] = useState(
-    new Date(2025, 4, 5)
-  ); // May 5, 2025 (Monday)
-  const [viewMode, setViewMode] = useState('employee'); // employee or role
-  const [shifts, setShifts] = useState(initialShifts);
-  const [conflicts, setConflicts] = useState(initialConflicts);
-  const [isConflictDialogOpen, setIsConflictDialogOpen] = useState(false);
-  const [currentConflict, setCurrentConflict] = useState<any>(null);
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [currentAssignment, setCurrentAssignment] = useState<any>(null);
-
-  // Calculate week dates
-  const weekDates = Array.from({ length: 7 }, (_, i) =>
-    addDays(currentWeekStart, i)
-  );
-
-  // Format date for display
-  const formatWeekRange = () => {
-    const start = format(currentWeekStart, 'MMMM d');
-    const end = format(addDays(currentWeekStart, 6), 'MMMM d, yyyy');
-    return `${start} - ${end}`;
-  };
-
-  // Navigate to previous week
-  const goToPreviousWeek = () => {
-    setCurrentWeekStart(addDays(currentWeekStart, -7));
-  };
-
-  // Navigate to next week
-  const goToNextWeek = () => {
-    setCurrentWeekStart(addDays(currentWeekStart, 7));
-  };
-
-  // Get employee by ID
-  const getEmployee = (id: number) => {
-    return employees.find((emp) => emp.id === id);
-  };
-
-  // Get role by ID
-  const getRole = (id: number) => {
-    return jobRoles.find((role) => role.id === id);
-  };
-
-  // Get role color
-  const getRoleColor = (roleId: number) => {
-    return jobRoles.find((role) => role.id === roleId)?.color || '#000000';
-  };
-
-  // Get shifts for a specific date
-  const getShiftsForDate = (date: Date) => {
-    return shifts.filter(
-      (shift) =>
-        shift.date.getDate() === date.getDate() &&
-        shift.date.getMonth() === date.getMonth() &&
-        shift.date.getFullYear() === date.getFullYear()
+    const [date, setDate] = useState<Date>(new Date());
+    const [viewMode, setViewMode] = useState<'staff' | 'role' | 'time'>(
+        'staff'
     );
-  };
+    const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
+    const [selectedRole, setSelectedRole] = useState<string>('all');
+    const [selectedStaff, setSelectedStaff] = useState<number | 'all'>('all');
+    const [shifts, setShifts] = useState(mockStaffShifts);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [selectedShift, setSelectedShift] = useState<any>(null);
+    const [draggedShift, setDraggedShift] = useState<any>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const ganttRef = useRef<HTMLDivElement>(null);
 
-  // Get conflicts for a specific date
-  const getConflictsForDate = (date: Date) => {
-    return conflicts.filter(
-      (conflict) =>
-        conflict.date.getDate() === date.getDate() &&
-        conflict.date.getMonth() === date.getMonth() &&
-        conflict.date.getFullYear() === date.getFullYear()
-    );
-  };
+    // Calculate date range based on current date and time range
+    const startDate = startOfWeek(date, { weekStartsOn: 1 }); // Start from Monday
+    const endDate =
+        timeRange === 'week'
+            ? endOfWeek(date, { weekStartsOn: 1 })
+            : addDays(startDate, 30);
 
-  // Handle resolving a conflict
-  const handleResolveConflict = () => {
-    // In a real app, this would update the shifts to resolve the conflict
-    setConflicts(
-      conflicts.filter((conflict) => conflict.id !== currentConflict.id)
-    );
-    setIsConflictDialogOpen(false);
-  };
+    const daysInRange = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Handle assigning an employee
-  const handleAssignEmployee = (employeeId: number) => {
-    if (!currentAssignment) return;
-
-    const { shiftId, roleId, index } = currentAssignment;
-
-    // Update the shift with the new assignment
-    setShifts(
-      shifts.map((shift) => {
-        if (shift.id === shiftId) {
-          const updatedRoleRequirements = shift.roleRequirements.map((req) => {
-            if (req.roleId === roleId) {
-              const updatedAssignments = [...req.assignments];
-              if (index < updatedAssignments.length) {
-                updatedAssignments[index] = { employeeId };
-              } else {
-                updatedAssignments.push({ employeeId });
-              }
-              return { ...req, assignments: updatedAssignments };
-            }
-            return req;
-          });
-          return { ...shift, roleRequirements: updatedRoleRequirements };
+    // Navigate to previous/next period
+    const navigatePrevious = () => {
+        if (timeRange === 'week') {
+            setDate(addDays(date, -7));
+        } else {
+            setDate(addDays(date, -30));
         }
-        return shift;
-      })
-    );
-
-    // Check if this resolves a conflict
-    if (currentAssignment.conflictId) {
-      setConflicts(
-        conflicts.filter(
-          (conflict) => conflict.id !== currentAssignment.conflictId
-        )
-      );
-    }
-
-    setIsAssignDialogOpen(false);
-  };
-
-  // Render time slot for Gantt chart
-  const renderTimeSlot = (time: string) => {
-    const hour = Number.parseInt(time.split(':')[0]);
-    const minute = time.split(':')[1];
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minute} ${period}`;
-  };
-
-  // Calculate position and width for shift block in Gantt chart
-  const calculateShiftStyle = (startTime: string, endTime: string) => {
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-
-    const startPosition = ((startHour * 60 + startMinute) / (24 * 60)) * 100;
-    const endPosition = ((endHour * 60 + endMinute) / (24 * 60)) * 100;
-    const width = endPosition - startPosition;
-
-    return {
-      left: `${startPosition}%`,
-      width: `${width}%`,
     };
-  };
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Schedule</h1>
-        <p className="text-muted-foreground">
-          View and manage employee work schedules
-        </p>
-      </div>
+    const navigateNext = () => {
+        if (timeRange === 'week') {
+            setDate(addDays(date, 7));
+        } else {
+            setDate(addDays(date, 30));
+        }
+    };
 
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-lg font-medium">{formatWeekRange()}</h2>
-          <Button variant="outline" size="icon" onClick={goToNextWeek}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+    // Filter shifts based on selected role and staff
+    const filteredShifts = shifts.filter((shift) => {
+        const roleMatch =
+            selectedRole === 'all' ||
+            shift.staff.userRoles[0].role.name === selectedRole;
+        const staffMatch =
+            selectedStaff === 'all' || shift.staff.id === selectedStaff;
 
-        <div className="flex items-center gap-4">
-          <Select value={viewMode} onValueChange={setViewMode}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="View by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="employee">View by Employee</SelectItem>
-              <SelectItem value="role">View by Role</SelectItem>
-            </SelectContent>
-          </Select>
+        // Check if the shift date is within the current view range
+        const shiftDate = parseISO(shift.date);
+        const dateMatch = isWithinInterval(shiftDate, {
+            start: startDate,
+            end: endDate,
+        });
 
-          {conflicts.length > 0 && (
-            <Button
-              variant="outline"
-              className="text-red-500 border-red-500"
-              onClick={() => {
-                setCurrentConflict(conflicts[0]);
-                setIsConflictDialogOpen(true);
-              }}
-            >
-              <AlertCircle className="mr-2 h-4 w-4" />
-              {conflicts.length} Conflicts
-            </Button>
-          )}
-        </div>
-      </div>
+        return roleMatch && staffMatch && dateMatch;
+    });
 
-      <Tabs defaultValue="gantt">
-        <TabsList>
-          <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
-        </TabsList>
+    // Group shifts by staff, role, or time
+    const groupedShifts = () => {
+        if (viewMode === 'staff') {
+            // Group by staff
+            const staffGroups: Record<number, any[]> = {};
+            filteredShifts.forEach((shift) => {
+                if (!staffGroups[shift.staff.id]) {
+                    staffGroups[shift.staff.id] = [];
+                }
+                staffGroups[shift.staff.id].push(shift);
+            });
+            return staffGroups;
+        } else if (viewMode === 'role') {
+            // Group by role
+            const roleGroups: Record<string, any[]> = {};
+            filteredShifts.forEach((shift) => {
+                const role = shift.staff.userRoles[0].role.name;
+                if (!roleGroups[role]) {
+                    roleGroups[role] = [];
+                }
+                roleGroups[role].push(shift);
+            });
+            return roleGroups;
+        } else {
+            // Group by time (shift)
+            const timeGroups: Record<string, any[]> = {};
+            filteredShifts.forEach((shift) => {
+                const timeKey = `${shift.shift.startTime}-${shift.shift.endTime}`;
+                if (!timeGroups[timeKey]) {
+                    timeGroups[timeKey] = [];
+                }
+                timeGroups[timeKey].push(shift);
+            });
+            return timeGroups;
+        }
+    };
 
-        <TabsContent value="gantt">
-          <Card>
-            <CardHeader className="pb-0">
-              <CardTitle>Schedule Gantt Chart</CardTitle>
-              <CardDescription>
-                Visual representation of the work schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mt-6 overflow-x-auto">
-                <div className="min-w-[1000px]">
-                  {/* Time header */}
-                  <div className="flex border-b">
-                    <div className="w-48 flex-shrink-0 p-2 font-medium">
-                      {viewMode === 'employee' ? 'Employee' : 'Role'}
-                    </div>
-                    <div className="flex-1 flex">
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <div
-                          key={i}
-                          className="flex-1 text-center text-xs p-1 border-l"
-                        >
-                          {i % 3 === 0 && `${i}:00`}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+    // Calculate position and width for Gantt bars
+    const calculateShiftPosition = (shift: any, dayWidth: number) => {
+        const shiftDate = parseISO(shift.date);
+        const dayIndex = daysInRange.findIndex(
+            (day) =>
+                day.getDate() === shiftDate.getDate() &&
+                day.getMonth() === shiftDate.getMonth() &&
+                day.getFullYear() === shiftDate.getFullYear()
+        );
 
-                  {/* Gantt rows */}
-                  {viewMode === 'employee'
-                    ? // Employee view
-                      employees.map((employee) => (
-                        <div
-                          key={employee.id}
-                          className="flex border-b hover:bg-gray-50"
-                        >
-                          <div className="w-48 flex-shrink-0 p-2 flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{
-                                backgroundColor: getRoleColor(employee.roleId),
-                              }}
-                            />
-                            <span>{employee.name}</span>
-                          </div>
-                          <div className="flex-1 relative h-12">
-                            {shifts.map((shift) => {
-                              // Find assignments for this employee
-                              const assignments =
-                                shift.roleRequirements.flatMap((req) =>
-                                  req.assignments
-                                    .filter((a) => a.employeeId === employee.id)
-                                    .map((a) => ({
-                                      roleId: req.roleId,
-                                      shiftId: shift.id,
-                                    }))
-                                );
+        if (dayIndex === -1) return { left: 0, width: 0 };
 
-                              if (assignments.length === 0) return null;
+        // Parse shift times
+        const [startHour, startMinute] = shift.shift.startTime
+            .split(':')
+            .map(Number);
+        const [endHour, endMinute] = shift.shift.endTime.split(':').map(Number);
 
-                              // Check if this is a conflicting shift
-                              const isConflict = conflicts.some(
-                                (conflict) =>
-                                  conflict.employeeId === employee.id &&
-                                  (conflict.shiftId1 === shift.id ||
-                                    conflict.shiftId2 === shift.id)
-                              );
+        // Calculate position as percentage of day
+        const dayStart = 6; // 6 AM
+        const dayEnd = 22; // 10 PM
+        const dayLength = dayEnd - dayStart;
 
-                              return assignments.map((assignment, idx) => (
-                                <div
-                                  key={`${shift.id}-${idx}`}
-                                  className={cn(
-                                    'absolute h-8 top-2 rounded-md text-xs flex items-center justify-center text-white overflow-hidden',
-                                    isConflict
-                                      ? 'bg-red-500'
-                                      : 'cursor-pointer',
-                                    shift.status === 'draft' && 'opacity-70'
-                                  )}
-                                  style={{
-                                    ...calculateShiftStyle(
-                                      shift.startTime,
-                                      shift.endTime
-                                    ),
-                                    backgroundColor: isConflict
-                                      ? undefined
-                                      : getRoleColor(assignment.roleId),
-                                  }}
-                                  onClick={() => {
-                                    if (isConflict) {
-                                      const conflict = conflicts.find(
-                                        (c) =>
-                                          c.employeeId === employee.id &&
-                                          (c.shiftId1 === shift.id ||
-                                            c.shiftId2 === shift.id)
-                                      );
-                                      if (conflict) {
-                                        setCurrentConflict(conflict);
-                                        setIsConflictDialogOpen(true);
-                                      }
-                                    }
-                                  }}
+        const shiftStartHourNormalized =
+            startHour + startMinute / 60 - dayStart;
+        const shiftEndHourNormalized = endHour + endMinute / 60 - dayStart;
+
+        const startPercent = Math.max(
+            0,
+            (shiftStartHourNormalized / dayLength) * 100
+        );
+        const endPercent = Math.min(
+            100,
+            (shiftEndHourNormalized / dayLength) * 100
+        );
+        const width = endPercent - startPercent;
+
+        return {
+            left: dayIndex * dayWidth + (startPercent / 100) * dayWidth,
+            width: (width / 100) * dayWidth,
+        };
+    };
+
+    // Handle edit dialog open
+    const handleEditClick = (shift: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedShift({ ...shift });
+        setIsEditDialogOpen(true);
+    };
+
+    // Handle delete dialog open
+    const handleDeleteClick = (shift: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedShift(shift);
+        setIsDeleteDialogOpen(true);
+    };
+
+    // Handle shift update
+    const handleUpdateShift = () => {
+        if (!selectedShift) return;
+
+        // Update shift in state
+        setShifts((prev) =>
+            prev.map((shift) =>
+                shift.id === selectedShift.id ? { ...selectedShift } : shift
+            )
+        );
+
+        setIsEditDialogOpen(false);
+        // toast({
+        //   title: "Shift updated",
+        //   description: "The shift has been updated successfully.",
+        // })
+    };
+
+    // Handle shift delete
+    const handleDeleteShift = () => {
+        if (!selectedShift) return;
+
+        // Remove shift from state
+        setShifts((prev) =>
+            prev.filter((shift) => shift.id !== selectedShift.id)
+        );
+
+        setIsDeleteDialogOpen(false);
+        // toast({
+        //   title: "Shift deleted",
+        //   description: "The shift has been deleted successfully.",
+        // })
+    };
+
+    // Drag and drop functionality
+    const handleDragStart = (shift: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDraggedShift(shift);
+        setIsDragging(true);
+
+        // Calculate offset from the mouse position to the top-left corner of the element
+        const target = e.currentTarget as HTMLElement;
+        const rect = target.getBoundingClientRect();
+        setDragOffset({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        });
+    };
+
+    const handleDragMove = (e: MouseEvent) => {
+        if (!isDragging || !draggedShift || !ganttRef.current) return;
+
+        const ganttRect = ganttRef.current.getBoundingClientRect();
+        const dayWidth = 100; // Same as in calculateShiftPosition
+
+        // Calculate the day index based on mouse position
+        const relativeX = e.clientX - ganttRect.left - dragOffset.x;
+        const dayIndex = Math.floor(relativeX / dayWidth);
+
+        if (dayIndex >= 0 && dayIndex < daysInRange.length) {
+            const newDate = format(daysInRange[dayIndex], 'yyyy-MM-dd');
+
+            // Update the dragged shift with the new date
+            setDraggedShift((prev: any) => ({
+                ...prev,
+                date: newDate,
+            }));
+        }
+    };
+
+    const handleDragEnd = () => {
+        if (isDragging && draggedShift) {
+            // Update the shift in the state with the new date
+            setShifts((prev) =>
+                prev.map((shift) =>
+                    shift.id === draggedShift.id ? { ...draggedShift } : shift
+                )
+            );
+
+            // toast({
+            //   title: "Shift moved",
+            //   description: `Shift has been moved to ${format(parseISO(draggedShift.date), "MMMM d, yyyy")}`,
+            // })
+        }
+
+        setIsDragging(false);
+        setDraggedShift(null);
+    };
+
+    // Add event listeners for drag and drop
+    // useEffect(() => {
+    //   if (isDragging) {
+    //     window.addEventListener("mousemove", handleDragMove)
+    //     window.addEventListener("mouseup", handleDragEnd)
+    //   }
+
+    //   return () => {
+    //     window.removeEventListener("mousemove", handleDragMove)
+    //     window.removeEventListener("mouseup", handleDragEnd)
+    //   }
+    // }, [isDragging, draggedShift])
+
+    return (
+        <div className="container py-6">
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Schedule Overview</h1>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={navigatePrevious}>
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className="min-w-[240px] justify-start text-left font-normal"
                                 >
-                                  <span className="px-2 truncate">
-                                    {renderTimeSlot(shift.startTime)} -{' '}
-                                    {renderTimeSlot(shift.endTime)}
-                                  </span>
-                                </div>
-                              ));
-                            })}
-                          </div>
-                        </div>
-                      ))
-                    : // Role view
-                      jobRoles.map((role) => (
-                        <div
-                          key={role.id}
-                          className="flex border-b hover:bg-gray-50"
-                        >
-                          <div className="w-48 flex-shrink-0 p-2 flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: role.color }}
-                            />
-                            <span>{role.name}</span>
-                          </div>
-                          <div className="flex-1 relative h-12">
-                            {shifts.map((shift) => {
-                              const roleReq = shift.roleRequirements.find(
-                                (req) => req.roleId === role.id
-                              );
-                              if (!roleReq) return null;
-
-                              // Check if this role has missing assignments
-                              const isMissingAssignments =
-                                roleReq.assignments.length < roleReq.count;
-
-                              return (
-                                <div
-                                  key={shift.id}
-                                  className={cn(
-                                    'absolute h-8 top-2 rounded-md text-xs flex items-center justify-center text-white overflow-hidden',
-                                    isMissingAssignments ? 'bg-red-500' : '',
-                                    shift.status === 'draft' && 'opacity-70'
-                                  )}
-                                  style={{
-                                    ...calculateShiftStyle(
-                                      shift.startTime,
-                                      shift.endTime
-                                    ),
-                                    backgroundColor: isMissingAssignments
-                                      ? undefined
-                                      : role.color,
-                                  }}
-                                  onClick={() => {
-                                    if (
-                                      isMissingAssignments &&
-                                      shift.status === 'draft'
-                                    ) {
-                                      // Find the conflict if it exists
-                                      const conflict = conflicts.find(
-                                        (c) =>
-                                          c.shiftId1 === shift.id &&
-                                          c.employeeId === null
-                                      );
-
-                                      setCurrentAssignment({
-                                        shiftId: shift.id,
-                                        roleId: role.id,
-                                        index: roleReq.assignments.length,
-                                        conflictId: conflict?.id,
-                                      });
-                                      setIsAssignDialogOpen(true);
-                                    }
-                                  }}
-                                >
-                                  <span className="px-2 truncate">
-                                    {roleReq.assignments.length}/{roleReq.count}{' '}
-                                    {renderTimeSlot(shift.startTime)} -{' '}
-                                    {renderTimeSlot(shift.endTime)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="list">
-          <div className="grid gap-6 md:grid-cols-7">
-            {weekDates.map((date, index) => (
-              <Card
-                key={index}
-                className={cn(
-                  index === 0 || index === 6 ? 'bg-gray-50' : '',
-                  getConflictsForDate(date).length > 0 ? 'border-red-200' : ''
-                )}
-              >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {format(date, 'EEEE')}
-                    {getConflictsForDate(date).length > 0 && (
-                      <Badge className="ml-2 bg-red-500">
-                        {getConflictsForDate(date).length} Conflicts
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription>{format(date, 'MMMM d')}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {getShiftsForDate(date).map((shift) => (
-                    <div
-                      key={shift.id}
-                      className="border rounded-md p-2 text-sm"
-                    >
-                      <div className="font-medium flex justify-between">
-                        <span>
-                          {shift.startTime} - {shift.endTime}
-                        </span>
-                        <Badge
-                          className={
-                            shift.status === 'published'
-                              ? 'bg-green-500'
-                              : 'bg-gray-500'
-                          }
-                        >
-                          {shift.status}
-                        </Badge>
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        {shift.roleRequirements.map((req) => {
-                          const role = getRole(req.roleId);
-                          return (
-                            <div key={req.roleId} className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <div
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: role?.color }}
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {format(startDate, 'MMMM d, yyyy')} -{' '}
+                                    {format(endDate, 'MMMM d, yyyy')}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    onSelect={(date) => date && setDate(date)}
+                                    initialFocus
                                 />
-                                <span className="text-xs font-medium">
-                                  {role?.name} ({req.assignments.length}/
-                                  {req.count})
-                                </span>
-                              </div>
-                              <div className="ml-3 text-xs text-gray-500">
-                                {req.assignments.map((a, idx) => (
-                                  <div key={idx}>
-                                    {getEmployee(a.employeeId)?.name}
-                                  </div>
-                                ))}
-                                {req.assignments.length < req.count && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 text-xs text-orange-500 p-0"
-                                    onClick={() => {
-                                      setCurrentAssignment({
-                                        shiftId: shift.id,
-                                        roleId: req.roleId,
-                                        index: req.assignments.length,
-                                      });
-                                      setIsAssignDialogOpen(true);
-                                    }}
-                                  >
-                                    + Assign employee
-                                  </Button>
-                                )}
-                              </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="outline" onClick={navigateNext}>
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <Card>
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Gantt View</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Tabs
+                                    defaultValue="staff"
+                                    onValueChange={(value) =>
+                                        setViewMode(value as any)
+                                    }
+                                >
+                                    <TabsList>
+                                        <TabsTrigger value="staff">
+                                            By Staff
+                                        </TabsTrigger>
+                                        <TabsTrigger value="role">
+                                            By Role
+                                        </TabsTrigger>
+                                        <TabsTrigger value="time">
+                                            By Time
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
+
+                                <Tabs
+                                    defaultValue="week"
+                                    onValueChange={(value) =>
+                                        setTimeRange(value as any)
+                                    }
+                                >
+                                    <TabsList>
+                                        <TabsTrigger value="week">
+                                            Week
+                                        </TabsTrigger>
+                                        <TabsTrigger value="month">
+                                            Month
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  {getShiftsForDate(date).length === 0 && (
-                    <div className="text-center text-sm text-muted-foreground py-4">
-                      No shifts scheduled
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">
+                                    Filters:
+                                </span>
+                            </div>
 
-      {/* Conflict Resolution Dialog */}
-      <Dialog
-        open={isConflictDialogOpen}
-        onOpenChange={setIsConflictDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-red-500 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Schedule Conflict
-            </DialogTitle>
-            <DialogDescription>
-              This conflict needs to be resolved before publishing the schedule
-            </DialogDescription>
-          </DialogHeader>
-          {currentConflict && (
-            <div className="py-4">
-              <p className="font-medium">{currentConflict.description}</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm">Role:</span>
+                                <Select
+                                    value={selectedRole}
+                                    onValueChange={setSelectedRole}
+                                >
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">
+                                            All Roles
+                                        </SelectItem>
+                                        {mockRoles.map((role) => (
+                                            <SelectItem
+                                                key={role.name}
+                                                value={role.name}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{
+                                                            backgroundColor:
+                                                                role.hexColor,
+                                                        }}
+                                                    />
+                                                    {role.name}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-              {currentConflict.employeeId && (
-                <div className="mt-4 space-y-4">
-                  <div className="font-medium">Options to resolve:</div>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        // In a real app, this would open a dialog to reassign the employee
-                        handleResolveConflict();
-                      }}
-                    >
-                      Reassign employee to a different shift
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        // In a real app, this would open a dialog to adjust shift times
-                        handleResolveConflict();
-                      }}
-                    >
-                      Adjust shift times to avoid overlap
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-orange-500"
-                      onClick={handleResolveConflict}
-                    >
-                      Ignore conflict (not recommended)
-                    </Button>
-                  </div>
-                </div>
-              )}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm">Staff:</span>
+                                <Select
+                                    value={selectedStaff.toString()}
+                                    onValueChange={(value) =>
+                                        setSelectedStaff(
+                                            value === 'all'
+                                                ? 'all'
+                                                : Number.parseInt(value)
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Select staff" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">
+                                            All Staff
+                                        </SelectItem>
+                                        {mockStaff.map((staff) => (
+                                            <SelectItem
+                                                key={staff.id}
+                                                value={staff.id.toString()}
+                                            >
+                                                {staff.fullName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
 
-              {!currentConflict.employeeId && (
-                <div className="mt-4 space-y-4">
-                  <div className="font-medium">Options to resolve:</div>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        // In a real app, this would open a dialog to assign an employee
-                        const shift = shifts.find(
-                          (s) => s.id === currentConflict.shiftId1
-                        );
-                        if (shift) {
-                          const missingRole = shift.roleRequirements.find(
-                            (r) => r.assignments.length < r.count
-                          );
-                          if (missingRole) {
-                            setCurrentAssignment({
-                              shiftId: shift.id,
-                              roleId: missingRole.roleId,
-                              index: missingRole.assignments.length,
-                              conflictId: currentConflict.id,
-                            });
-                            setIsConflictDialogOpen(false);
-                            setIsAssignDialogOpen(true);
-                          }
-                        }
-                      }}
-                    >
-                      Assign an employee to the missing slot
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={handleResolveConflict}
-                    >
-                      Reduce required staff count
-                    </Button>
-                  </div>
-                </div>
-              )}
+                        {/* Gantt Chart */}
+                        <div className="border rounded-md overflow-auto">
+                            {/* Header - Days */}
+                            <div className="flex border-b bg-muted/50">
+                                <div className="min-w-[200px] p-2 font-medium border-r">
+                                    {viewMode === 'staff'
+                                        ? 'Staff'
+                                        : viewMode === 'role'
+                                          ? 'Role'
+                                          : 'Shift Time'}
+                                </div>
+                                <div className="flex flex-1">
+                                    {daysInRange.map((day, index) => (
+                                        <div
+                                            key={index}
+                                            className={cn(
+                                                'flex-1 min-w-[100px] p-2 text-center font-medium',
+                                                index <
+                                                    daysInRange.length - 1 &&
+                                                    'border-r',
+                                                day.getDay() === 0 ||
+                                                    day.getDay() === 6
+                                                    ? 'bg-muted'
+                                                    : ''
+                                            )}
+                                        >
+                                            {format(day, 'EEE')}
+                                            <br />
+                                            {format(day, 'MMM d')}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Gantt Body */}
+                            <div ref={ganttRef}>
+                                {Object.entries(groupedShifts()).map(
+                                    ([key, shifts], groupIndex) => {
+                                        // Determine group label based on view mode
+                                        let groupLabel = '';
+                                        let groupColor = '';
+
+                                        if (viewMode === 'staff') {
+                                            const staff = mockStaff.find(
+                                                (s) => s.id.toString() === key
+                                            );
+                                            groupLabel = staff?.fullName || '';
+                                            groupColor =
+                                                staff?.userRoles[0].role
+                                                    .hexColor || '';
+                                        } else if (viewMode === 'role') {
+                                            groupLabel = key;
+                                            const role = mockRoles.find(
+                                                (r) => r.name === key
+                                            );
+                                            groupColor = role?.hexColor || '';
+                                        } else {
+                                            // Time view
+                                            const [start, end] = key.split('-');
+                                            groupLabel = `${start.substring(0, 5)} - ${end.substring(0, 5)}`;
+                                        }
+
+                                        return (
+                                            <div
+                                                key={key}
+                                                className="flex border-b last:border-b-0"
+                                            >
+                                                <div className="min-w-[200px] p-2 border-r flex items-center gap-2">
+                                                    {groupColor && (
+                                                        <div
+                                                            className="w-3 h-3 rounded-full"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    groupColor,
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <span className="font-medium">
+                                                        {groupLabel}
+                                                    </span>
+                                                </div>
+
+                                                <div
+                                                    className="flex-1 relative"
+                                                    style={{ height: '60px' }}
+                                                >
+                                                    {/* Time grid lines */}
+                                                    <div className="absolute inset-0 flex">
+                                                        {daysInRange.map(
+                                                            (_, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className={cn(
+                                                                        'flex-1 min-w-[100px] h-full',
+                                                                        index <
+                                                                            daysInRange.length -
+                                                                                1 &&
+                                                                            'border-r'
+                                                                    )}
+                                                                />
+                                                            )
+                                                        )}
+                                                    </div>
+
+                                                    {/* Shift bars */}
+                                                    {shifts.map((shift) => {
+                                                        const dayWidth = 100; // Minimum width per day
+                                                        const { left, width } =
+                                                            calculateShiftPosition(
+                                                                shift,
+                                                                dayWidth
+                                                            );
+
+                                                        // Skip if not visible
+                                                        if (width === 0)
+                                                            return null;
+
+                                                        const roleColor =
+                                                            shift.staff
+                                                                .userRoles[0]
+                                                                .role.hexColor;
+                                                        const isBeingDragged =
+                                                            isDragging &&
+                                                            draggedShift?.id ===
+                                                                shift.id;
+
+                                                        return (
+                                                            <TooltipProvider
+                                                                key={shift.id}
+                                                            >
+                                                                <Tooltip>
+                                                                    <TooltipTrigger
+                                                                        asChild
+                                                                    >
+                                                                        <div
+                                                                            className={cn(
+                                                                                'absolute h-10 rounded-md border flex items-center justify-between px-2 text-xs font-medium cursor-move hover:opacity-80 transition-opacity group',
+                                                                                isBeingDragged &&
+                                                                                    'opacity-50 border-dashed'
+                                                                            )}
+                                                                            style={{
+                                                                                left: `${left}px`,
+                                                                                width: `${Math.max(width, 80)}px`,
+                                                                                top: '10px',
+                                                                                backgroundColor: `${roleColor}20`,
+                                                                                borderColor:
+                                                                                    roleColor,
+                                                                                color: roleColor,
+                                                                            }}
+                                                                            onMouseDown={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleDragStart(
+                                                                                    shift,
+                                                                                    e
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <span>
+                                                                                {viewMode ===
+                                                                                'staff'
+                                                                                    ? `${shift.shift.startTime.substring(0, 5)}-${shift.shift.endTime.substring(0, 5)}`
+                                                                                    : viewMode ===
+                                                                                        'role'
+                                                                                      ? shift
+                                                                                            .staff
+                                                                                            .displayName
+                                                                                      : shift
+                                                                                            .staff
+                                                                                            .displayName}
+                                                                            </span>
+                                                                            <div className="hidden group-hover:flex items-center gap-1">
+                                                                                <button
+                                                                                    className="p-0.5 hover:bg-white/50 rounded"
+                                                                                    onClick={(
+                                                                                        e
+                                                                                    ) =>
+                                                                                        handleEditClick(
+                                                                                            shift,
+                                                                                            e
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Edit className="h-3 w-3" />
+                                                                                </button>
+                                                                                <button
+                                                                                    className="p-0.5 hover:bg-white/50 rounded"
+                                                                                    onClick={(
+                                                                                        e
+                                                                                    ) =>
+                                                                                        handleDeleteClick(
+                                                                                            shift,
+                                                                                            e
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Trash2 className="h-3 w-3" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <div className="space-y-1">
+                                                                            <p className="font-medium">
+                                                                                {
+                                                                                    shift
+                                                                                        .staff
+                                                                                        .fullName
+                                                                                }
+                                                                            </p>
+                                                                            <p className="text-xs">
+                                                                                {format(
+                                                                                    parseISO(
+                                                                                        shift.date
+                                                                                    ),
+                                                                                    'MMM d, yyyy'
+                                                                                )}{' '}
+                                                                                •{' '}
+                                                                                {shift.shift.startTime.substring(
+                                                                                    0,
+                                                                                    5
+                                                                                )}
+
+                                                                                -
+                                                                                {shift.shift.endTime.substring(
+                                                                                    0,
+                                                                                    5
+                                                                                )}
+                                                                            </p>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                style={{
+                                                                                    backgroundColor: `${roleColor}20`,
+                                                                                    borderColor:
+                                                                                        roleColor,
+                                                                                    color: roleColor,
+                                                                                }}
+                                                                            >
+                                                                                {
+                                                                                    shift
+                                                                                        .staff
+                                                                                        .userRoles[0]
+                                                                                        .role
+                                                                                        .name
+                                                                                }
+                                                                            </Badge>
+                                                                            {shift.note && (
+                                                                                <p className="text-xs">
+                                                                                    {
+                                                                                        shift.note
+                                                                                    }
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                )}
+                            </div>
+                        </div>
+                        <div className="mt-4 text-sm text-muted-foreground">
+                            <p>
+                                Tip: Drag shifts to move them to different days.
+                                Click on a shift to edit or delete it.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsConflictDialogOpen(false)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Assign Employee Dialog */}
-      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Assign Employee</DialogTitle>
-            <DialogDescription>
-              Select an employee to assign to this shift
-            </DialogDescription>
-          </DialogHeader>
-          {currentAssignment && (
-            <div className="py-4">
-              <div className="space-y-4">
-                {employees
-                  .filter((emp) => {
-                    // Filter employees by role
-                    const shift = shifts.find(
-                      (s) => s.id === currentAssignment.shiftId
-                    );
-                    const roleReq = shift?.roleRequirements.find(
-                      (r) => r.roleId === currentAssignment.roleId
-                    );
-                    return (
-                      emp.roleId === currentAssignment.roleId &&
-                      !roleReq?.assignments.some((a) => a.employeeId === emp.id)
-                    );
-                  })
-                  .map((emp) => (
-                    <Button
-                      key={emp.id}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => handleAssignEmployee(emp.id)}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: getRoleColor(emp.roleId) }}
-                      />
-                      {emp.name}
-                    </Button>
-                  ))}
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAssignDialogOpen(false)}
+            {/* Edit Shift Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Shift</DialogTitle>
+                        <DialogDescription>
+                            Update the details of this shift assignment.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedShift && (
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        Date
+                                    </label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start text-left font-normal"
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {selectedShift.date
+                                                    ? format(
+                                                          parseISO(
+                                                              selectedShift.date
+                                                          ),
+                                                          'PPP'
+                                                      )
+                                                    : 'Select date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={
+                                                    selectedShift.date
+                                                        ? parseISO(
+                                                              selectedShift.date
+                                                          )
+                                                        : undefined
+                                                }
+                                                onSelect={(date) =>
+                                                    setSelectedShift(
+                                                        (prev: any) => ({
+                                                            ...prev,
+                                                            date: date
+                                                                ? format(
+                                                                      date,
+                                                                      'yyyy-MM-dd'
+                                                                  )
+                                                                : prev.date,
+                                                        })
+                                                    )
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        Shift
+                                    </label>
+                                    <Select
+                                        value={selectedShift.shift.id.toString()}
+                                        onValueChange={(value) => {
+                                            const newShift = mockShifts.find(
+                                                (s) => s.id.toString() === value
+                                            );
+                                            if (newShift) {
+                                                setSelectedShift(
+                                                    (prev: any) => ({
+                                                        ...prev,
+                                                        shift: newShift,
+                                                    })
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select shift" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {mockShifts.map((shift) => (
+                                                <SelectItem
+                                                    key={shift.id}
+                                                    value={shift.id.toString()}
+                                                >
+                                                    {shift.startTime.substring(
+                                                        0,
+                                                        5
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {shift.endTime.substring(
+                                                        0,
+                                                        5
+                                                    )}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Staff
+                                </label>
+                                <Select
+                                    value={selectedShift.staff.id.toString()}
+                                    onValueChange={(value) => {
+                                        const newStaff = mockStaff.find(
+                                            (s) => s.id.toString() === value
+                                        );
+                                        if (newStaff) {
+                                            setSelectedShift((prev: any) => ({
+                                                ...prev,
+                                                staff: newStaff,
+                                            }));
+                                        }
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select staff" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mockStaff.map((staff) => (
+                                            <SelectItem
+                                                key={staff.id}
+                                                value={staff.id.toString()}
+                                            >
+                                                {staff.fullName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Note
+                                </label>
+                                <Textarea
+                                    placeholder="Add a note for this shift"
+                                    value={selectedShift.note}
+                                    onChange={(e) =>
+                                        setSelectedShift((prev: any) => ({
+                                            ...prev,
+                                            note: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Status
+                                </label>
+                                <Select
+                                    value={selectedShift.shiftStatus}
+                                    onValueChange={(value) =>
+                                        setSelectedShift((prev: any) => ({
+                                            ...prev,
+                                            shiftStatus: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="DRAFT">
+                                            Draft
+                                        </SelectItem>
+                                        <SelectItem value="PUBLISHED">
+                                            Published
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleUpdateShift}>
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
             >
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Confirm Deletion</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this shift
+                            assignment?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedShift && (
+                        <div className="py-4">
+                            <div className="space-y-2">
+                                <p>
+                                    <span className="font-medium">Staff:</span>{' '}
+                                    {selectedShift.staff.fullName}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Date:</span>{' '}
+                                    {format(
+                                        parseISO(selectedShift.date),
+                                        'MMMM d, yyyy'
+                                    )}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Time:</span>{' '}
+                                    {selectedShift.shift.startTime.substring(
+                                        0,
+                                        5
+                                    )}{' '}
+                                    -{' '}
+                                    {selectedShift.shift.endTime.substring(
+                                        0,
+                                        5
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteShift}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 }

@@ -1,949 +1,903 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    format,
+    parseISO,
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    addDays,
+    isSameDay,
+} from 'date-fns';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { format, addDays } from 'date-fns';
-import { CalendarIcon, Clock, Calendar, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import {
+    CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Plus,
+    CalendarPlus2Icon as CalendarIcon2,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// Sample data for the current employee
-const currentEmployee = {
-  id: 1,
-  name: 'John Smith',
-  email: 'john.smith@example.com',
-  roleId: 3,
-  roleName: 'Waiter',
-  roleColor: '#3357FF',
-};
-
-// Sample data for shifts
-const initialShifts = [
-  {
-    id: 1,
-    date: new Date(2025, 4, 5), // May 5, 2025 (Monday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-  },
-  {
-    id: 4,
-    date: new Date(2025, 4, 5), // May 5, 2025 (Monday)
-    startTime: '17:00',
-    endTime: '01:00', // Next day
-    status: 'published',
-  },
-  {
-    id: 2,
-    date: new Date(2025, 4, 6), // May 6, 2025 (Tuesday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-  },
-  {
-    id: 7,
-    date: new Date(2025, 4, 8), // May 8, 2025 (Thursday)
-    startTime: '09:00',
-    endTime: '17:00',
-    status: 'published',
-  },
-  {
-    id: 9,
-    date: new Date(2025, 4, 10), // May 10, 2025 (Saturday)
-    startTime: '12:00',
-    endTime: '20:00',
-    status: 'published',
-  },
+// Mock staff shifts
+const mockStaffShifts = [
+    {
+        id: 1,
+        date: '2025-05-22',
+        note: 'Regular shift',
+        shiftStatus: 'PUBLISHED',
+        shift: {
+            id: 201,
+            startTime: '08:00:00',
+            endTime: '12:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
+    {
+        id: 2,
+        date: '2025-05-23',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        shift: {
+            id: 204,
+            startTime: '12:00:00',
+            endTime: '20:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 2 }],
+        },
+    },
+    {
+        id: 3,
+        date: '2025-05-25',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        shift: {
+            id: 202,
+            startTime: '09:00:00',
+            endTime: '13:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 1 }],
+        },
+    },
+    {
+        id: 4,
+        date: '2025-05-27',
+        note: '',
+        shiftStatus: 'PUBLISHED',
+        shift: {
+            id: 203,
+            startTime: '07:00:00',
+            endTime: '15:00:00',
+            branchName: 'Downtown Branch',
+            requirements: [{ role: 'WAITER', quantity: 3 }],
+        },
+    },
 ];
 
-// Sample data for time-off requests
-const initialRequests = [
-  {
-    id: 1,
-    type: 'time-off',
-    startDate: new Date(2025, 4, 15),
-    endDate: new Date(2025, 4, 16),
-    status: 'pending',
-    reason: 'Family vacation',
-    requestDate: new Date(2025, 4, 1),
-    rejectionReason: undefined, // Add rejectionReason property
-  },
-  {
-    id: 2,
-    type: 'shift-change',
-    shiftDate: new Date(2025, 4, 10),
-    shiftId: 9,
-    status: 'approved',
-    reason: "Doctor's appointment",
-    requestDate: new Date(2025, 3, 25),
-    targetEmployeeId: 5,
-    targetEmployeeName: 'David Wilson',
-    rejectionReason: undefined, // Add rejectionReason property
-  },
+// Mock time-off requests
+const mockTimeOffRequests = [
+    {
+        id: 1,
+        startTime: '2025-05-29T09:00:00Z',
+        endTime: '2025-05-29T17:00:00Z',
+        reason: 'Doctor appointment',
+        requestStatus: 'PENDING',
+        createdAt: '2025-05-21T14:30:00Z',
+    },
 ];
 
-// Sample data for unavailable time periods
-const initialUnavailablePeriods = [
-  {
-    id: 1,
-    startDate: new Date(2025, 4, 20),
-    endDate: new Date(2025, 4, 20),
-    allDay: true,
-    reason: 'Personal appointment',
-  },
-  {
-    id: 2,
-    startDate: new Date(2025, 4, 25),
-    endDate: new Date(2025, 4, 25),
-    startTime: '09:00',
-    endTime: '13:00',
-    allDay: false,
-    reason: "Doctor's appointment",
-  },
+// Mock shift exchange requests
+const mockShiftRequests = [
+    {
+        id: 1,
+        targetShiftId: 2,
+        type: 'EXCHANGE',
+        requestStatus: 'PENDING',
+        reason: 'Family event',
+        createdAt: '2025-05-21T10:15:00Z',
+        targetShift: {
+            id: 2,
+            date: '2025-05-23',
+            shift: {
+                startTime: '12:00:00',
+                endTime: '20:00:00',
+            },
+        },
+    },
 ];
 
 export default function EmployeePortalPage() {
-  const [shifts, setShifts] = useState(initialShifts);
-  const [requests, setRequests] = useState(initialRequests);
-  const [unavailablePeriods, setUnavailablePeriods] = useState(
-    initialUnavailablePeriods
-  );
-  const [currentWeekStart, setCurrentWeekStart] = useState(
-    new Date(2025, 4, 5)
-  ); // May 5, 2025 (Monday)
+    const [date, setDate] = useState<Date>(new Date());
+    const [shifts, setShifts] = useState(mockStaffShifts);
+    const [timeOffRequests, setTimeOffRequests] = useState(mockTimeOffRequests);
+    const [shiftRequests, setShiftRequests] = useState(mockShiftRequests);
+    const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
+    const [isShiftRequestDialogOpen, setIsShiftRequestDialogOpen] =
+        useState(false);
+    const [selectedShift, setSelectedShift] = useState<any>(null);
 
-  const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
-  const [isShiftChangeDialogOpen, setIsShiftChangeDialogOpen] = useState(false);
-  const [isUnavailabilityDialogOpen, setIsUnavailabilityDialogOpen] =
-    useState(false);
+    // New time-off request form state
+    const [newTimeOff, setNewTimeOff] = useState({
+        startDate: new Date(),
+        startTime: '09:00',
+        endDate: new Date(),
+        endTime: '17:00',
+        reason: '',
+    });
 
-  const [timeOffRequest, setTimeOffRequest] = useState({
-    startDate: new Date(),
-    endDate: new Date(),
-    reason: '',
-  });
+    // New shift request form state
+    const [newShiftRequest, setNewShiftRequest] = useState({
+        type: 'EXCHANGE',
+        reason: '',
+    });
 
-  const [shiftChangeRequest, setShiftChangeRequest] = useState({
-    shiftId: '',
-    reason: '',
-  });
+    // Calculate date range for the week view
+    const startDate = startOfWeek(date, { weekStartsOn: 1 }); // Start from Monday
+    const endDate = endOfWeek(date, { weekStartsOn: 1 }); // End on Sunday
+    const daysInWeek = eachDayOfInterval({ start: startDate, end: endDate });
 
-  const [unavailabilityPeriod, setUnavailabilityPeriod] = useState({
-    startDate: new Date(),
-    endDate: new Date(),
-    startTime: '09:00',
-    endTime: '17:00',
-    allDay: true,
-    reason: '',
-  });
-
-  // Calculate week dates
-  const weekDates = Array.from({ length: 7 }, (_, i) =>
-    addDays(currentWeekStart, i)
-  );
-
-  // Format date for display
-  const formatWeekRange = () => {
-    const start = format(currentWeekStart, 'MMMM d');
-    const end = format(addDays(currentWeekStart, 6), 'MMMM d, yyyy');
-    return `${start} - ${end}`;
-  };
-
-  // Navigate to previous week
-  const goToPreviousWeek = () => {
-    setCurrentWeekStart(addDays(currentWeekStart, -7));
-  };
-
-  // Navigate to next week
-  const goToNextWeek = () => {
-    setCurrentWeekStart(addDays(currentWeekStart, 7));
-  };
-
-  // Get shifts for a specific date
-  const getShiftsForDate = (date: Date) => {
-    return shifts.filter(
-      (shift) =>
-        shift.date.getDate() === date.getDate() &&
-        shift.date.getMonth() === date.getMonth() &&
-        shift.date.getFullYear() === date.getFullYear()
-    );
-  };
-
-  // Handle submitting a time-off request
-  const handleSubmitTimeOffRequest = () => {
-    const newRequest = {
-      id: Math.max(0, ...requests.map((r) => r.id)) + 1,
-      type: 'time-off' as const,
-      startDate: timeOffRequest.startDate,
-      endDate: timeOffRequest.endDate,
-      status: 'pending' as const,
-      reason: timeOffRequest.reason,
-      requestDate: new Date(),
-      rejectionReason: undefined,
+    // Navigate to previous/next week
+    const navigatePrevious = () => {
+        setDate(addDays(date, -7));
     };
 
-    setRequests([...requests, newRequest]);
-    setTimeOffRequest({
-      startDate: new Date(),
-      endDate: new Date(),
-      reason: '',
-    });
-    setIsTimeOffDialogOpen(false);
-  };
-
-  // Handle submitting a shift change request
-  const handleSubmitShiftChangeRequest = () => {
-    const shiftId = Number.parseInt(shiftChangeRequest.shiftId);
-    const shift = shifts.find((s) => s.id === shiftId);
-
-    if (!shift) return;
-
-    const newRequest = {
-      id: Math.max(0, ...requests.map((r) => r.id)) + 1,
-      type: 'shift-change' as const,
-      shiftDate: shift.date,
-      shiftId,
-      status: 'pending' as const,
-      reason: shiftChangeRequest.reason,
-      requestDate: new Date(),
-      targetEmployeeId: 0, // Default or placeholder value
-      targetEmployeeName: '', // Default or placeholder value
-      rejectionReason: undefined,
+    const navigateNext = () => {
+        setDate(addDays(date, 7));
     };
 
-    setRequests([...requests, newRequest]);
-    setShiftChangeRequest({
-      shiftId: '',
-      reason: '',
-    });
-    setIsShiftChangeDialogOpen(false);
-  };
-
-  // Handle adding an unavailability period
-  const handleAddUnavailabilityPeriod = () => {
-    const newPeriod = {
-      id: Math.max(0, ...unavailablePeriods.map((p) => p.id)) + 1,
-      ...unavailabilityPeriod,
+    // Format date for display
+    const formatDate = (dateString: string) => {
+        return format(parseISO(dateString), 'MMM d, yyyy');
     };
 
-    setUnavailablePeriods([...unavailablePeriods, newPeriod]);
-    setUnavailabilityPeriod({
-      startDate: new Date(),
-      endDate: new Date(),
-      startTime: '09:00',
-      endTime: '17:00',
-      allDay: true,
-      reason: '',
-    });
-    setIsUnavailabilityDialogOpen(false);
-  };
+    // Format time for display
+    const formatTime = (timeString: string) => {
+        return timeString.substring(0, 5);
+    };
 
-  // Render time slot
-  const renderTimeSlot = (time: string) => {
-    const hour = Number.parseInt(time.split(':')[0]);
-    const minute = time.split(':')[1];
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minute} ${period}`;
-  };
+    // Check if a shift is on a specific day
+    const getShiftsForDay = (day: Date) => {
+        return shifts.filter((shift) => {
+            const shiftDate = parseISO(shift.date);
+            return isSameDay(shiftDate, day);
+        });
+    };
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Employee Portal</h1>
-        <p className="text-muted-foreground">Welcome, {currentEmployee.name}</p>
-      </div>
+    // Handle time-off request submission
+    const handleTimeOffSubmit = () => {
+        // Create ISO date strings
+        const startDateTime = `${format(newTimeOff.startDate, 'yyyy-MM-dd')}T${newTimeOff.startTime}:00Z`;
+        const endDateTime = `${format(newTimeOff.endDate, 'yyyy-MM-dd')}T${newTimeOff.endTime}:00Z`;
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Profile</CardTitle>
-            <CardDescription>Your personal information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: currentEmployee.roleColor }}
-                />
-                <span className="font-medium">{currentEmployee.roleName}</span>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <span className="font-medium">Email:</span>{' '}
-                  {currentEmployee.email}
+        // Create new request
+        const newRequest = {
+            id: Math.max(0, ...timeOffRequests.map((r) => r.id)) + 1,
+            startTime: startDateTime,
+            endTime: endDateTime,
+            reason: newTimeOff.reason,
+            requestStatus: 'PENDING',
+            createdAt: new Date().toISOString(),
+        };
+
+        // Add to state
+        setTimeOffRequests((prev) => [...prev, newRequest]);
+
+        // Reset form and close dialog
+        setNewTimeOff({
+            startDate: new Date(),
+            startTime: '09:00',
+            endDate: new Date(),
+            endTime: '17:00',
+            reason: '',
+        });
+        setIsTimeOffDialogOpen(false);
+
+        // toast({
+        //   title: "Time-off request submitted",
+        //   description: "Your request has been submitted and is pending approval.",
+        // })
+    };
+
+    // Handle shift request submission
+    const handleShiftRequestSubmit = () => {
+        if (!selectedShift) return;
+
+        // Create new request
+        const newRequest = {
+            id: Math.max(0, ...shiftRequests.map((r) => r.id)) + 1,
+            targetShiftId: selectedShift.id,
+            type: newShiftRequest.type,
+            requestStatus: 'PENDING',
+            reason: newShiftRequest.reason,
+            createdAt: new Date().toISOString(),
+            targetShift: {
+                id: selectedShift.id,
+                date: selectedShift.date,
+                shift: {
+                    startTime: selectedShift.shift.startTime,
+                    endTime: selectedShift.shift.endTime,
+                },
+            },
+        };
+
+        // Add to state
+        setShiftRequests((prev) => [...prev, newRequest]);
+
+        // Reset form and close dialog
+        setNewShiftRequest({
+            type: 'EXCHANGE',
+            reason: '',
+        });
+        setSelectedShift(null);
+        setIsShiftRequestDialogOpen(false);
+
+        // toast({
+        //   title: "Shift request submitted",
+        //   description: "Your request has been submitted and is pending approval.",
+        // })
+    };
+
+    // Open shift request dialog
+    const openShiftRequestDialog = (shift: any) => {
+        setSelectedShift(shift);
+        setIsShiftRequestDialogOpen(true);
+    };
+
+    // Get status badge
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'PENDING':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-yellow-50 text-yellow-700 border-yellow-300"
+                    >
+                        Pending
+                    </Badge>
+                );
+            case 'APPROVED':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-300"
+                    >
+                        Approved
+                    </Badge>
+                );
+            case 'REJECTED':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-300"
+                    >
+                        Rejected
+                    </Badge>
+                );
+            default:
+                return <Badge variant="outline">Unknown</Badge>;
+        }
+    };
+
+    return (
+        <div className="container py-6">
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Employee Portal</h1>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsTimeOffDialogOpen(true)}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Request Time Off
+                        </Button>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common tasks you might want to perform
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <Dialog
+                <Card>
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle>My Schedule</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={navigatePrevious}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="min-w-[240px] justify-start text-left font-normal"
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {format(startDate, 'MMMM d, yyyy')}{' '}
+                                            - {format(endDate, 'MMMM d, yyyy')}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={date}
+                                            onSelect={(date) =>
+                                                date && setDate(date)
+                                            }
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={navigateNext}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-7 gap-2">
+                            {daysInWeek.map((day, index) => (
+                                <div key={index} className="flex flex-col">
+                                    <div
+                                        className={cn(
+                                            'text-center p-2 font-medium',
+                                            isSameDay(day, new Date()) &&
+                                                'bg-primary/10 rounded-t-md'
+                                        )}
+                                    >
+                                        <div>{format(day, 'EEE')}</div>
+                                        <div>{format(day, 'd')}</div>
+                                    </div>
+
+                                    <div
+                                        className={cn(
+                                            'flex-1 min-h-[150px] border rounded-b-md p-2',
+                                            isSameDay(day, new Date()) &&
+                                                'border-primary/30'
+                                        )}
+                                    >
+                                        {getShiftsForDay(day).map((shift) => (
+                                            <div
+                                                key={shift.id}
+                                                className="mb-2 p-2 rounded-md bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors"
+                                                onClick={() =>
+                                                    openShiftRequestDialog(
+                                                        shift
+                                                    )
+                                                }
+                                            >
+                                                <div className="font-medium text-sm">
+                                                    {formatTime(
+                                                        shift.shift.startTime
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {formatTime(
+                                                        shift.shift.endTime
+                                                    )}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {shift.shift.branchName}
+                                                </div>
+                                                {shift.note && (
+                                                    <div className="text-xs mt-1 italic">
+                                                        {shift.note}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {getShiftsForDay(day).length === 0 && (
+                                            <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                                                No shifts
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>My Time-off Requests</CardTitle>
+                            <CardDescription>
+                                View and manage your time-off requests
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {timeOffRequests.length > 0 ? (
+                                <div className="space-y-4">
+                                    {timeOffRequests.map((request) => (
+                                        <div
+                                            key={request.id}
+                                            className="border rounded-md p-4"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarIcon2 className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="font-medium">
+                                                        {format(
+                                                            parseISO(
+                                                                request.startTime
+                                                            ),
+                                                            'MMM d, yyyy'
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {getStatusBadge(
+                                                    request.requestStatus
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                                <Clock className="h-4 w-4" />
+                                                <span>
+                                                    {format(
+                                                        parseISO(
+                                                            request.startTime
+                                                        ),
+                                                        'h:mm a'
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {format(
+                                                        parseISO(
+                                                            request.endTime
+                                                        ),
+                                                        'h:mm a'
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-sm">
+                                                <span className="font-medium">
+                                                    Reason:{' '}
+                                                </span>
+                                                {request.reason}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <p>No time-off requests</p>
+                                    <Button
+                                        variant="outline"
+                                        className="mt-2"
+                                        onClick={() =>
+                                            setIsTimeOffDialogOpen(true)
+                                        }
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Request Time Off
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>My Shift Requests</CardTitle>
+                            <CardDescription>
+                                View and manage your shift exchange or drop
+                                requests
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {shiftRequests.length > 0 ? (
+                                <div className="space-y-4">
+                                    {shiftRequests.map((request) => (
+                                        <div
+                                            key={request.id}
+                                            className="border rounded-md p-4"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarIcon2 className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="font-medium">
+                                                        {formatDate(
+                                                            request.targetShift
+                                                                .date
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {getStatusBadge(
+                                                    request.requestStatus
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                                <Clock className="h-4 w-4" />
+                                                <span>
+                                                    {formatTime(
+                                                        request.targetShift
+                                                            .shift.startTime
+                                                    )}{' '}
+                                                    -{' '}
+                                                    {formatTime(
+                                                        request.targetShift
+                                                            .shift.endTime
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-sm mb-2">
+                                                <Badge variant="outline">
+                                                    {request.type === 'EXCHANGE'
+                                                        ? 'Shift Exchange'
+                                                        : 'Leave Request'}
+                                                </Badge>
+                                            </div>
+
+                                            <p className="text-sm">
+                                                <span className="font-medium">
+                                                    Reason:{' '}
+                                                </span>
+                                                {request.reason}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <p>No shift requests</p>
+                                    <p className="text-xs mt-1">
+                                        Click on a shift in the calendar to
+                                        request a change
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Time-off Request Dialog */}
+            <Dialog
                 open={isTimeOffDialogOpen}
                 onOpenChange={setIsTimeOffDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                    Request Time Off
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Request Time Off</DialogTitle>
-                    <DialogDescription>
-                      Submit a request for time off
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label>Date Range</Label>
-                      <div className="grid gap-2">
-                        <div className="flex flex-col">
-                          <Label className="mb-1 text-xs">Start Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'justify-start text-left font-normal',
-                                  !timeOffRequest.startDate &&
-                                    'text-muted-foreground'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {timeOffRequest.startDate
-                                  ? format(timeOffRequest.startDate, 'PPP')
-                                  : 'Select date'}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <CalendarComponent
-                                mode="single"
-                                selected={timeOffRequest.startDate}
-                                onSelect={(date) =>
-                                  date &&
-                                  setTimeOffRequest({
-                                    ...timeOffRequest,
-                                    startDate: date,
-                                  })
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+            >
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Request Time Off</DialogTitle>
+                        <DialogDescription>
+                            Submit a request for time off. Your manager will
+                            review your request.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Start Date
+                                </label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-start text-left font-normal"
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {format(
+                                                newTimeOff.startDate,
+                                                'PPP'
+                                            )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={newTimeOff.startDate}
+                                            onSelect={(date) =>
+                                                date &&
+                                                setNewTimeOff((prev) => ({
+                                                    ...prev,
+                                                    startDate: date,
+                                                }))
+                                            }
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Start Time
+                                </label>
+                                <Select
+                                    value={newTimeOff.startTime}
+                                    onValueChange={(value) =>
+                                        setNewTimeOff((prev) => ({
+                                            ...prev,
+                                            startTime: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="09:00">
+                                            9:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="10:00">
+                                            10:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="11:00">
+                                            11:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="12:00">
+                                            12:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="13:00">
+                                            1:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="14:00">
+                                            2:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="15:00">
+                                            3:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="16:00">
+                                            4:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="17:00">
+                                            5:00 PM
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col">
-                          <Label className="mb-1 text-xs">End Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'justify-start text-left font-normal',
-                                  !timeOffRequest.endDate &&
-                                    'text-muted-foreground'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {timeOffRequest.endDate
-                                  ? format(timeOffRequest.endDate, 'PPP')
-                                  : 'Select date'}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <CalendarComponent
-                                mode="single"
-                                selected={timeOffRequest.endDate}
-                                onSelect={(date) =>
-                                  date &&
-                                  setTimeOffRequest({
-                                    ...timeOffRequest,
-                                    endDate: date,
-                                  })
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    End Date
+                                </label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-start text-left font-normal"
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {format(newTimeOff.endDate, 'PPP')}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={newTimeOff.endDate}
+                                            onSelect={(date) =>
+                                                date &&
+                                                setNewTimeOff((prev) => ({
+                                                    ...prev,
+                                                    endDate: date,
+                                                }))
+                                            }
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    End Time
+                                </label>
+                                <Select
+                                    value={newTimeOff.endTime}
+                                    onValueChange={(value) =>
+                                        setNewTimeOff((prev) => ({
+                                            ...prev,
+                                            endTime: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="09:00">
+                                            9:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="10:00">
+                                            10:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="11:00">
+                                            11:00 AM
+                                        </SelectItem>
+                                        <SelectItem value="12:00">
+                                            12:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="13:00">
+                                            1:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="14:00">
+                                            2:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="15:00">
+                                            3:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="16:00">
+                                            4:00 PM
+                                        </SelectItem>
+                                        <SelectItem value="17:00">
+                                            5:00 PM
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                      </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                Reason
+                            </label>
+                            <Textarea
+                                placeholder="Please provide a reason for your time-off request"
+                                value={newTimeOff.reason}
+                                onChange={(e) =>
+                                    setNewTimeOff((prev) => ({
+                                        ...prev,
+                                        reason: e.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
                     </div>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="reason">Reason</Label>
-                      <Textarea
-                        id="reason"
-                        placeholder="Provide a reason for your time off request"
-                        value={timeOffRequest.reason}
-                        onChange={(e) =>
-                          setTimeOffRequest({
-                            ...timeOffRequest,
-                            reason: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsTimeOffDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-orange-500 hover:bg-orange-600"
-                      onClick={handleSubmitTimeOffRequest}
-                      disabled={!timeOffRequest.reason.trim()}
-                    >
-                      Submit Request
-                    </Button>
-                  </DialogFooter>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsTimeOffDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleTimeOffSubmit}>
+                            Submit Request
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
-              </Dialog>
+            </Dialog>
 
-              <Dialog
-                open={isShiftChangeDialogOpen}
-                onOpenChange={setIsShiftChangeDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button className="w-full" variant="outline">
-                    Request Shift Change
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Request Shift Change</DialogTitle>
-                    <DialogDescription>
-                      Submit a request to change one of your shifts
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="shift">Select Shift</Label>
-                      <Select
-                        value={shiftChangeRequest.shiftId}
-                        onValueChange={(value) =>
-                          setShiftChangeRequest({
-                            ...shiftChangeRequest,
-                            shiftId: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger id="shift">
-                          <SelectValue placeholder="Select a shift" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {shifts.map((shift) => (
-                            <SelectItem
-                              key={shift.id}
-                              value={shift.id.toString()}
-                            >
-                              {format(shift.date, 'MMM d')} (
-                              {renderTimeSlot(shift.startTime)} -{' '}
-                              {renderTimeSlot(shift.endTime)})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+            {/* Shift Request Dialog */}
+            <Dialog
+                open={isShiftRequestDialogOpen}
+                onOpenChange={setIsShiftRequestDialogOpen}
+            >
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Request Shift Change</DialogTitle>
+                        <DialogDescription>
+                            Submit a request to exchange or drop this shift.
+                            Your manager will review your request.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="change-reason">Reason</Label>
-                      <Textarea
-                        id="change-reason"
-                        placeholder="Provide a reason for your shift change request"
-                        value={shiftChangeRequest.reason}
-                        onChange={(e) =>
-                          setShiftChangeRequest({
-                            ...shiftChangeRequest,
-                            reason: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsShiftChangeDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-orange-500 hover:bg-orange-600"
-                      onClick={handleSubmitShiftChangeRequest}
-                      disabled={
-                        !shiftChangeRequest.shiftId ||
-                        !shiftChangeRequest.reason.trim()
-                      }
-                    >
-                      Submit Request
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                    {selectedShift && (
+                        <div className="grid gap-4 py-4">
+                            <div className="border rounded-md p-4 bg-muted/50">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <CalendarIcon2 className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-medium">
+                                        {formatDate(selectedShift.date)}
+                                    </span>
+                                </div>
 
-              <Dialog
-                open={isUnavailabilityDialogOpen}
-                onOpenChange={setIsUnavailabilityDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button className="w-full" variant="outline">
-                    Mark Unavailable Time
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Mark Unavailable Time</DialogTitle>
-                    <DialogDescription>
-                      Indicate times when you are not available to work
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label>Date Range</Label>
-                      <div className="grid gap-2">
-                        <div className="flex flex-col">
-                          <Label className="mb-1 text-xs">Start Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'justify-start text-left font-normal',
-                                  !unavailabilityPeriod.startDate &&
-                                    'text-muted-foreground'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {unavailabilityPeriod.startDate
-                                  ? format(
-                                      unavailabilityPeriod.startDate,
-                                      'PPP'
-                                    )
-                                  : 'Select date'}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <CalendarComponent
-                                mode="single"
-                                selected={unavailabilityPeriod.startDate}
-                                onSelect={(date) =>
-                                  date &&
-                                  setUnavailabilityPeriod({
-                                    ...unavailabilityPeriod,
-                                    startDate: date,
-                                  })
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Clock className="h-4 w-4" />
+                                    <span>
+                                        {formatTime(
+                                            selectedShift.shift.startTime
+                                        )}{' '}
+                                        -{' '}
+                                        {formatTime(
+                                            selectedShift.shift.endTime
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Request Type
+                                </label>
+                                <Select
+                                    value={newShiftRequest.type}
+                                    onValueChange={(value) =>
+                                        setNewShiftRequest((prev) => ({
+                                            ...prev,
+                                            type: value,
+                                        }))
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select request type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="EXCHANGE">
+                                            Shift Exchange
+                                        </SelectItem>
+                                        <SelectItem value="LEAVE">
+                                            Leave Request
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Reason
+                                </label>
+                                <Textarea
+                                    placeholder="Please provide a reason for your request"
+                                    value={newShiftRequest.reason}
+                                    onChange={(e) =>
+                                        setNewShiftRequest((prev) => ({
+                                            ...prev,
+                                            reason: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
                         </div>
-
-                        <div className="flex flex-col">
-                          <Label className="mb-1 text-xs">End Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'justify-start text-left font-normal',
-                                  !unavailabilityPeriod.endDate &&
-                                    'text-muted-foreground'
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {unavailabilityPeriod.endDate
-                                  ? format(unavailabilityPeriod.endDate, 'PPP')
-                                  : 'Select date'}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <CalendarComponent
-                                mode="single"
-                                selected={unavailabilityPeriod.endDate}
-                                onSelect={(date) =>
-                                  date &&
-                                  setUnavailabilityPeriod({
-                                    ...unavailabilityPeriod,
-                                    endDate: date,
-                                  })
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="all-day"
-                        checked={unavailabilityPeriod.allDay}
-                        onChange={(e) =>
-                          setUnavailabilityPeriod({
-                            ...unavailabilityPeriod,
-                            allDay: e.target.checked,
-                          })
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-                      />
-                      <Label htmlFor="all-day">All Day</Label>
-                    </div>
-
-                    {!unavailabilityPeriod.allDay && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="start-time">Start Time</Label>
-                          <Input
-                            id="start-time"
-                            type="time"
-                            value={unavailabilityPeriod.startTime}
-                            onChange={(e) =>
-                              setUnavailabilityPeriod({
-                                ...unavailabilityPeriod,
-                                startTime: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="end-time">End Time</Label>
-                          <Input
-                            id="end-time"
-                            type="time"
-                            value={unavailabilityPeriod.endTime}
-                            onChange={(e) =>
-                              setUnavailabilityPeriod({
-                                ...unavailabilityPeriod,
-                                endTime: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
                     )}
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="unavail-reason">Reason (Optional)</Label>
-                      <Textarea
-                        id="unavail-reason"
-                        placeholder="Provide a reason for your unavailability"
-                        value={unavailabilityPeriod.reason}
-                        onChange={(e) =>
-                          setUnavailabilityPeriod({
-                            ...unavailabilityPeriod,
-                            reason: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsUnavailabilityDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-orange-500 hover:bg-orange-600"
-                      onClick={handleAddUnavailabilityPeriod}
-                    >
-                      Mark Unavailable
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Your Schedule</CardTitle>
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
-                <CalendarIcon className="h-4 w-4 -ml-1 mr-1" />
-                <span>Prev</span>
-              </Button>
-              <span className="text-sm font-medium">{formatWeekRange()}</span>
-              <Button variant="outline" size="icon" onClick={goToNextWeek}>
-                <span>Next</span>
-                <CalendarIcon className="h-4 w-4 ml-1 -mr-1" />
-              </Button>
-            </div>
-          </div>
-          <CardDescription>Your upcoming work shifts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-7">
-            {weekDates.map((date, index) => (
-              <div
-                key={index}
-                className={cn(
-                  'border rounded-md p-3',
-                  index === 0 || index === 6 ? 'bg-gray-50' : ''
-                )}
-              >
-                <div className="font-medium text-sm">
-                  {format(date, 'EEEE')}
-                </div>
-                <div className="text-xs text-muted-foreground mb-2">
-                  {format(date, 'MMMM d')}
-                </div>
-
-                {getShiftsForDate(date).length > 0 ? (
-                  <div className="space-y-2">
-                    {getShiftsForDate(date).map((shift) => (
-                      <div
-                        key={shift.id}
-                        className="text-xs p-2 rounded-md bg-orange-100 border border-orange-200"
-                      >
-                        <div className="font-medium text-orange-800">
-                          {renderTimeSlot(shift.startTime)} -{' '}
-                          {renderTimeSlot(shift.endTime)}
-                        </div>
-                        <div className="mt-1 flex items-center gap-1">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor: currentEmployee.roleColor,
-                            }}
-                          />
-                          <span className="text-orange-700">
-                            {currentEmployee.roleName}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-xs text-center py-4 text-muted-foreground">
-                    No shifts scheduled
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="requests">
-        <TabsList>
-          <TabsTrigger value="requests">Your Requests</TabsTrigger>
-          <TabsTrigger value="unavailable">Unavailable Times</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="requests">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Requests</CardTitle>
-              <CardDescription>
-                Time-off and shift change requests you've submitted
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {requests.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No requests submitted
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {requests.map((request) => (
-                    <div key={request.id} className="border rounded-md p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-orange-500">
-                              {request.type === 'time-off'
-                                ? 'Time Off'
-                                : 'Shift Change'}
-                            </Badge>
-                            <Badge
-                              className={
-                                request.status === 'approved'
-                                  ? 'bg-green-500'
-                                  : request.status === 'rejected'
-                                    ? 'bg-red-500'
-                                    : 'bg-yellow-500'
-                              }
-                            >
-                              {request.status.charAt(0).toUpperCase() +
-                                request.status.slice(1)}
-                            </Badge>
-                          </div>
-
-                          {request.type === 'time-off' ? (
-                            <div className="flex items-center gap-1 mt-2 text-sm">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span>
-                                {format(
-                                  request.startDate ?? new Date(),
-                                  'MMM d, yyyy'
-                                )}
-                                {request.startDate &&
-                                  request.endDate &&
-                                  request.startDate.getTime() !==
-                                    request.endDate.getTime() &&
-                                  ` - ${format(request.endDate, 'MMM d, yyyy')}`}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 mt-2 text-sm">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span>
-                                Shift on{' '}
-                                {request.shiftDate
-                                  ? format(request.shiftDate, 'MMM d, yyyy')
-                                  : 'N/A'}
-                              </span>
-                            </div>
-                          )}
-
-                          <p className="text-sm mt-2">{request.reason}</p>
-
-                          {request.status === 'approved' &&
-                            request.type === 'shift-change' && (
-                              <p className="text-sm mt-2 text-green-600">
-                                Replacement: {request.targetEmployeeName}
-                              </p>
-                            )}
-
-                          {request.status === 'rejected' &&
-                            request.rejectionReason && (
-                              <div className="mt-2 p-2 bg-red-50 text-sm rounded-md">
-                                <span className="font-medium">
-                                  Rejection reason:
-                                </span>{' '}
-                                {request.rejectionReason}
-                              </div>
-                            )}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Submitted on{' '}
-                          {format(request.requestDate, 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="unavailable">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Your Unavailable Times</CardTitle>
-                <Button
-                  className="bg-orange-500 hover:bg-orange-600"
-                  onClick={() => setIsUnavailabilityDialogOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add
-                </Button>
-              </div>
-              <CardDescription>
-                Times when you are not available to work
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {unavailablePeriods.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No unavailable times set
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {unavailablePeriods.map((period) => (
-                    <div key={period.id} className="border rounded-md p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">
-                            {format(period.startDate, 'MMMM d, yyyy')}
-                            {period.startDate.getTime() !==
-                              period.endDate.getTime() &&
-                              ` - ${format(period.endDate, 'MMMM d, yyyy')}`}
-                          </h3>
-
-                          <p className="text-sm text-muted-foreground">
-                            {period.allDay
-                              ? 'All day'
-                              : `${renderTimeSlot(period.startTime || '')} - ${renderTimeSlot(period.endTime || '')}`}
-                          </p>
-
-                          {period.reason && (
-                            <p className="text-sm mt-2">{period.reason}</p>
-                          )}
-                        </div>
+                    <DialogFooter>
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500"
+                            variant="outline"
+                            onClick={() => setIsShiftRequestDialogOpen(false)}
                         >
-                          Remove
+                            Cancel
                         </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+                        <Button onClick={handleShiftRequestSubmit}>
+                            Submit Request
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 }
