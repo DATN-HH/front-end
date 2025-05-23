@@ -1,5 +1,5 @@
 import { FilterDefinition } from '@/components/Table/types';
-import { OperandType } from '@/lib/BaseListRequest';
+import { OperandType } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 
 export async function advanceSearch(

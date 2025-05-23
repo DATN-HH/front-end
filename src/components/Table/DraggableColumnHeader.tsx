@@ -30,6 +30,7 @@ interface DraggableColumnHeaderProps {
     ) => void;
     isPinned: 'left' | 'right' | false;
     sorting?: string;
+    enableSorting?: boolean;
 }
 
 type DragItem = {
@@ -45,6 +46,7 @@ export function DraggableColumnHeader({
     onPinColumn,
     isPinned,
     sorting,
+    enableSorting = true,
 }: DraggableColumnHeaderProps) {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -145,7 +147,7 @@ export function DraggableColumnHeader({
                         align="start"
                         className="bg-popover border-primary/20 shadow-md rounded-md"
                     >
-                        {isSortable && (
+                        {enableSorting && isSortable && (
                             <>
                                 <DropdownMenuItem
                                     onClick={() =>
@@ -241,7 +243,7 @@ export function DraggableColumnHeader({
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {isSortable && (
+                {enableSorting && isSortable && (
                     <div
                         className="ml-2 flex items-center cursor-pointer"
                         onClick={handleSortToggle}

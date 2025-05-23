@@ -1,23 +1,5 @@
+import { BranchResponse } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
-
-export interface BranchResponse {
-    id: number;
-    name: string;
-    address: string;
-    phone: string;
-    status: string;
-    managerId: number;
-    managerName: string;
-    updateAt: string;
-}
-
-export interface BranchRequest {
-    name: string;
-    address: string;
-    phone: string;
-    status: string;
-    managerId: number | null;
-}
 
 export async function getBranches(): Promise<BranchResponse[]> {
     const response = await apiClient.get('/branch');

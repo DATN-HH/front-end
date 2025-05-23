@@ -25,7 +25,7 @@ import {
     type OperatorOption,
     OperandType,
 } from './types';
-import { OperatorType, SearchCondition } from '@/lib/BaseListRequest';
+import { OperatorType, SearchCondition } from '@/lib/response-object';
 
 interface AdvancedFilterProps {
     filterDefinitions: FilterDefinition[];
@@ -34,42 +34,40 @@ interface AdvancedFilterProps {
 }
 
 const getOperatorsForType = (type: OperandType): OperatorOption[] => {
-  switch (type) {
-    case OperandType.STRING:
-        return [
-            { value: 'CONTAIN', label: 'Contains' },
-            { value: 'START_WITH', label: 'Starts with' },
-            { value: 'END_WITH', label: 'Ends with' },
-        ];
-    case OperandType.INTEGER:
-    case OperandType.DECIMAL:
-        return [
-            { value: 'EQUAL', label: 'Equals' },
-            { value: 'GREATER_EQUAL', label: 'Greater than or equal' },
-            { value: 'LESS_EQUAL', label: 'Less than or equal' },
-            { value: 'BETWEEN', label: 'Between' },
-        ];
-    case OperandType.DATE:
-    case OperandType.TIME:
-    case OperandType.DATETIME:
-        return [
-            { value: 'EQUAL', label: 'Equals' },
-            { value: 'GREATER_EQUAL', label: 'After' },
-            { value: 'LESS_EQUAL', label: 'Before' },
-            { value: 'BETWEEN', label: 'Between' },
-        ];
-    case OperandType.BOOLEAN:
-        return [
-            { value: 'EQUAL', label: 'Is' },
-        ];
-    case OperandType.ENUM:
-        return [
-            { value: 'EQUAL', label: 'Is' },
-            { value: 'IN', label: 'Is one of' },
-        ];
-    default:
-        return [];
-}
+    switch (type) {
+        case OperandType.STRING:
+            return [
+                { value: 'CONTAIN', label: 'Contains' },
+                { value: 'START_WITH', label: 'Starts with' },
+                { value: 'END_WITH', label: 'Ends with' },
+            ];
+        case OperandType.INTEGER:
+        case OperandType.DECIMAL:
+            return [
+                { value: 'EQUAL', label: 'Equals' },
+                { value: 'GREATER_EQUAL', label: 'Greater than or equal' },
+                { value: 'LESS_EQUAL', label: 'Less than or equal' },
+                { value: 'BETWEEN', label: 'Between' },
+            ];
+        case OperandType.DATE:
+        case OperandType.TIME:
+        case OperandType.DATETIME:
+            return [
+                { value: 'EQUAL', label: 'Equals' },
+                { value: 'GREATER_EQUAL', label: 'After' },
+                { value: 'LESS_EQUAL', label: 'Before' },
+                { value: 'BETWEEN', label: 'Between' },
+            ];
+        case OperandType.BOOLEAN:
+            return [{ value: 'EQUAL', label: 'Is' }];
+        case OperandType.ENUM:
+            return [
+                { value: 'EQUAL', label: 'Is' },
+                { value: 'IN', label: 'Is one of' },
+            ];
+        default:
+            return [];
+    }
 };
 
 export function AdvancedFilter({
@@ -114,14 +112,18 @@ export function AdvancedFilter({
 
         // Handle BETWEEN operator
         if (newFilter.operatorType === OperatorType.BETWEEN) {
-            if (activeField.type === OperandType.DATE || 
-                activeField.type === OperandType.TIME || 
-                activeField.type === OperandType.DATETIME) {
+            if (
+                activeField.type === OperandType.DATE ||
+                activeField.type === OperandType.TIME ||
+                activeField.type === OperandType.DATETIME
+            ) {
                 filterToAdd.datas = [tempValue, tempValueEnd];
                 filterToAdd.minDate = tempValue;
                 filterToAdd.maxDate = tempValueEnd;
-            } else if (activeField.type === OperandType.INTEGER || 
-                       activeField.type === OperandType.DECIMAL) {
+            } else if (
+                activeField.type === OperandType.INTEGER ||
+                activeField.type === OperandType.DECIMAL
+            ) {
                 filterToAdd.datas = [tempValue, tempValueEnd];
                 filterToAdd.min = tempValue;
                 filterToAdd.max = tempValueEnd;
@@ -134,7 +136,7 @@ export function AdvancedFilter({
         }
 
         onFiltersChange([...filters, filterToAdd]);
-        
+
         // Reset form
         setTempValue('');
         setTempValueEnd('');
@@ -163,7 +165,8 @@ export function AdvancedFilter({
     };
 
     const handleFieldChange = (fieldId: string) => {
-        const field = filterDefinitions.find((f) => f.field === fieldId) || null;
+        const field =
+            filterDefinitions.find((f) => f.field === fieldId) || null;
         setActiveField(field);
         setTempValue(field?.type === OperandType.BOOLEAN ? 'true' : '');
         setTempValueEnd('');
@@ -185,9 +188,9 @@ export function AdvancedFilter({
     };
 
     const handleOperatorChange = (operatorValue: string) => {
-        setNewFilter({ 
-            ...newFilter, 
-            operatorType: operatorValue as OperatorType 
+        setNewFilter({
+            ...newFilter,
+            operatorType: operatorValue as OperatorType,
         });
         setTempValue('');
         setTempValueEnd('');
@@ -226,7 +229,9 @@ export function AdvancedFilter({
                                     type="number"
                                     placeholder="Enter end number..."
                                     value={tempValueEnd}
-                                    onChange={(e) => setTempValueEnd(e.target.value)}
+                                    onChange={(e) =>
+                                        setTempValueEnd(e.target.value)
+                                    }
                                     className="w-full border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
                                 />
                             </>
@@ -255,7 +260,9 @@ export function AdvancedFilter({
                                     step="0.01"
                                     placeholder="Enter end decimal..."
                                     value={tempValueEnd}
-                                    onChange={(e) => setTempValueEnd(e.target.value)}
+                                    onChange={(e) =>
+                                        setTempValueEnd(e.target.value)
+                                    }
                                     className="w-full border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
                                 />
                             </>
@@ -269,7 +276,9 @@ export function AdvancedFilter({
                     <div className="space-y-3">
                         <DatePicker
                             date={tempValue ? new Date(tempValue) : undefined}
-                            setDate={(date) => setTempValue(date?.toISOString() || '')}
+                            setDate={(date) =>
+                                setTempValue(date?.toISOString() || '')
+                            }
                             className="w-full"
                         />
                         {newFilter.operatorType === OperatorType.BETWEEN && (
@@ -278,8 +287,16 @@ export function AdvancedFilter({
                                     AND
                                 </div>
                                 <DatePicker
-                                    date={tempValueEnd ? new Date(tempValueEnd) : undefined}
-                                    setDate={(date) => setTempValueEnd(date?.toISOString() || '')}
+                                    date={
+                                        tempValueEnd
+                                            ? new Date(tempValueEnd)
+                                            : undefined
+                                    }
+                                    setDate={(date) =>
+                                        setTempValueEnd(
+                                            date?.toISOString() || ''
+                                        )
+                                    }
                                     className="w-full"
                                 />
                             </>
@@ -304,7 +321,9 @@ export function AdvancedFilter({
                                 <Input
                                     type="time"
                                     value={tempValueEnd}
-                                    onChange={(e) => setTempValueEnd(e.target.value)}
+                                    onChange={(e) =>
+                                        setTempValueEnd(e.target.value)
+                                    }
                                     className="w-full border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
                                 />
                             </>
@@ -356,23 +375,36 @@ export function AdvancedFilter({
     };
 
     const getFilterLabel = (filter: SearchCondition) => {
-        const field = filterDefinitions.find((f) => f.field === filter.fieldName);
+        const field = filterDefinitions.find(
+            (f) => f.field === filter.fieldName
+        );
         if (!field) return '';
 
         const operatorOptions = getOperatorsForType(field.type);
-        const operator = operatorOptions.find((o) => o.value === filter.operatorType);
+        const operator = operatorOptions.find(
+            (o) => o.value === filter.operatorType
+        );
 
         let valueLabel = '';
 
         // Handle BETWEEN operator
         if (filter.operatorType === OperatorType.BETWEEN) {
-            if (field.type === OperandType.DATE || 
-                field.type === OperandType.TIME || 
-                field.type === OperandType.DATETIME) {
-                const minLabel = filter.minDate ? new Date(filter.minDate).toLocaleDateString() : '';
-                const maxLabel = filter.maxDate ? new Date(filter.maxDate).toLocaleDateString() : '';
+            if (
+                field.type === OperandType.DATE ||
+                field.type === OperandType.TIME ||
+                field.type === OperandType.DATETIME
+            ) {
+                const minLabel = filter.minDate
+                    ? new Date(filter.minDate).toLocaleDateString()
+                    : '';
+                const maxLabel = filter.maxDate
+                    ? new Date(filter.maxDate).toLocaleDateString()
+                    : '';
                 valueLabel = `${minLabel} and ${maxLabel}`;
-            } else if (field.type === OperandType.INTEGER || field.type === OperandType.DECIMAL) {
+            } else if (
+                field.type === OperandType.INTEGER ||
+                field.type === OperandType.DECIMAL
+            ) {
                 valueLabel = `${filter.min} and ${filter.max}`;
             } else if (filter.datas && filter.datas.length === 2) {
                 valueLabel = `${filter.datas[0]} and ${filter.datas[1]}`;
@@ -384,11 +416,15 @@ export function AdvancedFilter({
                     valueLabel = filter.data === 'true' ? 'True' : 'False';
                     break;
                 case OperandType.ENUM:
-                    valueLabel = field.options?.find((o) => o.value === filter.data)?.label || String(filter.data);
+                    valueLabel =
+                        field.options?.find((o) => o.value === filter.data)
+                            ?.label || String(filter.data);
                     break;
                 case OperandType.DATE:
                 case OperandType.DATETIME:
-                    valueLabel = filter.data ? new Date(filter.data as string).toLocaleDateString() : '';
+                    valueLabel = filter.data
+                        ? new Date(filter.data as string).toLocaleDateString()
+                        : '';
                     break;
                 default:
                     valueLabel = String(filter.data);
@@ -402,11 +438,15 @@ export function AdvancedFilter({
         if (!newFilter.fieldName || !newFilter.operatorType) return false;
 
         // Check if value is provided
-        if (!tempValue && tempValue !== '0' && tempValue !== 'false') return false;
+        if (!tempValue && tempValue !== '0' && tempValue !== 'false')
+            return false;
 
         // For 'between' operator, check if end value is provided
-        if (newFilter.operatorType === OperatorType.BETWEEN && 
-            !tempValueEnd && tempValueEnd !== '0') {
+        if (
+            newFilter.operatorType === OperatorType.BETWEEN &&
+            !tempValueEnd &&
+            tempValueEnd !== '0'
+        ) {
             return false;
         }
 
@@ -542,7 +582,9 @@ export function AdvancedFilter({
                                             <SelectValue placeholder="Select condition..." />
                                         </SelectTrigger>
                                         <SelectContent className="bg-popover border-border">
-                                            {getOperatorsForType(activeField.type).map((operator) => (
+                                            {getOperatorsForType(
+                                                activeField.type
+                                            ).map((operator) => (
                                                 <SelectItem
                                                     key={operator.value}
                                                     value={operator.value}
@@ -560,7 +602,8 @@ export function AdvancedFilter({
                             {newFilter.operatorType && (
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-foreground">
-                                        {newFilter.operatorType === OperatorType.BETWEEN
+                                        {newFilter.operatorType ===
+                                        OperatorType.BETWEEN
                                             ? 'Value Range'
                                             : 'Value'}
                                     </Label>

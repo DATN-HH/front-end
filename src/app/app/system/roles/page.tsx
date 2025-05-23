@@ -29,44 +29,8 @@ import { Role } from '@/lib/rbac';
 import { DataTable } from '@/components/Table/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { FilterDefinition } from '@/components/Table/types';
-import {SearchCondition} from '@/lib/BaseListRequest';
+import { SearchCondition } from '@/lib/response-object';
 import { advanceSearch } from '@/features/system/api/api-advance-search';
-// const filterDefinitions: FilterDefinition[] = [
-//     {
-//         field: 'name',
-//         label: 'Tên',
-//         type: OperandType.STRING,
-//     },
-//     {
-//         field: 'status',
-//         label: 'Trạng thái',
-//         type: OperandType.ENUM,
-//         options: [
-//             { value: 'active', label: 'Hoạt động' },
-//             { value: 'inactive', label: 'Không hoạt động' },
-//         ],
-//     },
-//     {
-//         field: 'createdAt',
-//         label: 'Ngày tạo',
-//         type: OperandType.DATE,
-//     },
-//     {
-//         field: 'age',
-//         label: 'Tuổi',
-//         type: OperandType.INTEGER,
-//     },
-//     {
-//         field: 'salary',
-//         label: 'Lương',
-//         type: OperandType.DECIMAL,
-//     },
-//     {
-//         field: 'isActive',
-//         label: 'Đang hoạt động',
-//         type: OperandType.BOOLEAN,
-//     },
-// ];
 
 export default function JobRolesPage() {
     const [pageIndex, setPageIndex] = useState(0);
@@ -160,19 +124,22 @@ export default function JobRolesPage() {
         },
     ];
 
-    const queryParams = useMemo(() => ({
-        page: pageIndex,
-        size: pageSize,
-        keyword,
-        sortBy: sorting,
-        searchCondition: columnFilters && columnFilters.length > 0 ? JSON.stringify(columnFilters) : undefined,
-    }), [pageIndex, pageSize, sorting, keyword, columnFilters]);
-    
+    const queryParams = useMemo(
+        () => ({
+            page: pageIndex,
+            size: pageSize,
+            keyword,
+            sortBy: sorting,
+            searchCondition:
+                columnFilters && columnFilters.length > 0
+                    ? JSON.stringify(columnFilters)
+                    : undefined,
+        }),
+        [pageIndex, pageSize, sorting, keyword, columnFilters]
+    );
 
     // Fetch advance search, roles using React Query
-    const {
-        data: filterDefinitions = [] as FilterDefinition[],
-    } = useQuery({
+    const { data: filterDefinitions = [] as FilterDefinition[] } = useQuery({
         queryKey: ['advance-search-roles'],
         queryFn: () => advanceSearch('roles'),
     });
@@ -180,7 +147,7 @@ export default function JobRolesPage() {
     const {
         data: roleList,
         isLoading,
-        error
+        error,
     } = useQuery({
         queryKey: ['roles', queryParams],
         queryFn: () => getRoles(queryParams),
@@ -190,9 +157,9 @@ export default function JobRolesPage() {
         if (roleList && 'data' in roleList) {
             setRoles(roleList.data);
             setPageIndex(roleList.page);
-            setTotal(roleList.total);}
-    }
-    , [roleList]);
+            setTotal(roleList.total);
+        }
+    }, [roleList]);
 
     useEffect(() => {
         if (error) {
@@ -208,7 +175,7 @@ export default function JobRolesPage() {
         setPageIndex(pageIndex);
         setPageSize(pageSize);
     };
-    
+
     // Create role mutation
     const createRoleMutation = useMutation({
         mutationFn: createRole,
@@ -294,9 +261,6 @@ export default function JobRolesPage() {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                {/* 
-Modal for creating a new role
-*/}
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight">
                         Job Roles
@@ -318,9 +282,9 @@ Modal for creating a new role
             <DataTable
                 columns={columns}
                 data={roles}
-                pageIndex = {pageIndex}
-                pageSize = {pageSize}
-                total = {total}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={total}
                 tableId="roles-table"
                 loading={isLoading}
                 // enableSorting = {false}
@@ -334,8 +298,7 @@ Modal for creating a new role
                 }}
                 onFilterChange={(filters) => {
                     setColumnFilters(filters);
-                }
-                }
+                }}
                 currentSorting={sorting}
             />
 
