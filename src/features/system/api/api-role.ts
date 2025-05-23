@@ -1,22 +1,7 @@
-import { Role } from '@/lib/rbac';
+import { BaseListRequest, RoleRequest } from '@/lib/request-object';
+import { BaseListResponse, RoleResponse } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 import qs from 'qs';
-import { BaseListRequest, BaseListResponse } from '@/lib/BaseListRequest';
-
-export interface RoleResponse {
-    id: number;
-    name: Role;
-    description: string;
-    hexColor: string;
-    status: string;
-}
-
-export interface RoleRequest {
-    name: Role;
-    description: string;
-    hexColor: string;
-    status: string;
-}
 
 export async function getRoles(
     query: BaseListRequest = {}

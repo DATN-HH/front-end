@@ -54,9 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     error: toastError,
     success,
-    info,
-    warning,
-    default: defaultToast,
   } = useCustomToast();
   const router = useRouter();
 
@@ -156,7 +153,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   Hàm này trả về true nếu người dùng đã đăng nhập (có token), ngược lại trả về false
 */
   const isAuthenticated = useCallback(() => {
-    return !!token;
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    return !!token && !!storedToken;
   }, [token]);
 
   const hasRole = useCallback(

@@ -87,17 +87,6 @@ export default function Sidebar() {
                                 <span>Assign Staff</span>
                             </Link>
                             <Link
-                                href="/app/scheduling/shifts"
-                                className={cn(
-                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
-                                    isActive('/app/scheduling/shifts') &&
-                                        'bg-orange-50 text-orange-500'
-                                )}
-                            >
-                                <Clock className="h-4 w-4" />
-                                <span>Work Shifts</span>
-                            </Link>
-                            <Link
                                 href="/app/scheduling/copy"
                                 className={cn(
                                     'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',

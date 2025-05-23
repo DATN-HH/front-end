@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -41,104 +42,39 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import {
     Edit,
     MoreHorizontal,
     Plus,
-    Search,
     Trash,
     Calendar,
+    CheckCircle,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-
-// Sample data for job roles
-const jobRoles = [
-    { id: 1, name: 'Head Chef', color: '#FF5733' },
-    { id: 2, name: 'Sous Chef', color: '#33FF57' },
-    { id: 3, name: 'Waiter', color: '#3357FF' },
-    { id: 4, name: 'Bartender', color: '#F033FF' },
-    { id: 5, name: 'Host/Hostess', color: '#FF33A8' },
-];
-
-// Sample data for employees
-const initialEmployees = [
-    {
-        id: 1,
-        name: 'John Smith',
-        email: 'john.smith@example.com',
-        phone: '555-123-4567',
-        roleId: 3,
-        status: 'active',
-        avatar: '/avatars/john.png',
-    },
-    {
-        id: 2,
-        name: 'Sarah Johnson',
-        email: 'sarah.johnson@example.com',
-        phone: '555-234-5678',
-        roleId: 5,
-        status: 'active',
-        avatar: '/avatars/sarah.png',
-    },
-    {
-        id: 3,
-        name: 'Michael Brown',
-        email: 'michael.brown@example.com',
-        phone: '555-345-6789',
-        roleId: 1,
-        status: 'active',
-        avatar: '/avatars/michael.png',
-    },
-    {
-        id: 4,
-        name: 'Emily Davis',
-        email: 'emily.davis@example.com',
-        phone: '555-456-7890',
-        roleId: 2,
-        status: 'active',
-        avatar: '/avatars/emily.png',
-    },
-    {
-        id: 5,
-        name: 'David Wilson',
-        email: 'david.wilson@example.com',
-        phone: '555-567-8901',
-        roleId: 4,
-        status: 'active',
-        avatar: '/avatars/david.png',
-    },
-    {
-        id: 6,
-        name: 'Jessica Taylor',
-        email: 'jessica.taylor@example.com',
-        phone: '555-678-9012',
-        roleId: 3,
-        status: 'inactive',
-        avatar: '/avatars/jessica.png',
-    },
-    {
-        id: 7,
-        name: 'Daniel Martinez',
-        email: 'daniel.martinez@example.com',
-        phone: '555-789-0123',
-        roleId: 2,
-        status: 'active',
-        avatar: '/avatars/daniel.png',
-    },
-    {
-        id: 8,
-        name: 'Olivia Anderson',
-        email: 'olivia.anderson@example.com',
-        phone: '555-890-1234',
-        roleId: 3,
-        status: 'active',
-        avatar: '/avatars/olivia.png',
-    },
-];
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { delUser, getListUsers, putUser } from '@/features/system/api/api-user';
+import { SearchCondition } from '@/lib/response-object';
+import { useCustomToast } from '@/lib/show-toast';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTable } from '@/components/Table/DataTable';
+import { FilterDefinition } from '@/components/Table/types';
+import { advanceSearch } from '@/features/system/api/api-advance-search';
+import { getRoles } from '@/features/system/api/api-role';
+import { createUser } from '@/features/system/api/api-auth';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function EmployeesPage() {
-    const [employees, setEmployees] = useState(initialEmployees);
+    const { user } = useAuth();
+
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+    const [sorting, setSorting] = useState<string | undefined>();
+    const [columnFilters, setColumnFilters] = useState<SearchCondition[]>([]);
+    const [keyword, setKeyword] = useState('');
+
+    const [employees, setEmployees] = useState([]);
+    const [total, setTotal] = useState(0);
+
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -146,623 +82,344 @@ export default function EmployeesPage() {
         useState(false);
     const [currentEmployee, setCurrentEmployee] = useState<any>(null);
     const [newEmployee, setNewEmployee] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        roleId: '',
-        status: 'active',
-    });
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterRole, setFilterRole] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
-
-    // Filter employees based on search query and filters
-    const filteredEmployees = employees.filter((employee) => {
-        const matchesSearch =
-            employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            employee.phone.includes(searchQuery);
-
-        const matchesRole = filterRole
-            ? employee.roleId === Number.parseInt(filterRole)
-            : true;
-        const matchesStatus = filterStatus
-            ? employee.status === filterStatus
-            : true;
-
-        return matchesSearch && matchesRole && matchesStatus;
+        branchId: user?.branch.id,
     });
 
-    // Create a new employee
-    const handleCreateEmployee = () => {
-        const id = Math.max(0, ...employees.map((e) => e.id)) + 1;
-        const roleId = Number.parseInt(newEmployee.roleId);
-        setEmployees([
-            ...employees,
-            {
-                id,
-                ...newEmployee,
-                roleId,
-                avatar: '/placeholder.svg?height=40&width=40',
+    const { error: toastError, success } = useCustomToast();
+
+    const queryClient = useQueryClient();
+
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'fullName',
+            header: 'Employee',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-3">
+                    <Avatar>
+                        <AvatarImage
+                            src={
+                                row.original.gender == 'MALE'
+                                    ? 'https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-512.png'
+                                    : 'https://png.pngtree.com/png-clipart/20241117/original/pngtree-business-women-avatar-png-image_17163554.png'
+                            }
+                            alt={row.original.fullName}
+                        />
+                    </Avatar>
+                    <span> {getInitials(row.original.fullName)}</span>
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'email',
+            header: 'Email',
+        },
+        {
+            id: 'roles',
+            header: 'Roles',
+            enableSorting: false,
+            cell: ({ row }) => {
+                return (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {row.original.isFullRole ? (
+                            <div className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500 text-white">
+                                <CheckCircle className="w-3 h-3" />
+                                <span>Full Roles</span>
+                            </div>
+                        ) : (
+                            row.original.userRoles.map((userRole, index) => (
+                                <div
+                                    key={index}
+                                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500 text-white"
+                                >
+                                    {userRole.role.name}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                );
             },
-        ]);
-        setNewEmployee({
-            name: '',
-            email: '',
-            phone: '',
-            roleId: '',
-            status: 'active',
-        });
-        setIsCreateDialogOpen(false);
-    };
+        },
+        {
+            accessorKey: 'birthdate',
+            header: 'Birthdate',
+            cell: ({ row }) => (
+                <div>{dayjs(row.original.birthdate).format('DD/MM/YYYY')}</div>
+            ),
+        },
+        {
+            accessorKey: 'gender',
+            header: 'Gender',
+        },
+        {
+            accessorKey: 'phoneNumber',
+            header: 'Phone',
+        },
+        {
+            accessorKey: 'createdAt',
+            header: 'Created At',
+            cell: ({ row }) => (
+                <div>
+                    {dayjs(row.original.createdAt).format(
+                        'DD/MM/YYYY HH:mm:ss'
+                    )}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'updatedAt',
+            header: 'Updated At',
+            cell: ({ row }) => (
+                <div>
+                    {dayjs(row.original.updatedAt).format(
+                        'DD/MM/YYYY HH:mm:ss'
+                    )}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: ({ row }) => (
+                <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                        row.getValue('status') === 'ACTIVE'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                    {row.getValue('status')}
+                </span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => {
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setCurrentEmployee(row.original);
+                                    console.log(row.original);
 
-    // Edit an existing employee
-    const handleEditEmployee = () => {
-        setEmployees(
-            employees.map((employee) =>
-                employee.id === currentEmployee.id ? currentEmployee : employee
-            )
-        );
-        setIsEditDialogOpen(false);
-    };
+                                    setIsEditDialogOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setCurrentEmployee(row.original);
+                                    setIsUnavailabilityDialogOpen(true);
+                                }}
+                            >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Manage Unavailability
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                    setCurrentEmployee(row.original);
+                                    setIsDeleteDialogOpen(true);
+                                }}
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            },
+        },
+    ];
 
-    // Delete an employee
-    const handleDeleteEmployee = () => {
-        setEmployees(
-            employees.filter((employee) => employee.id !== currentEmployee.id)
-        );
-        setIsDeleteDialogOpen(false);
-    };
+    const queryParams = useMemo(
+        () => ({
+            page: pageIndex,
+            size: pageSize,
+            keyword,
+            sortBy: sorting,
+            searchCondition:
+                columnFilters && columnFilters.length > 0
+                    ? JSON.stringify(columnFilters)
+                    : undefined,
+        }),
+        [pageIndex, pageSize, sorting, keyword, columnFilters]
+    );
 
-    // Get role name by ID
-    const getRoleName = (roleId: number) => {
-        return jobRoles.find((role) => role.id === roleId)?.name || '';
-    };
+    // Fetch roles, using React Query
+    const { data: roles } = useQuery({
+        queryKey: ['roles'],
+        queryFn: () => getRoles(),
+    });
 
-    // Get role color by ID
-    const getRoleColor = (roleId: number) => {
-        return jobRoles.find((role) => role.id === roleId)?.color || '#000000';
-    };
+    // Fetch advance search, using React Query
+    const { data: filterDefinitions = [] as FilterDefinition[] } = useQuery({
+        queryKey: ['advance-search-users'],
+        queryFn: () => advanceSearch('users'),
+    });
+
+    const {
+        data: employeeList,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ['employees', queryParams],
+        queryFn: () => getListUsers(queryParams),
+    });
+
+    useEffect(() => {
+        if (employeeList && 'data' in employeeList) {
+            setEmployees(employeeList.data);
+            setPageIndex(employeeList.page);
+            setTotal(employeeList.total);
+        }
+    }, [employeeList]);
+
+    useEffect(() => {
+        if (error) {
+            toastError(
+                'Error',
+                error?.response?.data?.message || 'Failed to fetch employees'
+            );
+            console.error('Fetch employees error:', error);
+        }
+    }, [error]);
+
+    // Update user mutation
+    const updateUserMutation = useMutation({
+        mutationFn: (data: { userId: any; userInfo: any }) =>
+            putUser(data.userId, data.userInfo),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            success('Success', 'Employees updated successfully');
+            setIsEditDialogOpen(false);
+        },
+        onError: (error: any) => {
+            toastError(
+                'Error',
+                error?.response?.data?.message || 'Failed to update'
+            );
+            console.error('Update error:', error);
+        },
+    });
+
+    // Create user mutation
+    const createUserMutation = useMutation({
+        mutationFn: (user: any) => createUser(user),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            success('Success', 'Employees create successfully');
+            setIsCreateDialogOpen(false);
+            setNewEmployee({ branchId: user?.branch?.id });
+        },
+        onError: (error: any) => {
+            toastError(
+                'Error',
+                error?.response?.data?.message || 'Failed to create'
+            );
+            console.log('Create user success' , user);
+
+            console.error('Create error:', error);
+        },
+    });
+
+    // Delete user mutation
+    const deleteUserMutation = useMutation({
+        mutationFn: (userId: any) => delUser(userId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+            success('Success', 'Employees delete successfully');
+            setIsDeleteDialogOpen(false);
+        },
+        onError: (error: any) => {
+            toastError(
+                'Error',
+                error?.response?.data?.message || 'Failed to delete'
+            );
+            console.error('Delete error:', error);
+        },
+    });
 
     // Get initials from name
     const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase();
+        return name.toUpperCase();
     };
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
-                <p className="text-muted-foreground">
-                    Manage your restaurant staff
-                </p>
-            </div>
-
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Search employees..."
-                            className="w-full pl-8"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    <Select value={filterRole} onValueChange={setFilterRole}>
-                        <SelectTrigger className="w-full md:w-[180px]">
-                            <SelectValue placeholder="Filter by role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Roles</SelectItem>
-                            {jobRoles.map((role) => (
-                                <SelectItem
-                                    key={role.id}
-                                    value={role.id.toString()}
-                                >
-                                    {role.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={filterStatus}
-                        onValueChange={setFilterStatus}
-                    >
-                        <SelectTrigger className="w-full md:w-[180px]">
-                            <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
+            <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Employees
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Manage your restaurant staff
+                    </p>
                 </div>
 
-                <Dialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                >
-                    <DialogTrigger asChild>
-                        <Button className="bg-orange-500 hover:bg-orange-600">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Employee
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add New Employee</DialogTitle>
-                            <DialogDescription>
-                                Add a new employee to your restaurant staff
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Full Name</Label>
-                                <Input
-                                    id="name"
-                                    placeholder="John Smith"
-                                    value={newEmployee.name}
-                                    onChange={(e) =>
-                                        setNewEmployee({
-                                            ...newEmployee,
-                                            name: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="john.smith@example.com"
-                                    value={newEmployee.email}
-                                    onChange={(e) =>
-                                        setNewEmployee({
-                                            ...newEmployee,
-                                            email: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="phone">Phone Number</Label>
-                                <Input
-                                    id="phone"
-                                    placeholder="555-123-4567"
-                                    value={newEmployee.phone}
-                                    onChange={(e) =>
-                                        setNewEmployee({
-                                            ...newEmployee,
-                                            phone: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="role">Job Role</Label>
-                                <Select
-                                    value={newEmployee.roleId}
-                                    onValueChange={(value) =>
-                                        setNewEmployee({
-                                            ...newEmployee,
-                                            roleId: value,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="role">
-                                        <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {jobRoles.map((role) => (
-                                            <SelectItem
-                                                key={role.id}
-                                                value={role.id.toString()}
-                                            >
-                                                {role.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="status">Status</Label>
-                                <Select
-                                    value={newEmployee.status}
-                                    onValueChange={(value) =>
-                                        setNewEmployee({
-                                            ...newEmployee,
-                                            status: value,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="status">
-                                        <SelectValue placeholder="Select a status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">
-                                            Active
-                                        </SelectItem>
-                                        <SelectItem value="inactive">
-                                            Inactive
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsCreateDialogOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                className="bg-orange-500 hover:bg-orange-600"
-                                onClick={handleCreateEmployee}
-                                disabled={
-                                    !newEmployee.name ||
-                                    !newEmployee.email ||
-                                    !newEmployee.roleId
-                                }
-                            >
-                                Add Employee
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <CreateModal
+                    isCreateDialogOpen={isCreateDialogOpen}
+                    setIsCreateDialogOpen={setIsCreateDialogOpen}
+                    newEmployee={newEmployee}
+                    setNewEmployee={setNewEmployee}
+                    handleCreateEmployee={() => createUserMutation.mutate(newEmployee)}
+                />
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Employees List</CardTitle>
-                    <CardDescription>
-                        View and manage all employees in your restaurant
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Employee</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Email
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Phone
-                                </TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="w-[100px]"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredEmployees.length === 0 ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={6}
-                                        className="text-center py-6 text-muted-foreground"
-                                    >
-                                        No employees found
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                filteredEmployees.map((employee) => (
-                                    <TableRow key={employee.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage
-                                                        src={
-                                                            employee.avatar ||
-                                                            '/placeholder.svg'
-                                                        }
-                                                        alt={employee.name}
-                                                    />
-                                                    <AvatarFallback>
-                                                        {getInitials(
-                                                            employee.name
-                                                        )}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-medium">
-                                                        {employee.name}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground md:hidden">
-                                                        {employee.email}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{
-                                                        backgroundColor:
-                                                            getRoleColor(
-                                                                employee.roleId
-                                                            ),
-                                                    }}
-                                                />
-                                                <span>
-                                                    {getRoleName(
-                                                        employee.roleId
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {employee.email}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {employee.phone}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            <span
-                                                className={`px-2 py-1 rounded-full text-xs ${
-                                                    employee.status === 'active'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-gray-100 text-gray-800'
-                                                }`}
-                                            >
-                                                {employee.status.toUpperCase()}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        className="h-8 w-8 p-0"
-                                                    >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setCurrentEmployee(
-                                                                employee
-                                                            );
-                                                            setIsEditDialogOpen(
-                                                                true
-                                                            );
-                                                        }}
-                                                    >
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setCurrentEmployee(
-                                                                employee
-                                                            );
-                                                            setIsUnavailabilityDialogOpen(
-                                                                true
-                                                            );
-                                                        }}
-                                                    >
-                                                        <Calendar className="mr-2 h-4 w-4" />
-                                                        Manage Unavailability
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="text-red-600"
-                                                        onClick={() => {
-                                                            setCurrentEmployee(
-                                                                employee
-                                                            );
-                                                            setIsDeleteDialogOpen(
-                                                                true
-                                                            );
-                                                        }}
-                                                    >
-                                                        <Trash className="mr-2 h-4 w-4" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <DataTable
+                columns={columns}
+                data={employees}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={total}
+                tableId="employees-table"
+                loading={isLoading}
+                // enableSorting = {false}
+                filterDefinitions={filterDefinitions}
+                onSearchChange={(search) => {
+                    setKeyword(search);
+                }}
+                onPaginationChange={(pageIndex: number, pageSize: number) => {
+                    setPageIndex(pageIndex);
+                    setPageSize(pageSize);
+                }}
+                onSortingChange={(sorting) => {
+                    setSorting(sorting);
+                }}
+                onFilterChange={(filters) => {
+                    setColumnFilters(filters);
+                }}
+                currentSorting={sorting}
+            />
 
             {/* Edit Employee Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Employee</DialogTitle>
-                        <DialogDescription>
-                            Update employee information
-                        </DialogDescription>
-                    </DialogHeader>
-                    {currentEmployee && (
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-name">Full Name</Label>
-                                <Input
-                                    id="edit-name"
-                                    value={currentEmployee.name}
-                                    onChange={(e) =>
-                                        setCurrentEmployee({
-                                            ...currentEmployee,
-                                            name: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-email">Email</Label>
-                                <Input
-                                    id="edit-email"
-                                    type="email"
-                                    value={currentEmployee.email}
-                                    onChange={(e) =>
-                                        setCurrentEmployee({
-                                            ...currentEmployee,
-                                            email: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-phone">Phone Number</Label>
-                                <Input
-                                    id="edit-phone"
-                                    value={currentEmployee.phone}
-                                    onChange={(e) =>
-                                        setCurrentEmployee({
-                                            ...currentEmployee,
-                                            phone: e.target.value,
-                                        })
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-role">Job Role</Label>
-                                <Select
-                                    value={currentEmployee.roleId.toString()}
-                                    onValueChange={(value) =>
-                                        setCurrentEmployee({
-                                            ...currentEmployee,
-                                            roleId: Number.parseInt(value),
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="edit-role">
-                                        <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {jobRoles.map((role) => (
-                                            <SelectItem
-                                                key={role.id}
-                                                value={role.id.toString()}
-                                            >
-                                                {role.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-status">Status</Label>
-                                <Select
-                                    value={currentEmployee.status}
-                                    onValueChange={(value) =>
-                                        setCurrentEmployee({
-                                            ...currentEmployee,
-                                            status: value,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="edit-status">
-                                        <SelectValue placeholder="Select a status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">
-                                            Active
-                                        </SelectItem>
-                                        <SelectItem value="inactive">
-                                            Inactive
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsEditDialogOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            className="bg-orange-500 hover:bg-orange-600"
-                            onClick={handleEditEmployee}
-                            disabled={
-                                !currentEmployee?.name ||
-                                !currentEmployee?.email
-                            }
-                        >
-                            Save Changes
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <EditModal
+                isEditDialogOpen={isEditDialogOpen}
+                setIsEditDialogOpen={setIsEditDialogOpen}
+                currentEmployee={currentEmployee}
+                setCurrentEmployee={setCurrentEmployee}
+                roles={roles}
+                updateUserMutation={updateUserMutation}
+            />
 
             {/* Delete Employee Dialog */}
-            <Dialog
-                open={isDeleteDialogOpen}
-                onOpenChange={setIsDeleteDialogOpen}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Delete Employee</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this employee? This
-                            action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    {currentEmployee && (
-                        <div className="py-4">
-                            <div className="flex items-center gap-3">
-                                <Avatar>
-                                    <AvatarImage
-                                        src={
-                                            currentEmployee.avatar ||
-                                            '/placeholder.svg'
-                                        }
-                                        alt={currentEmployee.name}
-                                    />
-                                    <AvatarFallback>
-                                        {getInitials(currentEmployee.name)}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-medium">
-                                        {currentEmployee.name}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {currentEmployee.email}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsDeleteDialogOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDeleteEmployee}
-                        >
-                            Delete
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DeleteModal
+                deleteUserMutation={deleteUserMutation}
+                isDeleteDialogOpen={isDeleteDialogOpen}
+                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                currentEmployee={currentEmployee}
+            />
 
             {/* Manage Unavailability Dialog */}
-            <Dialog
+            {/* <Dialog
                 open={isUnavailabilityDialogOpen}
                 onOpenChange={setIsUnavailabilityDialogOpen}
             >
@@ -836,7 +493,327 @@ export default function EmployeesPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
         </div>
+    );
+}
+
+function CreateModal({
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    newEmployee,
+    setNewEmployee,
+    handleCreateEmployee,
+}: any) {
+    return (
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Employee
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add New Employee</DialogTitle>
+                    <DialogDescription>
+                        Add a new employee to your restaurant staff
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                            id="fullName"
+                            placeholder="John Smith"
+                            value={newEmployee.fullName}
+                            onChange={(e) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    fullName: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            placeholder="john.smith@example.com"
+                            value={newEmployee.email}
+                            onChange={(e) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    email: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="123@abcZZZ"
+                            value={newEmployee.password}
+                            onChange={(e) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    password: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="phoneNumber">Phone Number</Label>
+                        <Input
+                            id="phoneNumber"
+                            placeholder="555-123-4567"
+                            value={newEmployee.phoneNumber}
+                            onChange={(e) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    phoneNumber: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="gender">Gender</Label>
+                        <Select
+                            value={newEmployee.gender}
+                            onValueChange={(value) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    gender: value,
+                                })
+                            }
+                        >
+                            <SelectTrigger id="status">
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="FEMALE">Female</SelectItem>
+                                <SelectItem value="MALE">Male</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select
+                            value={newEmployee.status}
+                            onValueChange={(value) =>
+                                setNewEmployee({
+                                    ...newEmployee,
+                                    status: value,
+                                })
+                            }
+                        >
+                            <SelectTrigger id="status">
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ACTIVE">Active</SelectItem>
+                                <SelectItem value="INACTIVE">
+                                    Inactive
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="bg-orange-500 hover:bg-orange-600"
+                        onClick={handleCreateEmployee}
+                        disabled={
+                            !newEmployee.fullName ||
+                            !newEmployee.email 
+                        }
+                    >
+                        Add Employee
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EditModal({
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    currentEmployee,
+    setCurrentEmployee,
+    roles,
+    updateUserMutation,
+}: any) {
+    return (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Employee</DialogTitle>
+                    <DialogDescription>
+                        Update employee information
+                    </DialogDescription>
+                </DialogHeader>
+                {currentEmployee && (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-name">Full Name</Label>
+                            <Input
+                                id="edit-name"
+                                value={currentEmployee.fullName}
+                                onChange={(e) =>
+                                    setCurrentEmployee({
+                                        ...currentEmployee,
+                                        fullName: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-email">Email</Label>
+                            <Input
+                                id="edit-email"
+                                type="email"
+                                value={currentEmployee.email}
+                                onChange={(e) =>
+                                    setCurrentEmployee({
+                                        ...currentEmployee,
+                                        email: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-phone">Phone Number</Label>
+                            <Input
+                                id="edit-phone"
+                                value={currentEmployee.phoneNumber}
+                                onChange={(e) =>
+                                    setCurrentEmployee({
+                                        ...currentEmployee,
+                                        phoneNumber: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-role">Job Role</Label>
+                            <Select
+                                value={currentEmployee.userRoles[0]?.roleId}
+                                onValueChange={(value) =>
+                                    setCurrentEmployee({
+                                        ...currentEmployee,
+                                        userRoles: [
+                                            {
+                                                userId: currentEmployee.id,
+                                                roleId: Number(value),
+                                            },
+                                        ],
+                                    })
+                                }
+                            >
+                                <SelectTrigger id="edit-role">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roles?.data?.map((role) => (
+                                        <SelectItem
+                                            key={role?.id}
+                                            value={role?.id}
+                                        >
+                                            {role?.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsEditDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="bg-orange-500 hover:bg-orange-600"
+                        onClick={() =>
+                            updateUserMutation.mutate({
+                                userId: currentEmployee.id,
+                                userInfo: {
+                                    ...currentEmployee,
+                                },
+                            })
+                        }
+                        disabled={
+                            !currentEmployee?.fullName ||
+                            !currentEmployee?.email
+                        }
+                    >
+                        Save Changes
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function DeleteModal({
+    deleteUserMutation,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    currentEmployee,
+}: any) {
+    return (
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Delete Employee</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this employee? This
+                        action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                {currentEmployee && (
+                    <div className="py-4">
+                        <div className="flex items-center gap-3">
+                            <div>
+                                <p className="font-medium">
+                                    {currentEmployee.fullName}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    {currentEmployee.email}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsDeleteDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        onClick={() =>
+                            deleteUserMutation.mutate(currentEmployee.id)
+                        }
+                    >
+                        Delete
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

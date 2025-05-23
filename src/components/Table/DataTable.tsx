@@ -51,7 +51,7 @@ import { DraggableColumnHeader } from './DraggableColumnHeader';
 import { AdvancedFilter } from './AdvancedFilter';
 import type { FilterDefinition } from './types';
 import { downloadToCSV, downloadToExcel } from './export-utils';
-import { SearchCondition } from '@/lib/BaseListRequest';
+import { SearchCondition } from '@/lib/response-object';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -182,7 +182,7 @@ export function DataTable<TData, TValue>({
 
     // Handle advanced filters change
     useEffect(() => {
-        console.log('Advanced filters changed:', advancedFilters);
+        // console.log('Advanced filters changed:', advancedFilters);
         onFilterChange(advancedFilters);
     }, [advancedFilters, onFilterChange]);
 
@@ -532,6 +532,9 @@ export function DataTable<TData, TValue>({
                                                             isPinned={isPinned}
                                                             sorting={
                                                                 currentSorting
+                                                            }
+                                                            enableSorting={
+                                                                enableSorting
                                                             }
                                                         >
                                                             {header.isPlaceholder

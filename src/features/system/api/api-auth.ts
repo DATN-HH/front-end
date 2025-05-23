@@ -1,103 +1,79 @@
 import { Role } from '@/lib/rbac';
+import { CreateUserPayload } from '@/lib/request-object';
+import { LoginResponse } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 
-export interface User {
-  id: number;
-  email: string;
-  username: string;
-  fullName: string;
-  isFullRole: boolean;
-  roles: Role[];
-}
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-}
-
-export interface CreateUserPayload {
-  email: string;
-  username: string;
-  fullName: string;
-  birthdate: string;
-  gender: 'FEMALE' | 'MALE';
-  phoneNumber: string;
-  password: string;
-  isFullRole?: boolean | null;
-  userRoles?: {
-    id?: number | null;
-    userId: number;
-    roleId: number;
-  }[];
-}
-
-export interface CreatedUserResponse {
-  id: number;
-  email: string;
-  username: string;
-  fullName: string;
-  birthdate: string;
-  gender: 'FEMALE' | 'MALE';
-  phoneNumber: string;
-  isFullRole: boolean | null;
-  userRoles: any[];
-}
 
 export async function loginUser(credentials: {
-  email: string;
-  password: string;
+    email: string;
+    password: string;
 }): Promise<LoginResponse> {
-  const response = await apiClient.post('/user/sign-in', credentials);
+    const response = await apiClient.post('/user/sign-in', credentials);
 
-  const data = response.data.payload;
+    const data = response.data.payload;
 
-  const roles: Role[] = data.account.userRoles.map(
-    (r: any) => r.role.name as Role
-  );
+    const roles: Role[] = data.account.userRoles.map(
+        (r: any) => r.role.name as Role
+    );
 
-  return {
-    user: {
-      id: data.account.id,
-      email: data.account.email,
-      username: data.account.username,
-      fullName: data.account.fullName,
-      isFullRole: data.account.isFullRole,
-      roles,
-    },
-    token: data.token,
-  };
+    return {
+        user: {
+            id: data.account.id,
+            email: data.account.email,
+            username: data.account.username,
+            fullName: data.account.fullName,
+            isFullRole: data.account.isFullRole,
+            roles,
+            branch: {
+                id: data.account.branch.id,
+                name: data.account.branch.name,
+                address: data.account.branch.address,
+                phone: data.account.branch.phone,
+                status: data.account.branch.status,
+            },
+        },
+
+        token: data.token,
+    };
 }
 
-export async function createUser(user: CreateUserPayload) {
-  const payload = {
-    ...user,
-    isFullRole: user.isFullRole ?? null,
-    userRoles: user.userRoles ?? [],
-  };
+export async function createUser(user: any) {
+    const payload = {
+        ...user,
+        isFullRole: user.isFullRole ?? null,
+        userRoles: user.userRoles ?? [],
+    };
 
-  const response = await apiClient.post('/user', payload);
+    const response = await apiClient.post('/user', payload);
 
-  return response.data.payload;
+    return response.data.payload;
 }
 
 export async function verifyToken(token: string): Promise<LoginResponse> {
-  const response = await apiClient.post('/user/verify-token', { token });
+    const response = await apiClient.post('/user/verify-token', { token });
 
-  const data = response.data.payload;
+    const data = response.data.payload;
 
-  const roles: Role[] = data.account.userRoles.map(
-    (r: any) => r.role.name as Role
-  );
+    const roles: Role[] = data.account.userRoles.map(
+        (r: any) => r.role.name as Role
+    );
 
-  return {
-    user: {
-      id: data.account.id,
-      email: data.account.email,
-      username: data.account.username,
-      fullName: data.account.fullName,
-      isFullRole: data.account.isFullRole,
-      roles,
-    },
-    token: data.token,
-  };
+    return {
+        user: {
+            id: data.account.id,
+            email: data.account.email,
+            username: data.account.username,
+            fullName: data.account.fullName,
+            isFullRole: data.account.isFullRole,
+            roles,
+            branch: {
+                id: data.account.branch.id,
+                name: data.account.branch.name,
+                address: data.account.branch.address,
+                phone: data.account.branch.phone,
+                status: data.account.branch.status,
+            },
+        },
+        token: data.token,
+    };
 }
