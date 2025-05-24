@@ -303,7 +303,6 @@ export default function SchedulePage() {
     const [draggedShift, setDraggedShift] = useState<StaffShift | null>(null);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const ganttRef = useRef<HTMLDivElement>(null);
-
     const [shifts, setShifts] = useState<Shift[]>([]);
     const {
         data: fetchedShifts = [] as Shift[],
