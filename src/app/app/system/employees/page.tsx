@@ -242,6 +242,9 @@ export default function EmployeesPage() {
 
     const queryParams = useMemo(
         () => ({
+            status: 'ACTIVE',
+            branchId: user?.branch.id,
+            isEmployee: true,
             page: pageIndex,
             size: pageSize,
             keyword,
@@ -251,7 +254,7 @@ export default function EmployeesPage() {
                     ? JSON.stringify(columnFilters)
                     : undefined,
         }),
-        [pageIndex, pageSize, sorting, keyword, columnFilters]
+        [pageIndex, pageSize, sorting, keyword, columnFilters, user]
     );
 
     // Fetch roles, using React Query
