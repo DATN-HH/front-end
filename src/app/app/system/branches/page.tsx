@@ -46,26 +46,115 @@ import {
 } from 'lucide-react';
 import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
-import {
-    BranchRequest,
-    BranchResponse,
-    getBranches,
-} from '@/features/system/api/api-branch';
+import { getBranches } from '@/features/system/api/api-branch';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTable } from '@/components/Table/DataTable';
+import { SearchCondition } from '@/lib/response-object';
+import dayjs from 'dayjs';
 
 export default function JobRolesPage() {
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+    const [sorting, setSorting] = useState();
+    const [columnFilters, setColumnFilters] = useState<SearchCondition[]>([]);
+    const [keyword, setKeyword] = useState('');
+    const [total, setTotal] = useState(0);
+
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [currentBranch, setCurrentBranch] = useState<BranchResponse | null>(
-        null
-    );
-    const [newBranch, setNewBranch] = useState<BranchRequest>({
+    const [currentBranch, setCurrentBranch] = useState<any | null>(null);
+    const [newBranch, setNewBranch] = useState<any>({
         name: '',
         address: '',
         phone: '',
         managerId: null,
         status: 'ACTIVE',
     });
+
+    const filterDefinitions = [
+        {
+            field: 'name',
+            label: 'Name',
+            type: 'STRING',
+        }
+    ];
+
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Name',
+        },
+        {
+            accessorKey: 'address',
+            header: 'Address',
+        },
+        {
+            accessorKey: 'phone',
+            header: 'Phone',
+        },
+        {
+            accessorKey: 'manager',
+            header: 'Manager',
+            cell: ({ row }) => {
+                return <span>{row.original?.managerName}</span>;
+            },
+        },
+        {
+            accessorKey: 'updateAt',
+            header: 'Last Updated',
+            cell: ({ row }) => {
+                const rawDate: string = row.getValue('updateAt');
+                const parsedDate = dayjs(rawDate?.split('.')[0]); // Cắt phần microseconds
+                return <span>{parsedDate.format('YYYY-MM-DD HH:mm:ss')}</span>;
+            },
+        },
+        {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: ({ row }) => (
+                <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                        row.getValue('status') === 'ACTIVE'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                    {row.getValue('status')}
+                </span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => {
+                return (
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            onClick={() => {
+                                // setCurrentRole(row.original);
+                                setIsEditDialogOpen(true);
+                            }}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500"
+                            onClick={() => {
+                                // setCurrentRole(row.original);
+                                setIsDeleteDialogOpen(true);
+                            }}
+                        >
+                            <Trash className="h-4 w-4" />
+                        </Button>
+                    </div>
+                );
+            },
+        },
+    ];
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -168,28 +257,18 @@ export default function JobRolesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">Branches</h1>
-                <p className="text-muted-foreground">
-                    Manage your restaurant branches, including adding, editing,
-                    and removing branches
-                </p>
-            </div>
-
             <div className="flex items-center justify-between">
-                <div className="relative w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search branches..."
-                        className="w-full pl-8"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Branches
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Manage your restaurant branches, including adding,
+                        editing, and removing branches
+                    </p>
                 </div>
 
-                {/* MODAL FOR CREATING A NEW BRANCH */}
-                {/* <Dialog
+                <Dialog
                     open={isCreateDialogOpen}
                     onOpenChange={setIsCreateDialogOpen}
                 >
@@ -199,7 +278,7 @@ export default function JobRolesPage() {
                             Create Branch
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    {/* <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Create New Job Role</DialogTitle>
                             <DialogDescription>
@@ -287,138 +366,40 @@ export default function JobRolesPage() {
                                 )}
                             </Button>
                         </DialogFooter>
-                    </DialogContent>
-                </Dialog> */}
+                    </DialogContent> */}
+                </Dialog>
+            </div>
+
+            <div className="flex items-center justify-between">
+                {/* MODAL FOR CREATING A NEW BRANCH */}
             </div>
 
             {/* TABLE FOR DISPLAYING BRANCHES */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Branches List</CardTitle>
-                    <CardDescription>
-                        View and manage all branches in the system
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="flex justify-center items-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        </div>
-                    ) : error ? (
-                        <div className="text-center py-6 text-red-500">
-                            Error loading roles. Please try again later.
-                        </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead className="hidden md:table-cell">
-                                        Address
-                                    </TableHead>
-                                    <TableHead className="hidden md:table-cell">
-                                        Phone
-                                    </TableHead>
-                                    <TableHead>Manager</TableHead>
-                                    <TableHead className="hidden md:table-cell">
-                                        Status
-                                    </TableHead>
-                                    <TableHead className="hidden md:table-cell">
-                                        Last Updated
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {branch.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={5}
-                                            className="text-center py-6 text-muted-foreground"
-                                        >
-                                            No branches found
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    branch.map((branch) => (
-                                        <TableRow key={branch.id}>
-                                            <TableCell>{branch.name}</TableCell>
-                                            <TableCell className="font-medium">
-                                                {branch.address}
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                {branch.phone}
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                {branch.managerName}
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                <span
-                                                    className={`px-2 py-1 rounded-full text-xs ${
-                                                        branch.status ===
-                                                        'ACTIVE'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-gray-100 text-gray-800'
-                                                    }`}
-                                                >
-                                                    {branch.status}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                {new Date(
-                                                    branch.updateAt
-                                                ).toLocaleDateString()}
-                                            </TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
-                                                    >
-                                                        <Button
-                                                            variant="ghost"
-                                                            className="h-8 w-8 p-0"
-                                                        >
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            onClick={() => {
-                                                                setCurrentBranch(
-                                                                    branch
-                                                                );
-                                                                setIsEditDialogOpen(
-                                                                    true
-                                                                );
-                                                            }}
-                                                        >
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            className="text-red-600"
-                                                            onClick={() => {
-                                                                setCurrentBranch(
-                                                                    branch
-                                                                );
-                                                                setIsDeleteDialogOpen(
-                                                                    true
-                                                                );
-                                                            }}
-                                                        >
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+            <DataTable
+                columns={columns}
+                data={branch}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={total}
+                tableId="roles-table"
+                loading={isLoading}
+                // enableSorting = {false}
+                filterDefinitions={filterDefinitions}
+                onSearchChange={(search) => {
+                    setKeyword(search);
+                }}
+                onPaginationChange={(pageIndex: number, pageSize: number) => {
+                    setPageIndex(pageIndex);
+                    setPageSize(pageSize);
+                }}
+                onSortingChange={(sorting) => {
+                    setSorting(sorting);
+                }}
+                onFilterChange={(filters) => {
+                    setColumnFilters(filters);
+                }}
+                currentSorting={sorting}
+            />
 
             {/* MODAL FOR EDITING A ROLE */}
             {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

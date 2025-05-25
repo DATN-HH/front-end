@@ -21,8 +21,6 @@ import {
     createRole,
     updateRole,
     deleteRole,
-    RoleResponse,
-    RoleRequest,
 } from '@/features/system/api/api-role';
 import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
@@ -39,14 +37,14 @@ export default function JobRolesPage() {
     const [columnFilters, setColumnFilters] = useState<SearchCondition[]>([]);
     const [keyword, setKeyword] = useState('');
 
-    const [roles, setRoles] = useState<RoleResponse[]>([]);
+    const [roles, setRoles] = useState<any[]>([]);
     const [total, setTotal] = useState(0);
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [currentRole, setCurrentRole] = useState<RoleResponse | null>(null);
-    const [newRole, setNewRole] = useState<RoleRequest>({
+    const [currentRole, setCurrentRole] = useState<any | null>(null);
+    const [newRole, setNewRole] = useState<any>({
         name: Role.CUSTOMER,
         hexColor: '#FF9500',
         description: '',
@@ -56,7 +54,7 @@ export default function JobRolesPage() {
 
     const queryClient = useQueryClient();
 
-    const columns: ColumnDef<RoleResponse>[] = [
+    const columns: ColumnDef<any>[] = [
         {
             accessorKey: 'hexColor',
             header: 'Color',
@@ -196,8 +194,8 @@ export default function JobRolesPage() {
 
     // Update role mutation
     const updateRoleMutation = useMutation({
-        mutationFn: (role: RoleResponse) =>
-            updateRole(role.id, role as RoleRequest),
+        mutationFn: (role: any) =>
+            updateRole(role.id, role as any),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['roles'] });
             success('Success', 'Role updated successfully');
