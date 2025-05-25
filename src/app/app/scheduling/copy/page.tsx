@@ -119,12 +119,20 @@ export default function CopySchedulePage() {
     };
 
     return (
-        <div className="container py-6">
+        <>
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Copy Schedule</h1>
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Copy Schedule
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Use this page to copy shifts from one date range to
+                            another. You can select a branch, specify the date
+                            range, and choose how you want to copy the shifts.
+                        </p>
+                    </div>
                 </div>
-
                 <div className="grid gap-6 md:grid-cols-12">
                     {/* Left column - Copy Settings */}
                     <Card className="md:col-span-5">
@@ -410,6 +418,6 @@ export default function CopySchedulePage() {
                     </Card>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

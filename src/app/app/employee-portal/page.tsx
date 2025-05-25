@@ -312,19 +312,26 @@ export default function EmployeePortalPage() {
     };
 
     return (
-        <div className="container py-6">
+        <>
             <div className="flex flex-col gap-6">
+                {/* Header */}
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Employee Portal</h1>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsTimeOffDialogOpen(true)}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Request Time Off
-                        </Button>
+                    <div className="flex flex-col gap-2">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Employee Portal
+                        </h1>
+                        <p className="text-muted-foreground">
+                            View your schedule, request time off, and manage
+                            shift requests.
+                        </p>
                     </div>
+
+                    <Button
+                        onClick={() => setIsTimeOffDialogOpen(true)}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Request Time Off
+                    </Button>
                 </div>
 
                 <Card>
@@ -898,6 +905,6 @@ export default function EmployeePortalPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </>
     );
 }

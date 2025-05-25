@@ -4,6 +4,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
 import { Toaster } from '@/components/ui/toaster';
+import { CartProvider } from '@/contexts/cart-context';
+import { Navigation } from '@/components/common/navigation';
+import { Footer } from '@/components/common/footer';
+import { FloatingCartButton } from '@/components/common/floating-cart-button';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +25,12 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <body className={inter.className}>
                 <Providers>
-                    {children}
+                    <CartProvider>
+                        <Navigation />
+                        <main className="min-h-screen">{children}</main>
+                        <Footer />
+                        <FloatingCartButton />
+                    </CartProvider>
                     <Toaster />
                 </Providers>
             </body>
