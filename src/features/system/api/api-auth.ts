@@ -1,8 +1,6 @@
 import { Role } from '@/lib/rbac';
-import { CreateUserPayload } from '@/lib/request-object';
 import { LoginResponse } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
-
 
 export async function loginUser(credentials: {
     email: string;
@@ -25,11 +23,11 @@ export async function loginUser(credentials: {
             isFullRole: data.account.isFullRole,
             roles,
             branch: {
-                id: data.account.branch.id,
-                name: data.account.branch.name,
-                address: data.account.branch.address,
-                phone: data.account.branch.phone,
-                status: data.account.branch.status,
+                id: data?.account?.branch?.id,
+                name: data?.account?.branch?.name,
+                address: data?.account?.branch?.address,
+                phone: data?.account?.branch?.phone,
+                status: data?.account?.branch?.status,
             },
         },
 
@@ -67,11 +65,11 @@ export async function verifyToken(token: string): Promise<LoginResponse> {
             isFullRole: data.account.isFullRole,
             roles,
             branch: {
-                id: data.account.branch.id,
-                name: data.account.branch.name,
-                address: data.account.branch.address,
-                phone: data.account.branch.phone,
-                status: data.account.branch.status,
+                id: data?.account?.branch?.id,
+                name: data?.account?.branch?.name,
+                address: data?.account?.branch?.address,
+                phone: data?.account?.branch?.phone,
+                status: data?.account?.branch?.status,
             },
         },
         token: data.token,

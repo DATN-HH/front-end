@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error: any) {
-        console.error('Login failed:', error?.response?.data?.message);
+        console.error('Login failed:', error);
         toastError('Error', error?.response?.data?.message || 'Login failed');
       } finally {
         setIsLoading(false);
