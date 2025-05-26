@@ -8,7 +8,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center">
         <Image
-          src="/placeholder.svg?height=400&width=1200&query=restaurant chef cooking in kitchen"
+          src="https://i.ytimg.com/vi/xywfU1-7pvY/maxresdefault.jpg"
           alt="Our Kitchen"
           fill
           className="object-cover"
@@ -42,7 +42,7 @@ export default function AboutPage() {
             </div>
             <div className="relative h-96">
               <Image
-                src="/placeholder.svg?height=400&width=600&query=restaurant family owners smiling"
+                src="https://cdn.shopify.com/s/files/1/1353/1137/files/Restaurant-Manager-1080x6752.jpg?v=1610554257"
                 alt="Restaurant Owners"
                 fill
                 className="object-cover rounded-lg"
@@ -110,14 +110,14 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { name: "Chef Marco Rodriguez", role: "Head Chef", image: "professional chef in kitchen" },
-              { name: "Sarah Johnson", role: "Restaurant Manager", image: "restaurant manager smiling" },
-              { name: "David Chen", role: "Sous Chef", image: "sous chef preparing food" },
+              { name: "Chef Marco Rodriguez", role: "Head Chef", image: "https://www.howcast.com/.image/t_share/MTU5NzA0NjU0NzYzNzI5OTQw/zb-how-to-hire-a-restaurant-chef-promo-image.jpg" },
+              { name: "Sarah Johnson", role: "Restaurant Manager", image: "https://www.servicethatsells.com/upload_path/2017/10/10-17-17-New-Restaurant-Managers-Large.jpg" },
+              { name: "David Chen", role: "Sous Chef", image: "https://macaonews.org/wp-content/uploads/2022/03/Minimised_Chef_Sam_Sham-138-copy.jpg" },
             ].map((member, index) => (
               <Card key={index}>
                 <div className="relative h-64">
                   <Image
-                    src={`/placeholder.svg?height=300&width=300&query=${member.image}`}
+                    src={`${member.image}`}
                     alt={member.name}
                     fill
                     className="object-cover rounded-t-lg"
