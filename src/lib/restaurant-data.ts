@@ -75,7 +75,7 @@ export const menuItems: MenuItem[] = [
     detailedDescription:
       "Fresh Maine lobster tail, delicately poached and served in its shell with a rich cognac cream sauce, finished with Gruyère cheese and fresh herbs. A timeless French classic that exemplifies our commitment to traditional techniques and premium ingredients.",
     price: 68.0,
-    image: "/placeholder.svg?height=300&width=400&query=lobster thermidor fine dining",
+    image: "https://www.allrecipes.com/thmb/r4smJXjq4boMyoTX00UaMTwBcpM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/AR-87386-Lobster-Thermidor-DDMFS-4x3-3d182e9ac5ac494fbbb44787cd80fdad.jpg",
     images: [
       "/placeholder.svg?height=300&width=400&query=lobster thermidor fine dining",
       "/placeholder.svg?height=300&width=400&query=lobster thermidor preparation",
@@ -104,7 +104,7 @@ export const menuItems: MenuItem[] = [
     detailedDescription:
       "Authentic A5 grade Japanese Wagyu beef tenderloin, grilled to perfection and served with roasted seasonal vegetables, truffle jus, and microgreens. This exceptional cut represents the pinnacle of beef quality and marbling.",
     price: 125.0,
-    image: "/placeholder.svg?height=300&width=400&query=wagyu beef tenderloin fine dining",
+    image: "https://www.wagyubeefsingapore.com/wp-content/uploads/2020/07/on-hover-a4-a5-wagyu-tenderloin.jpg",
     images: [
       "/placeholder.svg?height=300&width=400&query=wagyu beef tenderloin fine dining",
       "/placeholder.svg?height=300&width=400&query=wagyu beef raw marbling",
@@ -133,7 +133,7 @@ export const menuItems: MenuItem[] = [
     detailedDescription:
       "An intimate culinary journey featuring 15 carefully crafted courses that showcase the finest seasonal ingredients. Each dish is personally selected and prepared by our head chef, offering a unique dining experience that changes with the seasons.",
     price: 185.0,
-    image: "/placeholder.svg?height=300&width=400&query=omakase sushi tasting menu",
+    image: "https://cdn.vox-cdn.com/thumbor/6og5HhPQZLSIvXjsBOL3IIFVBRU=/0x0:5364x3522/1200x800/filters:focal(2253x1332:3111x2190)/cdn.vox-cdn.com/uploads/chorus_image/image/65374826/190721_Omakase_29.0.jpg",
     images: [
       "/placeholder.svg?height=300&width=400&query=omakase sushi tasting menu",
       "/placeholder.svg?height=300&width=400&query=sushi chef preparing omakase",
@@ -163,7 +163,7 @@ export const menuItems: MenuItem[] = [
       "Luxurious Arborio rice slowly cooked to creamy perfection with Parmigiano-Reggiano, finished with generous shavings of fresh black Périgord truffles and a touch of white truffle oil. A celebration of one of nature's most prized ingredients.",
     price: 48.0,
     originalPrice: 55.0,
-    image: "/placeholder.svg?height=300&width=400&query=black truffle risotto fine dining",
+    image: "https://images.prismic.io/eataly-us/17a154ac-d5d1-40d6-8c8c-e232ca376caa_truffle-risotto.jpg?auto=compress,format",
     images: [
       "/placeholder.svg?height=300&width=400&query=black truffle risotto fine dining",
       "/placeholder.svg?height=300&width=400&query=truffle shaving on risotto",
@@ -204,7 +204,7 @@ export const menuItems: MenuItem[] = [
       "A carefully curated 8-course tasting menu designed for two, featuring our signature dishes and wine pairings. Each course is designed to be shared, creating an intimate and memorable dining experience perfect for anniversaries, proposals, or special celebrations.",
     price: 295.0,
     originalPrice: 340.0,
-    image: "/placeholder.svg?height=300&width=400&query=romantic dinner for two fine dining",
+    image: "https://www.colette.sk/wp-content/uploads/2024/11/Brunch-v-Bratislave-Colette-1.jpg",
     images: [
       "/placeholder.svg?height=300&width=400&query=romantic dinner for two fine dining",
       "/placeholder.svg?height=300&width=400&query=tasting menu courses plated",
