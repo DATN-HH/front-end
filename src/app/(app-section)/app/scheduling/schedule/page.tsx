@@ -72,7 +72,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { Shift, Requirement, putShift, getShifts, postShift, deleteShift } from '@/features/scheduling/api/api-shift';
+import {
+    Shift,
+    Requirement,
+    putShift,
+    getShifts,
+    postShift,
+    deleteShift,
+} from '@/features/scheduling/api/api-shift';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/Table/DataTable';
 import { useAuth } from '@/contexts/auth-context';
@@ -272,10 +279,10 @@ export default function SchedulePage() {
         'schedule'
     );
 
-    const {user} = useAuth();
+    const { user } = useAuth();
     const queryClient = useQueryClient();
     const { error: toastError, success } = useCustomToast();
-    
+
     const [isShiftDialogOpen, setIsShiftDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentShift, setCurrentShift] = useState<Shift>({
@@ -304,13 +311,11 @@ export default function SchedulePage() {
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const ganttRef = useRef<HTMLDivElement>(null);
     const [shifts, setShifts] = useState<Shift[]>([]);
-    const {
-        data: fetchedShifts = [] as Shift[],
-        isLoading: shiftsLoading,
-    } = useQuery({
-        queryKey: ['shifts', shifts],
-        queryFn: () => getShifts(user?.branch.id),
-    });
+    const { data: fetchedShifts = [] as Shift[], isLoading: shiftsLoading } =
+        useQuery({
+            queryKey: ['shifts', shifts],
+            queryFn: () => getShifts(user?.branch.id),
+        });
 
     // Update shifts state when data is fetched
     useEffect(() => {
@@ -333,7 +338,7 @@ export default function SchedulePage() {
             );
             console.error('Create shift error:', error);
         },
-    });    
+    });
 
     // Update shift mutation
     const updateShiftMutation = useMutation({
@@ -354,7 +359,7 @@ export default function SchedulePage() {
             );
             console.error('Update shift error:', error);
         },
-    });  
+    });
 
     // Delete shift mutation
     const deleteShiftMutation = useMutation({
@@ -783,7 +788,7 @@ export default function SchedulePage() {
                         deleteShift={deleteShiftMutation.mutate}
                         roles={mockRoles}
                         formatTime={formatTime}
-                        isLoading = {shiftsLoading}
+                        isLoading={shiftsLoading}
                     />
                 ) : (
                     <SchedulingCard
@@ -805,6 +810,7 @@ export default function SchedulePage() {
                         mockStaff={mockStaff}
                         roles={mockRoles}
                         ganttRef={ganttRef}
+                        shifts={shifts}
                     />
                 )}
             </div>
@@ -858,8 +864,7 @@ function ShiftModal({
     saveShift,
     roles,
 }: any) {
-
-    const {user} = useAuth();
+    const { user } = useAuth();
 
     return (
         <Dialog open={isShiftDialogOpen} onOpenChange={setIsShiftDialogOpen}>
@@ -922,12 +927,12 @@ function ShiftModal({
                                 <SelectValue placeholder="Select branch" />
                             </SelectTrigger>
                             <SelectContent>
-                                    <SelectItem
-                                        key={user?.branch?.id || 0}
-                                        value={(user?.branch?.id || '').toString()}
-                                    >
-                                        {user?.branch?.name || 'Default Branch'}
-                                    </SelectItem>
+                                <SelectItem
+                                    key={user?.branch?.id || 0}
+                                    value={(user?.branch?.id || '').toString()}
+                                >
+                                    {user?.branch?.name || 'Default Branch'}
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -1337,9 +1342,8 @@ function ShiftCard({
     openEditDialog,
     deleteShift,
     roles,
-    isLoading
+    isLoading,
 }: any) {
-
     const columns: ColumnDef<Shift>[] = [
         {
             accessorKey: 'startTime',
@@ -1358,30 +1362,26 @@ function ShiftCard({
             header: 'Requirements',
             cell: ({ row }) => (
                 <div className="flex flex-wrap gap-2">
-                    {((row.getValue('requirements') as Requirement[]) || []).map(
-                        (req, index) => {
-                            const roleColor =
-                                roles.find(
-                                    (r) =>
-                                        r.name === req.role
-                                )?.hexColor || '#333';
-                            return (
-                                <Badge
-                                    key={index}
-                                    variant="outline"
-                                    style={{
-                                        backgroundColor: `${roleColor}20`,
-                                        borderColor:
-                                            roleColor,
-                                        color: roleColor,
-                                    }}
-                                >
-                                    {req.role}:{' '}
-                                    {req.quantity}
-                                </Badge>
-                            );
-                        }
-                    )}
+                    {(
+                        (row.getValue('requirements') as Requirement[]) || []
+                    ).map((req, index) => {
+                        const roleColor =
+                            roles.find((r) => r.name === req.role)?.hexColor ||
+                            '#333';
+                        return (
+                            <Badge
+                                key={index}
+                                variant="outline"
+                                style={{
+                                    backgroundColor: `${roleColor}20`,
+                                    borderColor: roleColor,
+                                    color: roleColor,
+                                }}
+                            >
+                                {req.role}: {req.quantity}
+                            </Badge>
+                        );
+                    })}
                 </div>
             ),
         },
@@ -1393,9 +1393,7 @@ function ShiftCard({
                     <div className="flex gap-2">
                         <Button
                             size="sm"
-                            onClick={() =>
-                                openEditDialog(row.original)
-                            }
+                            onClick={() => openEditDialog(row.original)}
                         >
                             <Edit className="h-4 w-4" />
                         </Button>
@@ -1404,7 +1402,7 @@ function ShiftCard({
                             size="sm"
                             className="text-red-500"
                             onClick={() => {
-                                deleteShift(row.original.id)
+                                deleteShift(row.original.id);
                             }}
                         >
                             <Trash className="h-4 w-4" />
@@ -1654,7 +1652,7 @@ function SchedulingCard({
                                             </div>
 
                                             {/* Shift bars */}
-                                            {shifts.map((shift) => {
+                                            {shifts?.map((shift) => {
                                                 const dayWidth = 100; // Minimum width per day
                                                 const { left, width } =
                                                     calculateShiftPosition(
