@@ -8,8 +8,8 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'Menu+',
-    description: 'Menu+ authentication system',
+    title: 'Menu+ Personnel Management',
+    description: 'Complete personnel management system for restaurants',
 };
 
 export default function RootLayout({

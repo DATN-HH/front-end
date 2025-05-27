@@ -10,7 +10,7 @@ export default function Home() {
           <Logo className="h-12 w-auto" />
           <h1 className="text-3xl font-bold">Welcome to Menu+</h1>
           <p className="text-center text-muted-foreground">
-            Sign in to your account or create a new one to get started
+            Complete personnel management system for restaurants
           </p>
         </div>
         <div className="flex flex-col space-y-4">
@@ -19,6 +19,9 @@ export default function Home() {
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/register">Create Account</Link>
+          </Button>
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/dashboard">Go to Dashboard</Link>
           </Button>
         </div>
       </div>

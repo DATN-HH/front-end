@@ -9,7 +9,7 @@ import {
 import { Clock, UserCog, Users, FileText, Bell } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -80,22 +80,22 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Link href="/test/scheduling/roles">
+            <Link href="/dashboard/scheduling/roles">
               <Button className="w-full bg-orange-500 hover:bg-orange-600">
                 Manage Job Roles
               </Button>
             </Link>
-            <Link href="/scheduling/shifts">
+            <Link href="/dashboard/scheduling/shifts">
               <Button className="w-full" variant="outline">
                 Create Work Shifts
               </Button>
             </Link>
-            <Link href="/scheduling/schedule">
+            <Link href="/dashboard/scheduling/schedule">
               <Button className="w-full" variant="outline">
                 View Schedule
               </Button>
             </Link>
-            <Link href="/employees">
+            <Link href="/dashboard/employees">
               <Button className="w-full" variant="outline">
                 Manage Employees
               </Button>
@@ -160,4 +160,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
+} 
