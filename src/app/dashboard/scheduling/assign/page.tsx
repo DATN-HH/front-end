@@ -250,17 +250,16 @@ export default function AssignStaffPage() {
     };
 
     const isStaffAlreadyScheduled = (staffId: number) => {
-        return staffShifts?.data?.some(
+        if (!staffShifts || !('data' in staffShifts) || !Array.isArray(staffShifts.data)) return false;
+        return staffShifts.data.some(
             (shift: any) => shift.user.id === staffId
-        ) || false;
+        );
     };
 
     const getAssignedStaff = () => {
-        if (!staffShifts || !('data' in staffShifts)) return [];
-        return (
-            staffShifts.data?.filter(
-                (shift: any) => shift.shift.id === selectedShift?.id
-            ) || []
+        if (!staffShifts || !('data' in staffShifts) || !Array.isArray(staffShifts.data)) return [];
+        return staffShifts.data.filter(
+            (shift: any) => shift.shift.id === selectedShift?.id
         );
     };
 

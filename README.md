@@ -1,147 +1,144 @@
-# Menu+ Personnel Management System
+# Menu+ Management System
 
-A complete personnel management system for restaurants built with Next.js 15, TypeScript, and Tailwind CSS.
+A comprehensive restaurant management system with both Planning and Menu modules.
 
-## 🚀 Features
+## Features
 
-- **Authentication System**: Login, registration, and logout functionality
-- **Dashboard**: Overview of restaurant operations with key metrics
-- **Employee Management**: Manage staff information and roles
-- **Role Management**: Define and manage job roles and permissions
-- **Scheduling System**: Assign staff to shifts and manage schedules
-- **Responsive Design**: Modern UI that works on all devices
+### Authentication
+- User login/registration system
+- Protected routes requiring authentication
+- Automatic redirection based on authentication status
 
-## 📁 Project Structure
+### Planning Module
+- Staff scheduling and management
+- Role-based access control
+- Time-off request management
+- Employee portal
+- Shift planning and assignment
+
+### Menu Module
+- Product management with full CRUD operations
+- POS category organization with hierarchical structure
+- Advanced filtering and sorting capabilities
+- Pagination for large datasets
+- Product attributes (coming soon)
+- Kitchen printer configuration (coming soon)
+
+## Project Structure
 
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── dashboard/          # Protected dashboard routes
-│   │   ├── layout.tsx      # Dashboard layout with sidebar
-│   │   ├── page.tsx        # Dashboard home page
-│   │   ├── scheduling/     # Scheduling management
-│   │   │   └── assign/     # Staff assignment to shifts
-│   │   └── system/         # System management
-│   │       ├── employees/  # Employee management
-│   │       └── roles/      # Role management
-│   ├── login/              # Authentication pages
-│   ├── register/
-│   ├── logout/
-│   ├── layout.tsx          # Root layout
-│   └── page.tsx            # Landing page
-├── components/             # Reusable UI components
-│   ├── ui/                 # shadcn/ui components
-│   ├── common/             # Common components (header, sidebar, etc.)
-│   └── Table/              # Table components
-├── contexts/               # React contexts
-├── features/               # Feature-based organization
-│   ├── scheduling/         # Scheduling-related features
-│   └── system/             # System management features
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utility functions and configurations
-└── services/               # API services
+front-end/
+├── src/
+│   ├── app/
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx                    # Module selection dashboard
+│   │   │   ├── planning/
+│   │   │   │   └── page.tsx               # Planning module overview
+│   │   │   ├── menu/
+│   │   │   │   ├── page.tsx               # Menu module overview
+│   │   │   │   ├── products/
+│   │   │   │   │   └── page.tsx           # Product management
+│   │   │   │   ├── pos-categories/
+│   │   │   │   │   └── page.tsx           # POS category management
+│   │   │   │   ├── attributes/
+│   │   │   │   │   └── page.tsx           # Product attributes (placeholder)
+│   │   │   │   └── kitchen-printers/
+│   │   │   │       └── page.tsx           # Kitchen printer config (placeholder)
+│   │   │   ├── scheduling/                # Planning module features
+│   │   │   └── system/                    # System administration
+│   │   ├── login/
+│   │   └── register/
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── sidebar.tsx                # Navigation sidebar
+│   │   │   └── header.tsx                 # Top header
+│   │   └── ui/                            # Reusable UI components
+│   ├── contexts/
+│   │   └── auth-context.tsx               # Authentication context
+│   └── middleware.ts                      # Route protection middleware
 ```
 
-## 🛠️ Getting Started
+## Getting Started
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
+1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Update the environment variables in `.env.local`:
-   ```
-   NEXT_PUBLIC_API_URL=http://localhost:8090/api
-   ```
-
-4. Run the development server:
+2. **Run the development server:**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+3. **Access the application:**
+   - Open [http://localhost:3000](http://localhost:3000)
+   - You'll be redirected to login if not authenticated
+   - After login, you'll see the module selection dashboard
 
-## 🔧 Available Scripts
+## Authentication Flow
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+1. **Unauthenticated users** are redirected to `/login`
+2. **Successful login** sets both localStorage token and auth cookie
+3. **Authenticated users** are redirected to `/dashboard` (module selection)
+4. **Module selection** allows access to Planning or Menu modules
+5. **Logout** clears tokens and redirects to login
 
-## 🏗️ Architecture
+## Module Navigation
 
-### Routing Structure
+### Planning Module (`/dashboard/planning`)
+- Personnel management and scheduling
+- Staff role management
+- Time-off requests
+- Schedule overview and assignment
 
-- **Public Routes**: `/`, `/login`, `/register`
-- **Protected Routes**: `/dashboard/*` (requires authentication)
-- **Dashboard Layout**: Includes sidebar navigation and header
+### Menu Module (`/dashboard/menu`)
+- Product management with advanced features
+- POS category organization
+- Product attributes (coming soon)
+- Kitchen printer configuration (coming soon)
 
-### Key Components
+## Key Features
 
-- **Dashboard Layout**: Provides consistent layout for all dashboard pages
-- **Sidebar Navigation**: Easy access to all system features
-- **Protected Routes**: Authentication-based route protection
-- **Responsive Design**: Mobile-first approach
+### Product Management
+- **Advanced filtering:** By type, category, status, and POS availability
+- **Sorting:** By name, price, cost, and creation date
+- **Pagination:** Configurable items per page (5, 10, 20, 30, 50)
+- **Search:** Real-time product name search
+- **Actions:** View, edit, archive/unarchive products
 
-### State Management
+### POS Categories
+- **Hierarchical structure:** Parent and child categories
+- **Sequence management:** Move categories up/down
+- **Product count tracking:** Shows number of products per category
+- **Advanced filtering:** By category level and parent category
 
-- **React Query**: Server state management and caching
-- **React Context**: Authentication and global state
-- **Local State**: Component-level state with React hooks
+### Security
+- **Route protection:** Middleware ensures authentication for dashboard routes
+- **Token management:** Dual storage (localStorage + cookies) for reliability
+- **Automatic logout:** On token expiration or verification failure
 
-## 🎨 UI/UX
+## Technology Stack
 
-- **Design System**: Built with shadcn/ui components
-- **Styling**: Tailwind CSS for utility-first styling
-- **Icons**: Lucide React for consistent iconography
-- **Theme**: Support for light/dark mode
+- **Framework:** Next.js 15 with App Router
+- **UI Components:** Radix UI + Tailwind CSS
+- **State Management:** React Context API
+- **Authentication:** JWT tokens with cookie-based middleware
+- **Icons:** Lucide React
+- **Styling:** Tailwind CSS with custom design system
 
-## 📱 Responsive Design
+## Development Notes
 
-The application is fully responsive and optimized for:
-- Desktop (1024px+)
-- Tablet (768px - 1023px)
-- Mobile (320px - 767px)
+- The system prioritizes front-end code when merging conflicts
+- Authentication is required for all dashboard functionality
+- Module-based navigation provides clear separation of concerns
+- Responsive design works on desktop and mobile devices
+- Toast notifications provide user feedback for all actions
 
-## 🔐 Authentication
+## Future Enhancements
 
-- JWT-based authentication
-- Protected routes with automatic redirection
-- Token storage in localStorage
-- Automatic token refresh
-
-## 🚀 Deployment
-
-The application can be deployed to any platform that supports Next.js:
-
-- **Vercel** (recommended)
-- **Netlify**
-- **AWS**
-- **Docker**
-
-## 📄 License
-
-This project is private and proprietary.
-
-## 🤝 Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Run tests and linting
-4. Submit a pull request
-
-## 📞 Support
-
-For support and questions, please contact the development team.
+- Complete product attributes functionality
+- Kitchen printer configuration
+- Advanced reporting and analytics
+- Mobile app integration
+- Real-time notifications
+- Multi-language support

@@ -1,9 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
-import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/auth-context';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -21,15 +19,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AuthProvider>{children}</AuthProvider>
-      </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <AuthProvider>{children}</AuthProvider>
     </QueryClientProvider>
   );
 }

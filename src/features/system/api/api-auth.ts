@@ -1,8 +1,9 @@
 import { Role } from '@/lib/rbac';
 import { CreateUserPayload } from '@/lib/request-object';
-import { LoginResponse } from '@/lib/response-object';
+import { LoginResponse, User } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 
+export type { User } from '@/lib/response-object';
 
 export async function loginUser(credentials: {
     email: string;

@@ -16,7 +16,7 @@ import { useCustomToast } from '@/lib/show-toast';
 export function getDefaultRedirectByRole(role: Role): string {
   switch (role) {
     case Role.MANAGER:
-      return '/app';
+      return '/dashboard';
     case Role.WAITER:
     case Role.HOST:
     case Role.KITCHEN:
@@ -24,13 +24,25 @@ export function getDefaultRedirectByRole(role: Role): string {
     case Role.ACCOUNTANT:
     case Role.SUPPORT:
     case Role.EMPLOYEE:
-      return '/app/employee-portal';
+      return '/dashboard/employee-portal';
     case Role.SYSTEM_ADMIN:
-      return '/app/system-admin';
+      return '/dashboard/system';
     case Role.CUSTOMER:
     default:
       return '/';
   }
+}
+
+// Helper function to set cookie
+function setCookie(name: string, value: string, days: number = 7) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
+// Helper function to remove cookie
+function removeCookie(name: string) {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 }
 
 interface AuthContextType {
@@ -69,6 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const { user } = await verifyToken(storedToken);
           setUser(user);
+          // Set cookie for middleware
+          if (typeof window !== 'undefined') {
+            setCookie('auth-token', storedToken);
+          }
           success('Success', 'Token verified successfully');
         } catch (error: any) {
           console.error(
@@ -80,6 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             error?.response?.data?.message || 'Token verification failed'
           );
           localStorage.removeItem('token');
+          if (typeof window !== 'undefined') {
+            removeCookie('auth-token');
+          }
           setToken(null);
           setUser(null);
         }
@@ -110,6 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
+          // Set cookie for middleware
+          setCookie('auth-token', token);
 
           // Ưu tiên lấy redirect từ URL
           const params = new URLSearchParams(window.location.search);
@@ -118,12 +139,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (redirectUrl) {
             router.push(redirectUrl);
           } else if (user.isFullRole) {
-            router.push('/app');
+            router.push('/dashboard');
           } else if (user.roles && user.roles.length > 0) {
             const targetUrl = getDefaultRedirectByRole(user.roles[0]);
             router.push(targetUrl);
           } else {
-            router.push('/');
+            router.push('/dashboard');
           }
         }
       } catch (error: any) {
@@ -144,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
+      removeCookie('auth-token');
     }
     router.push('/login');
   }, []);

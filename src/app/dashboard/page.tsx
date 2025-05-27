@@ -6,25 +6,102 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Clock, UserCog, Users, FileText, Bell } from 'lucide-react';
+import { Calendar, Package, Users, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Menu+ Management System</h1>
         <p className="text-muted-foreground">
-          Welcome to Menu+ Personnel Management System
+          Select a module to manage your restaurant operations
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+        {/* Planning Module */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
+              <Calendar className="h-8 w-8 text-orange-500" />
+            </div>
+            <CardTitle className="text-xl">Planning Module</CardTitle>
+            <CardDescription>
+              Manage staff scheduling, roles, and personnel operations
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>Staff Management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>Shift Scheduling</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Time-off Requests</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>Role Management</span>
+              </div>
+            </div>
+            <Link href="/dashboard/planning" className="block">
+              <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                Access Planning Module
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Menu Module */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+              <Package className="h-8 w-8 text-blue-500" />
+            </div>
+            <CardTitle className="text-xl">Menu Module</CardTitle>
+            <CardDescription>
+              Manage products, categories, and menu configurations
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span>Product Management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span>POS Categories</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span>Attributes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span>Kitchen Printers</span>
+              </div>
+            </div>
+            <Link href="/dashboard/menu" className="block">
+              <Button className="w-full bg-blue-500 hover:bg-blue-600">
+                Access Menu Module
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-4 max-w-4xl mx-auto">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Employees
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -35,20 +112,18 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Job Roles</CardTitle>
-            <UserCog className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">+1 from last month</p>
+            <div className="text-2xl font-bold">245</div>
+            <p className="text-xs text-muted-foreground">+20 from last month</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Shifts This Week
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Shifts This Week</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -59,102 +134,12 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Requests
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Menu Categories</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">-2 from yesterday</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common tasks you might want to perform
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Link href="/dashboard/scheduling/roles">
-              <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                Manage Job Roles
-              </Button>
-            </Link>
-            <Link href="/dashboard/scheduling/shifts">
-              <Button className="w-full" variant="outline">
-                Create Work Shifts
-              </Button>
-            </Link>
-            <Link href="/dashboard/scheduling/schedule">
-              <Button className="w-full" variant="outline">
-                View Schedule
-              </Button>
-            </Link>
-            <Link href="/dashboard/employees">
-              <Button className="w-full" variant="outline">
-                Manage Employees
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>Latest actions in the system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="rounded-full p-2 bg-orange-100">
-                  <UserCog className="h-4 w-4 text-orange-500" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New job role created</p>
-                  <p className="text-xs text-muted-foreground">
-                    "Head Chef" role was added by Admin
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Today at 10:30 AM
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="rounded-full p-2 bg-orange-100">
-                  <Clock className="h-4 w-4 text-orange-500" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Schedule published</p>
-                  <p className="text-xs text-muted-foreground">
-                    Next week's schedule was published
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Yesterday at 5:15 PM
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="rounded-full p-2 bg-orange-100">
-                  <Bell className="h-4 w-4 text-orange-500" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Time-off request</p>
-                  <p className="text-xs text-muted-foreground">
-                    John Smith requested time off for May 15-16
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    2 days ago at 2:45 PM
-                  </p>
-                </div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">+2 new categories</p>
           </CardContent>
         </Card>
       </div>

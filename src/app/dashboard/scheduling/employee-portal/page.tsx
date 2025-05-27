@@ -50,12 +50,13 @@ import {
     CalendarPlus2Icon as CalendarIcon2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock staff shifts
 const mockStaffShifts = [
     {
         id: 1,
-        date: '2025-05-22',
+        date: '2025-01-22',
         note: 'Regular shift',
         shiftStatus: 'PUBLISHED',
         shift: {
@@ -68,7 +69,7 @@ const mockStaffShifts = [
     },
     {
         id: 2,
-        date: '2025-05-23',
+        date: '2025-01-23',
         note: '',
         shiftStatus: 'PUBLISHED',
         shift: {
@@ -81,7 +82,7 @@ const mockStaffShifts = [
     },
     {
         id: 3,
-        date: '2025-05-25',
+        date: '2025-01-25',
         note: '',
         shiftStatus: 'PUBLISHED',
         shift: {
@@ -94,7 +95,7 @@ const mockStaffShifts = [
     },
     {
         id: 4,
-        date: '2025-05-27',
+        date: '2025-01-27',
         note: '',
         shiftStatus: 'PUBLISHED',
         shift: {
@@ -111,11 +112,11 @@ const mockStaffShifts = [
 const mockTimeOffRequests = [
     {
         id: 1,
-        startTime: '2025-05-29T09:00:00Z',
-        endTime: '2025-05-29T17:00:00Z',
+        startTime: '2025-01-29T09:00:00Z',
+        endTime: '2025-01-29T17:00:00Z',
         reason: 'Doctor appointment',
         requestStatus: 'PENDING',
-        createdAt: '2025-05-21T14:30:00Z',
+        createdAt: '2025-01-21T14:30:00Z',
     },
 ];
 
@@ -127,10 +128,10 @@ const mockShiftRequests = [
         type: 'EXCHANGE',
         requestStatus: 'PENDING',
         reason: 'Family event',
-        createdAt: '2025-05-21T10:15:00Z',
+        createdAt: '2025-01-21T10:15:00Z',
         targetShift: {
             id: 2,
-            date: '2025-05-23',
+            date: '2025-01-23',
             shift: {
                 startTime: '12:00:00',
                 endTime: '20:00:00',
@@ -140,6 +141,7 @@ const mockShiftRequests = [
 ];
 
 export default function EmployeePortalPage() {
+    const { toast } = useToast();
     const [date, setDate] = useState<Date>(new Date());
     const [shifts, setShifts] = useState(mockStaffShifts);
     const [timeOffRequests, setTimeOffRequests] = useState(mockTimeOffRequests);
@@ -225,10 +227,10 @@ export default function EmployeePortalPage() {
         });
         setIsTimeOffDialogOpen(false);
 
-        // toast({
-        //   title: "Time-off request submitted",
-        //   description: "Your request has been submitted and is pending approval.",
-        // })
+        toast({
+            title: "Time-off request submitted",
+            description: "Your request has been submitted and is pending approval.",
+        });
     };
 
     // Handle shift request submission
@@ -264,10 +266,10 @@ export default function EmployeePortalPage() {
         setSelectedShift(null);
         setIsShiftRequestDialogOpen(false);
 
-        // toast({
-        //   title: "Shift request submitted",
-        //   description: "Your request has been submitted and is pending approval.",
-        // })
+        toast({
+            title: "Shift request submitted",
+            description: "Your request has been submitted and is pending approval.",
+        });
     };
 
     // Open shift request dialog
@@ -907,4 +909,4 @@ export default function EmployeePortalPage() {
             </Dialog>
         </>
     );
-}
+} 
