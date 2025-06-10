@@ -56,8 +56,8 @@ import { delUser, getListUsers, putUser } from '@/features/system/api/api-user';
 import { SearchCondition } from '@/lib/response-object';
 import { useCustomToast } from '@/lib/show-toast';
 import { ColumnDef } from '@tanstack/react-table';
-import { DataTable } from '@/components/Table/DataTable';
-import { FilterDefinition } from '@/components/Table/types';
+import { DataTable } from '@/components/common/Table/DataTable';
+import { FilterDefinition } from '@/components/common/Table/types';
 import { advanceSearch } from '@/features/system/api/api-advance-search';
 import { getRoles } from '@/features/system/api/api-role';
 import { createUser } from '@/features/system/api/api-auth';
@@ -328,7 +328,7 @@ export default function EmployeesPage() {
                 'Error',
                 error?.response?.data?.message || 'Failed to create'
             );
-            console.log('Create user success' , user);
+            console.log('Create user success', user);
 
             console.error('Create error:', error);
         },
@@ -373,7 +373,9 @@ export default function EmployeesPage() {
                     setIsCreateDialogOpen={setIsCreateDialogOpen}
                     newEmployee={newEmployee}
                     setNewEmployee={setNewEmployee}
-                    handleCreateEmployee={() => createUserMutation.mutate(newEmployee)}
+                    handleCreateEmployee={() =>
+                        createUserMutation.mutate(newEmployee)
+                    }
                 />
             </div>
 
@@ -635,10 +637,7 @@ function CreateModal({
                     <Button
                         className="bg-orange-500 hover:bg-orange-600"
                         onClick={handleCreateEmployee}
-                        disabled={
-                            !newEmployee.fullName ||
-                            !newEmployee.email 
-                        }
+                        disabled={!newEmployee.fullName || !newEmployee.email}
                     >
                         Add Employee
                     </Button>

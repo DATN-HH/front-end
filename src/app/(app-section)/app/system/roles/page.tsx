@@ -24,9 +24,9 @@ import {
 } from '@/features/system/api/api-role';
 import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
-import { DataTable } from '@/components/Table/DataTable';
+import { DataTable } from '@/components/common/Table/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
-import { FilterDefinition } from '@/components/Table/types';
+import { FilterDefinition } from '@/components/common/Table/types';
 import { SearchCondition } from '@/lib/response-object';
 import { advanceSearch } from '@/features/system/api/api-advance-search';
 
@@ -194,8 +194,7 @@ export default function JobRolesPage() {
 
     // Update role mutation
     const updateRoleMutation = useMutation({
-        mutationFn: (role: any) =>
-            updateRole(role.id, role as any),
+        mutationFn: (role: any) => updateRole(role.id, role as any),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['roles'] });
             success('Success', 'Role updated successfully');

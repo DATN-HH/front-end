@@ -42,8 +42,8 @@ import {
 import { useCustomToast } from '@/lib/show-toast';
 import dayjs from 'dayjs';
 import { ColumnDef } from '@tanstack/react-table';
-import { DataTable } from '@/components/Table/DataTable';
-import { FilterDefinition } from '@/components/Table/types';
+import { DataTable } from '@/components/common/Table/DataTable';
+import { FilterDefinition } from '@/components/common/Table/types';
 import { SearchCondition } from '@/lib/response-object';
 
 // Mock shift requests

@@ -48,7 +48,7 @@ import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
 import { getBranches } from '@/features/system/api/api-branch';
 import { ColumnDef } from '@tanstack/react-table';
-import { DataTable } from '@/components/Table/DataTable';
+import { DataTable } from '@/components/common/Table/DataTable';
 import { SearchCondition } from '@/lib/response-object';
 import dayjs from 'dayjs';
 
@@ -77,7 +77,7 @@ export default function JobRolesPage() {
             field: 'name',
             label: 'Name',
             type: 'STRING',
-        }
+        },
     ];
 
     const columns: ColumnDef<any>[] = [

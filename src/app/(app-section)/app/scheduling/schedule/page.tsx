@@ -81,7 +81,7 @@ import {
     deleteShift,
 } from '@/features/scheduling/api/api-shift';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DataTable } from '@/components/Table/DataTable';
+import { DataTable } from '@/components/common/Table/DataTable';
 import { useAuth } from '@/contexts/auth-context';
 import { useCustomToast } from '@/lib/show-toast';
 
