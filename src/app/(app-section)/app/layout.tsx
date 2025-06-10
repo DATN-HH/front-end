@@ -1,7 +1,7 @@
 import type React from 'react';
 import type { Metadata } from 'next';
 import Providers from '../../providers';
-import Sidebar from '@/components/common/sidebar';
+import Sidebar from '@/components/common/SideBar/SideBar';
 import Header from '@/components/common/header';
 import { Toaster } from '@/components/ui/toaster';
 

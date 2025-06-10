@@ -1,4 +1,4 @@
-import { FilterDefinition } from '@/components/Table/types';
+import { FilterDefinition } from '@/components/common/Table/types';
 import { OperandType } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 
