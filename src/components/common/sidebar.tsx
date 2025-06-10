@@ -16,14 +16,33 @@ import {
     Shield,
     Copy,
     CalendarDays,
+    Package,
+    Tags,
+    Settings,
+    Printer,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const [schedulingOpen, setSchedulingOpen] = useState(true);
-    const [systemUserOpen, setSystemUserOpen] = useState(false);
+    
+    // Enum for module types to avoid string errors
+    type ModuleType = 'scheduling' | 'menu' | 'systemUser';
+    
+    // Single state to track which module is open
+    const [openModule, setOpenModule] = useState<ModuleType | null>(() => {
+        // Set initial open module based on pathname
+        if (pathname.includes('/app/scheduling')) return 'scheduling';
+        if (pathname.includes('/app/menu')) return 'menu';
+        if (pathname.includes('/app/system') || pathname.includes('/app/branches')) return 'systemUser';
+        return null;
+    });
+
+    // Helper to toggle module state
+    const toggleModule = (module: ModuleType) => {
+        setOpenModule(current => current === module ? null : module);
+    };
 
     const isActive = (path: string) => pathname === path;
 
@@ -41,9 +60,10 @@ export default function Sidebar() {
                     <span>Dashboard</span>
                 </Link>
 
+                {/* Schedule Module */}
                 <div>
                     <button
-                        onClick={() => setSchedulingOpen(!schedulingOpen)}
+                        onClick={() => toggleModule('scheduling')}
                         className={cn(
                             'w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-gray-100',
                             (pathname.includes('/app/scheduling') ||
@@ -55,14 +75,14 @@ export default function Sidebar() {
                             <Calendar className="h-5 w-5" />
                             <span>Scheduling</span>
                         </div>
-                        {schedulingOpen ? (
+                        {openModule === 'scheduling' ? (
                             <ChevronDown className="h-4 w-4" />
                         ) : (
                             <ChevronRight className="h-4 w-4" />
                         )}
                     </button>
 
-                    {schedulingOpen && (
+                    {openModule === 'scheduling' && (
                         <div className="ml-4 mt-1 flex flex-col gap-1">
                             <Link
                                 href="/app/scheduling/schedule"
@@ -112,6 +132,88 @@ export default function Sidebar() {
                     )}
                 </div>
 
+                {/* Menu Module */}
+                <div>
+                    <button
+                        onClick={() => toggleModule('menu')}
+                        className={cn(
+                            'w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-gray-100',
+                            pathname.includes('/app/menu') &&
+                                'bg-orange-50 text-orange-500'
+                        )}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Package className="h-5 w-5" />
+                            <span>Menu Module</span>
+                        </div>
+                        {openModule === 'menu' ? (
+                            <ChevronDown className="h-4 w-4" />
+                        ) : (
+                            <ChevronRight className="h-4 w-4" />
+                        )}
+                    </button>
+
+                    {openModule === 'menu' && (
+                        <div className="ml-4 mt-1 flex flex-col gap-1">
+                            <Link
+                                href="/app/menu"
+                                className={cn(
+                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
+                                    isActive('/app/menu') &&
+                                        'bg-orange-50 text-orange-500'
+                                )}
+                            >
+                                <BarChart4 className="h-4 w-4" />
+                                <span>Menu Overview</span>
+                            </Link>
+                            <Link
+                                href="/app/menu/products"
+                                className={cn(
+                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
+                                    pathname.includes('/app/menu/products') &&
+                                        'bg-orange-50 text-orange-500'
+                                )}
+                            >
+                                <Package className="h-4 w-4" />
+                                <span>Products</span>
+                            </Link>
+                            <Link
+                                href="/app/menu/pos-categories"
+                                className={cn(
+                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
+                                    pathname.includes('/app/menu/pos-categories') &&
+                                        'bg-orange-50 text-orange-500'
+                                )}
+                            >
+                                <Tags className="h-4 w-4" />
+                                <span>POS Categories</span>
+                            </Link>
+                            <Link
+                                href="/app/menu/attributes"
+                                className={cn(
+                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
+                                    pathname.includes('/app/menu/attributes') &&
+                                        'bg-orange-50 text-orange-500'
+                                )}
+                            >
+                                <Settings className="h-4 w-4" />
+                                <span>Attributes</span>
+                            </Link>
+                            <Link
+                                href="/app/menu/kitchen-printers"
+                                className={cn(
+                                    'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100',
+                                    pathname.includes('/app/menu/kitchen-printers') &&
+                                        'bg-orange-50 text-orange-500'
+                                )}
+                            >
+                                <Printer className="h-4 w-4" />
+                                <span>Kitchen Printers</span>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+
                 <Link
                     href="/app/employee-portal"
                     className={cn(
@@ -126,7 +228,7 @@ export default function Sidebar() {
 
                 <div>
                     <button
-                        onClick={() => setSystemUserOpen(!systemUserOpen)}
+                        onClick={() => toggleModule('systemUser')}
                         className={cn(
                             'w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-gray-100',
                             (pathname.includes('/app/system') ||
@@ -138,14 +240,14 @@ export default function Sidebar() {
                             <Shield className="h-5 w-5" />
                             <span>System & User</span>
                         </div>
-                        {systemUserOpen ? (
+                        {openModule === 'systemUser' ? (
                             <ChevronDown className="h-4 w-4" />
                         ) : (
                             <ChevronRight className="h-4 w-4" />
                         )}
                     </button>
 
-                    {systemUserOpen && (
+                    {openModule === 'systemUser' && (
                         <div className="ml-4 mt-1 flex flex-col gap-1">
                             <Link
                                 href="/app/system/branches"
