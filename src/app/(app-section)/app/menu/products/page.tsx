@@ -52,6 +52,11 @@ import { ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ProductModal, ProductEditModal } from '@/components/modals';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTable } from '@/components/common/Table/DataTable';
+import { FilterDefinition } from '@/components/common/Table/types';
+import { SearchCondition } from '@/lib/response-object';
+import { OperandType } from '@/components/common/Table/types';
 
 // Mock data - expanded for pagination demo
 const allProducts = [
@@ -191,95 +196,160 @@ type SortField = 'name' | 'price' | 'cost' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
 export default function ProductsPage() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sortField, setSortField] = useState<SortField>('name');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
-    const [filters, setFilters] = useState({
-        type: 'all',
-        category: 'all',
-        active: 'all',
-        availableInPos: 'all',
-    });
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [sorting, setSorting] = useState<string>('');
+    const [columnFilters, setColumnFilters] = useState<SearchCondition[]>([]);
+    const [keyword, setKeyword] = useState('');
+    const [total, setTotal] = useState(allProducts.length);
     const [showProductModal, setShowProductModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const { toast } = useToast();
 
-    // Filter and sort logic
-    const filteredAndSortedProducts = useMemo(() => {
-        const filtered = allProducts.filter((product) => {
-            const matchesSearch = product.name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-            const matchesType =
-                filters.type === 'all' || product.type === filters.type;
-            const matchesCategory =
-                filters.category === 'all' ||
-                product.category === filters.category;
-            const matchesActive =
-                filters.active === 'all' ||
-                product.active.toString() === filters.active;
-            const matchesPos =
-                filters.availableInPos === 'all' ||
-                product.availableInPos.toString() === filters.availableInPos;
+    const filterDefinitions: FilterDefinition[] = [
+        {
+            field: 'type',
+            label: 'Type',
+            type: OperandType.ENUM,
+            options: [
+                { value: 'Consumable', label: 'Consumable' },
+                { value: 'Service', label: 'Service' },
+            ],
+        },
+        {
+            field: 'category',
+            label: 'Category',
+            type: OperandType.ENUM,
+            options: [
+                { value: 'Main Course', label: 'Main Course' },
+                { value: 'Beverages', label: 'Beverages' },
+                { value: 'Desserts', label: 'Desserts' },
+                { value: 'Appetizers', label: 'Appetizers' },
+            ],
+        },
+        {
+            field: 'active',
+            label: 'Status',
+            type: OperandType.BOOLEAN,
+        },
+        {
+            field: 'availableInPos',
+            label: 'Available in POS',
+            type: OperandType.BOOLEAN,
+        },
+    ];
 
-            return (
-                matchesSearch &&
-                matchesType &&
-                matchesCategory &&
-                matchesActive &&
-                matchesPos
-            );
-        });
-
-        // Sort
-        filtered.sort((a, b) => {
-            let aValue: any = a[sortField];
-            let bValue: any = b[sortField];
-
-            if (sortField === 'createdAt') {
-                aValue = new Date(aValue);
-                bValue = new Date(bValue);
-            }
-
-            if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-            return 0;
-        });
-
-        return filtered;
-    }, [searchTerm, sortField, sortDirection, filters]);
-
-    // Pagination logic
-    const totalPages = Math.ceil(
-        filteredAndSortedProducts.length / itemsPerPage
-    );
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedProducts = filteredAndSortedProducts.slice(
-        startIndex,
-        startIndex + itemsPerPage
-    );
-
-    const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDirection('asc');
-        }
-    };
-
-    const getSortIcon = (field: SortField) => {
-        if (sortField !== field)
-            return <ArrowUpDown className="ml-2 h-4 w-4" />;
-        return sortDirection === 'asc' ? (
-            <ArrowUp className="ml-2 h-4 w-4" />
-        ) : (
-            <ArrowDown className="ml-2 h-4 w-4" />
-        );
-    };
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Product Name',
+        },
+        {
+            accessorKey: 'type',
+            header: 'Type',
+            cell: ({ row }) => (
+                <Badge variant="outline">{row.original.type}</Badge>
+            ),
+        },
+        {
+            accessorKey: 'price',
+            header: 'Price',
+            cell: ({ row }) => formatCurrency(row.original.price),
+        },
+        {
+            accessorKey: 'cost',
+            header: 'Cost',
+            cell: ({ row }) => formatCurrency(row.original.cost),
+        },
+        {
+            accessorKey: 'category',
+            header: 'Category',
+            cell: ({ row }) => (
+                <Badge variant="secondary">{row.original.category}</Badge>
+            ),
+        },
+        {
+            accessorKey: 'posCategory',
+            header: 'POS Category',
+            cell: ({ row }) => (
+                <Badge variant="secondary">{row.original.posCategory}</Badge>
+            ),
+        },
+        {
+            accessorKey: 'active',
+            header: 'Status',
+            cell: ({ row }) => (
+                <Badge
+                    variant={row.original.active ? 'default' : 'secondary'}
+                >
+                    {row.original.active ? 'Active' : 'Inactive'}
+                </Badge>
+            ),
+        },
+        {
+            accessorKey: 'availableInPos',
+            header: 'POS',
+            cell: ({ row }) => (
+                <Badge
+                    variant={row.original.availableInPos ? 'default' : 'secondary'}
+                >
+                    {row.original.availableInPos ? 'Yes' : 'No'}
+                </Badge>
+            ),
+        },
+        {
+            accessorKey: 'hasImage',
+            header: 'Image',
+            cell: ({ row }) => (
+                <div className="flex justify-center">
+                    {row.original.hasImage ? (
+                        <ImageIcon className="h-4 w-4" />
+                    ) : (
+                        <span className="text-muted-foreground">-</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'createdAt',
+            header: 'Created Date',
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => {
+                return (
+                    <div className="flex gap-2">
+                        <Link href={`/app/menu/products/${row.original.id}/detail`}>
+                            <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                            </Button>
+                        </Link>
+                        <Button
+                            size="sm"
+                            onClick={() => handleEdit(row.original)}
+                        >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500"
+                            onClick={() =>
+                                handleArchive(row.original.id, row.original.name)
+                            }
+                        >
+                            <Archive className="h-4 w-4 mr-1" />
+                            Archive
+                        </Button>
+                    </div>
+                );
+            },
+        },
+    ];
 
     const handleArchive = (productId: number, productName: string) => {
         toast({
@@ -294,21 +364,10 @@ export default function ProductsPage() {
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
-            currency: 'USD',
-        }).format(amount / 1000); // Convert VND to USD for display
-    };
-
-    const clearFilters = () => {
-        setFilters({
-            type: 'all',
-            category: 'all',
-            active: 'all',
-            availableInPos: 'all',
-        });
-        setSearchTerm('');
-        setCurrentPage(1);
+            currency: 'VND',
+        }).format(amount);
     };
 
     return (
@@ -316,10 +375,10 @@ export default function ProductsPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        Product Management
+                        Products
                     </h1>
                     <p className="text-muted-foreground">
-                        Manage all products in the system
+                        Manage your restaurant's products
                     </p>
                 </div>
                 <Button onClick={() => setShowProductModal(true)}>
@@ -328,392 +387,35 @@ export default function ProductsPage() {
                 </Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Product List</CardTitle>
-                    <CardDescription>
-                        Showing {startIndex + 1}-
-                        {Math.min(
-                            startIndex + itemsPerPage,
-                            filteredAndSortedProducts.length
-                        )}
-                        of {filteredAndSortedProducts.length} products
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {/* Search and Filters */}
-                    <div className="flex flex-col space-y-4 mb-6">
-                        <div className="flex items-center space-x-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search products..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="pl-8"
-                                />
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        Filters
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="w-56"
-                                >
-                                    <DropdownMenuLabel>
-                                        Filters
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <div className="p-2 space-y-2">
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                Product Type
-                                            </label>
-                                            <Select
-                                                value={filters.type}
-                                                onValueChange={(value) =>
-                                                    setFilters({
-                                                        ...filters,
-                                                        type: value,
-                                                    })
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="All" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">
-                                                        All
-                                                    </SelectItem>
-                                                    <SelectItem value="Consumable">
-                                                        Consumable
-                                                    </SelectItem>
-                                                    <SelectItem value="Stockable">
-                                                        Stockable
-                                                    </SelectItem>
-                                                    <SelectItem value="Service">
-                                                        Service
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                Category
-                                            </label>
-                                            <Select
-                                                value={filters.category}
-                                                onValueChange={(value) =>
-                                                    setFilters({
-                                                        ...filters,
-                                                        category: value,
-                                                    })
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="All" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">
-                                                        All
-                                                    </SelectItem>
-                                                    <SelectItem value="Main Course">
-                                                        Main Course
-                                                    </SelectItem>
-                                                    <SelectItem value="Beverages">
-                                                        Beverages
-                                                    </SelectItem>
-                                                    <SelectItem value="Appetizers">
-                                                        Appetizers
-                                                    </SelectItem>
-                                                    <SelectItem value="Desserts">
-                                                        Desserts
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                Status
-                                            </label>
-                                            <Select
-                                                value={filters.active}
-                                                onValueChange={(value) =>
-                                                    setFilters({
-                                                        ...filters,
-                                                        active: value,
-                                                    })
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="All" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">
-                                                        All
-                                                    </SelectItem>
-                                                    <SelectItem value="true">
-                                                        Active
-                                                    </SelectItem>
-                                                    <SelectItem value="false">
-                                                        Archived
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={clearFilters}>
-                                        Clear all filters
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Image</TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => handleSort('name')}
-                                        className="h-auto p-0 font-semibold"
-                                    >
-                                        Product Name
-                                        {getSortIcon('name')}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => handleSort('price')}
-                                        className="h-auto p-0 font-semibold"
-                                    >
-                                        Sales Price
-                                        {getSortIcon('price')}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => handleSort('cost')}
-                                        className="h-auto p-0 font-semibold"
-                                    >
-                                        Cost
-                                        {getSortIcon('cost')}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>POS Category</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>POS</TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => handleSort('createdAt')}
-                                        className="h-auto p-0 font-semibold"
-                                    >
-                                        Created Date
-                                        {getSortIcon('createdAt')}
-                                    </Button>
-                                </TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {paginatedProducts.map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell>
-                                        <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center">
-                                            {product.hasImage ? (
-                                                <ImageIcon className="h-6 w-6 text-gray-400" />
-                                            ) : (
-                                                <div className="w-8 h-8 bg-gray-200 rounded" />
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        {product.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {product.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {formatCurrency(product.price)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {formatCurrency(product.cost)}
-                                    </TableCell>
-                                    <TableCell>{product.posCategory}</TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                product.active
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {product.active
-                                                ? 'Active'
-                                                : 'Archived'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                product.availableInPos
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {product.availableInPos
-                                                ? 'Yes'
-                                                : 'No'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {new Date(
-                                            product.createdAt
-                                        ).toLocaleDateString('en-US')}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end space-x-2">
-                                            <Link
-                                                href={`/app/menu/products/${product.id}/detail`}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                >
-                                                    <Eye className="h-4 w-4 mr-1" />
-                                                    View
-                                                </Button>
-                                            </Link>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleEdit(product)
-                                                }
-                                            >
-                                                <Edit className="h-4 w-4 mr-1" />
-                                                Edit
-                                            </Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        className="h-8 w-8 p-0"
-                                                    >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() =>
-                                                            handleArchive(
-                                                                product.id,
-                                                                product.name
-                                                            )
-                                                        }
-                                                    >
-                                                        <Archive className="mr-2 h-4 w-4" />
-                                                        {product.active
-                                                            ? 'Archive'
-                                                            : 'Unarchive'}
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between space-x-2 py-4">
-                        <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">Show</p>
-                            <Select
-                                value={itemsPerPage.toString()}
-                                onValueChange={(value) => {
-                                    setItemsPerPage(Number(value));
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                <SelectTrigger className="h-8 w-[70px]">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent side="top">
-                                    {[5, 10, 20, 30, 50].map((pageSize) => (
-                                        <SelectItem
-                                            key={pageSize}
-                                            value={pageSize.toString()}
-                                        >
-                                            {pageSize}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-sm font-medium">items</p>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">
-                                Page {currentPage} of {totalPages}
-                            </p>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        setCurrentPage(
-                                            Math.max(1, currentPage - 1)
-                                        )
-                                    }
-                                    disabled={currentPage === 1}
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        setCurrentPage(
-                                            Math.min(
-                                                totalPages,
-                                                currentPage + 1
-                                            )
-                                        )
-                                    }
-                                    disabled={currentPage === totalPages}
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <DataTable
+                columns={columns}
+                data={allProducts}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={total}
+                tableId="products-table"
+                filterDefinitions={filterDefinitions}
+                onSearchChange={(search) => {
+                    setKeyword(search);
+                }}
+                onPaginationChange={(pageIndex: number, pageSize: number) => {
+                    setPageIndex(pageIndex);
+                    setPageSize(pageSize);
+                }}
+                onSortingChange={(sorting) => {
+                    setSorting(sorting);
+                }}
+                onFilterChange={(filters: any) => {
+                    setColumnFilters(filters);
+                }}
+                currentSorting={sorting}
+            />
 
             <ProductModal
                 open={showProductModal}
                 onOpenChange={setShowProductModal}
             />
+
             <ProductEditModal
                 open={showEditModal}
                 onOpenChange={setShowEditModal}
