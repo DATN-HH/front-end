@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api-docs>
+    <!-- Authentication APIs -->
+    <section name="Authentication">
+        <api method="POST" path="/user/sign-in">
+            <description>Đăng nhập hệ thống</description>
+            <request>SignInRequest (email, password)</request>
+            <response>ResponseSignInResponse (token, account)</response>
+        </api>
+        <api method="POST" path="/user/sign-out">
+            <description>Đăng xuất hệ thống</description>
+            <response>ResponseSignOutResponse</response>
+        </api>
+        <api method="POST" path="/user/verify-token">
+            <description>Xác thực token</description>
+            <request>VerifyTokenRequest (token)</request>
+            <response>ResponseSignInResponse</response>
+        </api>
+        <api method="PUT" path="/user/change-password">
+            <description>Đổi mật khẩu</description>
+            <request>UserChangePasswordRequest (password, newPassword)</request>
+            <response>ResponseVoid</response>
+        </api>
+        <api method="POST" path="/user/forget-password">
+            <description>Quên mật khẩu</description>
+            <request>UserForgetPasswordRequest (email)</request>
+            <response>ResponseVoid</response>
+        </api>
+    </section>
+
+    <!-- User Management APIs -->
+    <section name="User Management">
+        <api method="GET" path="/user/list">
+            <description>Lấy danh sách người dùng</description>
+            <request>UserListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseUserDtoResponse</response>
+        </api>
+        <api method="GET" path="/user/{id}">
+            <description>Lấy thông tin chi tiết người dùng</description>
+            <param>id: number</param>
+            <response>ResponseUserDtoResponse</response>
+        </api>
+        <api method="POST" path="/user">
+            <description>Tạo người dùng mới</description>
+            <request>UserCreateDto (email, username, fullName, ...)</request>
+            <response>ResponseUserDtoResponse</response>
+        </api>
+        <api method="PUT" path="/user/{id}">
+            <description>Cập nhật thông tin người dùng</description>
+            <param>id: number</param>
+            <request>UserUpdateDto (email, username, fullName, ...)</request>
+            <response>ResponseUserDtoResponse</response>
+        </api>
+        <api method="DELETE" path="/user/{id}">
+            <description>Xóa người dùng</description>
+            <param>id: number</param>
+            <response>ResponseVoid</response>
+        </api>
+    </section>
+
+    <!-- Role Management APIs -->
+    <section name="Role Management">
+        <api method="GET" path="/role">
+            <description>Lấy danh sách vai trò</description>
+            <request>BaseListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseRoleResponseDto</response>
+        </api>
+        <api method="POST" path="/role">
+            <description>Tạo vai trò mới</description>
+            <request>RoleCreateDto (name, description, permissions)</request>
+            <response>ResponseRoleResponseDto</response>
+        </api>
+        <api method="PUT" path="/role/{id}">
+            <description>Cập nhật vai trò</description>
+            <param>id: number</param>
+            <request>RoleUpdateDto (name, description, permissions)</request>
+            <response>ResponseRoleResponseDto</response>
+        </api>
+        <api method="DELETE" path="/role/{id}">
+            <description>Xóa vai trò</description>
+            <param>id: number</param>
+            <response>ResponseVoid</response>
+        </api>
+    </section>
+
+    <!-- Branch Management APIs -->
+    <section name="Branch Management">
+        <api method="GET" path="/branch">
+            <description>Lấy danh sách chi nhánh</description>
+            <request>BranchListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseBranchRespondDto</response>
+        </api>
+        <api method="POST" path="/branch">
+            <description>Tạo chi nhánh mới</description>
+            <request>BranchCreateDto (name, address, phone, managerId)</request>
+            <response>ResponseBranchRespondDto</response>
+        </api>
+        <api method="PUT" path="/branch/{id}">
+            <description>Cập nhật thông tin chi nhánh</description>
+            <param>id: number</param>
+            <request>BranchCreateDto (name, address, phone, managerId)</request>
+            <response>ResponseBranchRespondDto</response>
+        </api>
+    </section>
+
+    <!-- Shift Management APIs -->
+    <section name="Shift Management">
+        <api method="GET" path="/shifts">
+            <description>Lấy danh sách ca làm việc</description>
+            <param>branchId: number</param>
+            <response>ResponseListShiftResponseDto</response>
+        </api>
+        <api method="POST" path="/shifts">
+            <description>Tạo ca làm việc mới</description>
+            <request>ShiftRequestDto (startTime, endTime, branchId, requirements)</request>
+            <response>ResponseShiftResponseDto</response>
+        </api>
+        <api method="PUT" path="/shifts/{id}">
+            <description>Cập nhật ca làm việc</description>
+            <param>id: number</param>
+            <request>ShiftRequestDto (startTime, endTime, branchId, requirements)</request>
+            <response>ResponseShiftResponseDto</response>
+        </api>
+        <api method="DELETE" path="/shifts/{id}">
+            <description>Xóa ca làm việc</description>
+            <param>id: number</param>
+            <response>ResponseString</response>
+        </api>
+    </section>
+
+    <!-- Staff Shift Management APIs -->
+    <section name="Staff Shift Management">
+        <api method="GET" path="/staff-shifts">
+            <description>Lấy danh sách ca làm việc của nhân viên</description>
+            <request>StaffShiftListRequest (pagination, filters)</request>
+            <response>PageResponseStaffShiftResponseDto</response>
+        </api>
+        <api method="POST" path="/staff-shifts">
+            <description>Phân ca cho nhân viên</description>
+            <request>StaffShiftRequestDto (date, staffId, shiftId, note)</request>
+            <response>ResponseStaffShiftResponseDto</response>
+        </api>
+        <api method="POST" path="/staff-shifts/copy">
+            <description>Sao chép ca làm việc</description>
+            <request>StaffShiftCopyRequest (fromDate, toDate, branchId, numberOfDays)</request>
+            <response>ResponsePageResponseStaffShiftResponseDto</response>
+        </api>
+        <api method="PUT" path="/staff-shifts/publish">
+            <description>Xuất bản lịch làm việc</description>
+            <request>StaffShiftListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseStaffShiftResponseDto</response>
+        </api>
+    </section>
+
+    <!-- Staff Unavailability APIs -->
+    <section name="Staff Unavailability">
+        <api method="GET" path="/staff-unavailability">
+            <description>Lấy danh sách yêu cầu nghỉ phép</description>
+            <request>StaffUnavailabilityListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseStaffUnavailabilityResponseDto</response>
+        </api>
+        <api method="POST" path="/staff-unavailability">
+            <description>Tạo yêu cầu nghỉ phép</description>
+            <request>StaffUnavailabilityRequestDto (startTime, endTime, reason)</request>
+            <response>ResponseStaffUnavailabilityResponseDto</response>
+        </api>
+        <api method="PUT" path="/staff-unavailability/{id}/approve">
+            <description>Duyệt yêu cầu nghỉ phép</description>
+            <param>id: number</param>
+            <response>ResponseStaffUnavailabilityResponseDto</response>
+        </api>
+        <api method="PUT" path="/staff-unavailability/{id}/reject">
+            <description>Từ chối yêu cầu nghỉ phép</description>
+            <param>id: number</param>
+            <response>ResponseStaffUnavailabilityResponseDto</response>
+        </api>
+    </section>
+
+    <!-- Shift Request APIs -->
+    <section name="Shift Request">
+        <api method="GET" path="/shift-requests">
+            <description>Lấy danh sách yêu cầu đổi ca</description>
+            <request>ShiftRequestListRequest (pagination, filters)</request>
+            <response>ResponsePageResponseShiftRequestResponseDto</response>
+        </api>
+        <api method="POST" path="/shift-requests">
+            <description>Tạo yêu cầu đổi ca</description>
+            <request>ShiftRequestRequestDto (targetShiftId, type, reason)</request>
+            <response>ResponseShiftRequestResponseDto</response>
+        </api>
+        <api method="PUT" path="/shift-requests/{id}/approve">
+            <description>Duyệt yêu cầu đổi ca</description>
+            <param>id: number</param>
+            <response>ResponseShiftRequestResponseDto</response>
+        </api>
+        <api method="PUT" path="/shift-requests/{id}/reject">
+            <description>Từ chối yêu cầu đổi ca</description>
+            <param>id: number</param>
+            <response>ResponseShiftRequestResponseDto</response>
+        </api>
+    </section>
+
+    <!-- Advance Search APIs -->
+    <section name="Advance Search">
+        <api method="GET" path="/advance-search">
+            <description>Tìm kiếm nâng cao</description>
+            <param>tableName: string</param>
+            <response>ResponseListAdvanceSearchResponseDto</response>
+        </api>
+    </section>
+</api-docs>
