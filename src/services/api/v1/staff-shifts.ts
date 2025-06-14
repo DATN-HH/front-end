@@ -35,6 +35,7 @@ export interface StaffShiftListRequest extends BaseListRequest {
   branchId?: number;
   staffId?: number;
   shiftId?: number;
+  size?: number;
 }
 
 export interface StaffShiftCopyRequest {
