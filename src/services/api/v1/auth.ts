@@ -143,8 +143,8 @@ export const signOut = async (): Promise<SignOutResponse> => {
 };
 
 export const verifyToken = async (data: VerifyTokenRequest): Promise<SignInResponse> => {
-  const response = await apiClient.post<SignInResponse>('/user/verify-token', data);
-  return response.data;
+  const response = await apiClient.post<BaseResponse<SignInResponse>>('/user/verify-token', data);
+  return response.data.payload;
 };
 
 // Hooks

@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { UserDtoResponse } from './auth';
-import { BaseListRequest, PageResponse, RequestStatus, Status } from '.';
+import { BaseListRequest, BaseResponse, PageResponse, RequestStatus, Status } from '.';
 
 // Types
 export interface StaffUnavailabilityResponseDto {
@@ -36,8 +36,8 @@ export interface StaffUnavailabilityListRequest extends BaseListRequest {
 
 // API calls
 export const getStaffUnavailability = async (params: StaffUnavailabilityListRequest): Promise<PageResponse<StaffUnavailabilityResponseDto>> => {
-  const response = await apiClient.get<PageResponse<StaffUnavailabilityResponseDto>>('/staff-unavailability', { params });
-  return response.data;
+  const response = await apiClient.get<BaseResponse<PageResponse<StaffUnavailabilityResponseDto>>>('/staff-unavailability', { params });
+  return response.data.payload;
 };
 
 export const createStaffUnavailability = async (data: StaffUnavailabilityRequestDto): Promise<StaffUnavailabilityResponseDto> => {
