@@ -1,246 +1,54 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import dayjs from 'dayjs';
+import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import {
-    Edit,
-    MoreHorizontal,
-    Plus,
-    Trash,
-    Calendar,
-    CheckCircle,
-} from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { delUser, getListUsers, putUser } from '@/features/system/api/api-user';
-import { SearchCondition } from '@/lib/response-object';
+import { Plus } from 'lucide-react';
 import { useCustomToast } from '@/lib/show-toast';
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/Table/DataTable';
-import { FilterDefinition } from '@/components/common/Table/types';
-import { advanceSearch } from '@/features/system/api/api-advance-search';
-import { getRoles } from '@/features/system/api/api-role';
-import { createUser } from '@/features/system/api/api-auth';
+import { SearchCondition } from '@/lib/response-object';
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/services/api/v1/users';
+import { UserCreateDto } from '@/services/api/v1/users';
+import { useAdvanceSearch } from '@/services/api/v1/advance-search';
+import { BaseListRequest } from '@/services/api/v1';
+import { EmployeeTableColumns } from '@/features/system/employees/components/EmployeeTableColumns';
+import { CreateEmployeeModal } from '@/features/system/employees/components/CreateEmployeeModal';
+import { EditEmployeeModal } from '@/features/system/employees/components/EditEmployeeModal';
+import { DeleteEmployeeModal } from '@/features/system/employees/components/DeleteEmployeeModal';
+import { useRoles } from '@/services/api/v1/roles';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function EmployeesPage() {
     const { user } = useAuth();
 
+    // State management
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(20);
-    const [sorting, setSorting] = useState<string | undefined>();
+    const [sorting, setSorting] = useState<string>('');
     const [columnFilters, setColumnFilters] = useState<SearchCondition[]>([]);
     const [keyword, setKeyword] = useState('');
 
-    const [employees, setEmployees] = useState([]);
+    const [employees, setEmployees] = useState<any[]>([]);
     const [total, setTotal] = useState(0);
 
+    // Modal states
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [isUnavailabilityDialogOpen, setIsUnavailabilityDialogOpen] =
-        useState(false);
     const [currentEmployee, setCurrentEmployee] = useState<any>(null);
-    const [newEmployee, setNewEmployee] = useState({
+    const [newEmployee, setNewEmployee] = useState<UserCreateDto>({
+        email: '',
+        fullName: '',
+        password: '',
         branchId: user?.branch.id,
     });
 
+    // Hooks
     const { error: toastError, success } = useCustomToast();
-
     const queryClient = useQueryClient();
 
-    const columns: ColumnDef<any>[] = [
-        {
-            accessorKey: 'fullName',
-            header: 'Employee',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-3">
-                    <Avatar>
-                        <AvatarImage
-                            src={
-                                row.original.gender == 'MALE'
-                                    ? 'https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-512.png'
-                                    : 'https://png.pngtree.com/png-clipart/20241117/original/pngtree-business-women-avatar-png-image_17163554.png'
-                            }
-                            alt={row.original.fullName}
-                        />
-                    </Avatar>
-                    <span> {getInitials(row.original.fullName)}</span>
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'email',
-            header: 'Email',
-        },
-        {
-            id: 'roles',
-            header: 'Roles',
-            enableSorting: false,
-            cell: ({ row }) => {
-                return (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        {row.original.isFullRole ? (
-                            <div className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500 text-white">
-                                <CheckCircle className="w-3 h-3" />
-                                <span>Full Roles</span>
-                            </div>
-                        ) : (
-                            row.original.userRoles.map((userRole, index) => (
-                                <div
-                                    key={index}
-                                    className="px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500 text-white"
-                                >
-                                    {userRole.role.name}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                );
-            },
-        },
-        {
-            accessorKey: 'birthdate',
-            header: 'Birthdate',
-            cell: ({ row }) => (
-                <div>{dayjs(row.original.birthdate).format('DD/MM/YYYY')}</div>
-            ),
-        },
-        {
-            accessorKey: 'gender',
-            header: 'Gender',
-        },
-        {
-            accessorKey: 'phoneNumber',
-            header: 'Phone',
-        },
-        {
-            accessorKey: 'createdAt',
-            header: 'Created At',
-            cell: ({ row }) => (
-                <div>
-                    {dayjs(row.original.createdAt).format(
-                        'DD/MM/YYYY HH:mm:ss'
-                    )}
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'updatedAt',
-            header: 'Updated At',
-            cell: ({ row }) => (
-                <div>
-                    {dayjs(row.original.updatedAt).format(
-                        'DD/MM/YYYY HH:mm:ss'
-                    )}
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'status',
-            header: 'Status',
-            cell: ({ row }) => (
-                <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                        row.getValue('status') === 'ACTIVE'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                    }`}
-                >
-                    {row.getValue('status')}
-                </span>
-            ),
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    setCurrentEmployee(row.original);
-                                    console.log(row.original);
-
-                                    setIsEditDialogOpen(true);
-                                }}
-                            >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => {
-                                    setCurrentEmployee(row.original);
-                                    setIsUnavailabilityDialogOpen(true);
-                                }}
-                            >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                Manage Unavailability
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => {
-                                    setCurrentEmployee(row.original);
-                                    setIsDeleteDialogOpen(true);
-                                }}
-                            >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            },
-        },
-    ];
-
-    const queryParams = useMemo(
+    // Query params
+    const queryParams: BaseListRequest = useMemo(
         () => ({
             status: 'ACTIVE',
             branchId: user?.branch.id,
@@ -248,7 +56,7 @@ export default function EmployeesPage() {
             page: pageIndex,
             size: pageSize,
             keyword,
-            sortBy: sorting,
+            sortBy: sorting || undefined,
             searchCondition:
                 columnFilters && columnFilters.length > 0
                     ? JSON.stringify(columnFilters)
@@ -257,29 +65,23 @@ export default function EmployeesPage() {
         [pageIndex, pageSize, sorting, keyword, columnFilters, user]
     );
 
-    // Fetch roles, using React Query
-    const { data: roles } = useQuery({
-        queryKey: ['roles'],
-        queryFn: () => getRoles(),
-    });
-
-    // Fetch advance search, using React Query
-    const { data: filterDefinitions = [] as FilterDefinition[] } = useQuery({
-        queryKey: ['advance-search-users'],
-        queryFn: () => advanceSearch('users'),
-    });
-
+    // Data fetching
+    const { data: filterDefinitions = [] } = useAdvanceSearch('users');
+    const { data: roles } = useRoles({});
     const {
         data: employeeList,
         isLoading,
         error,
-    } = useQuery({
-        queryKey: ['employees', queryParams],
-        queryFn: () => getListUsers(queryParams),
-    });
+    } = useUsers(queryParams);
 
+    // Mutations
+    const createUserMutation = useCreateUser();
+    const updateUserMutation = useUpdateUser();
+    const deleteUserMutation = useDeleteUser();
+
+    // Effects
     useEffect(() => {
-        if (employeeList && 'data' in employeeList) {
+        if (employeeList) {
             setEmployees(employeeList.data);
             setPageIndex(employeeList.page);
             setTotal(employeeList.total);
@@ -288,72 +90,101 @@ export default function EmployeesPage() {
 
     useEffect(() => {
         if (error) {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to fetch employees'
-            );
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Failed to fetch employees';
+            toastError('Error', errorMessage);
             console.error('Fetch employees error:', error);
         }
-    }, [error]);
+    }, [error, toastError]);
 
-    // Update user mutation
-    const updateUserMutation = useMutation({
-        mutationFn: (data: { userId: any; userInfo: any }) =>
-            putUser(data.userId, data.userInfo),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['employees'] });
-            success('Success', 'Employees updated successfully');
-            setIsEditDialogOpen(false);
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to update'
+    // Handlers
+    const onPaginationChange = (pageIndex: number, pageSize: number) => {
+        setPageIndex(pageIndex);
+        setPageSize(pageSize);
+    };
+
+    const onSortingChange = (newSorting: string) => {
+        setSorting(newSorting);
+    };
+
+    const resetNewEmployeeForm = () => {
+        setNewEmployee({
+            email: '',
+            fullName: '',
+            password: '',
+            branchId: user?.branch.id,
+        });
+    };
+
+    const handleCreateEmployee = () => {
+        createUserMutation.mutate(newEmployee, {
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['users'] });
+                success('Success', 'Employee created successfully');
+                setIsCreateDialogOpen(false);
+                resetNewEmployeeForm();
+            },
+            onError: (error: any) => {
+                toastError(
+                    'Error',
+                    error?.response?.data?.message || 'Failed to create employee'
+                );
+                console.error('Create employee error:', error);
+            },
+        });
+    };
+
+    const handleEditEmployee = () => {
+        if (currentEmployee) {
+            updateUserMutation.mutate(
+                {
+                    id: currentEmployee.id,
+                    data: {
+                        email: currentEmployee.email,
+                        fullName: currentEmployee.fullName,
+                        phoneNumber: currentEmployee.phoneNumber,
+                        userRoles: currentEmployee.userRoles.map((role: any) => ({
+                            userId: currentEmployee.id,
+                            roleId: role.roleId,
+                        })),
+                    },
+                },
+                {
+                    onSuccess: () => {
+                        queryClient.invalidateQueries({ queryKey: ['users'] });
+                        success('Success', 'Employee updated successfully');
+                        setIsEditDialogOpen(false);
+                    },
+                    onError: (error: any) => {
+                        toastError(
+                            'Error',
+                            error?.response?.data?.message || 'Failed to update employee'
+                        );
+                        console.error('Update employee error:', error);
+                    },
+                }
             );
-            console.error('Update error:', error);
-        },
-    });
+        }
+    };
 
-    // Create user mutation
-    const createUserMutation = useMutation({
-        mutationFn: (user: any) => createUser(user),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['employees'] });
-            success('Success', 'Employees create successfully');
-            setIsCreateDialogOpen(false);
-            setNewEmployee({ branchId: user?.branch?.id });
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to create'
-            );
-            console.log('Create user success', user);
-
-            console.error('Create error:', error);
-        },
-    });
-
-    // Delete user mutation
-    const deleteUserMutation = useMutation({
-        mutationFn: (userId: any) => delUser(userId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['employees'] });
-            success('Success', 'Employees delete successfully');
-            setIsDeleteDialogOpen(false);
-        },
-        onError: (error: any) => {
-            toastError(
-                'Error',
-                error?.response?.data?.message || 'Failed to delete'
-            );
-            console.error('Delete error:', error);
-        },
-    });
-
-    // Get initials from name
-    const getInitials = (name: string) => {
-        return name.toUpperCase();
+    const handleDeleteEmployee = () => {
+        if (currentEmployee) {
+            deleteUserMutation.mutate(currentEmployee.id, {
+                onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: ['users'] });
+                    success('Success', 'Employee deleted successfully');
+                    setIsDeleteDialogOpen(false);
+                },
+                onError: (error: any) => {
+                    toastError(
+                        'Error',
+                        error?.response?.data?.message || 'Failed to delete employee'
+                    );
+                    console.error('Delete employee error:', error);
+                },
+            });
+        }
     };
 
     return (
@@ -367,455 +198,80 @@ export default function EmployeesPage() {
                         Manage your restaurant staff
                     </p>
                 </div>
-
-                <CreateModal
-                    isCreateDialogOpen={isCreateDialogOpen}
-                    setIsCreateDialogOpen={setIsCreateDialogOpen}
-                    newEmployee={newEmployee}
-                    setNewEmployee={setNewEmployee}
-                    handleCreateEmployee={() =>
-                        createUserMutation.mutate(newEmployee)
-                    }
-                />
+                <Button
+                    onClick={() => {
+                        setIsCreateDialogOpen(true);
+                    }}
+                >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Employee
+                </Button>
             </div>
 
             <DataTable
-                columns={columns}
+                columns={EmployeeTableColumns({
+                    onEdit: (employee) => {
+                        setCurrentEmployee(employee);
+                        setIsEditDialogOpen(true);
+                    },
+                    onDelete: (employee) => {
+                        setCurrentEmployee(employee);
+                        setIsDeleteDialogOpen(true);
+                    },
+                })}
                 data={employees}
+                tableId="employees-table"
                 pageIndex={pageIndex}
                 pageSize={pageSize}
                 total={total}
-                tableId="employees-table"
-                loading={isLoading}
-                // enableSorting = {false}
-                filterDefinitions={filterDefinitions}
-                onSearchChange={(search) => {
-                    setKeyword(search);
-                }}
-                onPaginationChange={(pageIndex: number, pageSize: number) => {
-                    setPageIndex(pageIndex);
-                    setPageSize(pageSize);
-                }}
-                onSortingChange={(sorting) => {
-                    setSorting(sorting);
-                }}
+                currentSorting={sorting}
+                onPaginationChange={onPaginationChange}
+                onSortingChange={onSortingChange}
                 onFilterChange={(filters) => {
                     setColumnFilters(filters);
                 }}
-                currentSorting={sorting}
+                onSearchChange={(searchTerm) => {
+                    setKeyword(searchTerm);
+                }}
+                filterDefinitions={filterDefinitions}
+                enableSearch={true}
+                enableColumnVisibility={true}
+                enableSorting={true}
+                enablePinning={true}
+                enableColumnOrdering={true}
+                enableFiltering={true}
+                enablePagination={true}
+                enableExport={true}
+                loading={isLoading}
             />
 
-            {/* Edit Employee Dialog */}
-            <EditModal
-                isEditDialogOpen={isEditDialogOpen}
-                setIsEditDialogOpen={setIsEditDialogOpen}
-                currentEmployee={currentEmployee}
-                setCurrentEmployee={setCurrentEmployee}
-                roles={roles}
-                updateUserMutation={updateUserMutation}
+            <CreateEmployeeModal
+                isOpen={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                newEmployee={newEmployee}
+                setNewEmployee={setNewEmployee}
+                onSubmit={handleCreateEmployee}
+                isLoading={createUserMutation.isPending}
+                roles={roles?.data}
             />
 
-            {/* Delete Employee Dialog */}
-            <DeleteModal
-                deleteUserMutation={deleteUserMutation}
-                isDeleteDialogOpen={isDeleteDialogOpen}
-                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-                currentEmployee={currentEmployee}
+            <EditEmployeeModal
+                isOpen={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                employee={currentEmployee}
+                setEmployee={setCurrentEmployee}
+                onSubmit={handleEditEmployee}
+                isLoading={updateUserMutation.isPending}
+                roles={roles?.data}
             />
 
-            {/* Manage Unavailability Dialog */}
-            {/* <Dialog
-                open={isUnavailabilityDialogOpen}
-                onOpenChange={setIsUnavailabilityDialogOpen}
-            >
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Manage Unavailability</DialogTitle>
-                        <DialogDescription>
-                            {currentEmployee?.name}'s unavailable time periods
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <div className="space-y-4">
-                            <div className="border rounded-md p-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-medium">
-                                            May 15, 2025
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            All day
-                                        </p>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            Reason: Personal appointment
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-500"
-                                    >
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="border rounded-md p-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-medium">
-                                            May 20, 2025
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            9:00 AM - 1:00 PM
-                                        </p>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            Reason: Doctor's appointment
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-500"
-                                    >
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Unavailable Time
-                            </Button>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsUnavailabilityDialogOpen(false)}
-                        >
-                            Close
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog> */}
+            <DeleteEmployeeModal
+                isOpen={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                employee={currentEmployee}
+                onConfirm={handleDeleteEmployee}
+                isLoading={deleteUserMutation.isPending}
+            />
         </div>
-    );
-}
-
-function CreateModal({
-    isCreateDialogOpen,
-    setIsCreateDialogOpen,
-    newEmployee,
-    setNewEmployee,
-    handleCreateEmployee,
-}: any) {
-    return (
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Employee
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add New Employee</DialogTitle>
-                    <DialogDescription>
-                        Add a new employee to your restaurant staff
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                            id="fullName"
-                            placeholder="John Smith"
-                            value={newEmployee.fullName}
-                            onChange={(e) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    fullName: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="john.smith@example.com"
-                            value={newEmployee.email}
-                            onChange={(e) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    email: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="123@abcZZZ"
-                            value={newEmployee.password}
-                            onChange={(e) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    password: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="phoneNumber">Phone Number</Label>
-                        <Input
-                            id="phoneNumber"
-                            placeholder="555-123-4567"
-                            value={newEmployee.phoneNumber}
-                            onChange={(e) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    phoneNumber: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="gender">Gender</Label>
-                        <Select
-                            value={newEmployee.gender}
-                            onValueChange={(value) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    gender: value,
-                                })
-                            }
-                        >
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="FEMALE">Female</SelectItem>
-                                <SelectItem value="MALE">Male</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select
-                            value={newEmployee.status}
-                            onValueChange={(value) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    status: value,
-                                })
-                            }
-                        >
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">
-                                    Inactive
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className="bg-orange-500 hover:bg-orange-600"
-                        onClick={handleCreateEmployee}
-                        disabled={!newEmployee.fullName || !newEmployee.email}
-                    >
-                        Add Employee
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function EditModal({
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    currentEmployee,
-    setCurrentEmployee,
-    roles,
-    updateUserMutation,
-}: any) {
-    return (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Edit Employee</DialogTitle>
-                    <DialogDescription>
-                        Update employee information
-                    </DialogDescription>
-                </DialogHeader>
-                {currentEmployee && (
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-name">Full Name</Label>
-                            <Input
-                                id="edit-name"
-                                value={currentEmployee.fullName}
-                                onChange={(e) =>
-                                    setCurrentEmployee({
-                                        ...currentEmployee,
-                                        fullName: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-email">Email</Label>
-                            <Input
-                                id="edit-email"
-                                type="email"
-                                value={currentEmployee.email}
-                                onChange={(e) =>
-                                    setCurrentEmployee({
-                                        ...currentEmployee,
-                                        email: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-phone">Phone Number</Label>
-                            <Input
-                                id="edit-phone"
-                                value={currentEmployee.phoneNumber}
-                                onChange={(e) =>
-                                    setCurrentEmployee({
-                                        ...currentEmployee,
-                                        phoneNumber: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-role">Job Role</Label>
-                            <Select
-                                value={currentEmployee.userRoles[0]?.roleId}
-                                onValueChange={(value) =>
-                                    setCurrentEmployee({
-                                        ...currentEmployee,
-                                        userRoles: [
-                                            {
-                                                userId: currentEmployee.id,
-                                                roleId: Number(value),
-                                            },
-                                        ],
-                                    })
-                                }
-                            >
-                                <SelectTrigger id="edit-role">
-                                    <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles?.data?.map((role) => (
-                                        <SelectItem
-                                            key={role?.id}
-                                            value={role?.id}
-                                        >
-                                            {role?.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                )}
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsEditDialogOpen(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className="bg-orange-500 hover:bg-orange-600"
-                        onClick={() =>
-                            updateUserMutation.mutate({
-                                userId: currentEmployee.id,
-                                userInfo: {
-                                    ...currentEmployee,
-                                },
-                            })
-                        }
-                        disabled={
-                            !currentEmployee?.fullName ||
-                            !currentEmployee?.email
-                        }
-                    >
-                        Save Changes
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function DeleteModal({
-    deleteUserMutation,
-    isDeleteDialogOpen,
-    setIsDeleteDialogOpen,
-    currentEmployee,
-}: any) {
-    return (
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Delete Employee</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete this employee? This
-                        action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                {currentEmployee && (
-                    <div className="py-4">
-                        <div className="flex items-center gap-3">
-                            <div>
-                                <p className="font-medium">
-                                    {currentEmployee.fullName}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    {currentEmployee.email}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsDeleteDialogOpen(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="destructive"
-                        onClick={() =>
-                            deleteUserMutation.mutate(currentEmployee.id)
-                        }
-                    >
-                        Delete
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     );
 }

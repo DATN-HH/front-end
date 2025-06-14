@@ -1,13 +1,15 @@
 import axios from 'axios';
 
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+
+export const apiClient = axios.create({
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add interceptors for authentication
+// Add request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -16,17 +18,18 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor to handle errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle common errors (401, 403, etc)
     if (error.response?.status === 401) {
-      // Redirect to login or refresh token
-      console.error('Unauthorized access - redirecting to login');
+      // Handle unauthorized access
+      localStorage.removeItem('token');
       window.location.href = '/login';
     }
     return Promise.reject(error);
