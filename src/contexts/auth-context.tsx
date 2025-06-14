@@ -8,13 +8,14 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import { loginUser, User, verifyToken } from '@/features/system/api/api-auth';
 import { useRouter } from 'next/navigation';
 import { Role, Permission, rolePermissions } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
+import { useSignIn, useSignOut, useVerifyToken, UserDtoResponse, RoleResponseDto } from '@/services/api/v1/auth';
+import { useQueryClient } from '@tanstack/react-query';
 
-export function getDefaultRedirectByRole(role: Role): string {
-  switch (role) {
+export function getDefaultRedirectByRole(role: RoleResponseDto): string {
+  switch (role.name) {
     case Role.MANAGER:
       return '/app';
     case Role.WAITER:
@@ -34,7 +35,7 @@ export function getDefaultRedirectByRole(role: Role): string {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: UserDtoResponse | null;
   token: string | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -47,7 +48,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserDtoResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -56,10 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     success,
   } = useCustomToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  /*
-  Kiểm tra tính hợp lệ của token khi ứng dụng khởi động
-*/
+  const signInMutation = useSignIn();
+  const signOutMutation = useSignOut();
+  const verifyTokenMutation = useVerifyToken();
+
   useEffect(() => {
     async function fetchData() {
       const storedToken =
@@ -67,8 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken) {
         setToken(storedToken);
         try {
-          const { user } = await verifyToken(storedToken);
-          setUser(user);
+          const response = await verifyTokenMutation.mutateAsync({ token: storedToken });
+          setUser(response.account);
           success('Success', 'Token verified successfully');
         } catch (error: any) {
           console.error(
@@ -94,22 +97,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchData();
   }, [token]);
 
-  /*
-  Đăng nhập người dùng
-*/
   const login = useCallback(
     async (credentials: { email: string; password: string }) => {
       setIsLoading(true);
       try {
-        const { user, token } = await loginUser(credentials);
-        setUser(user);
-        setToken(token);
+        const response = await signInMutation.mutateAsync(credentials);
+        if (!response.success) {
+          throw new Error(response.message || 'Login failed');
+        }
+        
+        const data = response.payload;
+        setUser(data.account);
+        setToken(data.token);
 
-        console.log('Login successful:', user);
+        console.log('Login successful:', data.account);
         success('Success', 'Login successful');
 
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', data.token);
 
           // Ưu tiên lấy redirect từ URL
           const params = new URLSearchParams(window.location.search);
@@ -117,10 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (redirectUrl) {
             router.push(redirectUrl);
-          } else if (user.isFullRole) {
+          } else if (data.account.isFullRole) {
             router.push('/app');
-          } else if (user.roles && user.roles.length > 0) {
-            const targetUrl = getDefaultRedirectByRole(user.roles[0]);
+          } else if (data.account.userRoles && data.account.userRoles.length > 0) {
+            const targetUrl = getDefaultRedirectByRole(data.account.userRoles[0].role);
             router.push(targetUrl);
           } else {
             router.push('/');
@@ -128,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error: any) {
         console.error('Login failed:', error);
-        toastError('Error', error?.response?.data?.message || 'Login failed');
+        toastError('Error', error?.response?.data?.message || error.message || 'Login failed');
       } finally {
         setIsLoading(false);
       }
@@ -136,22 +141,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  /*
-  Đăng xuất người dùng
-*/
   const logout = useCallback(async () => {
-    setUser(null);
-    setToken(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+    try {
+      await signOutMutation.mutateAsync();
+      setUser(null);
+      setToken(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
+      queryClient.clear();
+      router.push('/login');
+    } catch (error: any) {
+      console.error('Logout failed:', error);
+      toastError('Error', error?.response?.data?.message || 'Logout failed');
     }
-    router.push('/login');
   }, []);
 
-  /*
-  Kiểm tra xem người dùng đã đăng nhập hay chưa
-  Hàm này trả về true nếu người dùng đã đăng nhập (có token), ngược lại trả về false
-*/
   const isAuthenticated = useCallback(() => {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return !!token && !!storedToken;
@@ -163,14 +168,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
 
-      if (!user || !user.roles) {
+      if (!user || !user.userRoles) {
         return false;
       }
 
       if (Array.isArray(role)) {
-        return role.some((r) => user.roles.includes(r));
+        return role.some((r) => user.userRoles.some((ur) => ur.role.name === r));
       }
-      return user.roles.includes(role);
+      return user.userRoles.some((ur) => ur.role.name === role);
     },
     [user]
   );
@@ -181,18 +186,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
 
-      if (!user || !user.roles) {
+      if (!user || !user.userRoles) {
         return false;
       }
 
       if (Array.isArray(permission)) {
         return permission.some((p) =>
-          user.roles.some((role) => rolePermissions[role]?.includes(p))
+          user.userRoles.some((ur) =>
+            rolePermissions[ur.role.name as Role]?.includes(p)
+          )
         );
       }
 
-      return user.roles.some((role) =>
-        rolePermissions[role]?.includes(permission)
+      return user.userRoles.some((ur) =>
+        rolePermissions[ur.role.name as Role]?.includes(permission)
       );
     },
     [user]
@@ -209,7 +216,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasPermission,
   };
 
-  // Always render children, but use context to signal loading state
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
