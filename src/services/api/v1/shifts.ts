@@ -5,8 +5,10 @@ import { LocalTime, RoleName, Status } from '.';
 // Types
 export interface ShiftResponseDto {
   id: number;
+  name: string;
   startTime: LocalTime;
   endTime: LocalTime;
+  weekDays: ('MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN')[];
   branchId: number;
   branchName: string;
   requirements: ShiftRequirementDto[];
@@ -17,17 +19,22 @@ export interface ShiftResponseDto {
   status: Status;
   createdUsername: string;
   updatedUsername: string;
+  createdUser?: string;
+  updatedUser?: string;
 }
 
 export interface ShiftRequirementDto {
-  id: number;
+  id?: number;
   role: RoleName;
   quantity: number;
 }
 
 export interface ShiftRequestDto {
-  startTime: LocalTime;
-  endTime: LocalTime;
+  id?: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  weekDays: ('MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN')[];
   branchId: number;
   requirements: ShiftRequirementDto[];
 }
