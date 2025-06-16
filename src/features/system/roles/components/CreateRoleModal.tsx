@@ -11,8 +11,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { RoleCreateDto } from '@/services/api/v1/roles';
-import { RoleName } from '@/services/api/v1';
+import { RoleCreateDto } from '@/api/v1/roles';
+import { RoleName } from '@/api/v1';
 
 interface CreateRoleModalProps {
     isOpen: boolean;

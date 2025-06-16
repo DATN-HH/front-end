@@ -27,6 +27,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { CalendarIcon, Copy, ArrowRight } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 // Mock branches
 const mockBranches = [
@@ -121,18 +122,20 @@ export default function CopySchedulePage() {
     return (
         <>
             <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Copy Schedule
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Use this page to copy shifts from one date range to
-                            another. You can select a branch, specify the date
-                            range, and choose how you want to copy the shifts.
-                        </p>
-                    </div>
-                </div>
+                <PageTitle
+                    icon={Copy}
+                    title="Copy Schedule"
+                    left={
+                        <Button
+                            onClick={generatePreview}
+                            disabled={isProcessing}
+                            variant="outline"
+                        >
+                            Generate Preview
+                        </Button>
+                    }
+                />
+
                 <div className="grid gap-6 md:grid-cols-12">
                     {/* Left column - Copy Settings */}
                     <Card className="md:col-span-5">

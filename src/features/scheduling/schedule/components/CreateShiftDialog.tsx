@@ -35,9 +35,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/auth-context"
-import { useRoles } from '@/services/api/v1/roles';
-import { useCreateShift, ShiftRequestDto } from '@/services/api/v1/shifts';
-import { RoleName } from '@/services/api/v1';
+import { useRoles } from '@/api/v1/roles';
+import { useCreateShift, ShiftRequestDto } from '@/api/v1/shifts';
+import { RoleName } from '@/api/v1';
 import { useCustomToast } from '@/lib/show-toast';
 
 const daysOfWeek = [

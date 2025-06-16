@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -6,28 +8,17 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Package, Tags, ArrowLeft } from 'lucide-react';
+import { Package, Tags, ArrowLeft, Utensils, Printer } from 'lucide-react';
 import Link from 'next/link';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 export default function MenuModulePage() {
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/dashboard">
-                    <Button variant="outline" size="sm">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Modules
-                    </Button>
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Menu Module
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Restaurant Menu Management System
-                    </p>
-                </div>
-            </div>
+            <PageTitle
+                icon={Utensils}
+                title="Menu Management"
+            />
 
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
@@ -105,7 +96,7 @@ export default function MenuModulePage() {
                 <Link href="/app/menu/kitchen-printers">
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardHeader className="text-center">
-                            <Package className="h-8 w-8 mx-auto text-orange-500" />
+                            <Printer className="h-8 w-8 mx-auto text-orange-500" />
                             <CardTitle className="text-lg">
                                 Kitchen Printers
                             </CardTitle>

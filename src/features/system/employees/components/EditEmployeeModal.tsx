@@ -16,8 +16,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { UserResponseDto } from '@/services/api/v1/users';
-import { RoleResponseDto } from '@/services/api/v1/auth';
+import { UserResponseDto } from '@/api/v1/users';
+import { RoleResponseDto } from '@/api/v1/auth';
 
 interface EditEmployeeModalProps {
     isOpen: boolean;

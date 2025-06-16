@@ -9,7 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BranchResponseDto } from '@/services/api/v1/branches';
+import { BranchResponseDto } from '@/api/v1/branches';
 import { formatDate } from '@/lib/utils';
 
 interface BranchTableColumnsProps {
@@ -49,8 +49,8 @@ export const BranchTableColumns = ({
                 return (
                     <span
                         className={`px-2 py-1 rounded-full text-xs ${status === 'ACTIVE'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
                             }`}
                     >
                         {status}

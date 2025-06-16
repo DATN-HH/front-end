@@ -47,8 +47,10 @@ import {
     Filter,
     ChevronLeft,
     ChevronRight,
+    Package,
 } from 'lucide-react';
 import { ImageIcon } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ProductModal, ProductEditModal } from '@/components/modals';
@@ -372,20 +374,17 @@ export default function ProductsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Products
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage your restaurant's products
-                    </p>
-                </div>
-                <Button onClick={() => setShowProductModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Product
-                </Button>
-            </div>
+            <PageTitle
+                icon={Package}
+                title="Products"
+                description="Manage your restaurant's products"
+                left={
+                    <Button onClick={() => setShowProductModal(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Product
+                    </Button>
+                }
+            />
 
             <DataTable
                 columns={columns}

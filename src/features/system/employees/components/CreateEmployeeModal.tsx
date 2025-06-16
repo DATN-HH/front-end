@@ -16,8 +16,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { UserCreateDto } from '@/services/api/v1/users';
-import { RoleResponseDto } from '@/services/api/v1/auth';
+import { UserCreateDto } from '@/api/v1/users';
+import { RoleResponseDto } from '@/api/v1/auth';
 
 interface CreateEmployeeModalProps {
     isOpen: boolean;

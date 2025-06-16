@@ -1,20 +1,21 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { format, addDays, startOfWeek, endOfWeek} from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { Plus, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { WeekCalendar } from '@/features/employee-portal/components/WeekCalendar';
 import { TimeOffRequests } from '@/features/employee-portal/components/TimeOffRequests';
 import { ShiftRequests } from '@/features/employee-portal/components/ShiftRequests';
 import { TimeOffDialog } from '@/features/employee-portal/components/TimeOffDialog';
 import { ShiftRequestDialog } from '@/features/employee-portal/components/ShiftRequestDialog';
-import { useStaffShifts, StaffShiftResponseDto } from '@/services/api/v1/staff-shifts';
+import { useStaffShifts, StaffShiftResponseDto } from '@/api/v1/staff-shifts';
 import { useAuth } from '@/contexts/auth-context';
-import { ShiftRequestResponseDto, ShiftRequestType, RequestStatus } from '@/services/api/v1';
-import { UserDtoResponse } from '@/services/api/v1/auth';
+import { ShiftRequestResponseDto, ShiftRequestType, RequestStatus } from '@/api/v1';
+import { UserDtoResponse } from '@/api/v1/auth';
 import { MAX_SIZE_PER_PAGE } from '@/lib/constants';
-import { useStaffUnavailability, useCreateStaffUnavailability } from '@/services/api/v1/staff-unavailability';
+import { useStaffUnavailability, useCreateStaffUnavailability, StaffUnavailabilityResponseDto } from '@/api/v1/staff-unavailability';
 import { useCustomToast } from '@/lib/show-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -146,8 +147,10 @@ const mockShiftRequests: ShiftRequestResponseDto[] = [
             staff: mockUser,
             shift: {
                 id: 204,
+                name: 'Lunch Shift',
                 startTime: { hour: 12, minute: 0, second: 0, nano: 0 },
                 endTime: { hour: 20, minute: 0, second: 0, nano: 0 },
+                weekDays: ['MON', 'TUE', 'WED', 'THU', 'FRI'],
                 branchId: 1,
                 branchName: 'Downtown Branch',
                 requirements: [{ id: 1, role: 'WAITER', quantity: 2 }],
@@ -339,43 +342,38 @@ export default function EmployeePortalPage() {
     return (
         <>
             <div className="flex flex-col gap-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Employee Portal
-                        </h1>
-                        <p className="text-muted-foreground">
-                            View your schedule, request time off, and manage
-                            shift requests.
-                        </p>
-                    </div>
+                <PageTitle
+                    icon={Users}
+                    title="Employee Portal"
+                    left={
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={navigatePrevious}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <span className="text-sm font-medium">
+                                    {format(startDate, 'MMM d')} - {format(endDate, 'MMM d')}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={navigateNext}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
 
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={navigatePrevious}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm font-medium">
-                            {format(startDate, 'MMM d')} - {format(endDate, 'MMM d')}
-                        </span>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={navigateNext}
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    <Button onClick={openTimeOffRequestDialog}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Request Time Off
-                    </Button>
-                </div>
+                            <Button onClick={openTimeOffRequestDialog}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Request Time Off
+                            </Button>
+                        </div>
+                    }
+                />
 
                 <WeekCalendar
                     shifts={staffShiftsData?.data || []}
