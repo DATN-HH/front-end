@@ -46,7 +46,9 @@ import {
     ChevronLeft,
     ChevronRight,
     Eye,
+    Layers,
 } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { PosCategoryModal, PosCategoryEditModal } from '@/components/modals';
@@ -250,20 +252,17 @@ export default function PosCategoriesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        POS Categories
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage product categories displayed on Point of Sale
-                    </p>
-                </div>
-                <Button onClick={() => setShowCategoryModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Category
-                </Button>
-            </div>
+            <PageTitle
+                icon={Layers}
+                title="POS Categories"
+                description="Manage product categories displayed on Point of Sale"
+                left={
+                    <Button onClick={() => setShowCategoryModal(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Category
+                    </Button>
+                }
+            />
 
             <Card>
                 <CardHeader>

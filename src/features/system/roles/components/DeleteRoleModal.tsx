@@ -8,7 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { RoleResponseDto } from '@/services/api/v1/auth';
+import { RoleResponseDto } from '@/api/v1/auth';
 
 interface DeleteRoleModalProps {
     isOpen: boolean;

@@ -3,16 +3,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Shield } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { useCustomToast } from '@/lib/show-toast';
 import { Role } from '@/lib/rbac';
 import { DataTable } from '@/components/common/Table/DataTable';
 import { SearchCondition } from '@/lib/response-object';
-import { useRoles, useCreateRole, useUpdateRole, useDeleteRole } from '@/services/api/v1/roles';
-import { RoleResponseDto } from '@/services/api/v1/auth';
-import { RoleCreateDto, RoleUpdateDto } from '@/services/api/v1/roles';
-import { useAdvanceSearch } from '@/services/api/v1/advance-search';
-import { BaseListRequest, RoleName, Status } from '@/services/api/v1';
+import { useRoles, useCreateRole, useUpdateRole, useDeleteRole } from '@/api/v1/roles';
+import { RoleResponseDto } from '@/api/v1/auth';
+import { RoleCreateDto, RoleUpdateDto } from '@/api/v1/roles';
+import { useAdvanceSearch } from '@/api/v1/advance-search';
+import { BaseListRequest, RoleName, Status } from '@/api/v1';
 import { RoleTableColumns } from '../../../../../features/system/roles/components/RoleTableColumns';
 import { CreateRoleModal } from '../../../../../features/system/roles/components/CreateRoleModal';
 import { EditRoleModal } from '../../../../../features/system/roles/components/EditRoleModal';
@@ -191,24 +192,21 @@ export default function JobRolesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Roles
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage roles and their permissions
-                    </p>
-                </div>
-                <Button
-                    onClick={() => {
-                        setIsCreateDialogOpen(true);
-                    }}
-                >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Role
-                </Button>
-            </div>
+            <PageTitle
+                icon={Shield}
+                title="Roles"
+                description="Manage roles and their permissions"
+                left={
+                    <Button
+                        onClick={() => {
+                            setIsCreateDialogOpen(true);
+                        }}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Role
+                    </Button>
+                }
+            />
 
             <DataTable
                 columns={RoleTableColumns({

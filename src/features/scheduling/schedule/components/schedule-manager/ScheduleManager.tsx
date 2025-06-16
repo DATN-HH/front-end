@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Clock, Grid3X3 } from "lucide-react"
+import { RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Clock, Grid3X3, Calendar } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format, startOfWeek, endOfWeek, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns"
 import { enUS } from "date-fns/locale"
+import { PageTitle } from "@/components/layouts/app-section/page-title"
 import EmployeeTimeline from "./EmployeeTimeline"
 import UnifiedSchedule from "./UnifiedSchedule"
 
@@ -89,10 +90,10 @@ export default function ScheduleManager() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Simple Top Controls */}
-      <div className="bg-white border-b border-slate-200 px-6 py-3">
-        <div className="flex items-center justify-between">
-          {/* Left side - View Mode and Date Navigation */}
+      <PageTitle
+        icon={Calendar}
+        title="Schedule Manager"
+        left={
           <div className="flex items-center space-x-4">
             {/* View Mode Selector */}
             <Select value={viewMode} onValueChange={(value) => setViewMode(value as "daily" | "weekly" | "monthly")}>
@@ -153,20 +154,19 @@ export default function ScheduleManager() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          </div>
 
-          {/* Right side - Refresh Button */}
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            size="sm"
-            className="h-9"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              size="sm"
+              className="h-9"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        }
+      />
 
       {/* Full Width Schedule Content */}
       <div className="w-full p-3">

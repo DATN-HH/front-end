@@ -47,7 +47,9 @@ import {
     Filter,
     ChevronLeft,
     ChevronRight,
+    Tags,
 } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { AttributeModal, AttributeEditModal } from '@/components/modals';
@@ -243,44 +245,41 @@ export default function AttributesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Product Attributes
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage attributes to create product variants
-                    </p>
-                </div>
-                <Button onClick={() => setShowAttributeModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Attribute
-                </Button>
-            </div>
+            <PageTitle
+                icon={Tags}
+                title="Product Attributes"
+                description="Manage attributes to create product variants"
+                left={
+                    <Button onClick={() => setShowAttributeModal(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Attribute
+                    </Button>
+                }
+            />
 
-                <DataTable
-                    columns={columns}
-                    data={allAttributes}
-                    pageIndex={pageIndex}
-                    pageSize={pageSize}
-                    total={total}
-                    tableId="attributes-table"
-                    filterDefinitions={filterDefinitions}
-                    onSearchChange={(search) => {
-                        setKeyword(search);
-                    }}
-                    onPaginationChange={(pageIndex: number, pageSize: number) => {
-                        setPageIndex(pageIndex);
-                        setPageSize(pageSize);
-                    }}
-                    onSortingChange={(sorting) => {
-                        setSorting(sorting);
-                    }}
-                    onFilterChange={(filters: any) => {
-                        setColumnFilters(filters);
-                    }}
-                    currentSorting={sorting}
-                />
+            <DataTable
+                columns={columns}
+                data={allAttributes}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={total}
+                tableId="attributes-table"
+                filterDefinitions={filterDefinitions}
+                onSearchChange={(search) => {
+                    setKeyword(search);
+                }}
+                onPaginationChange={(pageIndex: number, pageSize: number) => {
+                    setPageIndex(pageIndex);
+                    setPageSize(pageSize);
+                }}
+                onSortingChange={(sorting) => {
+                    setSorting(sorting);
+                }}
+                onFilterChange={(filters: any) => {
+                    setColumnFilters(filters);
+                }}
+                currentSorting={sorting}
+            />
 
             <AttributeModal
                 open={showAttributeModal}

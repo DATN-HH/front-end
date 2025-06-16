@@ -9,7 +9,7 @@ import {
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Edit, MoreHorizontal, Trash, Calendar, CheckCircle } from 'lucide-react';
 import dayjs from 'dayjs';
-import { UserResponseDto } from '@/services/api/v1/users';
+import { UserResponseDto } from '@/api/v1/users';
 
 interface EmployeeTableColumnsProps {
     onEdit: (employee: UserResponseDto) => void;
@@ -110,8 +110,8 @@ export const EmployeeTableColumns = ({
             cell: ({ row }) => (
                 <span
                     className={`px-2 py-1 rounded-full text-xs ${row.getValue('status') === 'ACTIVE'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
                         }`}
                 >
                     {row.getValue('status')}
