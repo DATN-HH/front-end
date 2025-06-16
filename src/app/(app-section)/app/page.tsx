@@ -26,6 +26,7 @@ import {
     PieChart,
 } from 'lucide-react';
 import Link from 'next/link';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 // Mock data for charts
 const revenueData = [
@@ -272,7 +273,7 @@ function SimpleLineChart({
                             100 -
                             ((item[dataKey] - minValue) /
                                 (maxValue - minValue)) *
-                                100;
+                            100;
                         return (
                             <circle
                                 key={index}
@@ -307,17 +308,10 @@ export default function RestaurantDashboard() {
 
     return (
         <div className="flex flex-col gap-4 h-screen overflow-hidden">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Dashboard
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Welcome back! Here's your restaurant's performance
-                        overview.
-                    </p>
-                </div>
-            </div>
+            <PageTitle
+                icon={Activity}
+                title="Dashboard"
+            />
 
             <Tabs defaultValue="overview" className="flex-1 px-6 pb-6">
                 <TabsList className="grid w-full grid-cols-4 mb-4">
@@ -774,14 +768,13 @@ export default function RestaurantDashboard() {
                                                 {order.id}
                                             </span>
                                             <div
-                                                className={`text-xs px-2 py-1 rounded-full ${
-                                                    order.status === 'completed'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : order.status ===
-                                                            'preparing'
-                                                          ? 'bg-orange-100 text-orange-700'
-                                                          : 'bg-yellow-100 text-yellow-700'
-                                                }`}
+                                                className={`text-xs px-2 py-1 rounded-full ${order.status === 'completed'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : order.status ===
+                                                        'preparing'
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : 'bg-yellow-100 text-yellow-700'
+                                                    }`}
                                             >
                                                 {order.status
                                                     .charAt(0)

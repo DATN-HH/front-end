@@ -45,6 +45,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/Table/DataTable';
 import { FilterDefinition } from '@/components/common/Table/types';
 import { SearchCondition } from '@/lib/response-object';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 // Mock shift requests
 const mockShiftRequests = [
@@ -273,13 +274,12 @@ export default function RequestsPage() {
                 return (
                     <Badge
                         variant="outline"
-                        className={`${
-                            status == 'PENDING'
+                        className={`${status == 'PENDING'
                                 ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
                                 : status == 'APPROVED'
-                                  ? 'bg-green-50 text-green-700 border-green-300'
-                                  : 'bg-red-50 text-red-700 border-red-300'
-                        }`}
+                                    ? 'bg-green-50 text-green-700 border-green-300'
+                                    : 'bg-red-50 text-red-700 border-red-300'
+                            }`}
                     >
                         {status}
                     </Badge>
@@ -506,241 +506,244 @@ export default function RequestsPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Time-off Requests
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage employee requests for shift changes and time off
-                    </p>
-                </div>
+        <>
+            <div className="flex flex-col gap-6">
+                <PageTitle
+                    icon={Calendar}
+                    title="Schedule Requests"
+                    left={
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                {shiftRequests.filter(r => r.requestStatus === 'PENDING').length} Pending
+                            </Badge>
+                        </div>
+                    }
+                />
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="mb-4">
+                    <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="shift-requests">
-                            Shift Change Requests
+                            Shift Requests
                         </TabsTrigger>
-                        <TabsTrigger value="unavailability-requests">
-                            Time-off Requests
+                        <TabsTrigger value="time-off-requests">
+                            Time Off Requests
                         </TabsTrigger>
                     </TabsList>
                 </Tabs>
-            </div>
 
-            <Tabs value={activeTab}>
-                <TabsContent value="shift-requests">
-                    <DataTable
-                        columns={columns}
-                        data={mockShiftRequests}
-                        pageIndex={pageIndex}
-                        pageSize={pageSize}
-                        total={total}
-                        tableId="roles-table"
-                        // loading={isLoading}
-                        // enableSorting = {false}
-                        filterDefinitions={
-                            filterDefinitions as FilterDefinition[]
-                        }
-                        onSearchChange={(search) => {
-                            setKeyword(search);
-                        }}
-                        onPaginationChange={(
-                            pageIndex: number,
-                            pageSize: number
-                        ) => {
-                            setPageIndex(pageIndex);
-                            setPageSize(pageSize);
-                        }}
-                        onSortingChange={(sorting) => {
-                            setSorting(sorting);
-                        }}
-                        onFilterChange={(filters: any) => {
-                            setColumnFilters(filters);
-                        }}
-                        currentSorting={sorting}
-                    />
-                </TabsContent>
-
-                <TabsContent value="unavailability-requests">
-                    <DataTable
-                        columns={columns2}
-                        data={mockUnavailabilityRequests}
-                        pageIndex={pageIndex}
-                        pageSize={pageSize}
-                        total={total}
-                        tableId="roles-table"
-                        // loading={isLoading}
-                        // enableSorting = {false}
-                        filterDefinitions={
-                            filterDefinitions as FilterDefinition[]
-                        }
-                        onSearchChange={(search) => {
-                            setKeyword(search);
-                        }}
-                        onPaginationChange={(
-                            pageIndex: number,
-                            pageSize: number
-                        ) => {
-                            setPageIndex(pageIndex);
-                            setPageSize(pageSize);
-                        }}
-                        onSortingChange={(sorting) => {
-                            setSorting(sorting);
-                        }}
-                        onFilterChange={(filters: any) => {
-                            setColumnFilters(filters);
-                        }}
-                        currentSorting={sorting}
-                    />
-                </TabsContent>
-            </Tabs>
-
-            {/* Response Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {responseAction === 'approve'
-                                ? 'Approve Request'
-                                : 'Reject Request'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {responseAction === 'approve'
-                                ? 'Are you sure you want to approve this request?'
-                                : 'Are you sure you want to reject this request?'}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {selectedRequest && (
-                        <div className="py-4">
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                    <div>
-                                        <p className="font-medium">
-                                            {selectedRequest.staff.fullName}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {
-                                                selectedRequest.staff
-                                                    .userRoles[0].role.name
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {'targetShiftId' in selectedRequest ? (
-                                    <>
-                                        <div className="flex items-start gap-3">
-                                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                            <div>
-                                                <p className="font-medium">
-                                                    Shift Date
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {formatDate(
-                                                        selectedRequest
-                                                            .targetShift.date
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-start gap-3">
-                                            <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                            <div>
-                                                <p className="font-medium">
-                                                    Shift Time
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {formatTime(
-                                                        selectedRequest
-                                                            .targetShift.shift
-                                                            .startTime
-                                                    )}{' '}
-                                                    -{' '}
-                                                    {formatTime(
-                                                        selectedRequest
-                                                            .targetShift.shift
-                                                            .endTime
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-start gap-3">
-                                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                            <div>
-                                                <p className="font-medium">
-                                                    Time Off Period
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {formatDateTime(
-                                                        selectedRequest.startTime
-                                                    )}{' '}
-                                                    -{' '}
-                                                    {formatDateTime(
-                                                        selectedRequest.endTime
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="flex items-start gap-3">
-                                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                    <div>
-                                        <p className="font-medium">Reason</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {selectedRequest.reason}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-4">
-                                <label className="text-sm font-medium">
-                                    Response Note (Optional)
-                                </label>
-                                <Textarea
-                                    placeholder="Add a note to your response..."
-                                    value={responseNote}
-                                    onChange={(e) =>
-                                        setResponseNote(e.target.value)
-                                    }
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsDialogOpen(false)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleRequestResponse}
-                            variant={
-                                responseAction === 'approve'
-                                    ? 'default'
-                                    : 'destructive'
+                <Tabs value={activeTab}>
+                    <TabsContent value="shift-requests">
+                        <DataTable
+                            columns={columns}
+                            data={mockShiftRequests}
+                            pageIndex={pageIndex}
+                            pageSize={pageSize}
+                            total={total}
+                            tableId="roles-table"
+                            // loading={isLoading}
+                            // enableSorting = {false}
+                            filterDefinitions={
+                                filterDefinitions as FilterDefinition[]
                             }
-                        >
-                            {responseAction === 'approve'
-                                ? 'Approve'
-                                : 'Reject'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+                            onSearchChange={(search) => {
+                                setKeyword(search);
+                            }}
+                            onPaginationChange={(
+                                pageIndex: number,
+                                pageSize: number
+                            ) => {
+                                setPageIndex(pageIndex);
+                                setPageSize(pageSize);
+                            }}
+                            onSortingChange={(sorting) => {
+                                setSorting(sorting);
+                            }}
+                            onFilterChange={(filters: any) => {
+                                setColumnFilters(filters);
+                            }}
+                            currentSorting={sorting}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="time-off-requests">
+                        <DataTable
+                            columns={columns2}
+                            data={mockUnavailabilityRequests}
+                            pageIndex={pageIndex}
+                            pageSize={pageSize}
+                            total={total}
+                            tableId="roles-table"
+                            // loading={isLoading}
+                            // enableSorting = {false}
+                            filterDefinitions={
+                                filterDefinitions as FilterDefinition[]
+                            }
+                            onSearchChange={(search) => {
+                                setKeyword(search);
+                            }}
+                            onPaginationChange={(
+                                pageIndex: number,
+                                pageSize: number
+                            ) => {
+                                setPageIndex(pageIndex);
+                                setPageSize(pageSize);
+                            }}
+                            onSortingChange={(sorting) => {
+                                setSorting(sorting);
+                            }}
+                            onFilterChange={(filters: any) => {
+                                setColumnFilters(filters);
+                            }}
+                            currentSorting={sorting}
+                        />
+                    </TabsContent>
+                </Tabs>
+
+                {/* Response Dialog */}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>
+                                {responseAction === 'approve'
+                                    ? 'Approve Request'
+                                    : 'Reject Request'}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {responseAction === 'approve'
+                                    ? 'Are you sure you want to approve this request?'
+                                    : 'Are you sure you want to reject this request?'}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {selectedRequest && (
+                            <div className="py-4">
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                        <div>
+                                            <p className="font-medium">
+                                                {selectedRequest.staff.fullName}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {
+                                                    selectedRequest.staff
+                                                        .userRoles[0].role.name
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {'targetShiftId' in selectedRequest ? (
+                                        <>
+                                            <div className="flex items-start gap-3">
+                                                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                                <div>
+                                                    <p className="font-medium">
+                                                        Shift Date
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatDate(
+                                                            selectedRequest
+                                                                .targetShift.date
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-start gap-3">
+                                                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                                <div>
+                                                    <p className="font-medium">
+                                                        Shift Time
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatTime(
+                                                            selectedRequest
+                                                                .targetShift.shift
+                                                                .startTime
+                                                        )}{' '}
+                                                        -{' '}
+                                                        {formatTime(
+                                                            selectedRequest
+                                                                .targetShift.shift
+                                                                .endTime
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-start gap-3">
+                                                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                                <div>
+                                                    <p className="font-medium">
+                                                        Time Off Period
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatDateTime(
+                                                            selectedRequest.startTime
+                                                        )}{' '}
+                                                        -{' '}
+                                                        {formatDateTime(
+                                                            selectedRequest.endTime
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <div className="flex items-start gap-3">
+                                        <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                        <div>
+                                            <p className="font-medium">Reason</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {selectedRequest.reason}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4">
+                                    <label className="text-sm font-medium">
+                                        Response Note (Optional)
+                                    </label>
+                                    <Textarea
+                                        placeholder="Add a note to your response..."
+                                        value={responseNote}
+                                        onChange={(e) =>
+                                            setResponseNote(e.target.value)
+                                        }
+                                        className="mt-1"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleRequestResponse}
+                                variant={
+                                    responseAction === 'approve'
+                                        ? 'default'
+                                        : 'destructive'
+                                }
+                            >
+                                {responseAction === 'approve'
+                                    ? 'Approve'
+                                    : 'Reject'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </>
     );
 }

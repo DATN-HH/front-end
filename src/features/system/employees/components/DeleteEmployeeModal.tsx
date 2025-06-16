@@ -7,7 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { UserResponseDto } from '@/services/api/v1/users';
+import { UserResponseDto } from '@/api/v1/users';
 
 interface DeleteEmployeeModalProps {
     isOpen: boolean;

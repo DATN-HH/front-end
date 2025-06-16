@@ -3,14 +3,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Building2 } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { useCustomToast } from '@/lib/show-toast';
 import { DataTable } from '@/components/common/Table/DataTable';
 import { SearchCondition, OperandType } from '@/lib/response-object';
-import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch } from '@/services/api/v1/branches';
-import { BranchCreateDto, BranchResponseDto } from '@/services/api/v1/branches';
-import { useAdvanceSearch } from '@/services/api/v1/advance-search';
-import { BaseListRequest } from '@/services/api/v1';
+import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch } from '@/api/v1/branches';
+import { BranchCreateDto, BranchResponseDto } from '@/api/v1/branches';
+import { useAdvanceSearch } from '@/api/v1/advance-search';
+import { BaseListRequest } from '@/api/v1';
 import { BranchTableColumns } from '@/features/system/branches/components/BranchTableColumns';
 import { CreateBranchModal } from '@/features/system/branches/components/CreateBranchModal';
 import { EditBranchModal } from '@/features/system/branches/components/EditBranchModal';
@@ -182,24 +183,21 @@ export default function BranchesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Branches
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage your restaurant branches
-                    </p>
-                </div>
-                <Button
-                    onClick={() => {
-                        setIsCreateDialogOpen(true);
-                    }}
-                >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Branch
-                </Button>
-            </div>
+            <PageTitle
+                icon={Building2}
+                title="Branches"
+                description="Manage your restaurant branches"
+                left={
+                    <Button
+                        onClick={() => {
+                            setIsCreateDialogOpen(true);
+                        }}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Branch
+                    </Button>
+                }
+            />
 
             <DataTable
                 columns={BranchTableColumns({

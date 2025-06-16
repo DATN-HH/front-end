@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash } from 'lucide-react';
-import { RoleResponseDto } from '@/services/api/v1/auth';
+import { RoleResponseDto } from '@/api/v1/auth';
 
 interface RoleTableColumnsProps {
     onEdit: (role: RoleResponseDto) => void;
@@ -34,11 +34,10 @@ export const RoleTableColumns = ({ onEdit, onDelete }: RoleTableColumnsProps): C
         header: 'Status',
         cell: ({ row }) => (
             <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                    row.getValue('status') === 'ACTIVE'
+                className={`px-2 py-1 rounded-full text-xs ${row.getValue('status') === 'ACTIVE'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
-                }`}
+                    }`}
             >
                 {row.getValue('status')}
             </span>

@@ -17,9 +17,9 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { StaffShiftResponseDto } from '@/services/api/v1/staff-shifts';
-import { UserDtoResponse } from '@/services/api/v1/auth';
-import { RoleResponseDto } from '@/services/api/v1/auth';
+import { StaffShiftResponseDto } from '@/api/v1/staff-shifts';
+import { UserDtoResponse } from '@/api/v1/auth';
+import { RoleResponseDto } from '@/api/v1/auth';
 import { useRef, useEffect } from 'react';
 
 interface SchedulingCardProps {
@@ -126,10 +126,10 @@ export function SchedulingCard({
     // Calculate shift position with proper day alignment
     const getShiftPosition = (shift: StaffShiftResponseDto, shifts: StaffShiftResponseDto[]) => {
         const dayWidth = 120; // Fixed width per day column
-        const dayIndex = daysInRange.findIndex(day => 
+        const dayIndex = daysInRange.findIndex(day =>
             format(day, 'yyyy-MM-dd') === shift.date
         );
-        
+
         if (dayIndex === -1) {
             return { left: 0, width: 0, top: 0 };
         }
@@ -177,7 +177,7 @@ export function SchedulingCard({
                     </div>
                 </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-lg">
@@ -240,12 +240,12 @@ export function SchedulingCard({
                     <div className="flex border-b bg-muted/50">
                         {/* Left header cell */}
                         <div className="w-48 p-3 border-r bg-muted/50 flex items-center font-semibold flex-shrink-0">
-                            {viewMode === 'staff' ? 'Staff Member' : 
-                             viewMode === 'role' ? 'Role' : 'Time Slot'}
+                            {viewMode === 'staff' ? 'Staff Member' :
+                                viewMode === 'role' ? 'Role' : 'Time Slot'}
                         </div>
-                        
+
                         {/* Right header - scrollable days */}
-                        <div 
+                        <div
                             className="flex-1 overflow-x-auto overflow-y-hidden"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                             ref={headerScrollRef}
@@ -275,7 +275,7 @@ export function SchedulingCard({
                     {/* Body */}
                     <div className="flex max-h-[500px]">
                         {/* Left column - scrollable rows */}
-                        <div 
+                        <div
                             className="w-48 bg-muted/30 border-r flex-shrink-0 overflow-y-auto overflow-x-hidden"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                             ref={leftColumnRef}
@@ -324,7 +324,7 @@ export function SchedulingCard({
                         </div>
 
                         {/* Right body - scrollable content */}
-                        <div 
+                        <div
                             className="flex-1 overflow-auto"
                             ref={bodyScrollRef}
                         >
@@ -355,7 +355,7 @@ export function SchedulingCard({
                                             {/* Shift bars */}
                                             {shifts?.map((shift: StaffShiftResponseDto) => {
                                                 const { left, width, top } = getShiftPosition(shift, shifts);
-                                                
+
                                                 if (width === 0) return null;
 
                                                 const roleColor = shift.staff.userRoles[0]?.role.hexColor || '#gray';
@@ -379,8 +379,8 @@ export function SchedulingCard({
                                                                         {viewMode === 'staff'
                                                                             ? `${shift.shift.startTime}-${shift.shift.endTime}`
                                                                             : viewMode === 'role'
-                                                                            ? shift.staff.fullName
-                                                                            : shift.staff.fullName}
+                                                                                ? shift.staff.fullName
+                                                                                : shift.staff.fullName}
                                                                     </span>
                                                                     <div className="hidden group-hover:flex items-center gap-1 ml-2">
                                                                         <button

@@ -47,6 +47,7 @@ import {
     postStaffShiftBulk,
     publicStaffShifts,
 } from '@/features/scheduling/api/api-staff-shift';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 export default function AssignStaffPage() {
     const { user } = useAuth();
@@ -151,7 +152,7 @@ export default function AssignStaffPage() {
             toastError(
                 'Error',
                 error?.response?.data?.message ||
-                    'Failed to create staff shifts'
+                'Failed to create staff shifts'
             );
             console.error('Create error:', error);
         },
@@ -169,7 +170,7 @@ export default function AssignStaffPage() {
             toastError(
                 'Error',
                 error?.response?.data?.message ||
-                    'Failed to public staff shifts'
+                'Failed to public staff shifts'
             );
             console.error('Public error:', error);
         },
@@ -186,7 +187,7 @@ export default function AssignStaffPage() {
             toastError(
                 'Error',
                 error?.response?.data?.message ||
-                    'Failed to delete staff shifts'
+                'Failed to delete staff shifts'
             );
             setIsDeleteDialogOpen(false);
             console.error('Delete error:', error);
@@ -347,41 +348,28 @@ export default function AssignStaffPage() {
     return (
         <>
             <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Assign Staff
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Assign staff to shifts and manage the scheduling for
-                            your restaurant.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setBulkAssignDialogOpen(true)}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Bulk Assign
-                        </Button>
-                        <Button
-                            onClick={() =>
-                                createDraftStaffShift.mutate(draftStaffShifts)
-                            }
-                            disabled={
-                                draftStaffShifts &&
-                                draftStaffShifts?.length == 0
-                            }
-                        >
-                            <Check className="h-4 w-4 mr-2" />
-                            Save Draft
-                        </Button>
-                        <Button onClick={() => setIsPublishDialogOpen(true)}>
-                            Publish Schedule
-                        </Button>
-                    </div>
-                </div>
+                <PageTitle
+                    icon={Users}
+                    title="Assign Staff"
+                    left={
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setBulkAssignDialogOpen(true)}
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Bulk Assign
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsPublishDialogOpen(true)}
+                                disabled={!draftStaffShifts.length}
+                            >
+                                Publish Schedules
+                            </Button>
+                        </div>
+                    }
+                />
 
                 <div className="grid gap-6 md:grid-cols-12">
                     {/* Left column - Date and Shift Selection */}
@@ -675,7 +663,7 @@ function AssignList({
                                         <Badge
                                             variant={
                                                 staffShift.shiftStatus ===
-                                                'PUBLISHED'
+                                                    'PUBLISHED'
                                                     ? 'default'
                                                     : 'outline'
                                             }
@@ -760,8 +748,8 @@ function StaffList({
                                     isDisabled
                                         ? 'opacity-50 cursor-not-allowed bg-gray-100 border-gray-200'
                                         : isAssigned
-                                          ? 'bg-primary/10 border-primary/30 cursor-pointer'
-                                          : 'hover:bg-gray-50 cursor-pointer'
+                                            ? 'bg-primary/10 border-primary/30 cursor-pointer'
+                                            : 'hover:bg-gray-50 cursor-pointer'
                                 )}
                                 onClick={() =>
                                     !isDisabled && assignStaff(staff.id)
@@ -991,7 +979,7 @@ function BulkAssign({
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {formatDate(
                                             bulkAssignData?.startDate ||
-                                                new Date()
+                                            new Date()
                                         )}
                                     </Button>
                                 </PopoverTrigger>
@@ -1025,7 +1013,7 @@ function BulkAssign({
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {formatDate(
                                             bulkAssignData?.endDate ||
-                                                new Date()
+                                            new Date()
                                         )}
                                     </Button>
                                 </PopoverTrigger>
@@ -1096,14 +1084,14 @@ function BulkAssign({
                                                         ...prev,
                                                         staffIds: isSelected
                                                             ? prev?.staffIds.filter(
-                                                                  (id: any) =>
-                                                                      id !==
-                                                                      staff.id
-                                                              )
+                                                                (id: any) =>
+                                                                    id !==
+                                                                    staff.id
+                                                            )
                                                             : [
-                                                                  ...prev?.staffIds,
-                                                                  staff.id,
-                                                              ],
+                                                                ...prev?.staffIds,
+                                                                staff.id,
+                                                            ],
                                                     })
                                                 );
                                             }}

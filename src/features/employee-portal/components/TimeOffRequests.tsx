@@ -3,7 +3,7 @@ import { CalendarIcon, Clock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { StaffUnavailabilityResponseDto } from '@/services/api/v1/staff-unavailability';
+import { StaffUnavailabilityResponseDto } from '@/api/v1/staff-unavailability';
 
 interface TimeOffRequestsProps {
     requests: StaffUnavailabilityResponseDto[];

@@ -1,38 +1,29 @@
-import type React from 'react';
-import type { Metadata } from 'next';
-import Providers from '../../providers';
-import Sidebar from '@/components/common/SideBar/SideBar';
-import Header from '@/components/common/header';
-import { Toaster } from '@/components/ui/toaster';
+'use client'
+import { ReactNode } from 'react'
+import { SectionSidebar } from '@/components/layouts/app-section/sidebar'
+import { SectionHeader } from '@/components/layouts/app-section/header'
+import { SectionBreadcrumb } from '@/components/layouts/app-section/breadcrumb'
+import Providers from '@/app/providers'
+import { Toaster } from '@/components/ui/toaster'
 
-export const metadata: Metadata = {
-    title: 'Menu+ Personnel Management',
-    description: 'Personnel management system for restaurants',
-};
+interface SectionLayoutProps {
+    children: ReactNode
+}
 
-export default function AdminPanelLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function SectionLayout({ children }: SectionLayoutProps) {
     return (
         <Providers>
-            <div className="flex flex-col h-screen">
-                {/* Header ở trên cùng */}
-                <Header />
-
-                {/* Phần còn lại chia làm 2 cột: children (trái) - sidebar (phải) */}
-                <div className="flex flex-1 overflow-hidden">
-                    <div className="w-64 border-l border-gray-200">
-                        <Sidebar />
+            <div className="flex h-screen bg-background">
+                <SectionSidebar />
+                <div className="flex flex-col flex-1 overflow-hidden">
+                    <SectionHeader />
+                    <div className="flex-1 overflow-auto p-6">
+                        <SectionBreadcrumb />
+                        <main className="mt-4">{children}</main>
                     </div>
-
-                    <main className="flex-1 overflow-auto p-4 md:p-6">
-                        {children}
-                        <Toaster />
-                    </main>
                 </div>
             </div>
+            <Toaster />
         </Providers>
-    );
-}
+    )
+} 
