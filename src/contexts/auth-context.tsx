@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Role, Permission, rolePermissions } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
-import { useSignIn, useSignOut, useVerifyToken, UserDtoResponse, RoleResponseDto } from '@/services/api/v1/auth';
+import { useSignIn, useSignOut, useVerifyToken, UserDtoResponse, RoleResponseDto } from '@/api/v1/auth';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function getDefaultRedirectByRole(role: RoleResponseDto): string {
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!response.success) {
           throw new Error(response.message || 'Login failed');
         }
-        
+
         const data = response.payload;
         setUser(data.account);
         setToken(data.token);

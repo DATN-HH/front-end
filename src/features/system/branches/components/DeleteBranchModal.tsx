@@ -7,7 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { BranchResponseDto } from '@/services/api/v1/branches';
+import { BranchResponseDto } from '@/api/v1/branches';
 
 interface DeleteBranchModalProps {
     isOpen: boolean;

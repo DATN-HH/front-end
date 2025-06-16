@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -8,26 +10,15 @@ import {
 } from '@/components/ui/card';
 import { ArrowLeft, Printer } from 'lucide-react';
 import Link from 'next/link';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 export default function KitchenPrintersPage() {
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/app/menu">
-                    <Button variant="outline" size="sm">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Menu
-                    </Button>
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Kitchen Printers
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Configure kitchen printing stations and order routing
-                    </p>
-                </div>
-            </div>
+            <PageTitle
+                icon={Printer}
+                title="Kitchen Printers"
+            />
 
             <Card>
                 <CardHeader className="text-center py-12">

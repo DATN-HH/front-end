@@ -3,19 +3,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { useCustomToast } from '@/lib/show-toast';
 import { DataTable } from '@/components/common/Table/DataTable';
 import { SearchCondition } from '@/lib/response-object';
-import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/services/api/v1/users';
-import { UserCreateDto } from '@/services/api/v1/users';
-import { useAdvanceSearch } from '@/services/api/v1/advance-search';
-import { BaseListRequest } from '@/services/api/v1';
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/api/v1/users';
+import { UserCreateDto } from '@/api/v1/users';
+import { useAdvanceSearch } from '@/api/v1/advance-search';
+import { BaseListRequest } from '@/api/v1';
 import { EmployeeTableColumns } from '@/features/system/employees/components/EmployeeTableColumns';
 import { CreateEmployeeModal } from '@/features/system/employees/components/CreateEmployeeModal';
 import { EditEmployeeModal } from '@/features/system/employees/components/EditEmployeeModal';
 import { DeleteEmployeeModal } from '@/features/system/employees/components/DeleteEmployeeModal';
-import { useRoles } from '@/services/api/v1/roles';
+import { useRoles } from '@/api/v1/roles';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function EmployeesPage() {
@@ -189,24 +190,20 @@ export default function EmployeesPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Employees
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage your restaurant staff
-                    </p>
-                </div>
-                <Button
-                    onClick={() => {
-                        setIsCreateDialogOpen(true);
-                    }}
-                >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Employee
-                </Button>
-            </div>
+            <PageTitle
+                icon={Users}
+                title="Employees"
+                left={
+                    <Button
+                        onClick={() => {
+                            setIsCreateDialogOpen(true);
+                        }}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Employee
+                    </Button>
+                }
+            />
 
             <DataTable
                 columns={EmployeeTableColumns({
@@ -272,6 +269,6 @@ export default function EmployeesPage() {
                 onConfirm={handleDeleteEmployee}
                 isLoading={deleteUserMutation.isPending}
             />
-        </div>
+        </div >
     );
 }

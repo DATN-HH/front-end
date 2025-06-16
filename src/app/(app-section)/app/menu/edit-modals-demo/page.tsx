@@ -1,11 +1,12 @@
-"use client"
+'use client';
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Edit } from "lucide-react"
+import { Edit, Settings } from "lucide-react"
 import { ProductEditModal, PosCategoryEditModal, AttributeEditModal } from "@/components/modals"
+import { PageTitle } from "@/components/layouts/app-section/page-title"
 
 // Sample data for demonstration
 const sampleProduct = {
@@ -54,12 +55,11 @@ export default function EditModalsDemo() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Edit Modals Demo</h1>
-        <p className="text-muted-foreground">
-          Demonstration of edit modal components for products, categories, and attributes
-        </p>
-      </div>
+      <PageTitle
+        icon={Settings}
+        title="Edit Modals Demo"
+        description="Demonstration of edit modal components for products, categories, and attributes"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Product Card */}
@@ -222,19 +222,19 @@ const [selectedItem, setSelectedItem] = useState(null)`}
       </Card>
 
       {/* Edit Modals */}
-      <ProductEditModal 
-        open={showProductEdit} 
-        onOpenChange={setShowProductEdit} 
+      <ProductEditModal
+        open={showProductEdit}
+        onOpenChange={setShowProductEdit}
         product={sampleProduct}
       />
-      <PosCategoryEditModal 
-        open={showCategoryEdit} 
-        onOpenChange={setShowCategoryEdit} 
+      <PosCategoryEditModal
+        open={showCategoryEdit}
+        onOpenChange={setShowCategoryEdit}
         category={sampleCategory}
       />
-      <AttributeEditModal 
-        open={showAttributeEdit} 
-        onOpenChange={setShowAttributeEdit} 
+      <AttributeEditModal
+        open={showAttributeEdit}
+        onOpenChange={setShowAttributeEdit}
         attribute={sampleAttribute}
       />
     </div>

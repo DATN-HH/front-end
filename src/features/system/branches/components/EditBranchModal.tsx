@@ -18,8 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { BranchResponseDto } from '@/services/api/v1/branches';
-import { useUsers } from '@/services/api/v1/users';
+import { BranchResponseDto } from '@/api/v1/branches';
+import { useUsers } from '@/api/v1/users';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';

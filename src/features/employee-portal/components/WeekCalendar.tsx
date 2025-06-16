@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { StaffShiftResponseDto } from '@/services/api/v1/staff-shifts';
+import { StaffShiftResponseDto } from '@/api/v1/staff-shifts';
 
 interface WeekCalendarProps {
     shifts: StaffShiftResponseDto[];
@@ -135,18 +135,16 @@ export function WeekCalendar({
                             <div key={dateStr} className="space-y-3">
                                 {/* Day Header */}
                                 <div className="text-center space-y-1">
-                                    <div className={`text-sm font-medium ${
-                                        isWeekend ? 'text-gold-600' : 'text-foreground'
-                                    }`}>
+                                    <div className={`text-sm font-medium ${isWeekend ? 'text-gold-600' : 'text-foreground'
+                                        }`}>
                                         {format(day, 'EEE')}
                                     </div>
-                                    <div className={`inline-flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-full transition-colors ${
-                                        isToday 
-                                            ? 'bg-primary text-primary-foreground shadow-sm' 
+                                    <div className={`inline-flex items-center justify-center w-8 h-8 text-sm font-semibold rounded-full transition-colors ${isToday
+                                            ? 'bg-primary text-primary-foreground shadow-sm'
                                             : isWeekend
-                                            ? 'text-gold-700 hover:bg-gold-50'
-                                            : 'text-foreground hover:bg-accent'
-                                    }`}>
+                                                ? 'text-gold-700 hover:bg-gold-50'
+                                                : 'text-foreground hover:bg-accent'
+                                        }`}>
                                         {format(day, 'd')}
                                     </div>
                                 </div>
@@ -159,11 +157,10 @@ export function WeekCalendar({
                                         dayShifts.map((shift) => (
                                             <Card
                                                 key={shift.id}
-                                                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                                    shift.shiftStatus === 'PUBLISHED'
+                                                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${shift.shiftStatus === 'PUBLISHED'
                                                         ? 'border-border hover:border-primary/50 hover:bg-accent/50'
                                                         : 'border-dashed border-muted-foreground/50 hover:border-gold-300 hover:bg-gold-50/50'
-                                                }`}
+                                                    }`}
                                                 onClick={() => onShiftClick?.(shift)}
                                             >
                                                 <CardContent className="p-3 space-y-2">
@@ -180,7 +177,7 @@ export function WeekCalendar({
                                                     </div>
 
                                                     {/* Role */}
-                                                    <Badge 
+                                                    <Badge
                                                         variant="secondary"
                                                         className="text-xs font-normal bg-accent/70 hover:bg-accent"
                                                     >
@@ -188,13 +185,12 @@ export function WeekCalendar({
                                                     </Badge>
 
                                                     {/* Status */}
-                                                    <Badge 
+                                                    <Badge
                                                         variant={shift.shiftStatus === 'PUBLISHED' ? 'default' : 'outline'}
-                                                        className={`text-xs ${
-                                                            shift.shiftStatus === 'PUBLISHED' 
-                                                                ? 'bg-primary/90 hover:bg-primary' 
+                                                        className={`text-xs ${shift.shiftStatus === 'PUBLISHED'
+                                                                ? 'bg-primary/90 hover:bg-primary'
                                                                 : 'border-gold-300 text-gold-700 hover:bg-gold-50'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {shift.shiftStatus}
                                                     </Badge>

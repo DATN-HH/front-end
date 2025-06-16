@@ -11,8 +11,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { RoleResponseDto } from '@/services/api/v1/auth';
-import { RoleName } from '@/services/api/v1';
+import { RoleResponseDto } from '@/api/v1/auth';
+import { RoleName } from '@/api/v1';
 
 interface EditRoleModalProps {
     isOpen: boolean;
