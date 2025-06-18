@@ -186,7 +186,6 @@ export default function BranchesPage() {
             <PageTitle
                 icon={Building2}
                 title="Branches"
-                description="Manage your restaurant branches"
                 left={
                     <Button
                         onClick={() => {

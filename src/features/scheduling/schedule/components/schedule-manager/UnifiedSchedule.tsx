@@ -1,126 +1,143 @@
 "use client"
 
-import { useState } from "react"
+import { useContext } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus } from "lucide-react"
-import ShiftDetailsModal from "./ShiftDetailsModal"
+import { ScheduleContext } from "../../contexts/context-schedule"
 import AddShiftModal from "./AddShiftModal"
-import ShiftInfoModal from "./ShiftInfoModal"
-import CreateOpenShift from "./CreateOpenShift"
+import dayjs from "dayjs"
 
 interface UnifiedScheduleProps {
     viewMode: "weekly" | "monthly"
 }
 
 const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
-    const [selectedShifts, setSelectedShifts] = useState<any>(null)
-    const [modalOpen, setModalOpen] = useState(false)
-    const [addShiftModalOpen, setAddShiftModalOpen] = useState(false)
-    const [shiftInfoModalOpen, setShiftInfoModalOpen] = useState(false)
-    const [selectedShift, setSelectedShift] = useState<any>(null)
-    const [createOpenShiftModalOpen, setCreateOpenShiftModalOpen] = useState(false)
-    const [openShifts, setOpenShifts] = useState<Record<string, any[]>>({})
+    const {
+        startDate,
+        endDate,
+        staffShiftsGrouped,
+        isLoadingStaffShiftsGrouped,
+        roles,
+        isLoadingRoles,
+        scheduledShifts,
+        isLoadingScheduledShifts,
+        setIsCreateOpenShiftDialogOpen,
+        setSelectedDate,
+        setIsShiftInfoModalOpen,
+        setShiftInfoModalType,
+        setSelectedStaffName
+    } = useContext(ScheduleContext)
 
-    // Generate data based on view mode
+    // Generate dates based on view mode and context date range
     const generateScheduleData = () => {
+        const start = dayjs(startDate)
+        const end = dayjs(endDate)
+        const data: Record<string, { label: string; hasShifts: boolean }> = {}
+
         if (viewMode === "weekly") {
-            return {
-                "2025-06-09": { label: "Mon 9/6", hasShifts: true },
-                "2025-06-10": { label: "Tue 10/6", hasShifts: true },
-                "2025-06-11": { label: "Wed 11/6", hasShifts: true },
-                "2025-06-12": { label: "Thu 12/6", hasShifts: true },
-                "2025-06-13": { label: "Fri 13/6", hasShifts: true },
-                "2025-06-14": { label: "Sat 14/6", hasShifts: true },
-                "2025-06-15": { label: "Sun 15/6", hasShifts: true }
+            // For weekly view, use the week range from context
+            let current = start
+            while (current.isBefore(end) || current.isSame(end)) {
+                const dateStr = current.format("YYYY-MM-DD")
+                data[dateStr] = {
+                    label: current.format("ddd D/M"),
+                    hasShifts: true
+                }
+                current = current.add(1, "day")
             }
         } else {
-            // Monthly data
-            const monthData: Record<string, { label: string; hasShifts: boolean }> = {}
-            const daysInMonth = 30 // June has 30 days
+            // For monthly view, show all days in the month
+            const monthStart = start.startOf('month')
+            const monthEnd = start.endOf('month')
+            let current = monthStart
 
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `2025-06-${day.toString().padStart(2, "0")}`
-                monthData[dateStr] = {
-                    label: `${day}/6`,
-                    hasShifts: true,
+            while (current.isBefore(monthEnd) || current.isSame(monthEnd)) {
+                const dateStr = current.format("YYYY-MM-DD")
+                data[dateStr] = {
+                    label: current.format("D/M"),
+                    hasShifts: true
                 }
+                current = current.add(1, "day")
             }
-            return monthData
         }
+
+        return data
     }
 
     const scheduleData = generateScheduleData()
 
-    // Employee data grouped by roles
-    const employeeScheduleData = {
-        manager: {
-            "NGUYEN HUNG": {
-                shifts: generateEmployeeShifts("NGUYEN HUNG"),
-            },
-        },
-        cashier: {
-            CUSTOMER: {
-                shifts: generateEmployeeShifts("CUSTOMER"),
-            },
-            "Nguyễn Thuỳ Vi": {
-                shifts: generateEmployeeShifts("Nguyễn Thuỳ Vi"),
-            },
-        },
-        waiter: {
-            "Trần Bá Đức": {
-                shifts: generateEmployeeShifts("Trần Bá Đức"),
-            },
-            "Nguyễn Nhật Ký": {
-                shifts: generateEmployeeShifts("Nguyễn Nhật Ký"),
-            },
-        },
-        chef: {
-            "Trần Bá Đức": {
-                shifts: generateEmployeeShifts("Trần Bá Đức"),
-            },
-            "Nguyễn Thuỳ Vi": {
-                shifts: generateEmployeeShifts("Nguyễn Thuỳ Vi"),
-            },
-            "TOEIC LR": {
-                shifts: generateEmployeeShifts("TOEIC LR"),
-            },
-        },
+    // Get open shifts data from scheduledShifts
+    const getOpenShiftsData = () => {
+        if (!scheduledShifts || isLoadingScheduledShifts) {
+            return {}
+        }
+
+        const openShiftsData: Record<string, any[]> = {}
+
+        // Filter open shifts (shifts without assigned staff)
+        const openShiftsList = scheduledShifts.filter((shift: any) => !shift.staffId || shift.staffId === null)
+
+        openShiftsList.forEach((shift: any) => {
+            const dateStr = dayjs(shift.date).format("YYYY-MM-DD")
+            if (!openShiftsData[dateStr]) {
+                openShiftsData[dateStr] = []
+            }
+            openShiftsData[dateStr].push({
+                id: shift.id,
+                name: 'Open Shift',
+                time: shift.startTime && shift.endTime ? `${shift.startTime}-${shift.endTime}` : '',
+                status: 'DRAFT'
+            })
+        })
+
+        return openShiftsData
     }
 
-    // Generate shifts for an employee
-    function generateEmployeeShifts(employeeName: string) {
-        const shifts: Record<string, any[]> = {}
-        const shiftTypes = ["Shift 1", "Shift 2", "Shift 3", "Shift 6", "Double Shift"]
-        const statuses = ["CONFIRMED", "DRAFT"]
-        const times = ["06:00-14:00", "08:00-16:00", "08:00-17:30", "14:00-22:00", "17:30-22:00"]
+    // Use actual data from context instead of dummy data using new structure
+    const getEmployeeScheduleData = () => {
+        if (!staffShiftsGrouped || !roles || isLoadingStaffShiftsGrouped || isLoadingRoles) {
+            return {}
+        }
 
-        Object.keys(scheduleData).forEach((date, index) => {
-            // Most days have shifts (80% chance)
-            const hasShift = Math.random() > 0.2
+        const employeeData: Record<string, any> = {}
 
-            if (hasShift) {
-                const numShifts = Math.random() > 0.85 ? 2 : 1 // 15% chance of double shift
-                const dayShifts = []
+        // Group employees by role
+        Object.keys(staffShiftsGrouped.data).forEach(roleName => {
+            const roleData = staffShiftsGrouped.data[roleName]
+            const role = roles.find(r => r.name === roleName)
 
-                for (let i = 0; i < numShifts; i++) {
-                    const shiftType = shiftTypes[Math.floor(Math.random() * shiftTypes.length)]
-                    const status = statuses[Math.floor(Math.random() * statuses.length)]
-                    const time = times[Math.floor(Math.random() * times.length)]
-
-                    dayShifts.push({
-                        id: index * 100 + i,
-                        name: shiftType,
-                        time: time,
-                        status: status,
-                    })
-                }
-
-                shifts[date] = dayShifts
+            employeeData[roleName] = {
+                role: roleName,
+                roleLabel: role?.name || roleName,
+                roleColor: getRoleColor(roleName),
+                employees: Object.keys(roleData).map((staffName: string) => ({
+                    name: staffName,
+                    shifts: roleData[staffName].shifts || {}
+                }))
             }
         })
 
-        return shifts
+        return employeeData
+    }
+
+    const getRoleColor = (roleName: string) => {
+        if (!roles) return 'bg-gray-100 text-gray-800'
+
+        const role = roles.find(r => r.name === roleName)
+        if (!role || !role.hexColor) return 'bg-gray-100 text-gray-800'
+
+        // Use hex color from role data
+        return `text-white`
+    }
+
+    const getRoleStyle = (roleName: string) => {
+        if (!roles) return { backgroundColor: '#6B7280' }
+
+        const role = roles.find(r => r.name === roleName)
+        if (!role || !role.hexColor) return { backgroundColor: '#6B7280' }
+
+        return { backgroundColor: role.hexColor }
     }
 
     // Role configurations
@@ -145,7 +162,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
 
     const statusConfig = {
         DRAFT: { color: "bg-yellow-500", text: "text-white", label: "Draft" },
-        CONFIRMED: { color: "bg-green-500", text: "text-white", label: "Confirmed" },
+        PUBLISHED: { color: "bg-green-500", text: "text-white", label: "Published" },
     }
 
     const getInitials = (name: string): string => {
@@ -157,55 +174,22 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             .slice(0, 2)
     }
 
-    const handleShiftClick = (employeeName: string, date: string, shifts: any[]) => {
-        setSelectedShifts({
-            employeeName,
-            date: scheduleData[date].label,
-            shifts,
-        })
-        setModalOpen(true)
+    const handleCreateOpenShift = (date: string) => {
+        setSelectedDate(new Date(date))
+        setIsCreateOpenShiftDialogOpen(true)
     }
 
-    const handleAddShift = () => {
-        setModalOpen(false)
-        setAddShiftModalOpen(true)
+    const handleOpenShiftClick = (date: string) => {
+        setSelectedDate(new Date(date))
+        setShiftInfoModalType("open-shift")
+        setIsShiftInfoModalOpen(true)
     }
 
-    const handleShiftDetails = (shift: any) => {
-        setSelectedShift(shift)
-        setShiftInfoModalOpen(true)
-    }
-
-    const handleDeleteShift = (shiftId: number) => {
-        // Handle shift deletion logic here
-        setModalOpen(false)
-    }
-
-    const handleOpenShiftClick = (date: string, shifts: any[]) => {
-        setSelectedShifts({
-            employeeName: "Open Shifts",
-            date: scheduleData[date].label,
-            shifts,
-        })
-        setModalOpen(true)
-    }
-
-    const handleCreateOpenShift = () => {
-        setModalOpen(false)
-        setCreateOpenShiftModalOpen(true)
-    }
-
-    const handleAddOpenShift = (shiftData: any) => {
-        const date = Object.keys(scheduleData).find(
-            (d) => scheduleData[d].label === selectedShifts?.date
-        )
-        if (date) {
-            setOpenShifts((prev) => ({
-                ...prev,
-                [date]: [...(prev[date] || []), { ...shiftData, id: Date.now() }],
-            }))
-        }
-        setCreateOpenShiftModalOpen(false)
+    const handleEmployeeShiftClick = (employeeName: string, date: string) => {
+        setSelectedDate(new Date(date))
+        setSelectedStaffName(employeeName)
+        setShiftInfoModalType("employee-shift")
+        setIsShiftInfoModalOpen(true)
     }
 
     const renderShiftCell = (employeeName: string, date: string, shifts: any[]) => {
@@ -213,7 +197,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             return (
                 <div
                     className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => handleAddShift()}
+                    onClick={() => handleEmployeeShiftClick(employeeName, date)}
                 >
                     <Plus className="w-5 h-5 text-gray-400" />
                 </div>
@@ -221,17 +205,17 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         }
 
         // Count shifts by status
-        const draftCount = shifts.filter(shift => shift.status === "DRAFT").length
-        const confirmedCount = shifts.filter(shift => shift.status === "CONFIRMED").length
+        const draftCount = shifts.filter(shift => shift.shiftStatus === "DRAFT").length
+        const publishedCount = shifts.filter(shift => shift.shiftStatus === "PUBLISHED").length
 
         return (
             <div
                 className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
-                onClick={() => handleShiftClick(employeeName, date, shifts)}
+                onClick={() => handleEmployeeShiftClick(employeeName, date)}
             >
-                {confirmedCount > 0 && (
+                {publishedCount > 0 && (
                     <div className="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {confirmedCount}
+                        {publishedCount}
                     </div>
                 )}
                 {draftCount > 0 && (
@@ -244,58 +228,51 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
     }
 
     const renderOpenShiftCell = (date: string) => {
-        const shifts = openShifts[date] || []
+        const openShiftsData = getOpenShiftsData()
+        const shifts = openShiftsData[date] || []
 
         if (shifts.length === 0) {
             return (
                 <div
                     className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => handleCreateOpenShift()}
+                    onClick={() => handleCreateOpenShift(date)}
                 >
                     <Plus className="w-5 h-5 text-gray-400" />
                 </div>
             )
         }
 
-        // Count shifts by status
-        const draftCount = shifts.filter(shift => shift.status === "DRAFT").length
-        const confirmedCount = shifts.filter(shift => shift.status === "CONFIRMED").length
-
         return (
             <div
                 className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
-                onClick={() => handleOpenShiftClick(date, shifts)}
+                onClick={() => handleOpenShiftClick(date)}
             >
-                {confirmedCount > 0 && (
-                    <div className="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {confirmedCount}
-                    </div>
-                )}
-                {draftCount > 0 && (
-                    <div className="w-7 h-7 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {draftCount}
-                    </div>
-                )}
+                <div className="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                    {shifts.length}
+                </div>
             </div>
         )
+    
     }
 
     // Transform data for rendering
-    const employeesByRole = Object.entries(employeeScheduleData).map(([role, employees]) => ({
-        role,
-        roleLabel: roleConfig[role as keyof typeof roleConfig]?.label || role,
-        roleColor: roleConfig[role as keyof typeof roleConfig]?.color || "bg-gray-100 text-gray-800",
-        employees: Object.entries(employees).map(([name, data]) => ({
-            name,
-            shifts: data.shifts,
-        })),
-    }))
+    const employeeScheduleData = getEmployeeScheduleData()
+    const employeesByRole = Object.values(employeeScheduleData)
 
     const dates = Object.keys(scheduleData).sort()
 
     // Column width based on view mode
     const columnWidth = viewMode === "weekly" ? "min-w-32" : "min-w-0"
     const columnFlexClass = viewMode === "weekly" ? "flex-1" : "flex-1"
+
+    // Show loading state
+    if (isLoadingStaffShiftsGrouped || isLoadingRoles || isLoadingScheduledShifts) {
+        return (
+            <div className="w-full bg-white p-8 text-center">
+                <div className="text-gray-500">Loading schedule...</div>
+            </div>
+        )
+    }
 
     return (
         <div className="w-full bg-white">
@@ -343,7 +320,10 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                         {/* Role header */}
                         <div className="flex bg-gray-100">
                             <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3 border-r border-gray-300">
-                                <Badge className={`${roleColor} font-medium`}>
+                                <Badge
+                                    className={`${getRoleColor(role)} font-medium`}
+                                    style={getRoleStyle(role)}
+                                >
                                     {roleLabel}
                                 </Badge>
                                 <span className="text-sm text-gray-600">({employees.length} staff)</span>
@@ -355,7 +335,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
 
                         {/* Employees in this role */}
                         <div className="divide-y divide-gray-200">
-                            {employees.map((employee, empIndex) => (
+                            {employees.map((employee: any, empIndex: number) => (
                                 <div key={`${role}-${empIndex}`} className="flex">
                                     {/* Employee info */}
                                     <div className="w-64 h-12 flex-shrink-0 p-3 bg-white border-r border-gray-300 flex items-center gap-3">
@@ -399,43 +379,17 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                         </div>
                         <span className="text-sm text-gray-600">Draft shifts</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-sm text-white font-medium">1</span>
+                        </div>
+                        <span className="text-sm text-gray-600">Open shifts</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Modal for multiple shifts */}
-            <ShiftDetailsModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                shifts={selectedShifts?.shifts || []}
-                employeeName={selectedShifts?.employeeName || ""}
-                date={selectedShifts?.date || ""}
-                onDelete={handleDeleteShift}
-                onAddShift={selectedShifts?.employeeName === "Open Shifts" ? handleCreateOpenShift : handleAddShift}
-                onShiftClick={handleShiftDetails}
-            />
-
             {/* Add Shift Modal */}
-            <AddShiftModal
-                isOpen={addShiftModalOpen}
-                onClose={() => setAddShiftModalOpen(false)}
-                onAdd={(shiftData) => {
-                    // Handle adding new shift
-                    setAddShiftModalOpen(false)
-                }}
-            />
-
-            {/* Shift Info Modal */}
-            <ShiftInfoModal
-                isOpen={shiftInfoModalOpen}
-                onClose={() => setShiftInfoModalOpen(false)}
-                shift={selectedShift}
-            />
-
-            <CreateOpenShift
-                isOpen={createOpenShiftModalOpen}
-                onClose={() => setCreateOpenShiftModalOpen(false)}
-                onAdd={handleAddOpenShift}
-            />
+            <AddShiftModal />
         </div>
     )
 }

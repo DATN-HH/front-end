@@ -1,189 +1,76 @@
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useContext, useMemo } from "react"
+import { ScheduleContext } from "../../contexts/context-schedule"
+import dayjs from "dayjs"
 
 const EmployeeTimeline = () => {
-  // Sample data based on the provided structure
-  const scheduleData = {
-    manager: {
-      "NGUYEN HUNG": {
-        "2025-12-20": [
-          {
-            id: 1,
-            note: "Full day management",
-            shiftStatus: "CONFIRMED",
-            date: "2025-12-20",
-            shiftId: 1,
-            startTime: "08:00:00",
-            endTime: "18:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 1,
-            staffName: "NGUYEN HUNG",
-            roleName: "manager",
-          },
-        ],
-      },
-    },
-    cashier: {
-      "Anh A": {
-        "2025-12-20": [
-          {
-            id: 2,
-            note: "Morning shift",
-            shiftStatus: "DRAFT",
-            date: "2025-12-20",
-            shiftId: 2,
-            startTime: "08:00:00",
-            endTime: "16:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 2,
-            staffName: "Anh A",
-            roleName: "cashier",
-          },
-        ],
-      },
-      "Nguyễn Văn B": {
-        "2025-12-20": [
-          {
-            id: 3,
-            note: "Evening shift",
-            shiftStatus: "CONFIRMED",
-            date: "2025-12-20",
-            shiftId: 3,
-            startTime: "14:00:00",
-            endTime: "22:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 3,
-            staffName: "Nguyễn Văn B",
-            roleName: "cashier",
-          },
-        ],
-      },
-    },
-    chef: {
-      "Chef Minh": {
-        "2025-12-20": [
-          {
-            id: 4,
-            note: "Kitchen prep",
-            shiftStatus: "CONFIRMED",
-            date: "2025-12-20",
-            shiftId: 4,
-            startTime: "06:00:00",
-            endTime: "14:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 4,
-            staffName: "Chef Minh",
-            roleName: "chef",
-          },
-        ],
-      },
-      "Chef Nam": {
-        "2025-12-20": [
-          {
-            id: 5,
-            note: "Dinner service",
-            shiftStatus: "DRAFT",
-            date: "2025-12-20",
-            shiftId: 5,
-            startTime: "16:00:00",
-            endTime: "23:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 5,
-            staffName: "Chef Nam",
-            roleName: "chef",
-          },
-        ],
-      },
-    },
-    waiter: {
-      "Trần Thị C": {
-        "2025-12-20": [
-          {
-            id: 6,
-            note: "Morning service",
-            shiftStatus: "CONFIRMED",
-            date: "2025-12-20",
-            shiftId: 6,
-            startTime: "07:00:00",
-            endTime: "15:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 6,
-            staffName: "Trần Thị C",
-            roleName: "waiter",
-          },
-        ],
-      },
-      "Lê Văn D": {
-        "2025-12-20": [
-          {
-            id: 7,
-            note: "Split shift",
-            shiftStatus: "CONFIRMED",
-            date: "2025-12-20",
-            shiftId: 7,
-            startTime: "11:00:00",
-            endTime: "14:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 7,
-            staffName: "Lê Văn D",
-            roleName: "waiter",
-          },
-          {
-            id: 8,
-            note: "Evening service",
-            shiftStatus: "DRAFT",
-            date: "2025-12-20",
-            shiftId: 8,
-            startTime: "18:00:00",
-            endTime: "22:00:00",
-            branchId: 1,
-            branchName: "Branch 1",
-            staffId: 8,
-            staffName: "Lê Văn D",
-            roleName: "waiter",
-          },
-        ],
-      },
-    },
+  const {
+    selectedDate,
+    staffShiftsGrouped,
+    isLoadingStaffShiftsGrouped,
+    roles,
+    isLoadingRoles
+  } = useContext(ScheduleContext)
+
+  const getRoleColor = (roleName: string) => {
+    if (!roles) return 'bg-gray-100 text-gray-800'
+
+    const role = roles.find(r => r.name === roleName)
+    if (!role || !role.hexColor) return 'bg-gray-100 text-gray-800'
+
+    return `text-white`
   }
 
-  // Role configurations
-  const roleConfig = {
-    manager: {
-      label: "Manager",
-      color: "bg-purple-100 text-purple-800",
-      shiftColor: "bg-purple-200 border-purple-300",
-    },
-    cashier: {
-      label: "Cashier",
-      color: "bg-blue-100 text-blue-800",
-      shiftColor: "bg-blue-200 border-blue-300",
-    },
-    chef: {
-      label: "Chef",
-      color: "bg-red-100 text-red-800",
-      shiftColor: "bg-red-200 border-red-300",
-    },
-    waiter: {
-      label: "Waiter",
-      color: "bg-green-100 text-green-800",
-      shiftColor: "bg-green-200 border-green-300",
-    },
+  const getRoleStyle = (roleName: string) => {
+    if (!roles) return { backgroundColor: '#6B7280' }
+
+    const role = roles.find(r => r.name === roleName)
+    if (!role || !role.hexColor) return { backgroundColor: '#6B7280' }
+
+    return { backgroundColor: role.hexColor }
   }
 
-  // Status colors
-  const statusConfig = {
-    DRAFT: "bg-yellow-100 border-yellow-300",
-    CONFIRMED: "bg-green-100 border-green-300",
-    CANCELLED: "bg-red-100 border-red-300",
+  const getShiftStyle = (roleName: string) => {
+    if (!roles) return { backgroundColor: '#E5E7EB', borderColor: '#D1D5DB' }
+
+    const role = roles.find(r => r.name === roleName)
+    if (!role || !role.hexColor) return { backgroundColor: '#E5E7EB', borderColor: '#D1D5DB' }
+
+    // Create lighter version for background and use role color for border
+    const hex = role.hexColor.replace('#', '')
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+
+    return {
+      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.2)`,
+      borderColor: role.hexColor
+    }
   }
+
+  // Get data for selected date using new structure
+  const getEmployeeScheduleData = useMemo(() => {
+    if (!staffShiftsGrouped || !roles || isLoadingStaffShiftsGrouped || isLoadingRoles) {
+      return []
+    }
+
+    const dateStr = dayjs(selectedDate).format("YYYY-MM-DD")
+
+    return Object.entries(staffShiftsGrouped.data).map(([roleName, roleData]) => {
+      const role = roles.find(r => r.name === roleName)
+
+      return {
+        role: roleName,
+        roleLabel: role?.name || roleName,
+        roleColor: getRoleColor(roleName),
+        employees: Object.entries(roleData).map(([staffName, staffData]) => ({
+          name: staffName,
+          shifts: staffData.shifts[dateStr] || [] // Show all employees, even those without shifts on selected date
+        }))
+      }
+    }).filter(roleGroup => roleGroup.employees.length > 0) // Only filter out roles with no employees at all
+  }, [staffShiftsGrouped, roles, selectedDate, isLoadingStaffShiftsGrouped, isLoadingRoles])
 
   // Generate hour labels (00:00 to 23:00)
   const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0") + ":00")
@@ -218,16 +105,23 @@ const EmployeeTimeline = () => {
       .slice(0, 2)
   }
 
-  // Transform data for rendering
-  const employeesByRole = Object.entries(scheduleData).map(([role, employees]) => ({
-    role,
-    roleLabel: roleConfig[role as keyof typeof roleConfig]?.label || role,
-    roleColor: roleConfig[role as keyof typeof roleConfig]?.color || "bg-gray-100 text-gray-800",
-    employees: Object.entries(employees).map(([name, schedules]) => ({
-      name,
-      shifts: Object.values(schedules)[0] || [], // Taking first date's shifts
-    })),
-  }))
+  // Show loading state
+  if (isLoadingStaffShiftsGrouped || isLoadingRoles) {
+    return (
+      <div className="w-full bg-white p-8 text-center">
+        <div className="text-gray-500">Loading employee timeline...</div>
+      </div>
+    )
+  }
+
+  // Show empty state if no data
+  if (getEmployeeScheduleData.length === 0) {
+    return (
+      <div className="w-full bg-white p-8 text-center">
+        <div className="text-gray-500">No employees found</div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full bg-white">
@@ -236,7 +130,7 @@ const EmployeeTimeline = () => {
         <div className="w-64 flex-shrink-0 p-4 bg-gray-50">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium">Work Schedule</span>
+            <span className="text-sm font-medium">Work Schedule - {dayjs(selectedDate).format("DD/MM/YYYY")}</span>
           </div>
         </div>
         <div className="flex-1 relative">
@@ -256,12 +150,17 @@ const EmployeeTimeline = () => {
 
       {/* Employee rows grouped by role */}
       <div className="divide-y divide-gray-300">
-        {employeesByRole.map(({ role, roleLabel, roleColor, employees }) => (
+        {getEmployeeScheduleData.map(({ role, roleLabel, roleColor, employees }) => (
           <div key={role} className="bg-gray-25">
             {/* Role header */}
             <div className="flex bg-gray-100">
               <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3">
-                <Badge className={`${roleColor} font-medium`}>{roleLabel}</Badge>
+                <Badge
+                  className={`${getRoleColor(role)} font-medium`}
+                  style={getRoleStyle(role)}
+                >
+                  {roleLabel}
+                </Badge>
                 <span className="text-sm text-gray-600">({employees.length} staff)</span>
               </div>
               <div className="flex-1 bg-gray-50"></div>
@@ -300,28 +199,27 @@ const EmployeeTimeline = () => {
                     {/* Shifts */}
                     <div className="relative h-full py-2">
                       {employee.shifts.map((shift, shiftIndex) => {
-                        const position = getShiftPosition(shift.startTime, shift.endTime)
-                        const shiftColor = roleConfig[role as keyof typeof roleConfig]?.shiftColor || "bg-gray-200 border-gray-300"
-                        const statusColor = statusConfig[shift.shiftStatus as keyof typeof statusConfig] || "bg-gray-100 border-gray-300"
+                        const position = getShiftPosition(shift.startTime.toString(), shift.endTime.toString())
 
                         return (
                           <div
                             key={shiftIndex}
-                            className={`absolute h-8 rounded-md border-2 ${shiftColor} flex items-center justify-center top-2 ${shift.shiftStatus === "DRAFT" ? "opacity-70 border-dashed" : ""
+                            className={`absolute h-8 rounded-md border-2 flex items-center justify-center top-2 ${shift.shiftStatus === "DRAFT" ? "opacity-70 border-dashed" : ""
                               }`}
                             style={{
                               left: position.left,
                               width: position.width,
-                              minWidth: '60px'
+                              minWidth: '60px',
+                              ...getShiftStyle(role)
                             }}
-                            title={`${shift.startTime} - ${shift.endTime} (${shift.shiftStatus})`}
+                            title={`${shift.shiftName} - ${shift.startTime} - ${shift.endTime} (${shift.shiftStatus})`}
                           >
                             <div className="flex items-center gap-1">
                               <Badge
                                 variant="outline"
                                 className="text-xs bg-white/90 border-0 font-medium px-1.5 py-0.5"
                               >
-                                {shift.startTime.slice(0, 5)} - {shift.endTime.slice(0, 5)}
+                                {shift.startTime.toString().slice(0, 5)} - {shift.endTime.toString().slice(0, 5)}
                               </Badge>
                               {shift.shiftStatus === "DRAFT" && (
                                 <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
@@ -341,5 +239,6 @@ const EmployeeTimeline = () => {
     </div>
   )
 }
+
 export default EmployeeTimeline
 

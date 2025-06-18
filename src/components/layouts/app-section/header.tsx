@@ -31,7 +31,7 @@ export function SectionHeader() {
             <div className="w-[400px]">
                 <Input
                     type="search"
-                    placeholder="Tìm kiếm..."
+                    placeholder="Search..."
                     className="w-full border-gray-200 focus:border-primary focus:ring-primary"
                 />
             </div>
@@ -67,26 +67,26 @@ export function SectionHeader() {
                         <DropdownMenuLabel className="font-normal">
                             <div className="flex flex-col space-y-1">
                                 <p className="text-sm font-medium leading-none text-gray-900">
-                                    {user?.fullName || 'Người dùng'}
+                                    {user?.fullName || 'User'}
                                 </p>
                                 <p className="text-xs leading-none text-gray-500">
-                                    {user?.email || 'Chưa có email'}
+                                    {user?.email || 'No email'}
                                 </p>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="hover:bg-gray-50 focus:bg-gray-50">
-                            Hồ sơ cá nhân
+                            Personal profile
                         </DropdownMenuItem>
                         <DropdownMenuItem className="hover:bg-gray-50 focus:bg-gray-50">
-                            Cài đặt tài khoản
+                            Account settings
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             onClick={handleLogout}
                             className="text-red-600 hover:bg-red-50 focus:bg-red-50 hover:text-red-700"
                         >
-                            Đăng xuất
+                            Log out
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

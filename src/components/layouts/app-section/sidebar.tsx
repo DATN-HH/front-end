@@ -154,12 +154,12 @@ export function SectionSidebar({ className }: SectionSidebarProps) {
                     !shouldShowContent && "opacity-0 h-0 overflow-hidden"
                 )}>
                     <div className="text-sm font-medium">
-                        Chi nhánh: {user?.branch?.name || 'Chưa xác định'}
+                        Branch: {user?.branch?.name || 'Not specified'}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        Mã: {user?.branch ? `B${user.branch.id.toString().padStart(3, '0')}` : 'N/A'}
+                        Code: {user?.branch ? `B${user.branch.id.toString().padStart(3, '0')}` : 'N/A'}
                         <br />
-                        {user?.branch?.address || 'Địa chỉ chưa cập nhật'}
+                        {user?.branch?.address || 'Address not specified'}
                     </div>
                 </div>
             </div>
