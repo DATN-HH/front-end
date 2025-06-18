@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { LocalTime, RoleName, Status } from '.';
+import { BaseResponse, LocalTime, RoleName, Status } from '.';
 
 // Types
 export interface ShiftResponseDto {
@@ -41,8 +41,8 @@ export interface ShiftRequestDto {
 
 // API calls
 export const getShifts = async (branchId: number): Promise<ShiftResponseDto[]> => {
-  const response = await apiClient.get<ShiftResponseDto[]>(`/shifts?branchId=${branchId}`);
-  return response.data;
+  const response = await apiClient.get<BaseResponse<ShiftResponseDto[]>>(`/shifts?branchId=${branchId}`);
+  return response.data.payload;
 };
 
 export const createShift = async (data: ShiftRequestDto): Promise<ShiftResponseDto> => {

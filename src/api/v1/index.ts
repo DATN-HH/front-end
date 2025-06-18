@@ -80,4 +80,5 @@ export * from './shifts';
 export * from './staff-shifts';
 export * from './staff-unavailability';
 export * from './shift-requests';
+export * from './scheduled-shift';
 export * from './advance-search';

@@ -1,35 +1,72 @@
 "use client"
 
-import { useState } from "react"
+import { useContext, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Clock, Grid3X3, Calendar } from "lucide-react"
+import { RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Clock, Grid3X3 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format, startOfWeek, endOfWeek, addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns"
 import { enUS } from "date-fns/locale"
-import { PageTitle } from "@/components/layouts/app-section/page-title"
 import EmployeeTimeline from "./EmployeeTimeline"
 import UnifiedSchedule from "./UnifiedSchedule"
+import { ScheduleContext } from "../../contexts/context-schedule"
 
 export default function ScheduleManager() {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("daily")
+  const {
+    selectedDate,
+    setSelectedDate,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    viewMode,
+    setViewMode,
+    shifts,
+    isLoadingShifts,
+    scheduledShifts,
+    isLoadingScheduledShifts,
+    scheduledShiftsGrouped,
+    isLoadingScheduledShiftsGrouped,
+    staffShiftsGrouped,
+    isLoadingStaffShiftsGrouped
+  } = useContext(ScheduleContext)
+
+  // Update start and end dates when selected date or view mode changes
+  useEffect(() => {
+    switch (viewMode) {
+      case "daily":
+        setStartDate(selectedDate)
+        setEndDate(selectedDate)
+        break
+      case "weekly":
+        setStartDate(startOfWeek(selectedDate, { weekStartsOn: 1 }))
+        setEndDate(endOfWeek(selectedDate, { weekStartsOn: 1 }))
+        break
+      case "monthly":
+        const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+        const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
+        setStartDate(monthStart)
+        setEndDate(monthEnd)
+        break
+    }
+  }, [selectedDate, viewMode, setStartDate, setEndDate])
 
   const handleRefresh = () => {
+    // The data will automatically refresh through the API queries in the context
     console.log("Refreshing data...")
   }
 
   const getDisplayText = () => {
     switch (viewMode) {
       case "daily":
-        return format(currentDate, "EEEE, dd/MM/yyyy", { locale: enUS })
+        return format(selectedDate, "EEEE, dd/MM/yyyy", { locale: enUS })
       case "weekly":
-        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
-        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
+        const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
+        const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 })
         return `${format(weekStart, "dd/MM", { locale: enUS })} - ${format(weekEnd, "dd/MM/yyyy", { locale: enUS })}`
       case "monthly":
-        return format(currentDate, "MMMM yyyy", { locale: enUS })
+        return format(selectedDate, "MMMM yyyy", { locale: enUS })
       default:
         return ""
     }
@@ -38,13 +75,13 @@ export default function ScheduleManager() {
   const handlePrevious = () => {
     switch (viewMode) {
       case "daily":
-        setCurrentDate(subDays(currentDate, 1))
+        setSelectedDate(subDays(selectedDate, 1))
         break
       case "weekly":
-        setCurrentDate(subWeeks(currentDate, 1))
+        setSelectedDate(subWeeks(selectedDate, 1))
         break
       case "monthly":
-        setCurrentDate(subMonths(currentDate, 1))
+        setSelectedDate(subMonths(selectedDate, 1))
         break
     }
   }
@@ -52,20 +89,20 @@ export default function ScheduleManager() {
   const handleNext = () => {
     switch (viewMode) {
       case "daily":
-        setCurrentDate(addDays(currentDate, 1))
+        setSelectedDate(addDays(selectedDate, 1))
         break
       case "weekly":
-        setCurrentDate(addWeeks(currentDate, 1))
+        setSelectedDate(addWeeks(selectedDate, 1))
         break
       case "monthly":
-        setCurrentDate(addMonths(currentDate, 1))
+        setSelectedDate(addMonths(selectedDate, 1))
         break
     }
   }
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      setCurrentDate(date)
+      setSelectedDate(date)
     }
   }
 
@@ -76,6 +113,19 @@ export default function ScheduleManager() {
   ]
 
   const renderContent = () => {
+    const isLoading = isLoadingShifts || isLoadingScheduledShifts || isLoadingScheduledShiftsGrouped
+
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <RefreshCw className="w-5 h-5 animate-spin" />
+            <span>Loading schedule data...</span>
+          </div>
+        </div>
+      )
+    }
+
     switch (viewMode) {
       case "daily":
         return <EmployeeTimeline />
@@ -88,91 +138,99 @@ export default function ScheduleManager() {
     }
   }
 
+  const getDataCounts = () => {
+    return {
+      shifts: shifts?.length || 0,
+      scheduledShifts: scheduledShifts?.length || 0,
+      scheduledShiftsGrouped: scheduledShiftsGrouped?.length || 0,
+    }
+  }
+
+  const dataCounts = getDataCounts()
+
   return (
-    <div className="min-h-screen bg-white">
-      <PageTitle
-        icon={Calendar}
-        title="Schedule Manager"
-        left={
-          <div className="flex items-center space-x-4">
-            {/* View Mode Selector */}
-            <Select value={viewMode} onValueChange={(value) => setViewMode(value as "daily" | "weekly" | "monthly")}>
-              <SelectTrigger className="w-[160px] bg-white border-slate-200 hover:border-slate-300 transition-colors">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {viewModeOptions.map((option) => {
-                  const IconComponent = option.icon
-                  return (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center space-x-2">
-                        <IconComponent className="w-4 h-4" />
-                        <span>{option.label}</span>
-                      </div>
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
+    <div className="w-full p-3">
+      <div className="flex items-center space-x-4 mb-4">
+        {/* View Mode Selector */}
+        <Select value={viewMode} onValueChange={(value) => setViewMode(value as "daily" | "weekly" | "monthly")}>
+          <SelectTrigger className="w-[160px] bg-white border-slate-200 hover:border-slate-300 transition-colors">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {viewModeOptions.map((option) => {
+              const IconComponent = option.icon
+              return (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center space-x-2">
+                    <IconComponent className="w-4 h-4" />
+                    <span>{option.label}</span>
+                  </div>
+                </SelectItem>
+              )
+            })}
+          </SelectContent>
+        </Select>
 
-            {/* Date Navigation */}
-            <div className="flex items-center space-x-2">
+        {/* Date Navigation */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevious}
+            className="h-9 w-9 p-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+
+          <Popover>
+            <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                size="sm"
-                onClick={handlePrevious}
-                className="h-9 w-9 p-0"
+                className="h-9 px-4 font-medium min-w-[200px] justify-center"
               >
-                <ChevronLeft className="w-4 h-4" />
+                {getDisplayText()}
               </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-9 px-4 font-medium min-w-[200px] justify-center"
-                  >
-                    {getDisplayText()}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center">
-                  <CalendarComponent
-                    mode="single"
-                    selected={currentDate}
-                    onSelect={handleDateSelect}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNext}
-                className="h-9 w-9 p-0"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              className="h-9"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-          </div>
-        }
-      />
-
-      {/* Full Width Schedule Content */}
-      <div className="w-full p-3">
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-          {renderContent()}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNext}
+            className="h-9 w-9 p-0"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
+
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          size="sm"
+          className="h-9"
+          disabled={isLoadingShifts || isLoadingScheduledShifts || isLoadingScheduledShiftsGrouped}
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${(isLoadingShifts || isLoadingScheduledShifts || isLoadingScheduledShiftsGrouped) ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+
+        {/* Data indicator */}
+        <div className="text-xs text-gray-500 hidden lg:block">
+          {dataCounts.shifts > 0 && `${dataCounts.shifts} shifts`}
+          {dataCounts.scheduledShifts > 0 && ` • ${dataCounts.scheduledShifts} scheduled shifts`}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        {renderContent()}
       </div>
     </div>
   )
