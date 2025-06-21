@@ -4,7 +4,7 @@ import { useContext } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus } from "lucide-react"
-import { ScheduleContext } from "../../contexts/context-schedule"
+import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 import AddShiftModal from "./AddShiftModal"
 import dayjs from "dayjs"
 
@@ -252,7 +252,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                 </div>
             </div>
         )
-    
+
     }
 
     // Transform data for rendering

@@ -44,6 +44,21 @@ export interface StaffShiftGroupedResponseDto {
   data: Record<string, Record<string, StaffShiftData>>; // ROLE -> STAFF NAME -> StaffShiftData
 }
 
+export interface CopyWeekWithScheduleRequestDto {
+  branchId: number;
+  sourceStartDate: string;
+  targetStartDates: string[];
+}
+
+export interface CopyWeekWithScheduleResponseDto {
+  totalScheduledShiftsCopied: number;
+  totalStaffShiftsCopied: number;
+  totalStaffShiftsDeleted: number;
+  copiedWeeks: string[];
+  processedDetails: string[];
+  message: string;
+}
+
 // API calls
 export const getStaffShifts = async (params: StaffShiftListRequest): Promise<PageResponse<StaffShiftResponseDto>> => {
   const response = await apiClient.get<PageResponse<StaffShiftResponseDto>>('/staff-shifts', { params });
@@ -78,6 +93,11 @@ export const deleteStaffShift = async (id: number): Promise<string> => {
 export const publishStaffShifts = async (params: StaffShiftListRequest): Promise<PageResponse<StaffShiftResponseDto>> => {
   const response = await apiClient.put<PageResponse<StaffShiftResponseDto>>('/staff-shifts/publish', params);
   return response.data;
+};
+
+export const copyWeekWithSchedule = async (data: CopyWeekWithScheduleRequestDto): Promise<CopyWeekWithScheduleResponseDto> => {
+  const response = await apiClient.post<BaseResponse<CopyWeekWithScheduleResponseDto>>('/staff-shifts/copy-week-with-schedule', data);
+  return response.data.payload;
 };
 
 // Hooks
@@ -122,5 +142,11 @@ export const useDeleteStaffShift = () => {
 export const usePublishStaffShifts = () => {
   return useMutation({
     mutationFn: publishStaffShifts,
+  });
+};
+
+export const useCopyWeekWithSchedule = () => {
+  return useMutation({
+    mutationFn: copyWeekWithSchedule,
   });
 }; 
