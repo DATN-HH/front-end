@@ -90,10 +90,10 @@ export function DataTable<TData, TValue>({
     pageSize,
     total,
     currentSorting = '',
-    onPaginationChange = () => {},
-    onSortingChange = () => {},
-    onFilterChange = () => {},
-    onSearchChange = () => {},
+    onPaginationChange = () => { },
+    onSortingChange = () => { },
+    onFilterChange = () => { },
+    onSearchChange = () => { },
     filterDefinitions = [],
     enableSearch = true,
     enableColumnVisibility = true,
@@ -124,9 +124,9 @@ export function DataTable<TData, TValue>({
     // Convert currentSorting prop to TanStack Table sorting state for UI display
     const parsedSorting: SortingState = currentSorting
         ? (() => {
-              const [id, direction] = currentSorting.split(':');
-              return [{ id, desc: direction === 'desc' }];
-          })()
+            const [id, direction] = currentSorting.split(':');
+            return [{ id, desc: direction === 'desc' }];
+        })()
         : [];
 
     // Load saved state from localStorage
@@ -479,7 +479,7 @@ export function DataTable<TData, TValue>({
 
                 {/* Table Section */}
                 <div className="border border-t-0 border-border rounded-b-xl overflow-hidden bg-background shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="max-h-[60vh] overflow-auto">
                         <Table>
                             <TableHeader className="bg-muted border-b border-border">
                                 {table.getHeaderGroups().map((headerGroup) => (
@@ -540,12 +540,12 @@ export function DataTable<TData, TValue>({
                                                             {header.isPlaceholder
                                                                 ? null
                                                                 : flexRender(
-                                                                      header
-                                                                          .column
-                                                                          .columnDef
-                                                                          .header,
-                                                                      header.getContext()
-                                                                  )}
+                                                                    header
+                                                                        .column
+                                                                        .columnDef
+                                                                        .header,
+                                                                    header.getContext()
+                                                                )}
                                                         </DraggableColumnHeader>
                                                     ) : header.isPlaceholder ? null : (
                                                         flexRender(
@@ -598,7 +598,7 @@ export function DataTable<TData, TValue>({
                                                             cell.column.id;
                                                         const isPinned =
                                                             pinnedColumns[
-                                                                columnId
+                                                            columnId
                                                             ] || false;
 
                                                         return (
@@ -611,12 +611,12 @@ export function DataTable<TData, TValue>({
                                                                             : 'static',
                                                                     left:
                                                                         isPinned ===
-                                                                        'left'
+                                                                            'left'
                                                                             ? 0
                                                                             : 'auto',
                                                                     right:
                                                                         isPinned ===
-                                                                        'right'
+                                                                            'right'
                                                                             ? 0
                                                                             : 'auto',
                                                                     zIndex: isPinned

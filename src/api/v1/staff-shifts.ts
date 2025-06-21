@@ -1,17 +1,16 @@
 import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { UserDtoResponse } from './auth';
-import { ShiftResponseDto } from './shifts';
-import { BaseListRequest, PageResponse, ShiftStatus, Status } from '.';
+import { BaseListRequest, BaseResponse, PageResponse, ShiftStatus, Status } from '.';
+import { ScheduledShiftResponseDto } from './scheduled-shift';
 
-// Types
+
 export interface StaffShiftResponseDto {
   id: number;
-  date: string;
   note: string;
   shiftStatus: ShiftStatus;
   staff: UserDtoResponse;
-  shift: ShiftResponseDto;
+  scheduledShift: ScheduledShiftResponseDto;
   createdAt: string;
   createdBy: number;
   updatedAt: string;
@@ -22,11 +21,10 @@ export interface StaffShiftResponseDto {
 }
 
 export interface StaffShiftRequestDto {
-  date: string;
   note?: string;
   shiftStatus?: ShiftStatus;
   staffId: number;
-  shiftId: number;
+  scheduledShiftId: number;
 }
 
 export interface StaffShiftListRequest extends BaseListRequest {
@@ -34,15 +32,31 @@ export interface StaffShiftListRequest extends BaseListRequest {
   endDate?: string;
   branchId?: number;
   staffId?: number;
-  shiftId?: number;
   size?: number;
 }
 
-export interface StaffShiftCopyRequest {
-  fromDate: string;
-  toDate: string;
+export interface StaffShiftData {
+  staffId: number;
+  shifts: Record<string, ScheduledShiftResponseDto[]>; // DATE -> SHIFTS
+}
+
+export interface StaffShiftGroupedResponseDto {
+  data: Record<string, Record<string, StaffShiftData>>; // ROLE -> STAFF NAME -> StaffShiftData
+}
+
+export interface CopyWeekWithScheduleRequestDto {
   branchId: number;
-  numberOfDays: number;
+  sourceStartDate: string;
+  targetStartDates: string[];
+}
+
+export interface CopyWeekWithScheduleResponseDto {
+  totalScheduledShiftsCopied: number;
+  totalStaffShiftsCopied: number;
+  totalStaffShiftsDeleted: number;
+  copiedWeeks: string[];
+  processedDetails: string[];
+  message: string;
 }
 
 // API calls
@@ -51,19 +65,39 @@ export const getStaffShifts = async (params: StaffShiftListRequest): Promise<Pag
   return response.data;
 };
 
+export const getStaffShiftsGrouped = async (params: StaffShiftListRequest): Promise<StaffShiftGroupedResponseDto> => {
+  const response = await apiClient.get<BaseResponse<StaffShiftGroupedResponseDto>>('/staff-shifts/grouped', { params });
+  return response.data.payload;
+};
+
 export const createStaffShift = async (data: StaffShiftRequestDto): Promise<StaffShiftResponseDto> => {
   const response = await apiClient.post<StaffShiftResponseDto>('/staff-shifts', data);
   return response.data;
 };
 
-export const copyStaffShifts = async (data: StaffShiftCopyRequest): Promise<PageResponse<StaffShiftResponseDto>> => {
-  const response = await apiClient.post<PageResponse<StaffShiftResponseDto>>('/staff-shifts/copy', data);
+export const bulkCreateStaffShifts = async (data: StaffShiftRequestDto[]): Promise<StaffShiftResponseDto[]> => {
+  const response = await apiClient.post<StaffShiftResponseDto[]>('/staff-shifts/bulk', data);
+  return response.data;
+};
+
+export const updateStaffShift = async (id: number, data: StaffShiftRequestDto): Promise<StaffShiftResponseDto> => {
+  const response = await apiClient.put<StaffShiftResponseDto>(`/staff-shifts/${id}`, data);
+  return response.data;
+};
+
+export const deleteStaffShift = async (id: number): Promise<string> => {
+  const response = await apiClient.delete<string>(`/staff-shifts/${id}`);
   return response.data;
 };
 
 export const publishStaffShifts = async (params: StaffShiftListRequest): Promise<PageResponse<StaffShiftResponseDto>> => {
   const response = await apiClient.put<PageResponse<StaffShiftResponseDto>>('/staff-shifts/publish', params);
   return response.data;
+};
+
+export const copyWeekWithSchedule = async (data: CopyWeekWithScheduleRequestDto): Promise<CopyWeekWithScheduleResponseDto> => {
+  const response = await apiClient.post<BaseResponse<CopyWeekWithScheduleResponseDto>>('/staff-shifts/copy-week-with-schedule', data);
+  return response.data.payload;
 };
 
 // Hooks
@@ -74,20 +108,45 @@ export const useStaffShifts = (params: StaffShiftListRequest) => {
   });
 };
 
+export const useStaffShiftsGrouped = (params: StaffShiftListRequest) => {
+  return useQuery({
+    queryKey: ['staff-shifts-grouped', params],
+    queryFn: () => getStaffShiftsGrouped(params),
+  });
+};
+
 export const useCreateStaffShift = () => {
   return useMutation({
     mutationFn: createStaffShift,
   });
 };
 
-export const useCopyStaffShifts = () => {
+export const useBulkCreateStaffShifts = () => {
   return useMutation({
-    mutationFn: copyStaffShifts,
+    mutationFn: bulkCreateStaffShifts,
+  });
+};
+
+export const useUpdateStaffShift = () => {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: StaffShiftRequestDto }) => updateStaffShift(id, data),
+  });
+};
+
+export const useDeleteStaffShift = () => {
+  return useMutation({
+    mutationFn: deleteStaffShift,
   });
 };
 
 export const usePublishStaffShifts = () => {
   return useMutation({
     mutationFn: publishStaffShifts,
+  });
+};
+
+export const useCopyWeekWithSchedule = () => {
+  return useMutation({
+    mutationFn: copyWeekWithSchedule,
   });
 }; 
