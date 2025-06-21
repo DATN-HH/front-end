@@ -82,3 +82,31 @@ export const useDeleteScheduledShift = () => {
     mutationFn: deleteScheduledShift,
   });
 };
+
+// Copy Week Types
+export interface CopyWeekRequestDto {
+  branchId: number;
+  sourceStartDate: string; // yyyy-MM-dd format
+  targetStartDates: string[]; // yyyy-MM-dd format
+}
+
+export interface CopyWeekResponseDto {
+  totalCopied: number;
+  totalSkipped: number;
+  copiedWeeks: string[];
+  skippedDuplicates: string[];
+  message: string;
+}
+
+// Copy Week API call
+export const copyScheduledShiftsWeek = async (data: CopyWeekRequestDto): Promise<CopyWeekResponseDto> => {
+  const response = await apiClient.post<BaseResponse<CopyWeekResponseDto>>('/scheduled-shifts/copy-week', data);
+  return response.data.payload;
+};
+
+// Copy Week Hook
+export const useCopyScheduledShiftsWeek = () => {
+  return useMutation({
+    mutationFn: copyScheduledShiftsWeek,
+  });
+};

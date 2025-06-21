@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useContext, useMemo } from "react"
-import { ScheduleContext } from "../../contexts/context-schedule"
+import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 import dayjs from "dayjs"
 
 const EmployeeTimeline = () => {

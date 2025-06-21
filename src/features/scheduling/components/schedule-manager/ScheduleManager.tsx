@@ -10,7 +10,7 @@ import { format, startOfWeek, endOfWeek, addDays, addWeeks, addMonths, subDays, 
 import { enUS } from "date-fns/locale"
 import EmployeeTimeline from "./EmployeeTimeline"
 import UnifiedSchedule from "./UnifiedSchedule"
-import { ScheduleContext } from "../../contexts/context-schedule"
+import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 
 export default function ScheduleManager() {
   const {
