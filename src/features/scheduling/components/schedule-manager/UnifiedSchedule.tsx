@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus } from "lucide-react"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
+import { ShiftStatus } from "@/api/v1/publish-shifts"
 import AddShiftModal from "./AddShiftModal"
 import dayjs from "dayjs"
 
@@ -161,8 +162,11 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
     }
 
     const statusConfig = {
-        DRAFT: { color: "bg-yellow-500", text: "text-white", label: "Draft" },
-        PUBLISHED: { color: "bg-green-500", text: "text-white", label: "Published" },
+        [ShiftStatus.DRAFT]: { color: "bg-yellow-500", text: "text-white", label: "Draft" },
+        [ShiftStatus.PENDING]: { color: "bg-orange-500", text: "text-white", label: "Pending" },
+        [ShiftStatus.PUBLISHED]: { color: "bg-green-500", text: "text-white", label: "Published" },
+        [ShiftStatus.CONFLICTED]: { color: "bg-red-500", text: "text-white", label: "Conflicted" },
+        [ShiftStatus.REQUEST_CHANGE]: { color: "bg-blue-500", text: "text-white", label: "Change Requested" },
     }
 
     const getInitials = (name: string): string => {
@@ -205,24 +209,31 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         }
 
         // Count shifts by status
-        const draftCount = shifts.filter(shift => shift.shiftStatus === "DRAFT").length
-        const publishedCount = shifts.filter(shift => shift.shiftStatus === "PUBLISHED").length
+        const statusCounts = Object.values(ShiftStatus).reduce((acc, status) => {
+            acc[status] = shifts.filter(shift => shift.shiftStatus === status).length
+            return acc
+        }, {} as Record<string, number>)
 
         return (
             <div
                 className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
                 onClick={() => handleEmployeeShiftClick(employeeName, date)}
             >
-                {publishedCount > 0 && (
-                    <div className="w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {publishedCount}
-                    </div>
-                )}
-                {draftCount > 0 && (
-                    <div className="w-7 h-7 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {draftCount}
-                    </div>
-                )}
+                {Object.entries(statusCounts).map(([status, count]) => {
+                    if (count === 0) return null
+                    const config = statusConfig[status as ShiftStatus]
+                    if (!config) return null
+
+                    return (
+                        <div
+                            key={status}
+                            className={`w-7 h-7 ${config.color} ${config.text} rounded-full flex items-center justify-center text-sm font-medium`}
+                            title={`${count} ${config.label} shift${count > 1 ? 's' : ''}`}
+                        >
+                            {count}
+                        </div>
+                    )
+                })}
             </div>
         )
     }
@@ -287,9 +298,6 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                         <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-300`}>
                             <div className="p-2 text-center bg-blue-50">
                                 <div className="font-medium text-xs text-gray-900">{dayInfo.label}</div>
-                                <div className="text-xs text-gray-600 mt-0.5" style={{ fontSize: "10px" }}>
-                                    0 Staff
-                                </div>
                             </div>
                         </div>
                     )
@@ -365,20 +373,16 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
 
             {/* Footer Legend */}
             <div className="border-t border-gray-300 bg-gray-50 p-4">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 flex-wrap">
                     <div className="text-sm font-medium text-gray-700">Legend:</div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-sm text-white font-medium">1</span>
+                    {Object.entries(statusConfig).map(([status, config]) => (
+                        <div key={status} className="flex items-center gap-2">
+                            <div className={`w-7 h-7 ${config.color} rounded-full flex items-center justify-center`}>
+                                <span className="text-sm text-white font-medium">1</span>
+                            </div>
+                            <span className="text-sm text-gray-600">{config.label} shifts</span>
                         </div>
-                        <span className="text-sm text-gray-600">Confirmed shifts</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-yellow-500 rounded-full flex items-center justify-center">
-                            <span className="text-sm text-white font-medium">1</span>
-                        </div>
-                        <span className="text-sm text-gray-600">Draft shifts</span>
-                    </div>
+                    ))}
                     <div className="flex items-center gap-2">
                         <div className="w-7 h-7 bg-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-sm text-white font-medium">1</span>
