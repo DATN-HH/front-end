@@ -1,5 +1,5 @@
 'use client'
-import { Bell, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { useAuth } from '@/contexts/auth-context'
+import { NotificationCenter } from './NotificationCenter'
 
 export function SectionHeader() {
     const { user, logout } = useAuth()
@@ -39,9 +40,7 @@ export function SectionHeader() {
             {/* Right section */}
             <div className="flex items-center gap-4">
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="text-gray-600 hover:text-primary hover:bg-primary/10">
-                    <Bell className="h-5 w-5" />
-                </Button>
+                <NotificationCenter />
 
                 {/* Settings */}
                 <Button variant="ghost" size="icon" className="text-gray-600 hover:text-primary hover:bg-primary/10">

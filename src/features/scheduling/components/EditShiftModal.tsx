@@ -303,235 +303,235 @@ export function EditShiftModal({ isOpen, onOpenChange, shift, onSubmit, isLoadin
                         <CardContent className="space-y-6 bg-card rounded-lg">
                             <div className="space-y-3">
                                 <Label htmlFor="shiftName" className="text-sm font-medium text-foreground">Shift Name *</Label>
-                                <Input
-                                    id="shiftName"
+                            <Input
+                                id="shiftName"
                                     type="text"
-                                    value={shiftName}
-                                    onChange={(e) => setShiftName(e.target.value)}
-                                    placeholder="Enter shift name"
+                                value={shiftName}
+                                onChange={(e) => setShiftName(e.target.value)}
+                                placeholder="Enter shift name"
                                     className="h-11"
-                                    required
-                                />
-                            </div>
+                                required
+                            />
+                        </div>
                         </CardContent>
                     </Card>
 
-                    {/* Time Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium text-foreground">
-                                Start time <span className="text-destructive">*</span>
-                            </Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="startHour"
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    value={startHour}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23)) {
-                                            setStartHour(value);
-                                            validateTimeRange(value, startMinute, endHour, endMinute);
-                                        }
-                                    }}
-                                    placeholder="HH"
-                                    className="bg-muted/30 border-border w-20"
-                                />
-                                <span className="self-center">:</span>
-                                <Input
-                                    id="startMinute"
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    value={startMinute}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
-                                            setStartMinute(value);
-                                            validateTimeRange(startHour, value, endHour, endMinute);
-                                        }
-                                    }}
-                                    placeholder="MM"
-                                    className="bg-muted/30 border-border w-20"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium text-foreground">End time</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="endHour"
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    value={endHour}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23)) {
-                                            setEndHour(value);
-                                            validateTimeRange(startHour, startMinute, value, endMinute);
-                                        }
-                                    }}
-                                    placeholder="HH"
-                                    className="bg-muted/30 border-border w-20"
-                                />
-                                <span className="self-center">:</span>
-                                <Input
-                                    id="endMinute"
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    value={endMinute}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
-                                            setEndMinute(value);
-                                            validateTimeRange(startHour, startMinute, endHour, value);
-                                        }
-                                    }}
-                                    placeholder="MM"
-                                    className="bg-muted/30 border-border w-20"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {timeError && (
-                        <p className="text-sm text-destructive mt-1">{timeError}</p>
-                    )}
-
-                    {/* Positions */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium text-foreground">Positions</Label>
-                            <Button
-                                type="button"
-                                onClick={addPosition}
-                                variant="outline"
-                                size="sm"
-                                className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                            >
-                                Add Position
-                            </Button>
-                        </div>
-
-                        <div className="space-y-3">
-                            {positions.map((position, index) => (
-                                <div key={index} className="flex gap-3 items-end">
-                                    <div className="flex-1">
-                                        <Select
-                                            value={position.name}
-                                            onValueChange={(value) => handlePositionChange(index, "name", value)}
-                                            disabled={isLoadingRoles}
-                                        >
-                                            <SelectTrigger className="bg-muted/30 border-border">
-                                                <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select position"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {isLoadingRoles ? (
-                                                    <SelectItem value="loading" disabled>
-                                                        Loading roles...
-                                                    </SelectItem>
-                                                ) : (
-                                                    rolesData?.data?.map((role) => (
-                                                        <SelectItem key={role.id} value={role.name}>
-                                                            <div className="flex items-center gap-2">
-                                                                <div
-                                                                    className="w-3 h-3 rounded-full"
-                                                                    style={{ backgroundColor: role.hexColor }}
-                                                                />
-                                                                {role.name}
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="w-20">
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            value={position.quantity}
-                                            onChange={(e) => handlePositionChange(index, "quantity", parseInt(e.target.value) || 1)}
-                                            className="bg-muted/30 border-border"
-                                        />
-                                    </div>
-                                    {positions.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => removePosition(index)}
-                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        >
-                                            Remove
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Days of Week */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium text-foreground">Working days</Label>
-                            <Button
-                                type="button"
-                                onClick={handleSelectAllDays}
-                                variant="outline"
-                                size="sm"
-                                className={`text-xs px-3 py-1 h-7 ${isAllDaysSelected
-                                    ? 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20'
-                                    : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
-                                    }`}
-                            >
-                                {isAllDaysSelected ? 'Deselect All' : 'Full Week'}
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-4 gap-3">
-                            {daysOfWeek.map((day) => (
-                                <div key={day.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={day.id}
-                                        checked={selectedDays[day.id]}
-                                        onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
-                                        className="border-border"
+                        {/* Time Range */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-foreground">
+                                    Start time <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="startHour"
+                                        type="number"
+                                        min="0"
+                                        max="23"
+                                        value={startHour}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23)) {
+                                                setStartHour(value);
+                                                validateTimeRange(value, startMinute, endHour, endMinute);
+                                            }
+                                        }}
+                                        placeholder="HH"
+                                        className="bg-muted/30 border-border w-20"
                                     />
-                                    <Label
-                                        htmlFor={day.id}
-                                        className="text-sm font-normal text-foreground cursor-pointer"
-                                    >
-                                        {day.label}
-                                    </Label>
+                                    <span className="self-center">:</span>
+                                    <Input
+                                        id="startMinute"
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={startMinute}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                                                setStartMinute(value);
+                                                validateTimeRange(startHour, value, endHour, endMinute);
+                                            }
+                                        }}
+                                        placeholder="MM"
+                                        className="bg-muted/30 border-border w-20"
+                                    />
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* Footer */}
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isSubmitting || isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting || isLoading}
-                            className="bg-primary hover:bg-primary/90"
-                        >
-                            {isSubmitting || isLoading ? "Updating..." : "Update Shift"}
-                        </Button>
-                    </div>
-                </form>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-foreground">End time</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="endHour"
+                                        type="number"
+                                        min="0"
+                                        max="23"
+                                        value={endHour}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 23)) {
+                                                setEndHour(value);
+                                                validateTimeRange(startHour, startMinute, value, endMinute);
+                                            }
+                                        }}
+                                        placeholder="HH"
+                                        className="bg-muted/30 border-border w-20"
+                                    />
+                                    <span className="self-center">:</span>
+                                    <Input
+                                        id="endMinute"
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={endMinute}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
+                                                setEndMinute(value);
+                                                validateTimeRange(startHour, startMinute, endHour, value);
+                                            }
+                                        }}
+                                        placeholder="MM"
+                                        className="bg-muted/30 border-border w-20"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {timeError && (
+                            <p className="text-sm text-destructive mt-1">{timeError}</p>
+                        )}
+
+                        {/* Positions */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium text-foreground">Positions</Label>
+                                <Button
+                                    type="button"
+                                    onClick={addPosition}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                                >
+                                    Add Position
+                                </Button>
+                            </div>
+
+                            <div className="space-y-3">
+                                {positions.map((position, index) => (
+                                    <div key={index} className="flex gap-3 items-end">
+                                        <div className="flex-1">
+                                            <Select
+                                                value={position.name}
+                                                onValueChange={(value) => handlePositionChange(index, "name", value)}
+                                                disabled={isLoadingRoles}
+                                            >
+                                                <SelectTrigger className="bg-muted/30 border-border">
+                                                    <SelectValue placeholder={isLoadingRoles ? "Loading roles..." : "Select position"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {isLoadingRoles ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            Loading roles...
+                                                        </SelectItem>
+                                                    ) : (
+                                                        rolesData?.data?.map((role) => (
+                                                            <SelectItem key={role.id} value={role.name}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div
+                                                                        className="w-3 h-3 rounded-full"
+                                                                        style={{ backgroundColor: role.hexColor }}
+                                                                    />
+                                                                    {role.name}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="w-20">
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                value={position.quantity}
+                                                onChange={(e) => handlePositionChange(index, "quantity", parseInt(e.target.value) || 1)}
+                                                className="bg-muted/30 border-border"
+                                            />
+                                        </div>
+                                        {positions.length > 1 && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => removePosition(index)}
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            >
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Days of Week */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium text-foreground">Working days</Label>
+                                <Button
+                                    type="button"
+                                    onClick={handleSelectAllDays}
+                                    variant="outline"
+                                    size="sm"
+                                    className={`text-xs px-3 py-1 h-7 ${isAllDaysSelected
+                                        ? 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20'
+                                        : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
+                                        }`}
+                                >
+                                    {isAllDaysSelected ? 'Deselect All' : 'Full Week'}
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-4 gap-3">
+                                {daysOfWeek.map((day) => (
+                                    <div key={day.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id={day.id}
+                                            checked={selectedDays[day.id]}
+                                            onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
+                                            className="border-border"
+                                        />
+                                        <Label
+                                            htmlFor={day.id}
+                                            className="text-sm font-normal text-foreground cursor-pointer"
+                                        >
+                                            {day.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex justify-end gap-3 pt-4 border-t">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleClose}
+                                disabled={isSubmitting || isLoading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting || isLoading}
+                                className="bg-primary hover:bg-primary/90"
+                            >
+                                {isSubmitting || isLoading ? "Updating..." : "Update Shift"}
+                            </Button>
+                        </div>
+                    </form>
             </DialogContent>
         </Dialog>
     );
