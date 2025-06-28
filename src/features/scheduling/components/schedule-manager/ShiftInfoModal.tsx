@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
+import { StaffReplacementModal } from "../StaffReplacementModal"
 import { useContext, useMemo, useState } from "react"
-import { Plus, Users, Clock, MapPin, Trash2, Calendar, User } from "lucide-react"
+import { Plus, Users, Clock, MapPin, Trash2, Calendar, User, RefreshCw } from "lucide-react"
 import { useDeleteScheduledShift } from "@/api/v1/scheduled-shift"
 import { useDeleteStaffShift } from "@/api/v1/staff-shifts"
 import { useQueryClient } from "@tanstack/react-query"
@@ -14,6 +15,15 @@ import dayjs from "dayjs"
 
 const ShiftInfoModal = () => {
     const [deletingShiftId, setDeletingShiftId] = useState<number | null>(null)
+    const [replacementModalOpen, setReplacementModalOpen] = useState(false)
+    const [selectedShiftForReplacement, setSelectedShiftForReplacement] = useState<{
+        staffShiftId: number
+        currentStaffName: string
+        shiftName: string
+        shiftDate: string
+        shiftTime: string
+        shiftStatus: string
+    } | null>(null)
     const { success: successToast, error: errorToast } = useCustomToast()
     const queryClient = useQueryClient()
 
@@ -35,11 +45,6 @@ const ShiftInfoModal = () => {
 
     const deleteScheduledShiftMutation = useDeleteScheduledShift()
     const deleteStaffShiftMutation = useDeleteStaffShift()
-
-    const statusConfig = {
-        DRAFT: { color: "bg-yellow-500", text: "text-white", label: "Draft" },
-        PUBLISHED: { color: "bg-green-500", text: "text-white", label: "Published" },
-    }
 
     // Get open shifts for selected date
     const openShiftsForDate = useMemo(() => {
@@ -174,6 +179,29 @@ const ShiftInfoModal = () => {
         } finally {
             setDeletingShiftId(null)
         }
+    }
+
+    const handleOpenReplacementModal = (shift: any) => {
+        setSelectedShiftForReplacement({
+            staffShiftId: shift.staffShiftId,
+            currentStaffName: selectedStaffName || "",
+            shiftName: shift.shiftName,
+            shiftDate: dayjs(selectedDate).format("YYYY-MM-DD"),
+            shiftTime: shift.startTime && shift.endTime ? `${shift.startTime} - ${shift.endTime}` : "Time not set",
+            shiftStatus: shift.shiftStatus
+        })
+        setReplacementModalOpen(true)
+    }
+
+    const handleReplacementSuccess = () => {
+        // Refresh the staff shifts data
+        queryClient.invalidateQueries({ queryKey: ['staff-shifts-grouped'] })
+        queryClient.invalidateQueries({ queryKey: ['scheduled-shifts'] })
+    }
+
+    // Check if shift is eligible for replacement (only CONFLICTED or REQUEST_CHANGE status)
+    const isEligibleForReplacement = (shiftStatus: string) => {
+        return shiftStatus === "CONFLICTED" || shiftStatus === "REQUEST_CHANGE"
     }
 
     const isLoading = isLoadingScheduledShifts || isLoadingStaffShiftsGrouped || isLoadingRoles
@@ -387,8 +415,18 @@ const ShiftInfoModal = () => {
                                     </CardTitle>
                                     <div className="flex items-center gap-2">
                                         <Badge variant={shift.shiftStatus === 'PUBLISHED' ? 'default' : 'secondary'}>
-                                            {shift.shiftStatus === 'PUBLISHED' ? 'Published' : 'Draft'}
+                                            {shift.shiftStatus}
                                         </Badge>
+                                        {isEligibleForReplacement(shift.shiftStatus) && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-primary hover:text-primary hover:bg-primary/10"
+                                                onClick={() => handleOpenReplacementModal(shift)}
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                         {shift.shiftStatus === "DRAFT" && (
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -530,6 +568,24 @@ const ShiftInfoModal = () => {
                     </Button>
                 </DialogFooter>
             </DialogContent>
+
+            {/* Staff Replacement Modal */}
+            {selectedShiftForReplacement && (
+                <StaffReplacementModal
+                    isOpen={replacementModalOpen}
+                    onClose={() => {
+                        setReplacementModalOpen(false)
+                        setSelectedShiftForReplacement(null)
+                    }}
+                    staffShiftId={selectedShiftForReplacement.staffShiftId}
+                    currentStaffName={selectedShiftForReplacement.currentStaffName}
+                    shiftName={selectedShiftForReplacement.shiftName}
+                    shiftDate={selectedShiftForReplacement.shiftDate}
+                    shiftTime={selectedShiftForReplacement.shiftTime}
+                    shiftStatus={selectedShiftForReplacement.shiftStatus}
+                    onReplacementSuccess={handleReplacementSuccess}
+                />
+            )}
         </Dialog>
     )
 }

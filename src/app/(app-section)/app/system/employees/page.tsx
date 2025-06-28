@@ -119,6 +119,10 @@ export default function EmployeesPage() {
     };
 
     const handleCreateEmployee = () => {
+        setNewEmployee(prev => ({
+            ...prev,
+            branchId: user?.branch.id,
+        }));
         createUserMutation.mutate(newEmployee, {
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['users'] });

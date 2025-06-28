@@ -1,421 +1,354 @@
-// 'use client';
+'use client';
 
-// import { useState, useMemo, useCallback, useEffect } from 'react';
-// import { format, addDays, startOfWeek, endOfWeek } from 'date-fns';
-// import { Plus, ChevronLeft, ChevronRight, Users } from 'lucide-react';
-// import { Button } from '@/components/ui/button';
-// import { PageTitle } from '@/components/layouts/app-section/page-title';
-// import { WeekCalendar } from '@/features/employee-portal/components/WeekCalendar';
-// import { TimeOffRequests } from '@/features/employee-portal/components/TimeOffRequests';
-// import { ShiftRequests } from '@/features/employee-portal/components/ShiftRequests';
-// import { TimeOffDialog } from '@/features/employee-portal/components/TimeOffDialog';
-// import { ShiftRequestDialog } from '@/features/employee-portal/components/ShiftRequestDialog';
-// import { useStaffShifts, StaffShiftResponseDto } from '@/api/v1/staff-shifts';
-// import { useAuth } from '@/contexts/auth-context';
-// import { ShiftRequestType, RequestStatus } from '@/api/v1';
-// import { UserDtoResponse } from '@/api/v1/auth';
-// import { MAX_SIZE_PER_PAGE } from '@/lib/constants';
-// import { useCustomToast } from '@/lib/show-toast';
-// import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import {
+    Clock,
+    User,
+    FileText,
+    CalendarDays,
+    AlertTriangle,
+    CheckCircle,
+    Plus,
+    Activity,
+    XCircle
+} from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
+import {
+    useWorkingHours,
+} from '@/api/v1/employee-portal';
+import {
+    useMyLeaveBalance,
+    useMyLeaveRequests,
+    LeaveStatus,
+    getLeaveTypeLabel,
+    getLeaveStatusLabel,
+    getStatusColor
+} from '@/api/v1/leave-management';
+import { useMyPendingShifts } from '@/api/v1/publish-shifts';
+import { PendingShiftsModal } from '@/features/employee-portal/components/PendingShiftsModal';
+import { EmployeeLeaveManagement } from '@/features/employee-portal/components/EmployeeLeaveManagement';
+import { NotificationsPanel } from '@/features/employee-portal/components/NotificationsPanel';
+import { WeeklyScheduleCalendar } from '@/features/employee-portal/components/WeeklyScheduleCalendar';
+import { format,parseISO, differenceInHours } from 'date-fns';
 
-// // Mock branch data
-// const mockBranch = {
-//     id: 1,
-//     name: 'Downtown Branch',
-//     address: '',
-//     phone: '',
-//     createdAt: '',
-//     createdBy: 1,
-//     updatedAt: '',
-//     updatedBy: 1,
-//     status: 'ACTIVE' as const,
-//     createdUsername: '',
-//     updatedUsername: '',
-// };
+export default function EmployeePortalPage() {
+    const { user } = useAuth();
+    const [isPendingShiftsModalOpen, setIsPendingShiftsModalOpen] = useState(false);
+    const [isLeaveRequestModalOpen, setIsLeaveRequestModalOpen] = useState(false);
 
-// // Mock manager data
-// const mockManager: UserDtoResponse = {
-//     id: 2,
-//     email: 'manager@example.com',
-//     username: 'manager',
-//     fullName: 'Branch Manager',
-//     birthdate: '1985-01-01',
-//     gender: 'MALE',
-//     phoneNumber: '0987654321',
-//     isFullRole: true,
-//     userRoles: [
-//         {
-//             id: 2,
-//             userId: 2,
-//             roleId: 2,
-//             role: {
-//                 id: 2,
-//                 name: 'MANAGER',
-//                 description: '',
-//                 hexColor: '',
-//                 rolePermissions: [],
-//                 roleScreens: [],
-//                 createdAt: '',
-//                 createdBy: 1,
-//                 updatedAt: '',
-//                 updatedBy: 1,
-//                 status: 'ACTIVE',
-//                 createdUsername: '',
-//                 updatedUsername: '',
-//             },
-//         },
-//     ],
-//     branch: {
-//         ...mockBranch,
-//         manager: null as any, // Will be set after mockManager is fully defined
-//     },
-//     displayName: 'Branch Manager',
-//     createdAt: '',
-//     createdBy: 1,
-//     updatedAt: '',
-//     updatedBy: 1,
-//     status: 'ACTIVE',
-//     createdUsername: '',
-//     updatedUsername: '',
-// };
+    // Get current week dates for available shifts
+    const today = new Date();
 
-// // Set manager reference
-// mockManager.branch.manager = mockManager;
+    // API calls
+    const { data: workingHours30, isLoading: isHours30Loading } = useWorkingHours(30);
+    const { data: workingHours7, isLoading: isHours7Loading } = useWorkingHours(7);
+    const { data: leaveBalance, isLoading: isLeaveBalanceLoading } = useMyLeaveBalance();
+    const { data: leaveRequests = [], isLoading: isLeaveRequestsLoading } = useMyLeaveRequests();
+    const { data: pendingShifts = [], isLoading: isPendingShiftsLoading } = useMyPendingShifts();
 
-// // Mock user data
-// const mockUser: UserDtoResponse = {
-//     id: 1,
-//     email: 'john.doe@example.com',
-//     username: 'john.doe',
-//     fullName: 'John Doe',
-//     birthdate: '1990-01-01',
-//     gender: 'MALE',
-//     phoneNumber: '1234567890',
-//     isFullRole: false,
-//     userRoles: [
-//         {
-//             id: 1,
-//             userId: 1,
-//             roleId: 1,
-//             role: {
-//                 id: 1,
-//                 name: 'WAITER',
-//                 description: '',
-//                 hexColor: '',
-//                 rolePermissions: [],
-//                 roleScreens: [],
-//                 createdAt: '',
-//                 createdBy: 1,
-//                 updatedAt: '',
-//                 updatedBy: 1,
-//                 status: 'ACTIVE',
-//                 createdUsername: '',
-//                 updatedUsername: '',
-//             },
-//         },
-//     ],
-//     branch: {
-//         ...mockBranch,
-//         manager: mockManager,
-//     },
-//     displayName: 'John Doe',
-//     createdAt: '',
-//     createdBy: 1,
-//     updatedAt: '',
-//     updatedBy: 1,
-//     status: 'ACTIVE',
-//     createdUsername: '',
-//     updatedUsername: '',
-// };
+    // Calculate stats
+    const urgentPendingShifts = pendingShifts.filter(shift => {
+        const deadlineDate = parseISO(shift.deadline);
+        const now = new Date();
+        const hoursLeft = differenceInHours(deadlineDate, now);
+        return hoursLeft < 24 && hoursLeft > 0;
+    });
 
-// // Mock shift exchange requests
-// const mockShiftRequests: ShiftRequestResponseDto[] = [
-//     {
-//         id: 1,
-//         targetShiftId: 2,
-//         type: 'EXCHANGE' as ShiftRequestType,
-//         requestStatus: 'PENDING' as RequestStatus,
-//         reason: 'Family event',
-//         createdAt: '2025-05-21T10:15:00Z',
-//         staff: mockUser,
-//         targetShift: {
-//             id: 2,
-//             date: '2025-05-23',
-//             note: '',
-//             shiftStatus: 'PUBLISHED',
-//             staff: mockUser,
-//             shift: {
-//                 id: 204,
-//                 name: 'Lunch Shift',
-//                 startTime: { hour: 12, minute: 0, second: 0, nano: 0 },
-//                 endTime: { hour: 20, minute: 0, second: 0, nano: 0 },
-//                 weekDays: ['MON', 'TUE', 'WED', 'THU', 'FRI'],
-//                 branchId: 1,
-//                 branchName: 'Downtown Branch',
-//                 requirements: [{ id: 1, role: 'WAITER', quantity: 2 }],
-//                 createdAt: '2025-05-21T10:15:00Z',
-//                 createdBy: 1,
-//                 updatedAt: '2025-05-21T10:15:00Z',
-//                 updatedBy: 1,
-//                 status: 'ACTIVE',
-//                 createdUsername: 'admin',
-//                 updatedUsername: 'admin',
-//             },
-//             createdAt: '2025-05-21T10:15:00Z',
-//             createdBy: 1,
-//             updatedAt: '2025-05-21T10:15:00Z',
-//             updatedBy: 1,
-//             status: 'ACTIVE',
-//             createdUsername: 'admin',
-//             updatedUsername: 'admin',
-//         },
-//         createdBy: 1,
-//         updatedAt: '2025-05-21T10:15:00Z',
-//         updatedBy: 1,
-//         status: 'ACTIVE',
-//         createdUsername: 'admin',
-//         updatedUsername: 'admin',
-//     },
-// ];
+    const leaveBalancePercentage = leaveBalance ? (leaveBalance.usedDays / leaveBalance.totalAllocatedDays) * 100 : 0;
 
-// export default function EmployeePortalPage() {
-//     const { user } = useAuth();
-//     const queryClient = useQueryClient();
-//     const { error: toastError, success } = useCustomToast();
-//     const [date, setDate] = useState<Date>(new Date());
-//     const [startDate, setStartDate] = useState<Date>(startOfWeek(new Date()));
-//     const [endDate, setEndDate] = useState<Date>(endOfWeek(new Date()));
-//     const [shiftRequests, setShiftRequests] = useState<ShiftRequestResponseDto[]>(mockShiftRequests);
-//     const [isTimeOffDialogOpen, setIsTimeOffDialogOpen] = useState(false);
-//     const [isShiftRequestDialogOpen, setIsShiftRequestDialogOpen] = useState(false);
-//     const [selectedShift, setSelectedShift] = useState<StaffShiftResponseDto | null>(null);
+    const getStatusIcon = (status: LeaveStatus) => {
+        switch (status) {
+            case LeaveStatus.APPROVED: return <CheckCircle className="h-4 w-4 text-green-600" />;
+            case LeaveStatus.PENDING: return <Clock className="h-4 w-4 text-yellow-600" />;
+            case LeaveStatus.REJECTED: return <XCircle className="h-4 w-4 text-red-600" />;
+            default: return null;
+        }
+    };
 
-//     // Query params for staff shifts
-//     const queryParams = useMemo(() => ({
-//         startDate: startDate.toISOString().split('T')[0],
-//         endDate: endDate.toISOString().split('T')[0],
-//         staffId: user?.id,
-//         size: MAX_SIZE_PER_PAGE,
-//     }), [startDate, endDate, user?.id]);
+    return (
+        <div className="space-y-6">
+            <PageTitle
+                icon={User}
+                title="Employee Portal"
+                left={
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => setIsPendingShiftsModalOpen(true)}
+                            className="gap-2"
+                            disabled={pendingShifts.length === 0}
+                        >
+                            <Clock className="h-4 w-4" />
+                            Pending Shifts {pendingShifts.length > 0 && `(${pendingShifts.length})`}
+                        </Button>
+                    </div>
+                }
+            />
+            <p className="text-muted-foreground -mt-4">
+                Welcome back, {user?.fullName}! Here's your work overview and quick actions.
+            </p>
 
-//     // Query params for staff unavailability
-//     const staffUnavailabilityParams = useMemo(() => ({
-//         startDate: startDate.toISOString().split('T')[0],
-//         endDate: endDate.toISOString().split('T')[0],
-//         branchId: user?.branch.id,
-//         staffId: user?.id,
-//         size: MAX_SIZE_PER_PAGE,
-//     }), [startDate, endDate, user?.branch.id, user?.id]);
+            {/* Alert Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Urgent Pending Shifts Alert */}
+                {urgentPendingShifts.length > 0 && (
+                    <Card className="border-l-4 border-l-red-500 bg-red-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-2 text-red-800">
+                                <AlertTriangle className="h-4 w-4" />
+                                <span className="font-medium">
+                                    {urgentPendingShifts.length} urgent shift response{urgentPendingShifts.length !== 1 ? 's' : ''} needed (deadline &lt; 24h)
+                                </span>
+                                <Button size="sm" onClick={() => setIsPendingShiftsModalOpen(true)}>
+                                    Review Now
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
-//     // Fetch staff shifts
-//     const { data: staffShiftsData, isLoading: isStaffShiftsLoading } = useStaffShifts(queryParams);
+                {/* Low Leave Balance Alert */}
+                {leaveBalance && leaveBalance.remainingDays <= 2 && (
+                    <Card className="border-l-4 border-l-orange-500 bg-orange-50">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-2 text-orange-800">
+                                <AlertTriangle className="h-4 w-4" />
+                                <span className="font-medium">
+                                    Low leave balance: {leaveBalance.remainingDays} day{leaveBalance.remainingDays !== 1 ? 's' : ''} remaining
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
 
-//     // Fetch staff unavailability
-//     const { data: staffUnavailabilityData, isLoading: isStaffUnavailabilityLoading } = useStaffUnavailability(staffUnavailabilityParams);
+            {/* Main Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Working Hours (7 days) */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 text-blue-600">
+                                <Clock className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold">{isHours7Loading ? '...' : workingHours7?.totalHours || 0}h</p>
+                                <p className="text-sm text-muted-foreground">Last 7 Days</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-//     const [timeOffRequests, setTimeOffRequests] = useState<StaffUnavailabilityResponseDto[]>([]);
+                {/* Working Hours (30 days) */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-600">
+                                <Activity className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold">{isHours30Loading ? '...' : workingHours30?.totalHours || 0}h</p>
+                                <p className="text-sm text-muted-foreground">Last 30 Days</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-//     useEffect(() => {
-//         if (staffUnavailabilityData?.data) {
-//             setTimeOffRequests(staffUnavailabilityData.data);
-//         } else {
-//             setTimeOffRequests([]);
-//         }
-//     }, [staffUnavailabilityData, staffUnavailabilityParams, isStaffUnavailabilityLoading]);
+                {/* Pending Shifts */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600">
+                                <Clock className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold">{pendingShifts.length}</p>
+                                <p className="text-sm text-muted-foreground">Pending Shifts</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-//     // New time-off request form state
-//     const [newTimeOff, setNewTimeOff] = useState({
-//         startDate: new Date(),
-//         startTime: '09:00',
-//         endDate: new Date(),
-//         endTime: '17:00',
-//         reason: '',
-//     });
+                {/* Leave Balance */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 text-purple-600">
+                                <CalendarDays className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold">{leaveBalance?.remainingDays || 0}</p>
+                                <p className="text-sm text-muted-foreground">Leave Days Left</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-//     // New shift request form state
-//     const [newShiftRequest, setNewShiftRequest] = useState({
-//         type: 'EXCHANGE' as ShiftRequestType,
-//         reason: '',
-//     });
+            {/* Weekly Schedule Calendar */}
+            <WeeklyScheduleCalendar />
 
-//     // Create time-off request mutation
-//     const createTimeOffMutation = useCreateStaffUnavailability();
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Leave Management */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Leave Balance Overview */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <CalendarDays className="h-5 w-5" />
+                                Leave Balance {leaveBalance?.year || new Date().getFullYear()}
+                            </CardTitle>
+                            <CardDescription>
+                                Your annual leave allocation and usage
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {isLeaveBalanceLoading ? (
+                                <div className="animate-pulse space-y-4">
+                                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                                    <div className="h-8 bg-muted rounded"></div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        {[1, 2, 3, 4].map(i => (
+                                            <div key={i} className="h-16 bg-muted rounded"></div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : leaveBalance ? (
+                                <div className="space-y-4">
+                                    {/* Progress Bar */}
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span>Used: {leaveBalance.usedDays} days</span>
+                                            <span>Remaining: {leaveBalance.remainingDays} days</span>
+                                        </div>
+                                        <Progress value={leaveBalancePercentage} className="h-3" />
+                                    </div>
 
-//     // Navigate to previous/next week
-//     const navigatePrevious = useCallback(() => {
-//         const newDate = addDays(date, -7);
-//         setDate(newDate);
-//         setStartDate(startOfWeek(newDate));
-//         setEndDate(endOfWeek(newDate));
-//     }, [date]);
+                                    {/* Balance Breakdown */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="text-center p-3 border rounded-lg">
+                                            <p className="text-xl font-bold text-blue-600">{leaveBalance.annualLeaveDays}</p>
+                                            <p className="text-xs text-muted-foreground">Annual</p>
+                                        </div>
+                                        <div className="text-center p-3 border rounded-lg">
+                                            <p className="text-xl font-bold text-green-600">{leaveBalance.carriedOverDays}</p>
+                                            <p className="text-xs text-muted-foreground">Carried Over</p>
+                                        </div>
+                                        <div className="text-center p-3 border rounded-lg">
+                                            <p className="text-xl font-bold text-purple-600">{leaveBalance.bonusDays}</p>
+                                            <p className="text-xs text-muted-foreground">Bonus</p>
+                                        </div>
+                                        <div className="text-center p-3 border rounded-lg">
+                                            <p className="text-xl font-bold text-red-600">{leaveBalance.usedDays}</p>
+                                            <p className="text-xs text-muted-foreground">Used</p>
+                                        </div>
+                                    </div>
 
-//     const navigateNext = useCallback(() => {
-//         const newDate = addDays(date, 7);
-//         setDate(newDate);
-//         setStartDate(startOfWeek(newDate));
-//         setEndDate(endOfWeek(newDate));
-//     }, [date]);
+                                    <Button
+                                        onClick={() => setIsLeaveRequestModalOpen(true)}
+                                        className="w-full"
+                                        disabled={leaveBalance.remainingDays === 0}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Request Leave
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                                    <p>No leave balance data available</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
-//     // Handle time-off request submission
-//     const handleTimeOffSubmit = () => {
-//         // Create ISO date strings
-//         const startDateTime = `${format(newTimeOff.startDate, 'yyyy-MM-dd')}T${newTimeOff.startTime}:00Z`;
-//         const endDateTime = `${format(newTimeOff.endDate, 'yyyy-MM-dd')}T${newTimeOff.endTime}:00Z`;
+                    {/* Recent Leave Requests */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <FileText className="h-5 w-5" />
+                                        Recent Leave Requests
+                                    </CardTitle>
+                                    <CardDescription>Your latest leave applications</CardDescription>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => setIsLeaveRequestModalOpen(true)}>
+                                    View All
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {isLeaveRequestsLoading ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="animate-pulse">
+                                            <div className="h-16 bg-muted rounded-lg"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : leaveRequests.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-2" />
+                                    <p className="text-muted-foreground">No leave requests yet</p>
+                                    <Button
+                                        className="mt-4"
+                                        onClick={() => setIsLeaveRequestModalOpen(true)}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Submit Your First Request
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {leaveRequests.slice(0, 4).map((request) => (
+                                        <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                                            <div className="flex items-center gap-3">
+                                                {getStatusIcon(request.status)}
+                                                <div>
+                                                    <p className="font-medium">{getLeaveTypeLabel(request.leaveType)}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {format(new Date(request.startDate), 'MMM dd')} - {format(new Date(request.endDate), 'MMM dd')}
+                                                        {request.reason && ` • ${request.reason}`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <Badge variant={getStatusColor(request.status)}>
+                                                    {getLeaveStatusLabel(request.status)}
+                                                </Badge>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {request.totalDays} day{request.totalDays !== 1 ? 's' : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
-//         // Create request data
-//         const requestData = {
-//             startTime: startDateTime,
-//             endTime: endDateTime,
-//             reason: newTimeOff.reason,
-//         };
+                {/* Right Column - Notifications */}
+                <div className="space-y-6">
+                    <NotificationsPanel />
+                </div>
+            </div>
 
-//         createTimeOffMutation.mutate(requestData, {
-//             onSuccess: () => {
-//                 // Invalidate and refetch
-//                 queryClient.invalidateQueries({ queryKey: ['staff-unavailability', staffUnavailabilityParams] });
-//                 success('Success', 'Time-off request created successfully');
-//                 // Reset form and close dialog
-//                 setNewTimeOff({
-//                     startDate: new Date(),
-//                     startTime: '09:00',
-//                     endDate: new Date(),
-//                     endTime: '17:00',
-//                     reason: '',
-//                 });
-//                 setIsTimeOffDialogOpen(false);
-//             },
-//             onError: (error: any) => {
-//                 toastError(
-//                     'Error',
-//                     error?.response?.data?.message || 'Failed to create time-off request'
-//                 );
-//             },
-//         });
-//     };
-
-//     // Handle shift request submission
-//     const handleShiftRequestSubmit = () => {
-//         if (!selectedShift || !user) return;
-
-//         // Create new request
-//         const newRequest: ShiftRequestResponseDto = {
-//             id: Math.max(0, ...shiftRequests.map((r) => r.id)) + 1,
-//             targetShiftId: selectedShift.id,
-//             type: newShiftRequest.type,
-//             requestStatus: 'PENDING' as RequestStatus,
-//             reason: newShiftRequest.reason,
-//             createdAt: new Date().toISOString(),
-//             staff: user,
-//             targetShift: selectedShift,
-//             createdBy: user.id,
-//             updatedAt: new Date().toISOString(),
-//             updatedBy: user.id,
-//             status: 'ACTIVE',
-//             createdUsername: user.username,
-//             updatedUsername: user.username,
-//         };
-
-//         // Add to state
-//         setShiftRequests((prev) => [...prev, newRequest]);
-
-//         // Reset form and close dialog
-//         setNewShiftRequest({
-//             type: 'EXCHANGE' as ShiftRequestType,
-//             reason: '',
-//         });
-//         setSelectedShift(null);
-//         setIsShiftRequestDialogOpen(false);
-//     };
-
-//     // Open shift request dialog
-//     const openShiftRequestDialog = useCallback((shift: StaffShiftResponseDto) => {
-//         setSelectedShift(shift);
-//         setIsShiftRequestDialogOpen(true);
-//     }, []);
-
-//     // Open time-off request dialog
-//     const openTimeOffRequestDialog = useCallback(() => {
-//         setIsTimeOffDialogOpen(true);
-//     }, []);
-
-//     return (
-//         <>
-//             <div className="flex flex-col gap-6">
-//                 <PageTitle
-//                     icon={Users}
-//                     title="Employee Portal"
-//                     left={
-//                         <div className="flex items-center gap-4">
-//                             <div className="flex items-center gap-2">
-//                                 <Button
-//                                     variant="outline"
-//                                     size="icon"
-//                                     onClick={navigatePrevious}
-//                                 >
-//                                     <ChevronLeft className="h-4 w-4" />
-//                                 </Button>
-//                                 <span className="text-sm font-medium">
-//                                     {format(startDate, 'MMM d')} - {format(endDate, 'MMM d')}
-//                                 </span>
-//                                 <Button
-//                                     variant="outline"
-//                                     size="icon"
-//                                     onClick={navigateNext}
-//                                 >
-//                                     <ChevronRight className="h-4 w-4" />
-//                                 </Button>
-//                             </div>
-
-//                             <Button onClick={openTimeOffRequestDialog}>
-//                                 <Plus className="h-4 w-4 mr-2" />
-//                                 Request Time Off
-//                             </Button>
-//                         </div>
-//                     }
-//                 />
-
-//                 <WeekCalendar
-//                     shifts={staffShiftsData?.data || []}
-//                     onPreviousWeek={navigatePrevious}
-//                     onNextWeek={navigateNext}
-//                     onShiftClick={openShiftRequestDialog}
-//                     isLoading={isStaffShiftsLoading}
-//                     startDate={startDate}
-//                     endDate={endDate}
-//                 />
-
-//                 <div className="grid gap-6 md:grid-cols-2">
-//                     <TimeOffRequests
-//                         requests={timeOffRequests}
-//                         isLoading={isStaffUnavailabilityLoading}
-//                         onCreateRequest={openTimeOffRequestDialog}
-//                     />
-
-//                     <ShiftRequests requests={shiftRequests} />
-//                 </div>
-//             </div>
-
-//             <TimeOffDialog
-//                 isOpen={isTimeOffDialogOpen}
-//                 onClose={() => setIsTimeOffDialogOpen(false)}
-//                 onSubmit={handleTimeOffSubmit}
-//                 newTimeOff={newTimeOff}
-//                 onTimeOffChange={(field: string, value: any) =>
-//                     setNewTimeOff((prev) => ({ ...prev, [field]: value }))
-//                 }
-//                 isLoading={createTimeOffMutation.isPending}
-//             />
-
-//             <ShiftRequestDialog
-//                 isOpen={isShiftRequestDialogOpen}
-//                 onClose={() => setIsShiftRequestDialogOpen(false)}
-//                 onSubmit={handleShiftRequestSubmit}
-//                 selectedShift={selectedShift}
-//                 newShiftRequest={newShiftRequest}
-//                 onShiftRequestChange={(field, value) =>
-//                     setNewShiftRequest((prev) => ({ ...prev, [field]: value }))
-//                 }
-//             />
-//         </>
-//     );
-// }
+            {/* Modals */}
+            <PendingShiftsModal
+                open={isPendingShiftsModalOpen}
+                onOpenChange={setIsPendingShiftsModalOpen}
+            />
+            <EmployeeLeaveManagement
+                open={isLeaveRequestModalOpen}
+                onOpenChange={setIsLeaveRequestModalOpen}
+            />
+        </div>
+    );
+}

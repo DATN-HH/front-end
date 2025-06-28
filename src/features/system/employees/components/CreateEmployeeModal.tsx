@@ -157,26 +157,6 @@ export function CreateEmployeeModal({
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select
-                            value={newEmployee.status}
-                            onValueChange={(value) =>
-                                setNewEmployee({
-                                    ...newEmployee,
-                                    status: value as 'ACTIVE' | 'INACTIVE',
-                                })
-                            }
-                        >
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">Inactive</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </div>
                 <DialogFooter>
                     <Button

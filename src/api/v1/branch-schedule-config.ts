@@ -28,8 +28,13 @@ export interface BranchScheduleConfigRequest {
   requireManagerApproval?: boolean;
   allowSelfAssignment?: boolean;
   enableShiftSwap?: boolean;
+  responseDeadlineHours?: number;
   notificationSettings?: string;
   assignmentPriorityRules?: string;
+  allowSelfShiftRegistration?: boolean;
+  registrationStartDayOfWeek?: number; // 1 = Monday, 7 = Sunday
+  registrationEndDayOfWeek?: number;   // 1 = Monday, 7 = Sunday
+  registrationDaysInAdvance?: number;  // How many days in advance to register
 }
 
 export interface BranchScheduleConfigResponse extends BaseEntity {
@@ -42,8 +47,13 @@ export interface BranchScheduleConfigResponse extends BaseEntity {
   requireManagerApproval: boolean;
   allowSelfAssignment: boolean;
   enableShiftSwap: boolean;
+  responseDeadlineHours: number;
   notificationSettings?: string;
   assignmentPriorityRules?: string;
+  allowSelfShiftRegistration: boolean;
+  registrationStartDayOfWeek: number; // 1 = Monday, 7 = Sunday
+  registrationEndDayOfWeek: number;   // 1 = Monday, 7 = Sunday
+  registrationDaysInAdvance: number;  // How many days in advance to register
 }
 
 // API calls
