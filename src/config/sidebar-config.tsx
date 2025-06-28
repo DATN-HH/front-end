@@ -4,6 +4,7 @@ import {
   UserCog,
   Home,
   BarChart4,
+  BarChart3,
   FileText,
   Building,
   Shield,
@@ -25,8 +26,13 @@ export const SIDEBAR_CONFIG = {
       activePaths: ['/app/scheduling', '/app/schedule'],
       items: [
         {
+          href: '/app/scheduling/overview',
+          label: 'Overview',
+          icon: <BarChart3 className="h-4 w-4" />,
+        },
+        {
           href: '/app/scheduling/schedule',
-          label: 'Schedule Overview',
+          label: 'Scheduling',
           icon: <BarChart4 className="h-4 w-4" />,
         },
         {
@@ -35,9 +41,9 @@ export const SIDEBAR_CONFIG = {
           icon: <Clock className="h-4 w-4" />,
         },
         {
-          href: '/app/scheduling/requests',
-          label: 'Time-off Requests',
-          icon: <FileText className="h-4 w-4" />,
+          href: '/app/scheduling/leave-management',
+          label: 'Leave Management',
+          icon: <CalendarDays className="h-4 w-4" />,
         },
       ],
     },
@@ -97,6 +103,19 @@ export const SIDEBAR_CONFIG = {
         },
       ],
     },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <Settings className="h-5 w-5" />,
+      activePaths: ['/app/settings'],
+      items: [
+        {
+          href: '/app/settings/schedule-configuration',
+          label: 'Schedule Configuration',
+          icon: <Calendar className="h-4 w-4" />,
+        },
+      ],
+    },
   ],
   standaloneLinks: [
     {
@@ -108,6 +127,16 @@ export const SIDEBAR_CONFIG = {
       href: '/app/employee-portal',
       label: 'Employee Portal',
       icon: <CalendarDays className="h-5 w-5" />,
+    },
+    {
+      href: '/app/employee-portal/leave-management',
+      label: 'My Leave',
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      href: '/app/employee-portal/shift-registration',
+      label: 'Shift Registration',
+      icon: <Calendar className="h-5 w-5" />,
     },
   ],
 };

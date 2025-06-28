@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useContext, useMemo } from "react"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
+import { ShiftStatus } from "@/api/v1/publish-shifts"
 import dayjs from "dayjs"
 
 const EmployeeTimeline = () => {
@@ -46,6 +47,42 @@ const EmployeeTimeline = () => {
     return {
       backgroundColor: `rgba(${r}, ${g}, ${b}, 0.2)`,
       borderColor: role.hexColor
+    }
+  }
+
+  // Get shift status styling
+  const getShiftStatusStyle = (status: string) => {
+    switch (status) {
+      case ShiftStatus.DRAFT:
+        return {
+          className: "opacity-70 border-dashed",
+          indicator: { color: "#EAB308", label: "Draft" }
+        }
+      case ShiftStatus.PENDING:
+        return {
+          className: "opacity-80",
+          indicator: { color: "#F97316", label: "Pending" }
+        }
+      case ShiftStatus.PUBLISHED:
+        return {
+          className: "",
+          indicator: { color: "#22C55E", label: "Published" }
+        }
+      case ShiftStatus.CONFLICTED:
+        return {
+          className: "opacity-90 border-dashed",
+          indicator: { color: "#EF4444", label: "Conflicted" }
+        }
+      case ShiftStatus.REQUEST_CHANGE:
+        return {
+          className: "opacity-85",
+          indicator: { color: "#3467EB", label: "Change Requested" }
+        }
+      default:
+        return {
+          className: "",
+          indicator: { color: "#6B7280", label: "Unknown" }
+        }
     }
   }
 
@@ -200,19 +237,19 @@ const EmployeeTimeline = () => {
                     <div className="relative h-full py-2">
                       {employee.shifts.map((shift, shiftIndex) => {
                         const position = getShiftPosition(shift.startTime.toString(), shift.endTime.toString())
+                        const statusStyle = getShiftStatusStyle(shift.shiftStatus)
 
                         return (
                           <div
                             key={shiftIndex}
-                            className={`absolute h-8 rounded-md border-2 flex items-center justify-center top-2 ${shift.shiftStatus === "DRAFT" ? "opacity-70 border-dashed" : ""
-                              }`}
+                            className={`absolute h-8 rounded-md border-2 flex items-center justify-center top-2 ${statusStyle.className}`}
                             style={{
                               left: position.left,
                               width: position.width,
-                              minWidth: '60px',
+                              minWidth: '80px',
                               ...getShiftStyle(role)
                             }}
-                            title={`${shift.shiftName} - ${shift.startTime} - ${shift.endTime} (${shift.shiftStatus})`}
+                            title={`${shift.shiftName} - ${shift.startTime} - ${shift.endTime} (${statusStyle.indicator.label})`}
                           >
                             <div className="flex items-center gap-1">
                               <Badge
@@ -221,9 +258,11 @@ const EmployeeTimeline = () => {
                               >
                                 {shift.startTime.toString().slice(0, 5)} - {shift.endTime.toString().slice(0, 5)}
                               </Badge>
-                              {shift.shiftStatus === "DRAFT" && (
-                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
-                              )}
+                              <div
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: statusStyle.indicator.color }}
+                                title={statusStyle.indicator.label}
+                              ></div>
                             </div>
                           </div>
                         )
@@ -235,6 +274,33 @@ const EmployeeTimeline = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Status Legend */}
+      <div className="border-t border-gray-300 bg-gray-50 p-4">
+        <div className="flex items-center gap-6 flex-wrap">
+          <div className="text-sm font-medium text-gray-700">Status Legend:</div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-sm text-gray-600">Published</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <span className="text-sm text-gray-600">Draft</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+            <span className="text-sm text-gray-600">Pending</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-sm text-gray-600">Conflicted</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            <span className="text-sm text-gray-600">Change Requested</span>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -100,6 +100,12 @@ export const copyWeekWithSchedule = async (data: CopyWeekWithScheduleRequestDto)
   return response.data.payload;
 };
 
+export const requestEmergencyLeave = async (staffShiftId: number, reason?: string): Promise<StaffShiftResponseDto> => {
+  const params = reason ? { reason } : {};
+  const response = await apiClient.put<BaseResponse<StaffShiftResponseDto>>(`/staff-shifts/${staffShiftId}/emergency-leave`, {}, { params });
+  return response.data.payload;
+};
+
 // Hooks
 export const useStaffShifts = (params: StaffShiftListRequest) => {
   return useQuery({
@@ -148,5 +154,12 @@ export const usePublishStaffShifts = () => {
 export const useCopyWeekWithSchedule = () => {
   return useMutation({
     mutationFn: copyWeekWithSchedule,
+  });
+};
+
+export const useRequestEmergencyLeave = () => {
+  return useMutation({
+    mutationFn: ({ staffShiftId, reason }: { staffShiftId: number; reason?: string }) => 
+      requestEmergencyLeave(staffShiftId, reason),
   });
 }; 

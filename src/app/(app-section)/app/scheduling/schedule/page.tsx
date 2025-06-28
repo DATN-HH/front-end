@@ -3,12 +3,11 @@
 import { PageTitle } from "@/components/layouts/app-section/page-title"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Calendar, ChevronDown } from "lucide-react"
+import { Calendar, ChevronDown, Edit, Send, Settings } from "lucide-react"
 import { CreateShiftDialog } from "@/features/scheduling/components/CreateShiftDialog"
 import { ScheduleContext, ScheduleProvider } from "@/features/scheduling/contexts/context-schedule"
 import { useContext, useState } from "react"
 import { useRouter } from "next/navigation"
-import { BranchScheduleConfig } from "@/features/scheduling/components/BranchScheduleConfig"
 import { ScheduleLockManager } from "@/features/scheduling/components/ScheduleLockManager"
 import { ShiftAssignmentSuggestions } from "@/features/scheduling/components/ShiftAssignmentSuggestions"
 import { useCheckScheduleLock, useActiveScheduleLock } from "@/api/v1/schedule-locks"
@@ -22,6 +21,7 @@ import { CopyWeekWithSchedule } from "@/features/scheduling/components/CopyWeekW
 import ShiftInfoModal from "@/features/scheduling/components/schedule-manager/ShiftInfoModal"
 import CreateOpenShift from "@/features/scheduling/components/schedule-manager/CreateOpenShift"
 import ScheduleManager from "@/features/scheduling/components/schedule-manager/ScheduleManager"
+import { PublishShiftsModal } from "@/features/scheduling/components/PublishShiftsModal"
 
 function SchedulePage() {
   const { isCreateShiftDialogOpen, setIsCreateShiftDialogOpen, selectedDate } = useContext(ScheduleContext);
@@ -31,10 +31,9 @@ function SchedulePage() {
 
   const [isCopyOpenShiftOpen, setIsCopyOpenShiftOpen] = useState(false);
   const [isCopyWeekWithScheduleOpen, setIsCopyWeekWithScheduleOpen] = useState(false);
-  const [isScheduleConfigOpen, setIsScheduleConfigOpen] = useState(false);
   const [isScheduleLockManagerOpen, setIsScheduleLockManagerOpen] = useState(false);
   const [isShiftSuggestionsOpen, setIsShiftSuggestionsOpen] = useState(false);
-
+  const [isPublishShiftsOpen, setIsPublishShiftsOpen] = useState(false);
   // Check if today's schedule is locked
   const todayDate = format(new Date(), 'yyyy-MM-dd');
   const { data: isTodayLocked } = useCheckScheduleLock(branchId!, todayDate);
@@ -55,6 +54,7 @@ function SchedulePage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button>
+                  <Edit className="h-4 w-4" />
                   Data Entry
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -68,31 +68,21 @@ function SchedulePage() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button>
-                  Publish
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Publish</DropdownMenuItem>
-                <DropdownMenuItem>Publish All</DropdownMenuItem>
-                <DropdownMenuItem>Approve & Publish</DropdownMenuItem>
-                <DropdownMenuItem>Approve</DropdownMenuItem>
-                <DropdownMenuItem>Delete Unconfirmed Shifts</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button onClick={() => setIsPublishShiftsOpen(true)}>
+              <Send className="h-4 w-4" />
+              Publish
+            </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
+                  <Settings className="h-4 w-4" />
                   Settings
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsScheduleConfigOpen(true)}>Configuration</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/app/settings/schedule-configuration')}>Configuration</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsScheduleLockManagerOpen(true)}>Lock Manager</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -152,9 +142,9 @@ function SchedulePage() {
       <ShiftInfoModal />
       <CopyOpenShift open={isCopyOpenShiftOpen} onOpenChange={setIsCopyOpenShiftOpen} />
       <CopyWeekWithSchedule open={isCopyWeekWithScheduleOpen} onOpenChange={setIsCopyWeekWithScheduleOpen} />
-      <BranchScheduleConfig open={isScheduleConfigOpen} onOpenChange={setIsScheduleConfigOpen} />
       <ScheduleLockManager open={isScheduleLockManagerOpen} onOpenChange={setIsScheduleLockManagerOpen} />
       <ShiftAssignmentSuggestions open={isShiftSuggestionsOpen} onOpenChange={setIsShiftSuggestionsOpen} />
+      <PublishShiftsModal open={isPublishShiftsOpen} onOpenChange={setIsPublishShiftsOpen} />
     </div>
   );
 }

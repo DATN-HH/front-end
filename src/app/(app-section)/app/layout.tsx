@@ -5,6 +5,7 @@ import { SectionHeader } from '@/components/layouts/app-section/header'
 import { SectionBreadcrumb } from '@/components/layouts/app-section/breadcrumb'
 import Providers from '@/app/providers'
 import { Toaster } from '@/components/ui/toaster'
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 interface SectionLayoutProps {
     children: ReactNode
@@ -13,6 +14,7 @@ interface SectionLayoutProps {
 export default function SectionLayout({ children }: SectionLayoutProps) {
     return (
         <Providers>
+            <NotificationProvider>
             <div className="flex h-screen bg-background">
                 <SectionSidebar />
                 <div className="flex flex-col flex-1 overflow-hidden">
@@ -24,6 +26,7 @@ export default function SectionLayout({ children }: SectionLayoutProps) {
                 </div>
             </div>
             <Toaster />
+            </NotificationProvider>
         </Providers>
     )
 } 
