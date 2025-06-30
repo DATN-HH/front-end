@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Plus,
     Edit,
@@ -15,14 +16,11 @@ import {
     Radio,
     ChevronDown,
     Eye,
-    Tags,
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { useToast } from '@/hooks/use-toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/Table/DataTable';
-import { FilterDefinition } from '@/components/common/Table/types';
-import { OperandType } from '@/components/common/Table/types';
 import { 
     useAllProductAttributes, 
     useDeleteProductAttribute,
@@ -33,13 +31,15 @@ import {
 } from '@/api/v1/menu/product-attributes';
 import { ProductAttributeCreateModal } from '@/components/modals/ProductAttributeCreateModal';
 import { ProductAttributeEditModal } from '@/components/modals/ProductAttributeEditModal';
+import { AttributeValuesModal } from '@/components/modals/AttributeValuesModal';
 
-export default function AttributesPage() {
+export default function ProductAttributesPage() {
     const { toast } = useToast();
     
     // Modal states
-    const [showAttributeModal, setShowAttributeModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showValuesModal, setShowValuesModal] = useState(false);
     const [selectedAttributeId, setSelectedAttributeId] = useState<number | null>(null);
 
     // API hooks
@@ -70,6 +70,11 @@ export default function AttributesPage() {
     const handleEdit = (attributeId: number) => {
         setSelectedAttributeId(attributeId);
         setShowEditModal(true);
+    };
+
+    const handleManageValues = (attributeId: number) => {
+        setSelectedAttributeId(attributeId);
+        setShowValuesModal(true);
     };
 
     // Helper functions
@@ -131,41 +136,6 @@ export default function AttributesPage() {
         }
     };
 
-    // Filter definitions for DataTable
-    const filterDefinitions: FilterDefinition[] = [
-        {
-            field: 'displayType',
-            label: 'Display Type',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'RADIO', label: 'Radio' },
-                { value: 'SELECT', label: 'Select' },
-                { value: 'COLOR', label: 'Color' },
-                { value: 'CHECKBOX', label: 'Checkbox' },
-            ],
-        },
-        {
-            field: 'variantCreationMode',
-            label: 'Creation Mode',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'INSTANTLY', label: 'Instantly' },
-                { value: 'DYNAMICALLY', label: 'Dynamically' },
-                { value: 'NEVER', label: 'Never' },
-            ],
-        },
-        {
-            field: 'status',
-            label: 'Status',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'ACTIVE', label: 'Active' },
-                { value: 'INACTIVE', label: 'Inactive' },
-                { value: 'DELETED', label: 'Deleted' },
-            ],
-        },
-    ];
-
     // Table columns
     const columns: ColumnDef<ProductAttributeResponse>[] = [
         {
@@ -187,7 +157,7 @@ export default function AttributesPage() {
         },
         {
             accessorKey: 'variantCreationMode',
-            header: 'Creation Mode',
+            header: 'Variant Creation',
             cell: ({ row }) => getVariantCreationModeBadge(row.original.variantCreationMode),
         },
         {
@@ -196,7 +166,7 @@ export default function AttributesPage() {
             cell: ({ row }) => (
                 <div className="text-center">
                     <Badge variant="outline">
-                        {row.original.valuesCount || 0}
+                        {row.original.valuesCount || 0} values
                     </Badge>
                 </div>
             ),
@@ -207,7 +177,7 @@ export default function AttributesPage() {
             cell: ({ row }) => (
                 <div className="text-center">
                     <Badge variant="outline">
-                        {row.original.productsCount || 0}
+                        {row.original.productsCount || 0} products
                     </Badge>
                 </div>
             ),
@@ -233,13 +203,10 @@ export default function AttributesPage() {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                                // Navigate to detail page or open values modal
-                                window.open(`/app/menu/attributes/${row.original.id}/detail`, '_blank');
-                            }}
+                            onClick={() => handleManageValues(row.original.id)}
                         >
                             <Eye className="h-4 w-4 mr-1" />
-                            View
+                            Values
                         </Button>
                         {!isDeleted && (
                             <>
@@ -268,7 +235,7 @@ export default function AttributesPage() {
         },
     ];
 
-    // Statistics
+    // Statistics cards
     const stats = {
         total: attributes.length,
         active: attributes.filter(attr => attr.status === 'ACTIVE').length,
@@ -280,7 +247,7 @@ export default function AttributesPage() {
         return (
             <div className="space-y-6">
                 <PageTitle
-                    icon={Tags}
+                    icon={Settings}
                     title="Product Attributes"
                     left={
                         <Button onClick={() => window.location.reload()}>
@@ -299,12 +266,12 @@ export default function AttributesPage() {
     return (
         <div className="space-y-6">
             <PageTitle
-                icon={Tags}
+                icon={Settings}
                 title="Product Attributes"
                 left={
-                    <Button onClick={() => setShowAttributeModal(true)}>
+                    <Button onClick={() => setShowCreateModal(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Create New Attribute
+                        Create Attribute
                     </Button>
                 }
             />
@@ -371,14 +338,14 @@ export default function AttributesPage() {
                 <CardHeader>
                     <CardTitle>Product Attributes</CardTitle>
                     <CardDescription>
-                        Manage attributes that can be used to create product variants.
+                        Manage product attributes that can be used to create product variants.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <DataTable
                         columns={columns}
                         data={attributes}
-                        tableId="attributes-table"
+                        tableId="product-attributes-table"
                         pageIndex={0}
                         pageSize={25}
                         total={attributes.length}
@@ -386,7 +353,6 @@ export default function AttributesPage() {
                         onSortingChange={() => {}}
                         onFilterChange={() => {}}
                         onSearchChange={() => {}}
-                        filterDefinitions={filterDefinitions}
                         enableSearch={true}
                         enableColumnVisibility={true}
                         enableSorting={true}
@@ -398,21 +364,32 @@ export default function AttributesPage() {
             </Card>
 
             {/* Modals */}
-            <ProductAttributeCreateModal
-                open={showAttributeModal}
-                onOpenChange={setShowAttributeModal}
+            <ProductAttributeCreateModal 
+                open={showCreateModal}
+                onOpenChange={setShowCreateModal}
             />
 
             {selectedAttributeId && (
-                <ProductAttributeEditModal
-                    open={showEditModal}
-                    onOpenChange={(open: boolean) => {
-                        setShowEditModal(open);
-                        if (!open) setSelectedAttributeId(null);
-                    }}
-                    attributeId={selectedAttributeId}
-                />
+                <>
+                    <ProductAttributeEditModal
+                        open={showEditModal}
+                        onOpenChange={(open: boolean) => {
+                            setShowEditModal(open);
+                            if (!open) setSelectedAttributeId(null);
+                        }}
+                        attributeId={selectedAttributeId}
+                    />
+
+                    <AttributeValuesModal
+                        open={showValuesModal}
+                        onOpenChange={(open: boolean) => {
+                            setShowValuesModal(open);
+                            if (!open) setSelectedAttributeId(null);
+                        }}
+                        attributeId={selectedAttributeId}
+                    />
+                </>
             )}
         </div>
     );
-}
+} 

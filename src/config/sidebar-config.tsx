@@ -157,7 +157,7 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       href: '/app',
       label: 'Dashboard',
       icon: <Home className="h-5 w-5" />,
-      roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập dashboard 
+      roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập dashboard
     },
     {
       href: '/app/employee-portal',
