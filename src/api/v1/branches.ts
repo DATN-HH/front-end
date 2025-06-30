@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BaseListRequest, BaseResponse, Status } from '.';
+import { BaseListRequest, BaseResponse, PageResponse, Status } from '.';
 
 // Types
 export interface BranchResponseDto {
@@ -41,8 +41,8 @@ export interface BranchUpdateDto {
 
 // API calls
 export const getBranches = async (params: BaseListRequest): Promise<BranchResponseDto[]> => {
-    const response = await apiClient.get<BaseResponse<BranchResponseDto[]>>('/branch', { params });
-    return response.data.payload;
+    const response = await apiClient.get<BaseResponse<PageResponse<BranchResponseDto>>>('/branch', { params });
+    return response.data.payload.data;
 };
 
 export const getBranch = async (id: number): Promise<BaseResponse<BranchResponseDto>> => {

@@ -121,13 +121,13 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           href: '/app/system/branches',
           label: 'Branch Management',
           icon: <Building className="h-4 w-4" />,
-          roles: [Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
+          roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
         },
         {
           href: '/app/system/roles',
           label: 'Role Management',
           icon: <UserCog className="h-4 w-4" />,
-          roles: [Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý role
+          roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý role
         },
         {
           href: '/app/system/employees',
