@@ -1,38 +1,13 @@
-/*
-EXAMPLE USAGE:
-"use client"
-import { CreateShiftDialog } from "@/features/scheduling/schedule/components/CreateShiftDialog"
-import type React from "react"
-import { useState } from "react";
-
-export default function Home() {
-
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl font-bold text-slate-800">Shift Management</h1>
-        <p className="text-slate-600">Click the button below to create a new shift</p>
-        <CreateShiftDialog isOpen={isOpen} onOpenChange={setIsOpen}/>
-      </div>
-    </div>
-  )
-}
-*/
-
 "use client"
 
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/auth-context"
 import { useRoles } from '@/api/v1/roles';

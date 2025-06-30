@@ -22,6 +22,8 @@ import {
     useDeleteBranchScheduleConfig,
     BranchScheduleConfigRequest,
 } from '@/api/v1/branch-schedule-config';
+import { ProtectedElement, ProtectedRoute } from '@/components/protected-component';
+import { Role } from '@/lib/rbac';
 
 const DAYS_OF_WEEK = [
     { value: 1, label: 'Monday' },
@@ -100,7 +102,7 @@ function ConfigurationSkeleton() {
     );
 }
 
-export default function ScheduleConfigurationPage() {
+function ScheduleConfiguration() {
     const { success, error } = useCustomToast();
     const { user } = useAuth();
     const branchId = user?.branch?.id;
@@ -611,5 +613,13 @@ export default function ScheduleConfigurationPage() {
                 </Dialog>
             </div>
         </div>
+    );
+}
+
+export default function ScheduleConfigurationPage() {
+    return (
+        <ProtectedRoute requiredRoles={Role.MANAGER}>
+            <ScheduleConfiguration />
+        </ProtectedRoute>
     );
 }

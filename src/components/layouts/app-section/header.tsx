@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { useAuth } from '@/contexts/auth-context'
-import { NotificationCenter } from './NotificationCenter'
+import { NotificationCenter } from './notification-center'
 
 export function SectionHeader() {
     const { user, logout } = useAuth()

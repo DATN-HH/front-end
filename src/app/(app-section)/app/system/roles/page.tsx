@@ -14,12 +14,13 @@ import { RoleResponseDto } from '@/api/v1/auth';
 import { RoleCreateDto, RoleUpdateDto } from '@/api/v1/roles';
 import { useAdvanceSearch } from '@/api/v1/advance-search';
 import { BaseListRequest, RoleName, Status } from '@/api/v1';
-import { RoleTableColumns } from '../../../../../features/system/roles/components/RoleTableColumns';
-import { CreateRoleModal } from '../../../../../features/system/roles/components/CreateRoleModal';
-import { EditRoleModal } from '../../../../../features/system/roles/components/EditRoleModal';
-import { DeleteRoleModal } from '../../../../../features/system/roles/components/DeleteRoleModal';
+import { RoleTableColumns } from '@/features/system/roles/components/RoleTableColumns';
+import { CreateRoleModal } from '@/features/system/roles/components/CreateRoleModal';
+import { EditRoleModal } from '@/features/system/roles/components/EditRoleModal';
+import { DeleteRoleModal } from '@/features/system/roles/components/DeleteRoleModal';
+import { ProtectedRoute } from '@/components/protected-component';
 
-export default function JobRolesPage() {
+export function JobRoles() {
     // State management
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(20);
@@ -195,7 +196,6 @@ export default function JobRolesPage() {
             <PageTitle
                 icon={Shield}
                 title="Roles"
-                description="Manage roles and their permissions"
                 left={
                     <Button
                         onClick={() => {
@@ -271,5 +271,13 @@ export default function JobRolesPage() {
                 isLoading={deleteRoleMutation.isPending}
             />
         </div>
+    );
+}
+
+export default function JobRolesPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
+            <JobRoles />
+        </ProtectedRoute>
     );
 }

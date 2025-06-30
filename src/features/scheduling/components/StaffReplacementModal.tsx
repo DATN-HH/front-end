@@ -47,16 +47,6 @@ export const StaffReplacementModal = ({
         refetch
     } = useGetReplacementStaff(staffShiftId, isOpen && isEligibleForReplacement)
 
-    // Debug logging
-    console.log('🔍 Debug StaffReplacementModal:', {
-        staffShiftId,
-        isOpen,
-        isLoading,
-        error,
-        replacementStaff,
-        replacementStaffLength: replacementStaff?.length
-    })
-
     const replaceStaffMutation = useReplaceStaff()
 
     const handleClose = () => {

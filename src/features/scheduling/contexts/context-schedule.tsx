@@ -79,7 +79,6 @@ export const ScheduleProvider = ({ children }: { children: React.ReactNode }) =>
     const [shiftInfoModalType, setShiftInfoModalType] = useState<"open-shift" | "employee-shift" | null>(null);
     const [selectedStaffName, setSelectedStaffName] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
     const [startDate, setStartDate] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [endDate, setEndDate] = useState(endOfWeek(new Date(), { weekStartsOn: 1 }));
     const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">("weekly");

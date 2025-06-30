@@ -18,8 +18,10 @@ import { EditEmployeeModal } from '@/features/system/employees/components/EditEm
 import { DeleteEmployeeModal } from '@/features/system/employees/components/DeleteEmployeeModal';
 import { useRoles } from '@/api/v1/roles';
 import { useAuth } from '@/contexts/auth-context';
+import { Role } from '@/lib/rbac';
+import { ProtectedRoute } from '@/components/protected-component';
 
-export default function EmployeesPage() {
+    export function Employees() {
     const { user } = useAuth();
 
     // State management
@@ -274,5 +276,13 @@ export default function EmployeesPage() {
                 isLoading={deleteUserMutation.isPending}
             />
         </div >
+    );
+}
+
+export default function EmployeesPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
+            <Employees />
+        </ProtectedRoute>
     );
 }

@@ -75,16 +75,6 @@ export const createStaffShift = async (data: StaffShiftRequestDto): Promise<Staf
   return response.data;
 };
 
-export const bulkCreateStaffShifts = async (data: StaffShiftRequestDto[]): Promise<StaffShiftResponseDto[]> => {
-  const response = await apiClient.post<StaffShiftResponseDto[]>('/staff-shifts/bulk', data);
-  return response.data;
-};
-
-export const updateStaffShift = async (id: number, data: StaffShiftRequestDto): Promise<StaffShiftResponseDto> => {
-  const response = await apiClient.put<StaffShiftResponseDto>(`/staff-shifts/${id}`, data);
-  return response.data;
-};
-
 export const deleteStaffShift = async (id: number): Promise<string> => {
   const response = await apiClient.delete<string>(`/staff-shifts/${id}`);
   return response.data;
@@ -124,18 +114,6 @@ export const useStaffShiftsGrouped = (params: StaffShiftListRequest) => {
 export const useCreateStaffShift = () => {
   return useMutation({
     mutationFn: createStaffShift,
-  });
-};
-
-export const useBulkCreateStaffShifts = () => {
-  return useMutation({
-    mutationFn: bulkCreateStaffShifts,
-  });
-};
-
-export const useUpdateStaffShift = () => {
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: StaffShiftRequestDto }) => updateStaffShift(id, data),
   });
 };
 
