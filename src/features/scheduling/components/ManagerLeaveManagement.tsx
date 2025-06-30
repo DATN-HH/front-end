@@ -21,7 +21,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { CheckCircle, XCircle, Clock, User, Calendar, FileText, Settings2 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
     usePendingLeaveRequests,
     useAllLeaveRequests,
@@ -232,26 +231,6 @@ export function ManagerLeaveManagement({
                 </div>
             </CardContent>
         </Card>
-    );
-
-    const LoadingSkeleton = () => (
-        <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                    <CardHeader>
-                        <Skeleton className="h-6 w-48" />
-                        <Skeleton className="h-4 w-64" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <div className="flex gap-2">
-                            <Skeleton className="h-8 flex-1" />
-                            <Skeleton className="h-8 flex-1" />
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
     );
 
     return (

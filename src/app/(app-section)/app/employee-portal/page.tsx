@@ -35,14 +35,13 @@ import { EmployeeLeaveManagement } from '@/features/employee-portal/components/E
 import { NotificationsPanel } from '@/features/employee-portal/components/NotificationsPanel';
 import { WeeklyScheduleCalendar } from '@/features/employee-portal/components/WeeklyScheduleCalendar';
 import { format,parseISO, differenceInHours } from 'date-fns';
+import { ProtectedRoute } from '@/components/protected-component';
+import { employeeRole } from '@/lib/rbac';
 
-export default function EmployeePortalPage() {
+export function EmployeePortal() {
     const { user } = useAuth();
     const [isPendingShiftsModalOpen, setIsPendingShiftsModalOpen] = useState(false);
     const [isLeaveRequestModalOpen, setIsLeaveRequestModalOpen] = useState(false);
-
-    // Get current week dates for available shifts
-    const today = new Date();
 
     // API calls
     const { data: workingHours30, isLoading: isHours30Loading } = useWorkingHours(30);
@@ -350,5 +349,13 @@ export default function EmployeePortalPage() {
                 onOpenChange={setIsLeaveRequestModalOpen}
             />
         </div>
+    );
+}
+
+export default function EmployeePortalPage() {
+    return (
+        <ProtectedRoute requiredRoles={employeeRole}>
+            <EmployeePortal />
+        </ProtectedRoute>
     );
 }

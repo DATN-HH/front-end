@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/common/logo'
 import { SIDEBAR_CONFIG } from '../../../config/sidebar-config'
 import { useAuth } from '@/contexts/auth-context'
+import { ProtectedElement } from '@/components/protected-component'
 
 interface SectionSidebarProps {
     className?: string
@@ -69,80 +70,84 @@ export function SectionSidebar({ className }: SectionSidebarProps) {
                 <div className="flex flex-col gap-2 py-2">
                     {/* Render standalone links from config */}
                     {SIDEBAR_CONFIG.standaloneLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={cn(
-                                'flex items-center gap-2 rounded-lg py-2 text-sm transition-all duration-300',
-                                isCollapsed && !isHovered ? 'justify-center px-2' : 'px-3',
-                                pathname === link.href
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                            )}
-                        >
-                            {link.icon}
-                            <span className={cn(
-                                "transition-all duration-300",
-                                !shouldShowContent && "opacity-0 w-0 overflow-hidden"
-                            )}>
-                                {link.label}
-                            </span>
-                        </Link>
-                    ))}
-
-                    {/* Render modules from config */}
-                    {SIDEBAR_CONFIG.modules.map((module) => (
-                        <div key={module.id} className="space-y-1">
-                            <button
-                                onClick={() => toggleModule(module.id)}
+                        <ProtectedElement key={link.href} requiredRoles={link.roles}>
+                            <Link
+                                href={link.href}
                                 className={cn(
-                                    'flex w-full items-center justify-between rounded-lg py-2 text-sm transition-all duration-300',
+                                    'flex items-center gap-2 rounded-lg py-2 text-sm transition-all duration-300',
                                     isCollapsed && !isHovered ? 'justify-center px-2' : 'px-3',
-                                    module.activePaths?.includes(pathname)
+                                    pathname === link.href
                                         ? 'bg-primary text-primary-foreground'
                                         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                                 )}
                             >
-                                <div className="flex items-center gap-2">
-                                    {module.icon}
-                                    <span className={cn(
-                                        "transition-all duration-300",
-                                        !shouldShowContent && "opacity-0 w-0 overflow-hidden"
-                                    )}>
-                                        {module.label}
-                                    </span>
-                                </div>
-                                <ChevronRight
-                                    className={cn(
-                                        'h-4 w-4 transition-all duration-300',
-                                        openModule === module.id && shouldShowContent && 'rotate-90',
-                                        !shouldShowContent && "opacity-0 w-0 overflow-hidden"
-                                    )}
-                                />
-                            </button>
-                            {shouldShowContent && openModule === module.id && (
-                                <div className={cn(
-                                    "ml-4 space-y-1 transition-all duration-300",
-                                    isCollapsed && isHovered && "animate-in slide-in-from-left-2"
+                                {link.icon}
+                                <span className={cn(
+                                    "transition-all duration-300",
+                                    !shouldShowContent && "opacity-0 w-0 overflow-hidden"
                                 )}>
-                                    {module.items.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className={cn(
-                                                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300',
-                                                pathname === item.href
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                            )}
-                                        >
-                                            {item.icon}
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                    {link.label}
+                                </span>
+                            </Link>
+                        </ProtectedElement>
+                    ))}
+
+                    {/* Render modules from config */}
+                    {SIDEBAR_CONFIG.modules.map((module) => (
+                        <ProtectedElement key={module.id} requiredRoles={module.roles}>
+                            <div className="space-y-1">
+                                <button
+                                    onClick={() => toggleModule(module.id)}
+                                    className={cn(
+                                        'flex w-full items-center justify-between rounded-lg py-2 text-sm transition-all duration-300',
+                                        isCollapsed && !isHovered ? 'justify-center px-2' : 'px-3',
+                                        module.activePaths?.includes(pathname)
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                    )}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {module.icon}
+                                        <span className={cn(
+                                            "transition-all duration-300",
+                                            !shouldShowContent && "opacity-0 w-0 overflow-hidden"
+                                        )}>
+                                            {module.label}
+                                        </span>
+                                    </div>
+                                    <ChevronRight
+                                        className={cn(
+                                            'h-4 w-4 transition-all duration-300',
+                                            openModule === module.id && shouldShowContent && 'rotate-90',
+                                            !shouldShowContent && "opacity-0 w-0 overflow-hidden"
+                                        )}
+                                    />
+                                </button>
+                                {shouldShowContent && openModule === module.id && (
+                                    <div className={cn(
+                                        "ml-4 space-y-1 transition-all duration-300",
+                                        isCollapsed && isHovered && "animate-in slide-in-from-left-2"
+                                    )}>
+                                        {module.items.map((item) => (
+                                            <ProtectedElement key={item.href} requiredRoles={item.roles}>
+                                                <Link
+                                                    href={item.href}
+                                                    className={cn(
+                                                        'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-300',
+                                                        pathname === item.href
+                                                            ? 'bg-primary text-primary-foreground'
+                                                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                    )}
+                                                >
+                                                    {item.icon}
+                                                    <span>{item.label}</span>
+                                                </Link>
+                                            </ProtectedElement>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </ProtectedElement>
                     ))}
                 </div>
             </ScrollArea>

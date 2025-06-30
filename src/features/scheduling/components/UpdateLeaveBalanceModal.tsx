@@ -51,15 +51,6 @@ export function UpdateLeaveBalanceModal({ open, onOpenChange }: UpdateLeaveBalan
     const employees = employeesData?.data || [];
     const updateMutation = useUpdateEmployeeLeaveBalance();
 
-    // Debug logs
-    console.log('🔍 Debug - UpdateLeaveBalanceModal:', {
-        branchId,
-        isLoadingEmployees,
-        employeesData,
-        employees: employees.length,
-        employeesError
-    });
-
     // Reset form when modal opens/closes
     useEffect(() => {
         if (open) {

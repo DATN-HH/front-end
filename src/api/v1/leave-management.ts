@@ -137,11 +137,6 @@ const addLeaveForEmployee = async (data: AddLeaveForEmployeeDto): Promise<LeaveR
   return response.data.payload;
 };
 
-const getBranchLeaveBalances = async (branchId: number, year?: number): Promise<LeaveBalance[]> => {
-  const response = await apiClient.get(`/leave-management/branches/${branchId}/balances${year ? `?year=${year}` : ''}`);
-  return response.data.payload;
-};
-
 const updateEmployeeLeaveBalance = async (data: UpdateLeaveBalanceDto): Promise<void> => {
   await apiClient.put(`/leave-management/balances/update?userId=${data.userId}&year=${data.year}&bonusDays=${data.bonusDays}&reason=${encodeURIComponent(data.reason)}`);
 };
@@ -209,20 +204,6 @@ export const usePendingLeaveRequests = (branchId: number) => {
   });
 };
 
-export const useApproveRejectLeaveRequest = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: approveRejectLeaveRequest,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendingLeaveRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['allLeaveRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['branchLeaveBalances'] });
-      queryClient.invalidateQueries({ queryKey: ['branchLeaveStatistics'] });
-    },
-  });
-};
-
 export const useApproveLeaveRequest = () => {
   const queryClient = useQueryClient();
   
@@ -269,14 +250,6 @@ export const useAddLeaveForEmployee = () => {
       queryClient.invalidateQueries({ queryKey: ['branchLeaveBalances'] });
       queryClient.invalidateQueries({ queryKey: ['branchLeaveStatistics'] });
     },
-  });
-};
-
-export const useBranchLeaveBalances = (branchId: number, year?: number) => {
-  return useQuery({
-    queryKey: ['branchLeaveBalances', branchId, year],
-    queryFn: () => getBranchLeaveBalances(branchId, year),
-    enabled: !!branchId,
   });
 };
 

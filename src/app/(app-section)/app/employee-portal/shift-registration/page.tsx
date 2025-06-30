@@ -28,8 +28,10 @@ import { useAvailableShifts, useRegisterForShift, ShiftRegistrationRequest } fro
 import { useBranchScheduleConfig } from '@/api/v1/branch-schedule-config';
 import { useCustomToast } from '@/lib/show-toast';
 import { format, parseISO, addDays, startOfWeek, endOfWeek } from 'date-fns';
+import { ProtectedRoute } from '@/components/protected-component';
+import { employeeRole } from '@/lib/rbac';
 
-export default function ShiftRegistrationPage() {
+export function ShiftRegistration() {
     const { user } = useAuth();
     const { success, error } = useCustomToast();
     const branchId = user?.branch?.id;
@@ -65,9 +67,6 @@ export default function ShiftRegistrationPage() {
         weekDays.push(format(currentDate, 'yyyy-MM-dd'));
         currentDate = addDays(currentDate, 1);
     }
-
-    // Debug: Log week days
-    console.log('🔍 Week days:', weekDays);
 
     const formatTime = (time: string) => {
         return time.substring(0, 5);
@@ -233,8 +232,6 @@ export default function ShiftRegistrationPage() {
                                         ) : (
                                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                                 {shiftsForDay.map((shift) => {
-                                                    // Debug: Log each shift data
-                                                    console.log('🔍 Shift data:', shift);
 
                                                     return (
                                                         <Card key={shift.scheduledShiftId} className="border-l-4 border-l-primary">
@@ -384,3 +381,11 @@ export default function ShiftRegistrationPage() {
         </div>
     );
 } 
+
+export default function ShiftRegistrationPage() {
+    return (
+        <ProtectedRoute requiredRoles={employeeRole}>
+            <ShiftRegistration />
+        </ProtectedRoute>
+    );
+}

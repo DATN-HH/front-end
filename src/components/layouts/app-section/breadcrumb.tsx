@@ -10,6 +10,14 @@ export function SectionBreadcrumb() {
 
     const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: vi })
 
+    // Helper function to format segment (e.g., "shift-manage" -> "Shift Manage")
+    const formatSegment = (segment: string) => {
+        return segment
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+    }
+
     return (
         <div className="flex items-center justify-between">
             <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
@@ -26,7 +34,7 @@ export function SectionBreadcrumb() {
                             href={`/${segments.slice(0, index + 1).join('/')}`}
                             className="ml-1 hover:text-foreground"
                         >
-                            {segment.charAt(0).toUpperCase() + segment.slice(1)}
+                            {formatSegment(segment)}
                         </Link>
                     </div>
                 ))}

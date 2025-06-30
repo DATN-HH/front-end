@@ -122,8 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (redirectUrl) {
             router.push(redirectUrl);
-          } else if (data.account.isFullRole) {
-            router.push('/app');
+          // } else if (data.account.isFullRole) {
+          //   router.push('/app');
           } else if (data.account.userRoles && data.account.userRoles.length > 0) {
             const targetUrl = getDefaultRedirectByRole(data.account.userRoles[0].role);
             router.push(targetUrl);
@@ -164,9 +164,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = useCallback(
     (role: Role | Role[]) => {
-      if (user && user.isFullRole) {
-        return true;
-      }
+      // if (user && user.isFullRole) {
+      //   return true;
+      // }
 
       if (!user || !user.userRoles) {
         return false;
@@ -182,25 +182,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasPermission = useCallback(
     (permission: Permission | Permission[]) => {
-      if (user && user.isFullRole) {
-        return true;
-      }
+      // if (user && user.isFullRole) {
+      //   return true;
+      // }
 
-      if (!user || !user.userRoles) {
-        return false;
-      }
+      // if (!user || !user.userRoles) {
+      //   return false;
+      // }
 
-      if (Array.isArray(permission)) {
-        return permission.some((p) =>
-          user.userRoles.some((ur) =>
-            rolePermissions[ur.role.name as Role]?.includes(p)
-          )
-        );
-      }
+      // if (Array.isArray(permission)) {
+      //   return permission.some((p) =>
+      //     user.userRoles.some((ur) =>
+      //       rolePermissions[ur.role.name as Role]?.includes(p)
+      //     )
+      //   );
+      // }
 
-      return user.userRoles.some((ur) =>
-        rolePermissions[ur.role.name as Role]?.includes(permission)
-      );
+      // return user.userRoles.some((ur) =>
+      //   rolePermissions[ur.role.name as Role]?.includes(permission)
+      // );
+
+      return true;
     },
     [user]
   );

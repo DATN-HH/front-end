@@ -109,11 +109,6 @@ const getWorkingHours = async (days: number): Promise<WorkingHours> => {
   return response.data.payload;
 };
 
-const getLeaveBalance = async (year?: number): Promise<LeaveBalance> => {
-  const response = await apiClient.get(`/employee-portal/leave-balance${year ? `?year=${year}` : ''}`);
-  return response.data.payload;
-};
-
 const getMyLeaveRequests = async (year?: number): Promise<LeaveRequest[]> => {
   const response = await apiClient.get(`/employee-portal/leave-requests${year ? `?year=${year}` : ''}`);
   return response.data.payload;
@@ -153,13 +148,6 @@ export const useWorkingHours = (days: number) => {
     queryKey: ['workingHours', days],
     queryFn: () => getWorkingHours(days),
     enabled: !!days,
-  });
-};
-
-export const useLeaveBalance = (year?: number) => {
-  return useQuery({
-    queryKey: ['leaveBalance', year],
-    queryFn: () => getLeaveBalance(year),
   });
 };
 
