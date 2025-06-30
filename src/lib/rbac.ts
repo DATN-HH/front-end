@@ -47,3 +47,13 @@ export const rolePermissions: Record<Role, Permission[]> = {
 export function hasPermission(role: Role, permission: Permission): boolean {
   return rolePermissions[role]?.includes(permission) ?? false;
 }
+
+export const employeeRole = [
+  // Role.MANAGER,
+  Role.WAITER,
+  Role.HOST,
+  Role.KITCHEN,
+  Role.CASHIER,
+  Role.ACCOUNTANT,
+  Role.EMPLOYEE,
+]

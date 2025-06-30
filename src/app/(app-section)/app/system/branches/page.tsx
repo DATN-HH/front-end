@@ -7,7 +7,7 @@ import { Plus, Building2 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { useCustomToast } from '@/lib/show-toast';
 import { DataTable } from '@/components/common/Table/DataTable';
-import { SearchCondition, OperandType } from '@/lib/response-object';
+import { SearchCondition } from '@/lib/response-object';
 import { useBranches, useCreateBranch, useUpdateBranch, useDeleteBranch } from '@/api/v1/branches';
 import { BranchCreateDto, BranchResponseDto } from '@/api/v1/branches';
 import { useAdvanceSearch } from '@/api/v1/advance-search';
@@ -16,9 +16,10 @@ import { BranchTableColumns } from '@/features/system/branches/components/Branch
 import { CreateBranchModal } from '@/features/system/branches/components/CreateBranchModal';
 import { EditBranchModal } from '@/features/system/branches/components/EditBranchModal';
 import { DeleteBranchModal } from '@/features/system/branches/components/DeleteBranchModal';
-import { FilterDefinition } from '@/components/common/Table/types';
+import { ProtectedRoute } from '@/components/protected-component';
+import { Role } from '@/lib/rbac';
 
-export default function BranchesPage() {
+export function Branches() {
     // State management
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(20);
@@ -37,8 +38,7 @@ export default function BranchesPage() {
     const [newBranch, setNewBranch] = useState<BranchCreateDto>({
         name: '',
         address: '',
-        phoneNumber: '',
-        email: '',
+        phone: '',
         status: 'ACTIVE',
     });
 
@@ -77,9 +77,9 @@ export default function BranchesPage() {
     // Effects
     useEffect(() => {
         if (branchList) {
-            setBranches(branchList.data);
-            setPageIndex(branchList.page);
-            setTotal(branchList.total);
+            setBranches(branchList);
+            setPageIndex(0);
+            setTotal(branchList.length);
         }
     }, [branchList]);
 
@@ -107,8 +107,7 @@ export default function BranchesPage() {
         setNewBranch({
             name: '',
             address: '',
-            phoneNumber: '',
-            email: '',
+            phone: '',
             status: 'ACTIVE',
         });
     };
@@ -139,8 +138,7 @@ export default function BranchesPage() {
                     data: {
                         name: currentBranch.name,
                         address: currentBranch.address,
-                        phoneNumber: currentBranch.phoneNumber,
-                        email: currentBranch.email,
+                        phone: currentBranch.phone,
                         status: currentBranch.status,
                     },
                 },
@@ -261,5 +259,13 @@ export default function BranchesPage() {
                 isLoading={deleteBranchMutation.isPending}
             />
         </div>
+    );
+}
+
+export default function BranchesPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
+            <Branches />
+        </ProtectedRoute>
     );
 }

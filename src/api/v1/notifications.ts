@@ -22,11 +22,6 @@ export const getMyNotifications = async (): Promise<Notification[]> => {
   return response.data.payload;
 };
 
-export const getUnreadNotifications = async (): Promise<Notification[]> => {
-  const response = await apiClient.get('/notifications/unread');
-  return response.data.payload;
-};
-
 export const getUnreadCount = async (): Promise<number> => {
   const response = await apiClient.get('/notifications/unread-count');
   return response.data.payload;
@@ -47,13 +42,6 @@ export const useMyNotifications = () => {
   return useQuery({
     queryKey: ['my-notifications'],
     queryFn: getMyNotifications,
-  });
-};
-
-export const useUnreadNotifications = () => {
-  return useQuery({
-    queryKey: ['unread-notifications'],
-    queryFn: getUnreadNotifications,
   });
 };
 

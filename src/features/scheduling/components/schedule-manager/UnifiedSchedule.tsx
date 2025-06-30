@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext } from "react"
+import { useContext, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus } from "lucide-react"
@@ -8,6 +8,7 @@ import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule
 import { ShiftStatus } from "@/api/v1/publish-shifts"
 import AddShiftModal from "./AddShiftModal"
 import dayjs from "dayjs"
+import { useEffect, useState, useRef } from 'react'
 
 interface UnifiedScheduleProps {
     viewMode: "weekly" | "monthly"
@@ -29,6 +30,35 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         setShiftInfoModalType,
         setSelectedStaffName
     } = useContext(ScheduleContext)
+
+    // Sticky footer state
+    const [isSticky, setIsSticky] = useState(false)
+    const footerRef = useRef<HTMLDivElement>(null)
+    const sentinelRef = useRef<HTMLDivElement>(null)
+
+    // Use Intersection Observer on a sentinel element
+    useEffect(() => {
+        if (!sentinelRef.current) return
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0]
+                // When sentinel goes out of view (footer scrolled past), make footer sticky
+                setIsSticky(!entry.isIntersecting)
+            },
+            {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0
+            }
+        )
+
+        observer.observe(sentinelRef.current)
+
+        return () => {
+            observer.disconnect()
+        }
+    }, [])
 
     // Generate dates based on view mode and context date range
     const generateScheduleData = () => {
@@ -139,26 +169,6 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         if (!role || !role.hexColor) return { backgroundColor: '#6B7280' }
 
         return { backgroundColor: role.hexColor }
-    }
-
-    // Role configurations
-    const roleConfig = {
-        manager: {
-            label: "Manager",
-            color: "bg-purple-100 text-purple-800",
-        },
-        cashier: {
-            label: "Cashier",
-            color: "bg-blue-100 text-blue-800",
-        },
-        chef: {
-            label: "Chef",
-            color: "bg-red-100 text-red-800",
-        },
-        waiter: {
-            label: "Waiter",
-            color: "bg-green-100 text-green-800",
-        },
     }
 
     const statusConfig = {
@@ -286,94 +296,112 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
     }
 
     return (
-        <div className="w-full bg-white">
-            {/* Header */}
-            <div className="flex border-b-2 border-gray-300">
-                <div className="w-64 flex-shrink-0 p-3 bg-gray-50 border-r border-gray-300">
-                </div>
-
-                {dates.map((date) => {
-                    const dayInfo = scheduleData[date]
-                    return (
-                        <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-300`}>
-                            <div className="p-2 text-center bg-blue-50">
-                                <div className="font-medium text-xs text-gray-900">{dayInfo.label}</div>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-
-            {/* Open Shifts Row */}
-            <div className="flex border-b border-gray-300">
-                <div className="w-64 flex-shrink-0 p-3 bg-white border-r border-gray-300 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-sm font-medium">Open Shifts</span>
-                        </div>
+        <>
+            <div className="w-full bg-white">
+                {/* Header */}
+                <div className="flex border-b-2 border-gray-300">
+                    <div className="w-64 flex-shrink-0 p-3 bg-gray-50 border-r border-gray-300">
                     </div>
-                </div>
-                {dates.map((date) => (
-                    <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200`}>
-                        {renderOpenShiftCell(date)}
-                    </div>
-                ))}
-            </div>
 
-            {/* Employee rows grouped by role */}
-            <div className="divide-y divide-gray-300">
-                {employeesByRole.map(({ role, roleLabel, roleColor, employees }) => (
-                    <div key={role} className="bg-gray-25">
-                        {/* Role header */}
-                        <div className="flex bg-gray-100">
-                            <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3 border-r border-gray-300">
-                                <Badge
-                                    className={`${getRoleColor(role)} font-medium`}
-                                    style={getRoleStyle(role)}
-                                >
-                                    {roleLabel}
-                                </Badge>
-                                <span className="text-sm text-gray-600">({employees.length} staff)</span>
-                            </div>
-                            {dates.map((date) => (
-                                <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200 bg-gray-50`}></div>
-                            ))}
-                        </div>
-
-                        {/* Employees in this role */}
-                        <div className="divide-y divide-gray-200">
-                            {employees.map((employee: any, empIndex: number) => (
-                                <div key={`${role}-${empIndex}`} className="flex">
-                                    {/* Employee info */}
-                                    <div className="w-64 h-12 flex-shrink-0 p-3 bg-white border-r border-gray-300 flex items-center gap-3">
-                                        <Avatar className="w-8 h-8">
-                                            <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
-                                                {getInitials(employee.name)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-gray-900 truncate">{employee.name}</div>
-                                        </div>
-                                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                                    </div>
-
-                                    {/* Daily shifts */}
-                                    {dates.map((date) => (
-                                        <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200`}>
-                                            {renderShiftCell(employee.name, date, employee.shifts[date] || [])}
-                                        </div>
-                                    ))}
+                    {dates.map((date) => {
+                        const dayInfo = scheduleData[date]
+                        return (
+                            <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-300`}>
+                                <div className="p-2 text-center bg-blue-50">
+                                    <div className="font-medium text-xs text-gray-900">{dayInfo.label}</div>
                                 </div>
-                            ))}
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* Open Shifts Row */}
+                <div className="flex border-b border-gray-300">
+                    <div className="w-64 flex-shrink-0 p-3 bg-white border-r border-gray-300 flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm font-medium">Open Shifts</span>
+                            </div>
                         </div>
                     </div>
-                ))}
+                    {dates.map((date) => (
+                        <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200`}>
+                            {renderOpenShiftCell(date)}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Employee rows grouped by role */}
+                <div className="divide-y divide-gray-300">
+                    {employeesByRole.map(({ role, roleLabel, roleColor, employees }) => (
+                        <div key={role} className="bg-gray-25">
+                            {/* Role header */}
+                            <div className="flex bg-gray-100">
+                                <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3 border-r border-gray-300">
+                                    <Badge
+                                        className={`${getRoleColor(role)} font-medium`}
+                                        style={getRoleStyle(role)}
+                                    >
+                                        {roleLabel}
+                                    </Badge>
+                                    <span className="text-sm text-gray-600">({employees.length} staff)</span>
+                                </div>
+                                {dates.map((date) => (
+                                    <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200 bg-gray-50`}></div>
+                                ))}
+                            </div>
+
+                            {/* Employees in this role */}
+                            <div className="divide-y divide-gray-200">
+                                {employees.map((employee: any, empIndex: number) => (
+                                    <div key={`${role}-${empIndex}`} className="flex">
+                                        {/* Employee info */}
+                                        <div className="w-64 h-12 flex-shrink-0 p-3 bg-white border-r border-gray-300 flex items-center gap-3">
+                                            <Avatar className="w-8 h-8">
+                                                <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
+                                                    {getInitials(employee.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm font-medium text-gray-900 truncate">{employee.name}</div>
+                                            </div>
+                                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                                        </div>
+
+                                        {/* Daily shifts */}
+                                        {dates.map((date) => (
+                                            <div key={date} className={`${columnFlexClass} ${columnWidth} border-r border-gray-200`}>
+                                                {renderShiftCell(employee.name, date, employee.shifts[date] || [])}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Add Shift Modal */}
+                <AddShiftModal />
             </div>
 
-            {/* Footer Legend */}
-            <div className="border-t border-gray-300 bg-gray-50 p-4">
-                <div className="flex items-center gap-6 flex-wrap">
+            {/* Sentinel element for sticky detection */}
+            <div
+                ref={sentinelRef}
+                className="h-1 w-full pointer-events-none"
+                aria-hidden="true"
+            />
+
+            {/* Smart Sticky Footer Legend */}
+            <div
+                ref={footerRef}
+                className={`
+                    border-t border-gray-300 bg-gray-50/95 backdrop-blur-sm p-4 shadow-lg z-10 transition-all duration-200
+                    ${isSticky ? 'fixed bottom-0 left-0 right-0' : 'relative'}
+                `}
+            >
+                <div className="flex items-center gap-6 flex-wrap justify-center">
                     <div className="text-sm font-medium text-gray-700">Legend:</div>
                     {Object.entries(statusConfig).map(([status, config]) => (
                         <div key={status} className="flex items-center gap-2">
@@ -391,10 +419,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                     </div>
                 </div>
             </div>
-
-            {/* Add Shift Modal */}
-            <AddShiftModal />
-        </div>
+        </>
     )
 }
 

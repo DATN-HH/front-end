@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { FileText, Calendar, Clock, CheckCircle, XCircle, Plus, TrendingUp } from 'lucide-react';
-import { EmployeeLeaveManagement } from '@/features/employee-portal/components/EmployeeLeaveManagement';
+import { EmployeeLeaveManagement as EmployeeLeaveManagementComponent } from '@/features/employee-portal/components/EmployeeLeaveManagement';
 import {
     useMyLeaveRequests,
     useMyLeaveBalance,
@@ -16,8 +16,10 @@ import {
     getStatusColor
 } from '@/api/v1/leave-management';
 import { format } from 'date-fns';
+import { ProtectedRoute } from '@/components/protected-component';
+import { employeeRole } from '@/lib/rbac';
 
-export default function EmployeeLeaveManagementPage() {
+export function EmployeeLeaveManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentYear = new Date().getFullYear();
 
@@ -28,7 +30,6 @@ export default function EmployeeLeaveManagementPage() {
     // Calculate stats
     const pendingRequests = leaveRequests.filter(req => req.status === LeaveStatus.PENDING);
     const approvedRequests = leaveRequests.filter(req => req.status === LeaveStatus.APPROVED);
-    const rejectedRequests = leaveRequests.filter(req => req.status === LeaveStatus.REJECTED);
 
     const getStatusIcon = (status: LeaveStatus) => {
         switch (status) {
@@ -224,10 +225,18 @@ export default function EmployeeLeaveManagementPage() {
             </Card>
 
             {/* Leave Management Modal */}
-            <EmployeeLeaveManagement
+            <EmployeeLeaveManagementComponent
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
             />
         </div>
     );
 } 
+
+export default function EmployeeLeaveManagementPage() {
+    return (
+        <ProtectedRoute requiredRoles={employeeRole}>
+            <EmployeeLeaveManagement />
+        </ProtectedRoute>
+    );
+}

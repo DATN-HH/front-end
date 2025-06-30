@@ -5,7 +5,7 @@ import { SectionHeader } from '@/components/layouts/app-section/header'
 import { SectionBreadcrumb } from '@/components/layouts/app-section/breadcrumb'
 import Providers from '@/app/providers'
 import { Toaster } from '@/components/ui/toaster'
-import { NotificationProvider } from '@/contexts/NotificationContext'
+import { NotificationProvider } from '@/contexts/notification-context'
 
 interface SectionLayoutProps {
     children: ReactNode

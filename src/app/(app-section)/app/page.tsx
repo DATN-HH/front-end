@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { Role } from '@/lib/rbac';
+import { ProtectedRoute } from '@/components/protected-component';
 
 // Mock data for charts
 const revenueData = [
@@ -301,7 +303,7 @@ function SimpleLineChart({
     );
 }
 
-export default function RestaurantDashboard() {
+export function RestaurantDashboard() {
     const totalRevenue = revenueData.reduce((sum, day) => sum + day.revenue, 0);
     const totalOrders = revenueData.reduce((sum, day) => sum + day.orders, 0);
     const avgOrderValue = totalRevenue / totalOrders;
@@ -983,5 +985,13 @@ export default function RestaurantDashboard() {
                 </TabsContent>
             </Tabs>
         </div>
+    );
+}
+
+export default function RestaurantDashboardPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+            <RestaurantDashboard />
+        </ProtectedRoute>
     );
 }

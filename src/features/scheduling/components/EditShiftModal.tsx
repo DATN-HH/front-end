@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAuth } from "@/contexts/auth-context"
 import { useRoles } from '@/api/v1/roles'
 import { ShiftResponseDto, ShiftRequestDto } from '@/api/v1/shifts'
 import { LocalTime, RoleName } from '@/api/v1'
@@ -39,7 +38,6 @@ interface Position {
 }
 
 export function EditShiftModal({ isOpen, onOpenChange, shift, onSubmit, isLoading = false }: EditShiftModalProps) {
-    const { user } = useAuth();
     const customToast = useCustomToast();
     const { data: rolesData, isLoading: isLoadingRoles } = useRoles({ status: 'ACTIVE' });
 
@@ -150,7 +148,6 @@ export function EditShiftModal({ isOpen, onOpenChange, shift, onSubmit, isLoadin
     };
 
     const isAllDaysSelected = daysOfWeek.every(day => selectedDays[day.id]);
-    const isSomeDaysSelected = daysOfWeek.some(day => selectedDays[day.id]);
 
     const handlePositionChange = (index: number, field: keyof Position, value: string | number) => {
         setPositions(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
@@ -262,10 +259,6 @@ export function EditShiftModal({ isOpen, onOpenChange, shift, onSubmit, isLoadin
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const getRoleColor = (roleName: string) => {
-        return rolesData?.data?.find(role => role.name === roleName)?.hexColor || '#000000';
     };
 
     return (

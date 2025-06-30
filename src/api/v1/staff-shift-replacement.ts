@@ -91,23 +91,12 @@ export interface BaseResponse<T> {
 }
 
 // API Functions
-export const getReplacementStaff = async (staffShiftId: number): Promise<ReplacementStaff[]> => {
-  console.log('🔍 API Call - getReplacementStaff:', { staffShiftId })
-  
+export const getReplacementStaff = async (staffShiftId: number): Promise<ReplacementStaff[]> => {  
   const response = await apiClient.get<BaseResponse<ReplacementStaff[]>>(
     `/staff-shifts/${staffShiftId}/replacement-staff`
   )
-  
-  console.log('🔍 API Response - getReplacementStaff:', {
-    status: response.status,
-    data: response.data,
-    success: response.data.success,
-    payload: response.data.payload,
-    payloadLength: response.data.payload?.length
-  })
-  
+
   if (!response.data.success) {
-    console.error('❌ API Error:', response.data.message)
     throw new Error(response.data.message || "Failed to get replacement staff")
   }
   

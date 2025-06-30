@@ -1,15 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import {
-    Calendar, Clock, Users, TrendingUp, AlertTriangle,
-    BarChart3, UserX, CheckCircle, XCircle, FileText
+    Calendar, Clock, Users, AlertTriangle,
+    BarChart3, UserX, FileText
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,15 +20,15 @@ import {
     formatDate,
     getStartOfWeek,
     getCurrentMonth,
-    getStaffShiftStatusLabel,
-    getLeaveStatusLabel,
     type ScheduleOverviewDto
 } from '@/api/v1/schedule-overview';
 import { format } from 'date-fns';
+import { ProtectedRoute } from '@/components/protected-component';
+import { Role } from '@/lib/rbac';
 
 type ViewType = 'daily' | 'weekly' | 'monthly';
 
-export default function ScheduleOverviewPage() {
+export function ScheduleOverview() {
     const [activeTab, setActiveTab] = useState<ViewType>('daily');
     const [selectedDate, setSelectedDate] = useState<string>(formatDate(new Date()));
     const [selectedWeek, setSelectedWeek] = useState<string>(getStartOfWeek(new Date()));
@@ -583,5 +582,13 @@ export default function ScheduleOverviewPage() {
                 {renderStaffWorkingStats()}
             </Tabs>
         </div>
+    );
+}
+
+export default function ScheduleOverviewPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+            <ScheduleOverview />
+        </ProtectedRoute>
     );
 }
