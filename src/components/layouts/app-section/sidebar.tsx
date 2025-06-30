@@ -23,6 +23,10 @@ export function SectionSidebar({ className }: SectionSidebarProps) {
     const [isHovered, setIsHovered] = useState(false)
     const { user } = useAuth()
 
+    // Debug logging
+    console.log('Sidebar - User:', user)
+    console.log('Sidebar - User roles:', user?.userRoles)
+
     const toggleModule = (moduleId: string) => {
         setOpenModule((current) => (current === moduleId ? null : moduleId))
     }
