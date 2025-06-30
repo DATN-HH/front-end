@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Calendar as CalendarIcon, CheckSquare, Clock, Users, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, Calendar as CalendarIcon, CheckSquare, Clock, Users, AlertCircle, Loader2 } from 'lucide-react';
 import { useCustomToast } from '@/lib/show-toast';
 import { useCopyWeekWithSchedule, CopyWeekWithScheduleRequestDto } from '@/api/v1/staff-shifts';
 import { useAuth } from '@/contexts/auth-context';

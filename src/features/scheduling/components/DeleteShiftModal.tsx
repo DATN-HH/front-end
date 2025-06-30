@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, Calendar, AlertTriangle, Loader2, Trash } from 'lucide-react';
+import { Clock, Calendar, AlertTriangle, Loader2, Trash } from 'lucide-react';
 import { ShiftResponseDto } from '@/api/v1/shifts';
 
 interface DeleteShiftModalProps {
@@ -45,7 +45,7 @@ export function DeleteShiftModal({
             'Saturday': 'Sat',
             'Sunday': 'Sun'
         };
-        return dayAbbreviations[day] || day;
+        return dayAbbreviations[day as keyof typeof dayAbbreviations] || day;
     };
 
     return (

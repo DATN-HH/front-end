@@ -18,13 +18,17 @@ import { LeaveStatisticsCard } from '@/features/scheduling/components/LeaveStati
 import { PendingRequestsList } from '@/features/scheduling/components/PendingRequestsList';
 import { RecentActivityList } from '@/features/scheduling/components/RecentActivityList';
 import { LeaveBalanceOverview } from '@/features/scheduling/components/LeaveBalanceOverview';
+import { useAuth } from '@/contexts/auth-context';
+import { Role } from '@/lib/rbac';
+import { ProtectedRoute } from '@/components/protected-component';
 
-export default function LeaveManagementPage() {
+export function LeaveManagement() {
+    const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAddLeaveModalOpen, setIsAddLeaveModalOpen] = useState(false);
     const [isUpdateBalanceModalOpen, setIsUpdateBalanceModalOpen] = useState(false);
     const currentYear = new Date().getFullYear();
-    const branchId = 1; // TODO: Get from auth context
+    const branchId = user?.branch?.id || 0;
 
     // API hooks
     const { data: pendingRequests = [], isLoading: isLoadingPending } = usePendingLeaveRequests(branchId);
@@ -128,3 +132,11 @@ export default function LeaveManagementPage() {
         </div>
     );
 } 
+
+export default function LeaveManagementPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+            <LeaveManagement />
+        </ProtectedRoute>
+    );
+}

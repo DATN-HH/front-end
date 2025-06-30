@@ -22,6 +22,8 @@ import ShiftInfoModal from "@/features/scheduling/components/schedule-manager/Sh
 import CreateOpenShift from "@/features/scheduling/components/schedule-manager/CreateOpenShift"
 import ScheduleManager from "@/features/scheduling/components/schedule-manager/ScheduleManager"
 import { PublishShiftsModal } from "@/features/scheduling/components/PublishShiftsModal"
+import { ProtectedRoute } from "@/components/protected-component"
+import { Role } from "@/lib/rbac"
 
 function SchedulePage() {
   const { isCreateShiftDialogOpen, setIsCreateShiftDialogOpen, selectedDate } = useContext(ScheduleContext);
@@ -151,9 +153,11 @@ function SchedulePage() {
 
 export default function Page() {
   return (
-    <ScheduleProvider>
-      <SchedulePage />
-    </ScheduleProvider>
+    <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+      <ScheduleProvider>
+        <SchedulePage />
+      </ScheduleProvider>
+    </ProtectedRoute>
   );
 }
 

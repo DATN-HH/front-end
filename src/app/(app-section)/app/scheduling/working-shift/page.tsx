@@ -16,8 +16,10 @@ import { CreateShiftDialog } from '@/features/scheduling/components/CreateShiftD
 import { EditShiftModal } from '@/features/scheduling/components/EditShiftModal';
 import { DeleteShiftModal } from '@/features/scheduling/components/DeleteShiftModal';
 import { useAuth } from '@/contexts/auth-context';
+import { ProtectedRoute } from '@/components/protected-component';
+import { Role } from '@/lib/rbac';
 
-export default function WorkingShiftPage() {
+export function WorkingShift() {    
     const { user } = useAuth();
 
     // State management
@@ -39,23 +41,6 @@ export default function WorkingShiftPage() {
     // Hooks
     const { error: toastError, success } = useCustomToast();
     const queryClient = useQueryClient();
-
-    // Query params
-    const queryParams: BaseListRequest = useMemo(
-        () => ({
-            status: 'ACTIVE',
-            branchId: user?.branch?.id ?? 0,
-            page: pageIndex,
-            size: pageSize,
-            keyword,
-            sortBy: sorting || undefined,
-            searchCondition:
-                columnFilters && columnFilters.length > 0
-                    ? JSON.stringify(columnFilters)
-                    : undefined,
-        }),
-        [pageIndex, pageSize, sorting, keyword, columnFilters, user?.branch?.id]
-    );
 
     // Data fetching
     const { data: filterDefinitions = [] } = useAdvanceSearch('shifts');
@@ -243,5 +228,13 @@ export default function WorkingShiftPage() {
                 isLoading={deleteShiftMutation.isPending}
             />
         </div>
+    );
+}
+
+export default function WorkingShiftPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+            <WorkingShift />
+        </ProtectedRoute>
     );
 }

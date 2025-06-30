@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Clock, Users } from 'lucide-react';
+import { CheckCircle, Clock } from 'lucide-react';
 import { LeaveRequest, getLeaveTypeLabel, getLeaveStatusLabel } from '@/api/v1/leave-management';
 import { format } from 'date-fns';
 

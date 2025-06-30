@@ -31,7 +31,6 @@ import {
     useCheckScheduleLock,
     ScheduleLockRequest,
     ScheduleUnlockRequest,
-    ScheduleLockResponse
 } from '@/api/v1/schedule-locks';
 import { ScheduleLockStatus } from '@/api/v1/branch-schedule-config';
 
@@ -275,10 +274,6 @@ export function ScheduleLockManager({ open, onOpenChange }: ScheduleLockManagerP
                                                     <span className="text-destructive mt-1">•</span>
                                                     <span>Locked schedules cannot be modified by staff or managers</span>
                                                 </li>
-                                                {/* <li className="flex items-start gap-2">
-                                                    <span className="text-destructive mt-1">•</span>
-                                                    <span>This action is typically used after publishing schedules</span>
-                                                </li> */}
                                                 <li className="flex items-start gap-2">
                                                     <span className="text-destructive mt-1">•</span>
                                                     <span>Only authorized personnel can unlock schedules</span>

@@ -109,11 +109,6 @@ const getMonthlyOverview = async (branchId: number, year: number, month: number)
   return response.data.payload || response.data;
 };
 
-const getCustomRangeOverview = async (branchId: number, startDate: string, endDate: string): Promise<ScheduleOverviewDto> => {
-  const response = await apiClient.get(`/schedule/overview/custom-range?branchId=${branchId}&startDate=${startDate}&endDate=${endDate}`);
-  return response.data.payload || response.data;
-};
-
 // Hooks
 export const useDailyOverview = (branchId: number, date: string) => {
   return useQuery({
@@ -136,14 +131,6 @@ export const useMonthlyOverview = (branchId: number, year: number, month: number
     queryKey: ['scheduleOverview', 'monthly', branchId, year, month],
     queryFn: () => getMonthlyOverview(branchId, year, month),
     enabled: !!branchId && !!year && !!month,
-  });
-};
-
-export const useCustomRangeOverview = (branchId: number, startDate: string, endDate: string) => {
-  return useQuery({
-    queryKey: ['scheduleOverview', 'customRange', branchId, startDate, endDate],
-    queryFn: () => getCustomRangeOverview(branchId, startDate, endDate),
-    enabled: !!branchId && !!startDate && !!endDate,
   });
 };
 

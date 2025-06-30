@@ -107,16 +107,6 @@ export const respondToShift = async (data: StaffResponseRequest): Promise<StaffS
   return response.data.payload;
 };
 
-export const getPendingFeedbacks = async (branchId: number): Promise<StaffShiftFeedback[]> => {
-  const response = await apiClient.get(`/publish-shifts/pending-feedbacks/${branchId}`);
-  return response.data.payload;
-};
-
-export const getRejectedFeedbacks = async (branchId: number): Promise<StaffShiftFeedback[]> => {
-  const response = await apiClient.get(`/publish-shifts/rejected-feedbacks/${branchId}`);
-  return response.data.payload;
-};
-
 export const getMyPendingShifts = async (): Promise<StaffShiftFeedback[]> => {
   const response = await apiClient.get('/publish-shifts/my-pending-shifts');
   return response.data.payload;
@@ -124,11 +114,6 @@ export const getMyPendingShifts = async (): Promise<StaffShiftFeedback[]> => {
 
 export const replaceStaff = async (feedbackId: number, replacementStaffId: number): Promise<string> => {
   const response = await apiClient.post(`/publish-shifts/replace-staff/${feedbackId}/${replacementStaffId}`);
-  return response.data.payload;
-};
-
-export const processExpiredShifts = async (): Promise<string> => {
-  const response = await apiClient.post('/publish-shifts/process-expired');
   return response.data.payload;
 };
 
@@ -158,22 +143,6 @@ export const useRespondToShift = () => {
   });
 };
 
-export const usePendingFeedbacks = (branchId: number) => {
-  return useQuery({
-    queryKey: ['pending-feedbacks', branchId],
-    queryFn: () => getPendingFeedbacks(branchId),
-    enabled: !!branchId,
-  });
-};
-
-export const useRejectedFeedbacks = (branchId: number) => {
-  return useQuery({
-    queryKey: ['rejected-feedbacks', branchId],
-    queryFn: () => getRejectedFeedbacks(branchId),
-    enabled: !!branchId,
-  });
-};
-
 export const useMyPendingShifts = () => {
   return useQuery({
     queryKey: ['my-pending-shifts'],
@@ -193,14 +162,3 @@ export const useReplaceStaff = () => {
     },
   });
 };
-
-export const useProcessExpiredShifts = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: processExpiredShifts,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-feedbacks'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-shifts'] });
-    },
-  });
-}; 
