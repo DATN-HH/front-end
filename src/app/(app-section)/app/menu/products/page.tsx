@@ -15,6 +15,8 @@ import {
     ImageIcon,
     Image as ImageLucide,
     ChevronRight,
+    Tag,
+    X,
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
@@ -35,6 +37,7 @@ import {
     ProductGroupedResponse,
     ProductType
 } from '@/api/v1/menu/products';
+import { useAllTags, ProductTagResponse } from '@/api/v1/menu/product-tags';
 import { ProductCreateModal } from '@/components/modals/ProductCreateModal';
 import { ProductEditModalNew } from '@/components/modals';
 
@@ -50,6 +53,7 @@ export default function ProductsPage() {
     const [selectedType, setSelectedType] = useState<ProductType | ''>('');
     const [canBeSold, setCanBeSold] = useState<boolean | undefined>(undefined);
     const [archived, setArchived] = useState(false);
+    const [selectedTags, setSelectedTags] = useState<ProductTagResponse[]>([]);
     const [sorting, setSorting] = useState<string>('');
     const [columnFilters, setColumnFilters] = useState<any[]>([]);
     
@@ -97,6 +101,7 @@ export default function ProductsPage() {
     // API hooks
     const { data: productData, isLoading, error } = useProductList(apiParams);
     const { data: groupedData, isLoading: groupedLoading, error: groupedError } = useGroupedProductList(groupedApiParams);
+    const { data: allTags = [] } = useAllTags();
     const archiveProductMutation = useArchiveProduct();
     const unarchiveProductMutation = useUnarchiveProduct();
 
@@ -697,6 +702,75 @@ export default function ProductsPage() {
                     </div>
                 }
             />
+
+            {/* Tag Filter Section */}
+            {allTags.length > 0 && (
+                <div className="bg-white p-4 rounded-lg border">
+                    <div className="flex items-center space-x-2 mb-3">
+                        <Tag className="h-5 w-5 text-blue-500" />
+                        <h3 className="font-medium">Filter by Tags</h3>
+                        {selectedTags.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedTags([])}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="h-4 w-4 mr-1" />
+                                Clear All
+                            </Button>
+                        )}
+                    </div>
+                    
+                    {/* Selected Tags */}
+                    {selectedTags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-blue-50 rounded">
+                            {selectedTags.map((tag) => (
+                                <Badge
+                                    key={tag.id}
+                                    variant="default"
+                                    className="flex items-center space-x-1"
+                                    style={{
+                                        backgroundColor: tag.color || undefined,
+                                        borderColor: tag.color || undefined,
+                                    }}
+                                >
+                                    <span>{tag.name}</span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-4 w-4 p-0 hover:bg-transparent"
+                                        onClick={() => setSelectedTags(prev => prev.filter(t => t.id !== tag.id))}
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </Button>
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+                    
+                    {/* Available Tags */}
+                    <div className="flex flex-wrap gap-2">
+                        {allTags
+                            .filter(tag => !selectedTags.some(selected => selected.id === tag.id))
+                            .map((tag) => (
+                                <Badge
+                                    key={tag.id}
+                                    variant="outline"
+                                    className="cursor-pointer hover:bg-gray-50"
+                                    onClick={() => setSelectedTags(prev => [...prev, tag])}
+                                    style={{
+                                        borderColor: tag.color || undefined,
+                                        color: tag.color || undefined,
+                                    }}
+                                >
+                                    {tag.name}
+                                    {tag.productCount !== undefined && ` (${tag.productCount})`}
+                                </Badge>
+                            ))}
+                    </div>
+                </div>
+            )}
 
             {/* Group Controls - only show for grouped view */}
             {viewMode === 'grouped' && groupedData && groupedData.length > 0 && (

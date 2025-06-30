@@ -57,6 +57,7 @@ export interface CategoryUpdateRequest {
 export interface CategoryListParams {
   search?: string;
   archived?: boolean;
+  includeAllStatuses?: boolean;
   page?: number;
   size?: number;
   sort?: string;

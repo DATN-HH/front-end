@@ -8,8 +8,9 @@ import {
     Edit,
     Archive,
     Eye,
-    FolderOpen,
+    Tag,
     Search,
+    TrendingUp,
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
@@ -19,64 +20,58 @@ import { DataTable } from '@/components/common/Table/DataTable';
 import { FilterDefinition } from '@/components/common/Table/types';
 import { OperandType } from '@/components/common/Table/types';
 import { 
-    useCategoryList, 
-    useUpdateCategory,
-    useProductCountByCategory,
-    CategoryListParams,
-    CategoryResponse,
-    Status
-} from '@/api/v1/menu/categories';
-import { CategoryCreateModal } from '@/components/modals/CategoryCreateModal';
-import { CategoryEditModal } from '@/components/modals/CategoryEditModal';
+    useTagList, 
+    useUpdateTag,
+    usePopularTags,
+    ProductTagListParams,
+    ProductTagResponse,
+    TagStatus
+} from '@/api/v1/menu/product-tags';
+import { TagCreateModal } from '@/components/modals/TagCreateModal';
+import { TagEditModal } from '@/components/modals/TagEditModal';
 
-export default function CategoriesPage() {
+export default function TagsPage() {
     const { toast } = useToast();
     
     // State for table controls
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(25);
     const [keyword, setKeyword] = useState('');
-    const [archived, setArchived] = useState(false);
-    const [showAllStatuses, setShowAllStatuses] = useState(false);
+    const [activeOnly, setActiveOnly] = useState(true);
     const [sorting, setSorting] = useState<string>('');
     const [columnFilters, setColumnFilters] = useState<any[]>([]);
     
     // Modal state
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<CategoryResponse | null>(null);
+    const [selectedTag, setSelectedTag] = useState<ProductTagResponse | null>(null);
 
-    // Build API parameters using /api/menu/categories/list
-    const apiParams: CategoryListParams = useMemo(() => {
+    // Build API parameters using /api/menu/tags/list
+    const apiParams: ProductTagListParams = useMemo(() => {
         const [sortField, sortDirection] = sorting ? sorting.split(':') : ['name', 'asc'];
         
-        const params: CategoryListParams = {
+        const params: ProductTagListParams = {
             page: pageIndex,
             size: pageSize,
             search: keyword || undefined,
-            archived: archived,
-            includeAllStatuses: showAllStatuses,
+            activeOnly: activeOnly,
             sort: sortField || 'name',
             direction: (sortDirection as 'asc' | 'desc') || 'asc',
         };
         return params;
-    }, [pageIndex, pageSize, keyword, archived, showAllStatuses, sorting]);
+    }, [pageIndex, pageSize, keyword, activeOnly, sorting]);
 
     // API hooks
-    const { data: categoryData, isLoading, error } = useCategoryList(apiParams);
-    const updateCategoryMutation = useUpdateCategory();
+    const { data: tagData, isLoading, error } = useTagList(apiParams);
+    const { data: popularTags } = usePopularTags(5);
+    const updateTagMutation = useUpdateTag();
 
     // Extract data from API response
-    const categories = categoryData?.content || [];
-    const totalElements = categoryData?.totalElements || 0;
+    const tags = tagData?.content || [];
+    const totalElements = tagData?.totalElements || 0;
 
     // Filter definitions for DataTable
     const filterDefinitions: FilterDefinition[] = [
-        {
-            field: 'archived',
-            label: 'Archived Status',
-            type: OperandType.BOOLEAN,
-        },
         {
             field: 'status',
             label: 'Status',
@@ -90,15 +85,15 @@ export default function CategoriesPage() {
     ];
 
     // Event handlers using update API to toggle status between ACTIVE/INACTIVE
-    const handleToggleStatus = async (category: CategoryResponse) => {
+    const handleToggleStatus = async (tag: ProductTagResponse) => {
         try {
-            const newStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-            await updateCategoryMutation.mutateAsync({
-                id: category.id,
+            const newStatus = tag.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+            await updateTagMutation.mutateAsync({
+                id: tag.id,
                 data: { 
-                    code: category.code,
-                    name: category.name,
-                    description: category.description,
+                    name: tag.name,
+                    color: tag.color,
+                    description: tag.description,
                     status: newStatus 
                 }
             });
@@ -106,19 +101,19 @@ export default function CategoriesPage() {
             const action = newStatus === 'ACTIVE' ? 'activated' : 'deactivated';
             toast({
                 title: 'Status Updated',
-                description: `${category.name} has been ${action} successfully.`,
+                description: `${tag.name} has been ${action} successfully.`,
             });
         } catch (error: any) {
             toast({
                 title: 'Error',
-                description: error.response?.data?.message || 'Failed to update category status. Please try again.',
+                description: error.response?.data?.message || 'Failed to update tag status. Please try again.',
                 variant: 'destructive',
             });
         }
     };
 
-    const handleEdit = (category: CategoryResponse) => {
-        setSelectedCategory(category);
+    const handleEdit = (tag: ProductTagResponse) => {
+        setSelectedTag(tag);
         setShowEditModal(true);
     };
 
@@ -132,62 +127,67 @@ export default function CategoriesPage() {
         });
     };
 
-    const getStatusBadge = (status: Status) => {
+    const getStatusBadge = (status: TagStatus) => {
         switch (status) {
             case 'ACTIVE':
                 return <Badge variant="default">Active</Badge>;
             case 'INACTIVE':
                 return <Badge variant="secondary">Inactive</Badge>;
             case 'DELETED':
-                return <Badge variant="destructive">Archived</Badge>;
+                return <Badge variant="destructive">Deleted</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
     };
 
-    // Component to display product count using /api/menu/categories/{id}/product-count
-    const ProductCountCell = ({ categoryId }: { categoryId: number }) => {
-        const { data: productCount } = useProductCountByCategory(categoryId);
-        
+    const getTagColorDisplay = (tag: ProductTagResponse) => {
+        if (!tag.color) return null;
         return (
-            <div className="text-center">
-                <Badge variant="outline">
-                    {productCount !== undefined ? productCount : '...'}
-                </Badge>
+            <div className="flex items-center space-x-2">
+                <div 
+                    className="w-4 h-4 rounded border border-gray-300"
+                    style={{ backgroundColor: tag.color }}
+                    title={tag.color}
+                />
+                <span className="text-sm font-mono text-gray-500">{tag.color}</span>
             </div>
         );
     };
 
     // Table columns
-    const columns: ColumnDef<CategoryResponse>[] = [
+    const columns: ColumnDef<ProductTagResponse>[] = [
         {
             accessorKey: 'name',
-            header: 'Category Name',
+            header: 'Tag Name',
             cell: ({ row }) => (
                 <div className="flex items-center space-x-2">
-                    <FolderOpen className="h-4 w-4 text-blue-500" />
+                    <Tag className="h-4 w-4 text-blue-500" />
                     <div>
                         <div className="font-medium">{row.original.name}</div>
-                        <div className="text-sm text-gray-500">
-                            Code: {row.original.code}
-                        </div>
+                        {row.original.description && (
+                            <div className="text-sm text-gray-500 max-w-[200px] truncate">
+                                {row.original.description}
+                            </div>
+                        )}
                     </div>
                 </div>
             ),
         },
         {
-            accessorKey: 'description',
-            header: 'Description',
-            cell: ({ row }) => (
-                <div className="max-w-[200px] truncate" title={row.original.description || '-'}>
-                    {row.original.description || '-'}
-                </div>
-            ),
+            accessorKey: 'color',
+            header: 'Color',
+            cell: ({ row }) => getTagColorDisplay(row.original),
         },
         {
             accessorKey: 'productCount',
             header: 'Products',
-            cell: ({ row }) => <ProductCountCell categoryId={row.original.id} />,
+            cell: ({ row }) => (
+                <div className="text-center">
+                    <Badge variant="outline">
+                        {row.original.productCount || 0}
+                    </Badge>
+                </div>
+            ),
         },
         {
             accessorKey: 'status',
@@ -210,12 +210,6 @@ export default function CategoriesPage() {
             cell: ({ row }) => {
                 return (
                     <div className="flex gap-2">
-                        <Link href={`/app/menu/categories/${row.original.id}/detail`}>
-                            <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                            </Button>
-                        </Link>
                         <Button
                             size="sm"
                             onClick={() => handleEdit(row.original)}
@@ -228,7 +222,7 @@ export default function CategoriesPage() {
                             size="sm"
                             className={row.original.status === 'ACTIVE' ? 'text-orange-600' : 'text-green-600'}
                             onClick={() => handleToggleStatus(row.original)}
-                            disabled={updateCategoryMutation.isPending}
+                            disabled={updateTagMutation.isPending}
                         >
                             <Archive className="h-4 w-4 mr-1" />
                             {row.original.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
@@ -243,8 +237,8 @@ export default function CategoriesPage() {
         return (
             <div className="space-y-6">
                 <PageTitle
-                    icon={FolderOpen}
-                    title="Categories"
+                    icon={Tag}
+                    title="Product Tags"
                     left={
                         <Button onClick={() => window.location.reload()}>
                             <Plus className="mr-2 h-4 w-4" />
@@ -253,7 +247,7 @@ export default function CategoriesPage() {
                     }
                 />
                 <div className="text-center text-red-500">
-                    Error loading categories: {error.message}
+                    Error loading tags: {error.message}
                 </div>
             </div>
         );
@@ -262,40 +256,56 @@ export default function CategoriesPage() {
     return (
         <div className="space-y-6">
             <PageTitle
-                icon={FolderOpen}
-                title="Categories"
+                icon={Tag}
+                title="Product Tags"
                 left={
                     <div className="flex gap-2">
                         <Button onClick={() => setShowCreateModal(true)}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Create New Category
+                            Create New Tag
                         </Button>
                         <Button 
                             variant="outline" 
-                            onClick={() => setShowAllStatuses(!showAllStatuses)}
-                            className={showAllStatuses ? 'bg-blue-50 text-blue-700' : ''}
+                            onClick={() => setActiveOnly(!activeOnly)}
+                            className={!activeOnly ? 'bg-red-50 text-red-700' : ''}
                         >
-                            <Search className="mr-2 h-4 w-4" />
-                            {showAllStatuses ? 'Filter by Status' : 'Show All Statuses'}
+                            <Archive className="mr-2 h-4 w-4" />
+                            {activeOnly ? 'Show All' : 'Show Active Only'}
                         </Button>
-                        {!showAllStatuses && (
-                            <Button 
-                                variant="outline" 
-                                onClick={() => setArchived(!archived)}
-                                className={archived ? 'bg-red-50 text-red-700' : ''}
-                            >
-                                <Archive className="mr-2 h-4 w-4" />
-                                {archived ? 'Show Active' : 'Show Archived'}
-                            </Button>
-                        )}
                     </div>
                 }
             />
 
+            {/* Popular Tags Section */}
+            {popularTags && popularTags.length > 0 && (
+                <div className="bg-white p-4 rounded-lg border">
+                    <div className="flex items-center space-x-2 mb-3">
+                        <TrendingUp className="h-5 w-5 text-blue-500" />
+                        <h3 className="font-medium">Most Used Tags</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {popularTags.map((tag) => (
+                            <Badge 
+                                key={tag.id} 
+                                variant="outline"
+                                className="cursor-pointer hover:bg-gray-50"
+                                onClick={() => handleEdit(tag)}
+                                style={{ 
+                                    borderColor: tag.color || undefined,
+                                    color: tag.color || undefined 
+                                }}
+                            >
+                                {tag.name} ({tag.productCount})
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <DataTable
                 columns={columns}
-                data={categories}
-                tableId="categories-table"
+                data={tags}
+                tableId="tags-table"
                 pageIndex={pageIndex}
                 pageSize={pageSize}
                 total={totalElements}
@@ -324,18 +334,18 @@ export default function CategoriesPage() {
                 loading={isLoading}
             />
 
-            {/* Create Category Modal */}
-            <CategoryCreateModal 
+            {/* Create Tag Modal */}
+            <TagCreateModal 
                 open={showCreateModal}
                 onOpenChange={setShowCreateModal}
             />
 
-            {/* Edit Category Modal */}
-            <CategoryEditModal 
+            {/* Edit Tag Modal */}
+            <TagEditModal 
                 open={showEditModal}
                 onOpenChange={setShowEditModal}
-                category={selectedCategory}
+                tag={selectedTag}
             />
         </div>
     );
-} 
+}

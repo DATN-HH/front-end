@@ -42,6 +42,8 @@ import {
 } from '@/api/v1/menu/products';
 import { useUploadImage } from '@/api/v1/images';
 import { useAllCategories } from '@/api/v1/menu/categories';
+import { useAssignTagsToProduct, ProductTagResponse } from '@/api/v1/menu/product-tags';
+import { TagSelector } from '@/components/forms/TagSelector';
 import { Loader2, Package, Upload, X, Image as ImageIcon } from 'lucide-react';
 
 // Form validation schema
@@ -74,9 +76,11 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
     const [saveAndNew, setSaveAndNew] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [selectedTags, setSelectedTags] = useState<ProductTagResponse[]>([]);
     
     const createProductMutation = useCreateProduct();
     const uploadImageMutation = useUploadImage();
+    const assignTagsMutation = useAssignTagsToProduct();
     const { data: categories } = useAllCategories();
 
     const form = useForm<ProductFormData>({
@@ -189,10 +193,18 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                 canBePurchased: data.canBePurchased,
             };
 
-            await createProductMutation.mutateAsync({
+            const createdProduct = await createProductMutation.mutateAsync({
                 data: requestData,
                 saveAndNew,
             });
+
+            // Assign tags to the created product if any tags are selected
+            if (selectedTags.length > 0) {
+                await assignTagsMutation.mutateAsync({
+                    productId: createdProduct.id,
+                    tagIds: selectedTags.map(tag => tag.id),
+                });
+            }
 
             toast({
                 title: 'Product Created',
@@ -217,6 +229,7 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                     categoryId: data.categoryId || 0,
                 });
                 setImagePreview(null);
+                setSelectedTags([]);
                 setSaveAndNew(false);
             } else {
                 handleClose();
@@ -234,6 +247,7 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
         onOpenChange(false);
         form.reset();
         setImagePreview(null);
+        setSelectedTags([]);
         setSaveAndNew(false);
     };
 
@@ -455,6 +469,15 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Tag Selector */}
+                                <div className="mt-4">
+                                    <TagSelector
+                                        selectedTags={selectedTags}
+                                        onTagsChange={setSelectedTags}
+                                        placeholder="Add tags to categorize this product..."
+                                    />
+                                </div>
                             </TabsContent>
 
                             <TabsContent value="image" className="space-y-4">
