@@ -259,6 +259,9 @@ export function ProductEditModal({ open, onOpenChange, productId }: ProductEditM
         return (
             <Dialog open={open} onOpenChange={handleClose}>
                 <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Loading Product</DialogTitle>
+                    </DialogHeader>
                     <div className="flex items-center justify-center p-8">
                         <Loader2 className="h-8 w-8 animate-spin" />
                         <span className="ml-2">Loading product...</span>

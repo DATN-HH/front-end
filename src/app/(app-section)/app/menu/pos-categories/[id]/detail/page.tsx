@@ -9,35 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, Trash2, Tags, Package } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Tags, Package, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { usePosCategory, useDeletePosCategory } from '@/api/v1/menu/pos-categories';
+import { useRouter } from 'next/navigation';
 
-// Mock data
-const category = {
-    id: 1,
-    name: 'Main Course',
-    parentCategory: null,
-    sequence: 2,
-    productCount: 15,
-    active: true,
-    description:
-        'Main dishes including rice, noodles, and traditional Vietnamese cuisine',
-    createdAt: '2024-01-14',
-    updatedAt: '2024-01-20',
-    products: [
-        { id: 1, name: 'Beef Pho', price: 50000, active: true },
-        { id: 2, name: 'Grilled Pork Vermicelli', price: 45000, active: true },
-        { id: 3, name: 'Broken Rice', price: 40000, active: true },
-        { id: 4, name: 'Grilled Pork Banh Mi', price: 30000, active: true },
-        { id: 5, name: 'Grilled Meat', price: 55000, active: true },
-    ],
-    subcategories: [
-        { id: 3, name: 'Pho', productCount: 6, sequence: 1 },
-        { id: 4, name: 'Noodles', productCount: 4, sequence: 2 },
-        { id: 10, name: 'Banh Mi', productCount: 2, sequence: 3 },
-    ],
-};
 
 export default function PosCategoryDetailPage({
     params,
@@ -45,12 +22,34 @@ export default function PosCategoryDetailPage({
     params: { id: string };
 }) {
     const { toast } = useToast();
+    const router = useRouter();
+    const categoryId = Number(params.id);
 
-    const handleDelete = () => {
-        toast({
-            title: 'Category Deleted',
-            description: `${category.name} has been deleted successfully.`,
-        });
+    // API hooks
+    const { data: category, isLoading, error } = usePosCategory(categoryId);
+    const deletePosCategoryMutation = useDeletePosCategory();
+
+    const handleDelete = async () => {
+        if (!category) return;
+        
+        if (!confirm(`Are you sure you want to delete "${category.name}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await deletePosCategoryMutation.mutateAsync(category.id);
+            toast({
+                title: 'Category Deleted',
+                description: `${category.name} has been deleted successfully.`,
+            });
+            router.push('/app/menu/pos-categories');
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to delete category. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
     const formatCurrency = (amount: number) => {
@@ -59,6 +58,35 @@ export default function PosCategoryDetailPage({
             currency: 'USD',
         }).format(amount / 1000); // Convert VND to USD for display
     };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <span className="ml-2">Loading category details...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !category) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                    <Link href="/app/menu/pos-categories">
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Category Not Found</h1>
+                        <p className="text-muted-foreground">The requested category could not be found.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -85,8 +113,12 @@ export default function PosCategoryDetailPage({
                             Edit
                         </Button>
                     </Link>
-                    <Button variant="outline" onClick={handleDelete}>
-                        <Trash2 className="mr-2 h-4 w-4" />
+                    <Button variant="outline" onClick={handleDelete} disabled={deletePosCategoryMutation.isPending}>
+                        {deletePosCategoryMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                        )}
                         Delete
                     </Button>
                 </div>
@@ -125,7 +157,7 @@ export default function PosCategoryDetailPage({
                                             Parent Category
                                         </label>
                                         <p className="text-sm font-medium">
-                                            {category.parentCategory ||
+                                            {category.parentName ||
                                                 'Root Category'}
                                         </p>
                                     </div>
@@ -144,7 +176,7 @@ export default function PosCategoryDetailPage({
                                             Product Count
                                         </label>
                                         <p className="text-sm font-medium">
-                                            {category.productCount}
+                                            {category.productsCount}
                                         </p>
                                     </div>
                                 </div>

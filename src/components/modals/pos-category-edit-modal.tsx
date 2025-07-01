@@ -16,21 +16,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Save } from "lucide-react"
+import { Save, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
-interface PosCategory {
-  id: number
-  name: string
-  parentCategory: string | null
-  sequence: number
-  productCount: number
-}
+import { useAllPosCategories, useUpdatePosCategory, PosCategoryResponse, PosCategoryUpdateRequest } from "@/api/v1/menu/pos-categories"
 
 interface PosCategoryEditModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  category: PosCategory | null
+  category: PosCategoryResponse | null
 }
 
 export function PosCategoryEditModal({ open, onOpenChange, category }: PosCategoryEditModalProps) {
@@ -39,23 +32,32 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
     name: "",
     parentCategory: "none",
     sequence: "",
+    description: "",
   })
+
+  // API hooks
+  const { data: allCategories = [] } = useAllPosCategories()
+  const updatePosCategoryMutation = useUpdatePosCategory()
+
+  // Get root categories for parent dropdown (excluding current category to prevent circular reference)
+  const rootCategories = allCategories.filter(cat => cat.isRoot && cat.id !== category?.id)
 
   // Populate form when category changes
   useEffect(() => {
     if (category) {
       setFormData({
         name: category.name || "",
-        parentCategory: category.parentCategory || "none",
+        parentCategory: category.parentId ? category.parentId.toString() : "none",
         sequence: category.sequence?.toString() || "",
+        description: category.description || "",
       })
     }
   }, [category])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       toast({
         title: "Validation Error",
         description: "Please enter category name.",
@@ -64,12 +66,31 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
       return
     }
 
-    toast({
-      title: "Category Updated",
-      description: `${formData.name} has been updated successfully.`,
-    })
+    if (!category) return
 
-    onOpenChange(false)
+    try {
+      const requestData: PosCategoryUpdateRequest = {
+        name: formData.name.trim(),
+        parentId: formData.parentCategory === "none" ? undefined : Number(formData.parentCategory),
+        sequence: formData.sequence ? Number(formData.sequence) : undefined,
+        description: formData.description || undefined,
+      }
+
+      await updatePosCategoryMutation.mutateAsync({ id: category.id, data: requestData })
+      
+      toast({
+        title: "Category Updated",
+        description: `${formData.name} has been updated successfully.`,
+      })
+
+      onOpenChange(false)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update category. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleCancel = () => {
@@ -77,8 +98,9 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
     if (category) {
       setFormData({
         name: category.name || "",
-        parentCategory: category.parentCategory || "none",
+        parentCategory: category.parentId ? category.parentId.toString() : "none",
         sequence: category.sequence?.toString() || "",
+        description: category.description || "",
       })
     }
     onOpenChange(false)
@@ -121,10 +143,11 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None (Root Category)</SelectItem>
-                    <SelectItem value="main">Main Course</SelectItem>
-                    <SelectItem value="drink">Beverage</SelectItem>
-                    <SelectItem value="appetizer">Appetizer</SelectItem>
-                    <SelectItem value="dessert">Dessert</SelectItem>
+                    {rootCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -142,6 +165,16 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
                   Lower numbers will display first. Leave empty for automatic ordering.
                 </p>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter category description (optional)"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -149,8 +182,12 @@ export function PosCategoryEditModal({ open, onOpenChange, category }: PosCatego
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button type="submit">
-              <Save className="mr-2 h-4 w-4" />
+            <Button type="submit" disabled={updatePosCategoryMutation.isPending}>
+              {updatePosCategoryMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Update Category
             </Button>
           </DialogFooter>

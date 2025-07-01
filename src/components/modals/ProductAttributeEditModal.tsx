@@ -35,7 +35,7 @@ import {
 // Form schema
 const formSchema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-    displayType: z.enum(['RADIO', 'SELECT', 'COLOR', 'CHECKBOX'] as const, {
+    displayType: z.enum(['RADIO', 'SELECT', 'COLOR', 'CHECKBOX', 'TEXTBOX'] as const, {
         required_error: 'Display type is required',
     }),
     variantCreationMode: z.enum(['INSTANTLY', 'DYNAMICALLY', 'NEVER'] as const, {
@@ -182,6 +182,7 @@ export function ProductAttributeEditModal({ open, onOpenChange, attributeId }: P
                                                 <SelectItem value="RADIO">Radio Buttons</SelectItem>
                                                 <SelectItem value="COLOR">Color Picker</SelectItem>
                                                 <SelectItem value="CHECKBOX">Checkboxes</SelectItem>
+                                                <SelectItem value="TEXTBOX">Text Input</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormDescription>

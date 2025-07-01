@@ -14,6 +14,7 @@ import {
   Settings,
   Printer,
   Clock,
+  ShoppingCart,
 } from 'lucide-react';
 import { Role, employeeRole } from '@/lib/rbac';
 
@@ -92,6 +93,11 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           href: '/app/menu/products',
           label: 'Products',
           icon: <Package className="h-4 w-4" />,
+        },
+        {
+          href: '/app/menu/food-combos',
+          label: 'Food Combos',
+          icon: <ShoppingCart className="h-4 w-4" />,
         },
         {
           href: '/app/menu/categories',

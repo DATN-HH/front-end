@@ -49,18 +49,14 @@ import { Loader2, Package, Upload, X, Image as ImageIcon } from 'lucide-react';
 // Form validation schema
 const productSchema = z.object({
     name: z.string().min(1, 'Product name is required').max(100, 'Name too long'),
-    size: z.string().max(50, 'Size too long').optional(),
-    price: z.number().min(0, 'Price must be positive').optional(),
-    cost: z.number().min(0, 'Cost must be positive').optional(),
     type: z.enum(['CONSUMABLE', 'STOCKABLE', 'SERVICE', 'EXTRA'] as const),
-    image: z.string().optional(),
-    description: z.string().max(1000, 'Description too long').optional(),
-    estimateTime: z.number().min(0, 'Estimate time must be positive').optional(),
+    categoryId: z.number().min(1, 'Please select a category').optional(),
     groupName: z.string().max(100, 'Group name too long').optional(),
+    description: z.string().max(1000, 'Description too long').optional(),
+    image: z.string().optional(),
     internalReference: z.string().max(50, 'Internal reference too long').optional(),
     canBeSold: z.boolean().optional(),
     canBePurchased: z.boolean().optional(),
-    categoryId: z.number().min(1, 'Please select a category').optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -77,6 +73,7 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [selectedTags, setSelectedTags] = useState<ProductTagResponse[]>([]);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     
     const createProductMutation = useCreateProduct();
     const uploadImageMutation = useUploadImage();
@@ -87,23 +84,19 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: '',
-            size: '',
-            price: undefined,
-            cost: undefined,
             type: 'CONSUMABLE',
-            image: '',
-            description: '',
-            estimateTime: undefined,
+            categoryId: defaultCategoryId || undefined,
             groupName: '',
+            description: '',
+            image: '',
             internalReference: '',
             canBeSold: true,
             canBePurchased: false,
-            categoryId: defaultCategoryId || undefined,
         },
     });
 
-    // Image upload handling
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Image selection handling (no immediate upload)
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (!file) return;
 
@@ -127,40 +120,15 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
             return;
         }
 
-        setUploadingImage(true);
-
-        try {
-            // Create preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setImagePreview(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-
-            // Upload to server
-            const uploadResult = await uploadImageMutation.mutateAsync({
-                file,
-                folder: 'products'
-            });
-
-            // Update form with image URL
-            form.setValue('image', uploadResult.secureUrl);
-
-            toast({
-                title: 'Image Uploaded',
-                description: 'Product image has been uploaded successfully.',
-            });
-        } catch (error: any) {
-            toast({
-                title: 'Upload Failed',
-                description: error?.response?.data?.message || 'Failed to upload image.',
-                variant: 'destructive',
-            });
-            setImagePreview(null);
-        } finally {
-            setUploadingImage(false);
-        }
-    }, [uploadImageMutation, form, toast]);
+        // Store file for later upload and create preview
+        setSelectedImageFile(file);
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+    }, [toast]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -172,22 +140,42 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
 
     const removeImage = () => {
         setImagePreview(null);
+        setSelectedImageFile(null);
         form.setValue('image', '');
     };
 
     const onSubmit = async (data: ProductFormData) => {
         try {
+            let imageUrl = data.image;
+
+            // Upload image first if one is selected
+            if (selectedImageFile) {
+                setUploadingImage(true);
+                try {
+                    const uploadResult = await uploadImageMutation.mutateAsync({
+                        file: selectedImageFile,
+                        folder: 'products'
+                    });
+                    imageUrl = uploadResult.secureUrl;
+                } catch (error: any) {
+                    toast({
+                        title: 'Image Upload Failed',
+                        description: error?.response?.data?.message || 'Failed to upload image.',
+                        variant: 'destructive',
+                    });
+                    return; // Stop if image upload fails
+                } finally {
+                    setUploadingImage(false);
+                }
+            }
+
             const requestData: ProductCreateRequest = {
                 name: data.name,
                 type: data.type,
-                size: data.size || undefined,
-                image: data.image || undefined,
+                image: imageUrl || undefined,
                 description: data.description || undefined,
                 groupName: data.groupName || undefined,
                 internalReference: data.internalReference || undefined,
-                price: data.price,
-                cost: data.cost,
-                estimateTime: data.estimateTime,
                 categoryId: data.categoryId,
                 canBeSold: data.canBeSold,
                 canBePurchased: data.canBePurchased,
@@ -215,20 +203,17 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                 // Reset form but keep some values for convenience
                 form.reset({
                     name: '',
-                    size: '',
-                    price: data.price || 0,
-                    cost: data.cost || 0,
                     type: data.type,
-                    image: '',
-                    description: '',
-                    estimateTime: data.estimateTime || 0,
+                    categoryId: data.categoryId,
                     groupName: data.groupName || '',
+                    description: '',
+                    image: '',
                     internalReference: '',
                     canBeSold: data.canBeSold,
                     canBePurchased: data.canBePurchased,
-                    categoryId: data.categoryId || 0,
                 });
                 setImagePreview(null);
+                setSelectedImageFile(null);
                 setSelectedTags([]);
                 setSaveAndNew(false);
             } else {
@@ -247,6 +232,7 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
         onOpenChange(false);
         form.reset();
         setImagePreview(null);
+        setSelectedImageFile(null);
         setSelectedTags([]);
         setSaveAndNew(false);
     };
@@ -280,198 +266,140 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                                 <TabsTrigger value="settings">Settings</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="basic" className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Product Name *</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="e.g., Beef Pho" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="type"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Product Type *</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <TabsContent value="basic" className="space-y-6">
+                                {/* Essential Information */}
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold text-gray-900">Essential Information</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Product Name *</FormLabel>
                                                     <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select product type" />
-                                                        </SelectTrigger>
+                                                        <Input placeholder="e.g., Beef Pho" {...field} />
                                                     </FormControl>
-                                                    <SelectContent>
-                                                        {productTypes.map((type) => (
-                                                            <SelectItem key={type.value} value={type.value}>
-                                                                <div>
-                                                                    <div>{type.label}</div>
-                                                                    <div className="text-xs text-gray-500">{type.description}</div>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="categoryId"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Category</FormLabel>
-                                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                        <FormField
+                                            control={form.control}
+                                            name="type"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Product Type *</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select product type" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {productTypes.map((type) => (
+                                                                <SelectItem key={type.value} value={type.value}>
+                                                                    <div>
+                                                                        <div>{type.label}</div>
+                                                                        <div className="text-xs text-gray-500">{type.description}</div>
+                                                                    </div>
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="categoryId"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Category</FormLabel>
+                                                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select category (will use 'Other' if not selected)" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {categories?.map((category) => (
+                                                                <SelectItem key={category.id} value={category.id.toString()}>
+                                                                    {category.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormDescription>
+                                                        If no category is selected, the product will be placed in the 'Other' category
+                                                    </FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="internalReference"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Internal Reference</FormLabel>
                                                     <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select category" />
-                                                        </SelectTrigger>
+                                                        <Input placeholder="Auto-generated if left empty" {...field} />
                                                     </FormControl>
-                                                    <SelectContent>
-                                                        {categories?.map((category) => (
-                                                            <SelectItem key={category.id} value={category.id.toString()}>
-                                                                {category.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="internalReference"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Internal Reference</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="e.g., PHO001" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="price"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Sale Price (VND)</FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={field.onChange}
-                                                        placeholder="50,000"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="cost"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Cost (VND)</FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={field.onChange}
-                                                        placeholder="30,000"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="size"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Size</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Medium, Large, etc." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="estimateTime"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Estimate Time (minutes)</FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={field.onChange}
-                                                        placeholder="15"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                                    <FormDescription>
+                                                        Leave empty for auto-generation
+                                                    </FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                 </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Description</FormLabel>
-                                            <FormControl>
-                                                <Textarea 
-                                                    placeholder="Describe your product..."
-                                                    rows={3}
-                                                    {...field} 
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                {/* Organization */}
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold text-gray-900">Organization</h3>
+                                    
+                                    <FormField
+                                        control={form.control}
+                                        name="groupName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Group Name</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g., Vietnamese Noodles" {...field} />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Group related products together for better organization
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <FormField
-                                    control={form.control}
-                                    name="groupName"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Group Name</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="e.g., Vietnamese Noodles" {...field} />
-                                            </FormControl>
-                                            <FormDescription>
-                                                Group related products together for better organization
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Description</FormLabel>
+                                                <FormControl>
+                                                    <Textarea 
+                                                        placeholder="Describe your product..."
+                                                        rows={3}
+                                                        {...field} 
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                {/* Tag Selector */}
-                                <div className="mt-4">
+                                    {/* Tag Selector */}
                                     <TagSelector
                                         selectedTags={selectedTags}
                                         onTagsChange={setSelectedTags}
@@ -590,7 +518,7 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                                 type="button"
                                 variant="outline"
                                 onClick={handleClose}
-                                disabled={createProductMutation.isPending}
+                                disabled={createProductMutation.isPending || uploadingImage}
                             >
                                 Cancel
                             </Button>
@@ -601,21 +529,22 @@ export function ProductCreateModal({ open, onOpenChange, defaultCategoryId }: Pr
                                     setSaveAndNew(true);
                                     form.handleSubmit(onSubmit)();
                                 }}
-                                disabled={createProductMutation.isPending}
+                                disabled={createProductMutation.isPending || uploadingImage}
                             >
-                                {createProductMutation.isPending && saveAndNew ? (
+                                {(createProductMutation.isPending || uploadingImage) && saveAndNew ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : null}
-                                Save & New
+                                {uploadingImage ? 'Uploading...' : 'Save & New'}
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={createProductMutation.isPending}
+                                disabled={createProductMutation.isPending || uploadingImage}
+                                className="bg-blue-600 hover:bg-blue-700"
                             >
-                                {createProductMutation.isPending && !saveAndNew ? (
+                                {(createProductMutation.isPending || uploadingImage) && !saveAndNew ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : null}
-                                Create Product
+                                {uploadingImage ? 'Uploading Image...' : 'Create Product'}
                             </Button>
                         </div>
                     </form>
