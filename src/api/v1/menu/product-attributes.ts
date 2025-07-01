@@ -11,7 +11,7 @@ interface ApiResponse<T> {
 
 // ========== Type Definitions ==========
 
-export type DisplayType = 'RADIO' | 'SELECT' | 'COLOR' | 'CHECKBOX';
+export type DisplayType = 'RADIO' | 'SELECT' | 'COLOR' | 'CHECKBOX' | 'TEXTBOX';
 export type VariantCreationMode = 'INSTANTLY' | 'DYNAMICALLY' | 'NEVER';
 export type Status = 'ACTIVE' | 'INACTIVE' | 'DELETED';
 
@@ -27,6 +27,7 @@ export interface ProductAttributeResponse {
   name: string;
   displayType: DisplayType;
   variantCreationMode: VariantCreationMode;
+  isMoneyAttribute?: boolean;
   description?: string;
   status: Status;
   createdAt: string;
@@ -40,7 +41,7 @@ export interface ProductAttributeValueCreateRequest {
   name: string;
   colorCode?: string;
   sequence?: number;
-  priceExtra?: number;
+  textValue?: string;
   description?: string;
   attributeId: number;
 }
@@ -50,7 +51,7 @@ export interface ProductAttributeValueResponse {
   name: string;
   colorCode?: string;
   sequence?: number;
-  priceExtra?: number;
+  textValue?: string;
   description?: string;
   status: Status;
   createdAt: string;
@@ -62,7 +63,8 @@ export interface ProductAttributeValueResponse {
 
 export interface AttributeAssignment {
   attributeId: number;
-  selectedValueIds: number[];
+  selectedValueIds?: number[];
+  textValue?: string;
 }
 
 export interface ProductAttributeAssignRequest {
@@ -276,6 +278,16 @@ export const updateProductVariant = async (
     `/api/menu/product-attributes/variants/${id}`,
     data
   );
+  return response.data.data;
+};
+
+export const archiveProductVariant = async (id: number): Promise<ProductVariantResponse> => {
+  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(`/api/menu/product-attributes/variants/${id}/archive`);
+  return response.data.data;
+};
+
+export const unarchiveProductVariant = async (id: number): Promise<ProductVariantResponse> => {
+  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(`/api/menu/product-attributes/variants/${id}/unarchive`);
   return response.data.data;
 };
 
@@ -498,6 +510,38 @@ export const useUpdateProductVariant = () => {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
       queryClient.invalidateQueries({ queryKey: ['product-variants', 'single'] });
+      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+    },
+  });
+};
+
+export const useArchiveProductVariant = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: archiveProductVariant,
+    onSuccess: (result) => {
+      // Invalidate product variants for the specific product
+      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
+      // Invalidate all product variants
+      queryClient.invalidateQueries({ queryKey: ['product-variants'] });
+      // Invalidate product detail
+      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+    },
+  });
+};
+
+export const useUnarchiveProductVariant = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: unarchiveProductVariant,
+    onSuccess: (result) => {
+      // Invalidate product variants for the specific product
+      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
+      // Invalidate all product variants
+      queryClient.invalidateQueries({ queryKey: ['product-variants'] });
+      // Invalidate product detail
       queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
     },
   });

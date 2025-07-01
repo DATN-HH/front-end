@@ -39,6 +39,8 @@ import {
     useUpdateProductVariant,
     useUpdateVariantPricing,
     useDeleteProductVariant,
+    useArchiveProductVariant,
+    useUnarchiveProductVariant,
     ProductAttributeResponse,
     ProductVariantResponse,
     ProductVariantCreateRequest,
@@ -75,6 +77,7 @@ const assignmentFormSchema = z.object({
     attributeAssignments: z.array(z.object({
         attributeId: z.number(),
         selectedValueIds: z.array(z.number()),
+        textValue: z.string().optional(),
     })),
 });
 
@@ -107,18 +110,27 @@ export default function ProductDetailPage() {
     const [activeVariantTab, setActiveVariantTab] = useState('list');
     const [editingVariantId, setEditingVariantId] = useState<number | null>(null);
     const [showEditVariantModal, setShowEditVariantModal] = useState(false);
+    
+    // Variant filtering and search state
+    const [variantSearchTerm, setVariantSearchTerm] = useState('');
+    const [variantStatusFilter, setVariantStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
     const { data: product, isLoading, error } = useProductDetail(Number(productId));
     
     // Variant management API hooks
     const { data: attributes = [] } = useAllProductAttributes();
     const { data: variants = [], isLoading: variantsLoading } = useProductVariants(Number(productId));
+    
+    // Debug: Log variants data
+    console.log('Variants data:', variants, 'Loading:', variantsLoading);
     const assignAttributesMutation = useAssignAttributesToProduct();
     const removeAttributesMutation = useRemoveAttributesFromProduct();
     const createVariantMutation = useCreateProductVariant();
     const updateVariantMutation = useUpdateProductVariant();
     const updateVariantPricingMutation = useUpdateVariantPricing();
     const deleteVariantMutation = useDeleteProductVariant();
+    const archiveVariantMutation = useArchiveProductVariant();
+    const unarchiveVariantMutation = useUnarchiveProductVariant();
     const archiveProductMutation = useArchiveProduct();
     const unarchiveProductMutation = useUnarchiveProduct();
 
@@ -159,6 +171,7 @@ export default function ProductDetailPage() {
                 .map(attr => ({
                     attributeId: attr.id,
                     selectedValueIds: [],
+                    textValue: '',
                 }));
             
             assignmentForm.reset({
@@ -239,17 +252,51 @@ export default function ProductDetailPage() {
         );
     };
 
+    // Filter variants based on search and status
+    const filteredVariants = variants.filter(variant => {
+        const matchesSearch = variant.displayName.toLowerCase().includes(variantSearchTerm.toLowerCase()) ||
+                            variant.internalReference?.toLowerCase().includes(variantSearchTerm.toLowerCase()) ||
+                            variant.attributeCombination?.toLowerCase().includes(variantSearchTerm.toLowerCase());
+        
+        const matchesStatus = variantStatusFilter === 'all' || 
+                            (variantStatusFilter === 'active' && variant.status === 'ACTIVE') ||
+                            (variantStatusFilter === 'inactive' && variant.status === 'INACTIVE');
+        
+        return matchesSearch && matchesStatus;
+    });
+
+    // Get money attributes for a variant
+    const getMoneyAttributes = (variant: ProductVariantResponse) => {
+        if (!variant.attributeValues) return [];
+        
+        return variant.attributeValues
+            .filter(attrValue => {
+                const attribute = attributes.find(attr => attr.id === attrValue.attributeId);
+                return attribute?.isMoneyAttribute === true;
+            })
+            .map(attrValue => ({
+                name: attrValue.attributeName,
+                value: attrValue.name,
+                textValue: attrValue.textValue
+            }));
+    };
+
     // Variant management functions
     const onAssignAttributes = async (data: AssignmentFormData) => {
         try {
             const requestData: ProductAttributeAssignRequest = {
                 productId: Number(productId),
-                attributeAssignments: data.attributeAssignments.filter(
-                    assignment => assignment.selectedValueIds.length > 0
-                ),
+                attributeAssignments: data.attributeAssignments.filter(assignment => {
+                    // Include assignments that have either selected values or text value
+                    const hasSelectedValues = assignment.selectedValueIds && assignment.selectedValueIds.length > 0;
+                    const hasTextValue = assignment.textValue && assignment.textValue.trim() !== '';
+                    return hasSelectedValues || hasTextValue;
+                }),
             };
 
             const newVariants = await assignAttributesMutation.mutateAsync(requestData);
+            
+            console.log('Assignment successful, new variants:', newVariants);
             
             toast({
                 title: 'Attributes Assigned',
@@ -383,6 +430,38 @@ export default function ProductDetailPage() {
             toast({
                 title: 'Error',
                 description: 'Failed to delete variant. Please try again.',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const handleArchiveVariant = async (variantId: number, variantName: string) => {
+        try {
+            await archiveVariantMutation.mutateAsync(variantId);
+            toast({
+                title: 'Variant Archived',
+                description: `${variantName} has been archived successfully.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to archive variant. Please try again.',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const handleUnarchiveVariant = async (variantId: number, variantName: string) => {
+        try {
+            await unarchiveVariantMutation.mutateAsync(variantId);
+            toast({
+                title: 'Variant Unarchived',
+                description: `${variantName} has been unarchived successfully.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to unarchive variant. Please try again.',
                 variant: 'destructive',
             });
         }
@@ -861,24 +940,21 @@ export default function ProductDetailPage() {
 
                 <TabsContent value="variants" className="space-y-6">
                     <Tabs value={activeVariantTab} onValueChange={setActiveVariantTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="list">
                                 Variants ({variants.length})
                             </TabsTrigger>
                             <TabsTrigger value="assign">
-                                Assign Attributes
-                            </TabsTrigger>
-                            <TabsTrigger value="create">
-                                Create Variant
+                                Create Variants
                             </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="list" className="space-y-4">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-medium">Product Variants</h3>
-                                <Button onClick={() => setActiveVariantTab('create')}>
+                                <Button onClick={() => setActiveVariantTab('assign')}>
                                     <Package className="h-4 w-4 mr-2" />
-                                    Create Variant
+                                    Create Variants
                                 </Button>
                             </div>
 
@@ -898,96 +974,181 @@ export default function ProductDetailPage() {
                                         <div className="flex gap-2 justify-center">
                                             <Button onClick={() => setActiveVariantTab('assign')}>
                                                 <Settings className="h-4 w-4 mr-2" />
-                                                Assign Attributes
-                                            </Button>
-                                            <Button variant="outline" onClick={() => setActiveVariantTab('create')}>
-                                                <Package className="h-4 w-4 mr-2" />
-                                                Create Custom Variant
+                                                Create Variants
                                             </Button>
                                         </div>
                                     </CardContent>
                                 </Card>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <div className="text-sm text-gray-600">
-                                            {variants.length} variants found
+                                    {/* Search and Filter Controls */}
+                                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                                        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                                            <div className="flex-1 max-w-md">
+                                                <Input
+                                                    placeholder="Search variants..."
+                                                    value={variantSearchTerm}
+                                                    onChange={(e) => setVariantSearchTerm(e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                            <Select value={variantStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setVariantStatusFilter(value)}>
+                                                <SelectTrigger className="w-full sm:w-[180px]">
+                                                    <SelectValue placeholder="Filter by status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Variants</SelectItem>
+                                                    <SelectItem value="active">Active Only</SelectItem>
+                                                    <SelectItem value="inactive">Inactive Only</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleRemoveAllAttributes}
-                                            className="text-red-500"
-                                            disabled={removeAttributesMutation.isPending}
-                                        >
-                                            <Tag className="h-4 w-4 mr-1" />
-                                            Remove All Attributes
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <div className="text-sm text-gray-600 flex items-center">
+                                                {filteredVariants.length} of {variants.length} variants
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleRemoveAllAttributes}
+                                                className="text-red-500"
+                                                disabled={removeAttributesMutation.isPending}
+                                            >
+                                                <Tag className="h-4 w-4 mr-1" />
+                                                Remove All Attributes
+                                            </Button>
+                                        </div>
                                     </div>
                                     
                                     <div className="grid gap-4">
-                                        {variants.map((variant) => (
-                                            <Card key={variant.id}>
-                                                <CardContent className="p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center space-x-2">
-                                                                <h4 className="font-medium">{variant.displayName}</h4>
-                                                                <Badge variant={variant.isActive ? 'default' : 'secondary'}>
-                                                                    {variant.isActive ? 'Active' : 'Inactive'}
-                                                                </Badge>
-                                                            </div>
-                                                            
-                                                            {variant.internalReference && (
-                                                                <div className="text-sm text-muted-foreground">
-                                                                    Ref: {variant.internalReference}
-                                                                </div>
-                                                            )}
-
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {variant.attributeValues?.map((attrValue) => (
-                                                                    <Badge key={attrValue.id} variant="outline">
-                                                                        {attrValue.attributeName}: {attrValue.name}
+                                        {filteredVariants.map((variant) => {
+                                            const moneyAttributes = getMoneyAttributes(variant);
+                                            const isArchived = variant.status === 'INACTIVE';
+                                            
+                                            return (
+                                                <Card key={variant.id} className={isArchived ? 'opacity-60 border-dashed' : ''}>
+                                                    <CardContent className="p-4">
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="space-y-3 flex-1">
+                                                                {/* Variant Name and Status */}
+                                                                <div className="flex items-center space-x-2">
+                                                                    <h4 className="font-semibold text-lg">{variant.displayName}</h4>
+                                                                    <Badge variant={variant.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                                                                        {variant.status === 'ACTIVE' ? 'Active' : 'Archived'}
                                                                     </Badge>
-                                                                ))}
-                                                            </div>
-
-                                                            <div className="flex items-center space-x-4 text-sm">
-                                                                <span>Price: {formatCurrency(variant.effectivePrice)}</span>
-                                                                <span>Cost: {formatCurrency(variant.effectiveCost)}</span>
-                                                                {variant.totalAttributeExtras && variant.totalAttributeExtras > 0 && (
-                                                                    <span className="text-green-600">
-                                                                        +{formatCurrency(variant.totalAttributeExtras)} extras
-                                                                    </span>
+                                                                    {variant.isActive && (
+                                                                        <Badge variant="outline" className="text-green-600">
+                                                                            Available
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                {/* Internal Reference */}
+                                                                {variant.internalReference && (
+                                                                    <div className="text-sm text-muted-foreground">
+                                                                        Reference: {variant.internalReference}
+                                                                    </div>
                                                                 )}
+
+                                                                {/* Money Attributes - Prominently displayed */}
+                                                                {moneyAttributes.length > 0 && (
+                                                                    <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                                                                        <div className="text-sm font-medium text-green-800 mb-2">
+                                                                            <DollarSign className="h-4 w-4 inline mr-1" />
+                                                                            Money Attributes
+                                                                        </div>
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                            {moneyAttributes.map((attr, index) => (
+                                                                                <div key={index} className="flex justify-between items-center text-sm">
+                                                                                    <span className="font-medium text-green-700">{attr.name}:</span>
+                                                                                    <span className="text-green-900 font-semibold">
+                                                                                        {attr.textValue ? formatCurrency(Number(attr.textValue)) : attr.value}
+                                                                                    </span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Regular Attributes */}
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {variant.attributeValues?.filter(attrValue => {
+                                                                        const attribute = attributes.find(attr => attr.id === attrValue.attributeId);
+                                                                        return attribute?.isMoneyAttribute !== true;
+                                                                    }).map((attrValue) => (
+                                                                        <Badge key={attrValue.id} variant="outline">
+                                                                            {attrValue.attributeName}: {attrValue.textValue || attrValue.name}
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+
+                                                                {/* Pricing Information */}
+                                                                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                                                    <span>Price: {formatCurrency(variant.effectivePrice)}</span>
+                                                                    <span>Cost: {formatCurrency(variant.effectiveCost)}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Action Buttons */}
+                                                            <div className="flex items-center space-x-2 ml-4">
+                                                                {variant.status === 'ACTIVE' ? (
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => handleArchiveVariant(variant.id, variant.displayName)}
+                                                                        disabled={archiveVariantMutation.isPending}
+                                                                        className="text-orange-600 hover:text-orange-700"
+                                                                    >
+                                                                        <Archive className="h-4 w-4 mr-1" />
+                                                                        Archive
+                                                                    </Button>
+                                                                ) : (
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => handleUnarchiveVariant(variant.id, variant.displayName)}
+                                                                        disabled={unarchiveVariantMutation.isPending}
+                                                                        className="text-blue-600 hover:text-blue-700"
+                                                                    >
+                                                                        <RotateCcw className="h-4 w-4 mr-1" />
+                                                                        Unarchive
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-500 hover:text-red-600"
+                                                                    onClick={() => handleDeleteVariant(variant.id, variant.displayName)}
+                                                                    disabled={deleteVariantMutation.isPending}
+                                                                >
+                                                                    <Tag className="h-4 w-4 mr-1" />
+                                                                    Delete
+                                                                </Button>
                                                             </div>
                                                         </div>
-
-                                                        <div className="flex items-center space-x-2">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleEditVariant(variant)}
-                                                            >
-                                                                <Edit className="h-4 w-4 mr-1" />
-                                                                Edit
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="text-red-500"
-                                                                onClick={() => handleDeleteVariant(variant.id, variant.displayName)}
-                                                                disabled={deleteVariantMutation.isPending}
-                                                            >
-                                                                <Tag className="h-4 w-4 mr-1" />
-                                                                Delete
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        })}
                                     </div>
+                                    
+                                    {filteredVariants.length === 0 && variants.length > 0 && (
+                                        <div className="text-center py-8">
+                                            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-gray-500">No variants match your search criteria.</p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setVariantSearchTerm('');
+                                                    setVariantStatusFilter('all');
+                                                }}
+                                                className="mt-2"
+                                            >
+                                                Clear Filters
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </TabsContent>
@@ -1012,6 +1173,7 @@ export default function ProductDetailPage() {
                                             {attribute.displayType === 'RADIO' && <div className="w-3 h-3 rounded-full border border-gray-400" />}
                                             {attribute.displayType === 'COLOR' && <div className="w-4 h-4 rounded bg-gradient-to-r from-red-500 to-blue-500" />}
                                             {attribute.displayType === 'CHECKBOX' && <div className="w-3 h-3 border border-gray-400" />}
+                                            {attribute.displayType === 'TEXTBOX' && <div className="w-4 h-4 border border-gray-400 rounded" />}
                                             {attribute.name}
                                         </FormLabel>
                                         
@@ -1037,7 +1199,7 @@ export default function ProductDetailPage() {
                                                                     {attribute.values?.map((value) => (
                                                                         <option key={value.id} value={value.id}>
                                                                             {value.name}
-                                                                            {value.priceExtra && value.priceExtra > 0 && ` (+${formatCurrency(value.priceExtra)})`}
+                                                                            {value.textValue && ` ("${value.textValue}")`}
                                                                         </option>
                                                                     ))}
                                                                 </select>
@@ -1084,9 +1246,9 @@ export default function ProductDetailPage() {
                                                                             )}
                                                                             {value.name}
                                                                         </FormLabel>
-                                                                        {value.priceExtra && value.priceExtra > 0 && (
-                                                                            <div className="text-xs text-green-600">
-                                                                                +{formatCurrency(value.priceExtra)}
+                                                                        {value.textValue && (
+                                                                            <div className="text-xs text-gray-600">
+                                                                                "{value.textValue}"
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -1130,7 +1292,7 @@ export default function ProductDetailPage() {
                                                                                         field.onChange([...currentValues, value.id]);
                                                                                     }
                                                                                 }}
-                                                                                title={`${value.name}${value.priceExtra && value.priceExtra > 0 ? ` (+${formatCurrency(value.priceExtra)})` : ''}`}
+                                                                                title={`${value.name}${value.textValue ? ` ("${value.textValue}")` : ''}`}
                                                                             >
                                                                                 {isSelected && (
                                                                                     <div className="absolute inset-0 flex items-center justify-center">
@@ -1184,9 +1346,9 @@ export default function ProductDetailPage() {
                                                                         )}
                                                                         {value.name}
                                                                     </FormLabel>
-                                                                    {value.priceExtra && value.priceExtra > 0 && (
-                                                                        <div className="text-xs text-green-600">
-                                                                            +{formatCurrency(value.priceExtra)}
+                                                                    {value.textValue && (
+                                                                        <div className="text-xs text-gray-600">
+                                                                            "{value.textValue}"
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -1194,6 +1356,29 @@ export default function ProductDetailPage() {
                                                         )}
                                                     />
                                                 ))}
+                                            </div>
+                                        )}
+
+                                        {/* TEXTBOX display type - text input */}
+                                        {attribute.displayType === 'TEXTBOX' && (
+                                            <div className="space-y-2">
+                                                <div className="text-sm text-gray-600">Enter text value (leave empty to skip this attribute)</div>
+                                                <FormField
+                                                    control={assignmentForm.control}
+                                                    name={`attributeAssignments.${index}.textValue`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <Input
+                                                                    placeholder={`Enter ${attribute.name.toLowerCase()} value...`}
+                                                                    value={field.value || ''}
+                                                                    onChange={field.onChange}
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
                                             </div>
                                         )}
                                                     </div>
@@ -1214,355 +1399,6 @@ export default function ProductDetailPage() {
                             </Card>
                         </TabsContent>
 
-                        <TabsContent value="create" className="space-y-4">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Create Product Variant</CardTitle>
-                                    <CardDescription>
-                                        Create a custom variant with specific attribute combinations.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Form {...variantForm}>
-                                        <form onSubmit={variantForm.handleSubmit(onCreateVariant)} className="space-y-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField
-                                                    control={variantForm.control}
-                                                    name="price"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Price (VND)</FormLabel>
-                                                            <FormControl>
-                                                                <NumberInput
-                                                                    value={field.value}
-                                                                    onChange={field.onChange}
-                                                                    placeholder="0"
-                                                                    min={0}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-
-                                                <FormField
-                                                    control={variantForm.control}
-                                                    name="cost"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Cost (VND)</FormLabel>
-                                                            <FormControl>
-                                                                <NumberInput
-                                                                    value={field.value}
-                                                                    onChange={field.onChange}
-                                                                    placeholder="0"
-                                                                    min={0}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            </div>
-
-                                            <FormField
-                                                control={variantForm.control}
-                                                name="internalReference"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Internal Reference</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                placeholder="Optional internal reference"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            <FormField
-                                                control={variantForm.control}
-                                                name="isActive"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <Checkbox
-                                                                checked={field.value}
-                                                                onCheckedChange={(checked) => field.onChange(checked === true)}
-                                                            />
-                                                        </FormControl>
-                                                        <div className="space-y-1 leading-none">
-                                                            <FormLabel>Active</FormLabel>
-                                                            <div className="text-sm text-muted-foreground">
-                                                                Whether this variant is active and available
-                                                            </div>
-                                                        </div>
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            {/* Attribute value selection with proper display types */}
-                                            <div className="space-y-4">
-                                                <FormLabel className="text-base font-medium">
-                                                    Select Attribute Values *
-                                                </FormLabel>
-                                                {attributes
-                                                    .filter(attr => attr.status === 'ACTIVE' && attr.values && attr.values.length > 0)
-                                                    .map((attribute) => (
-                                                        <div key={attribute.id} className="space-y-3">
-                                                            <FormLabel className="text-sm font-medium flex items-center gap-2">
-                                                                {attribute.displayType === 'SELECT' && <ChevronDown className="h-4 w-4" />}
-                                                                {attribute.displayType === 'RADIO' && <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                                                {attribute.displayType === 'COLOR' && <div className="w-4 h-4 rounded bg-gradient-to-r from-red-500 to-blue-500" />}
-                                                                {attribute.displayType === 'CHECKBOX' && <div className="w-3 h-3 border border-gray-400" />}
-                                                                {attribute.name}
-                                                            </FormLabel>
-                                                            
-                                                            {/* SELECT display type - dropdown */}
-                                                            {attribute.displayType === 'SELECT' && (
-                                                                <FormField
-                                                                    control={variantForm.control}
-                                                                    name="attributeValueIds"
-                                                                    render={({ field }) => (
-                                                                        <FormItem>
-                                                                            <Select
-                                                                                onValueChange={(valueId) => {
-                                                                                    const currentValues = field.value || [];
-                                                                                    const numericValueId = parseInt(valueId);
-                                                                                    // Remove any existing value for this attribute
-                                                                                    const filteredValues = currentValues.filter(id => 
-                                                                                        !attribute.values?.some(v => v.id === id)
-                                                                                    );
-                                                                                    // Add the new value
-                                                                                    field.onChange([...filteredValues, numericValueId]);
-                                                                                }}
-                                                                                value={
-                                                                                    field.value?.find(id => 
-                                                                                        attribute.values?.some(v => v.id === id)
-                                                                                    )?.toString() || ''
-                                                                                }
-                                                                            >
-                                                                                <FormControl>
-                                                                                    <SelectTrigger>
-                                                                                        <SelectValue placeholder={`Select ${attribute.name.toLowerCase()}`} />
-                                                                                    </SelectTrigger>
-                                                                                </FormControl>
-                                                                                <SelectContent>
-                                                                                    {attribute.values?.map((value) => (
-                                                                                        <SelectItem key={value.id} value={value.id.toString()}>
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                {value.colorCode && (
-                                                                                                    <div 
-                                                                                                        className="w-4 h-4 rounded border border-gray-300"
-                                                                                                        style={{ backgroundColor: value.colorCode }}
-                                                                                                    />
-                                                                                                )}
-                                                                                                {value.name}
-                                                                                                {value.priceExtra && value.priceExtra > 0 && (
-                                                                                                    <span className="text-xs text-green-600">
-                                                                                                        +{formatCurrency(value.priceExtra)}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </SelectItem>
-                                                                                    ))}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                            <FormMessage />
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            )}
-
-                                                            {/* RADIO display type - radio buttons */}
-                                                            {attribute.displayType === 'RADIO' && (
-                                                                <FormField
-                                                                    control={variantForm.control}
-                                                                    name="attributeValueIds"
-                                                                    render={({ field }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <RadioGroup
-                                                                                    onValueChange={(valueId) => {
-                                                                                        const currentValues = field.value || [];
-                                                                                        const numericValueId = parseInt(valueId);
-                                                                                        // Remove any existing value for this attribute
-                                                                                        const filteredValues = currentValues.filter(id => 
-                                                                                            !attribute.values?.some(v => v.id === id)
-                                                                                        );
-                                                                                        // Add the new value
-                                                                                        field.onChange([...filteredValues, numericValueId]);
-                                                                                    }}
-                                                                                    value={
-                                                                                        field.value?.find(id => 
-                                                                                            attribute.values?.some(v => v.id === id)
-                                                                                        )?.toString() || ''
-                                                                                    }
-                                                                                    className="grid grid-cols-2 md:grid-cols-3 gap-3"
-                                                                                >
-                                                                                    {attribute.values?.map((value) => (
-                                                                                        <div key={value.id} className="flex items-center space-x-2">
-                                                                                            <RadioGroupItem value={value.id.toString()} id={`radio-${value.id}`} />
-                                                                                            <label 
-                                                                                                htmlFor={`radio-${value.id}`}
-                                                                                                className="text-sm font-normal flex items-center gap-2 cursor-pointer"
-                                                                                            >
-                                                                                                {value.colorCode && (
-                                                                                                    <div 
-                                                                                                        className="w-4 h-4 rounded border border-gray-300"
-                                                                                                        style={{ backgroundColor: value.colorCode }}
-                                                                                                    />
-                                                                                                )}
-                                                                                                {value.name}
-                                                                                                {value.priceExtra && value.priceExtra > 0 && (
-                                                                                                    <span className="text-xs text-green-600">
-                                                                                                        +{formatCurrency(value.priceExtra)}
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </label>
-                                                                                        </div>
-                                                                                    ))}
-                                                                                </RadioGroup>
-                                                                            </FormControl>
-                                                                            <FormMessage />
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            )}
-
-                                                            {/* COLOR display type - color swatches */}
-                                                            {attribute.displayType === 'COLOR' && (
-                                                                <FormField
-                                                                    control={variantForm.control}
-                                                                    name="attributeValueIds"
-                                                                    render={({ field }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <div className="grid grid-cols-6 md:grid-cols-8 gap-2">
-                                                                                    {attribute.values?.map((value) => {
-                                                                                        const isSelected = field.value?.includes(value.id);
-                                                                                        return (
-                                                                                            <div
-                                                                                                key={value.id}
-                                                                                                className={`
-                                                                                                    relative w-12 h-12 rounded-lg border-2 cursor-pointer transition-all
-                                                                                                    ${isSelected 
-                                                                                                        ? 'border-blue-500 ring-2 ring-blue-200' 
-                                                                                                        : 'border-gray-300 hover:border-gray-400'
-                                                                                                    }
-                                                                                                `}
-                                                                                                style={{ backgroundColor: value.colorCode || '#f3f4f6' }}
-                                                                                                onClick={() => {
-                                                                                                    const currentValues = field.value || [];
-                                                                                                    // Remove any existing value for this attribute
-                                                                                                    const filteredValues = currentValues.filter(id => 
-                                                                                                        !attribute.values?.some(v => v.id === id)
-                                                                                                    );
-                                                                                                    // Add the new value
-                                                                                                    field.onChange([...filteredValues, value.id]);
-                                                                                                }}
-                                                                                                title={`${value.name}${value.priceExtra && value.priceExtra > 0 ? ` (+${formatCurrency(value.priceExtra)})` : ''}`}
-                                                                                            >
-                                                                                                {isSelected && (
-                                                                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                                                                        <div className="w-4 h-4 bg-white rounded-full border border-gray-300 flex items-center justify-center">
-                                                                                                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        );
-                                                                                    })}
-                                                                                </div>
-                                                                            </FormControl>
-                                                                            <FormMessage />
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            )}
-
-                                                            {/* CHECKBOX display type - checkboxes */}
-                                                            {attribute.displayType === 'CHECKBOX' && (
-                                                                <FormField
-                                                                    control={variantForm.control}
-                                                                    name="attributeValueIds"
-                                                                    render={({ field }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                                                                    {attribute.values?.map((value) => (
-                                                                                        <FormField
-                                                                                            key={value.id}
-                                                                                            control={variantForm.control}
-                                                                                            name="attributeValueIds"
-                                                                                            render={({ field }) => (
-                                                                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                                                                    <FormControl>
-                                                                                                        <Checkbox
-                                                                                                            checked={field.value?.includes(value.id)}
-                                                                                                            onCheckedChange={(checked) => {
-                                                                                                                const currentValues = field.value || [];
-                                                                                                                if (checked) {
-                                                                                                                    field.onChange([...currentValues, value.id]);
-                                                                                                                } else {
-                                                                                                                    field.onChange(currentValues.filter(id => id !== value.id));
-                                                                                                                }
-                                                                                                            }}
-                                                                                                        />
-                                                                                                    </FormControl>
-                                                                                                    <div className="space-y-1 leading-none">
-                                                                                                        <FormLabel className="text-sm font-normal flex items-center gap-2 cursor-pointer">
-                                                                                                            {value.colorCode && (
-                                                                                                                <div 
-                                                                                                                    className="w-4 h-4 rounded border border-gray-300"
-                                                                                                                    style={{ backgroundColor: value.colorCode }}
-                                                                                                                />
-                                                                                                            )}
-                                                                                                            {value.name}
-                                                                                                        </FormLabel>
-                                                                                                        {value.priceExtra && value.priceExtra > 0 && (
-                                                                                                            <div className="text-xs text-green-600">
-                                                                                                                +{formatCurrency(value.priceExtra)}
-                                                                                                            </div>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                </FormItem>
-                                                                                            )}
-                                                                                        />
-                                                                                    ))}
-                                                                                </div>
-                                                                            </FormControl>
-                                                                            <FormMessage />
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                            </div>
-
-                                            <div className="flex justify-end space-x-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={() => variantForm.reset()}
-                                                >
-                                                    Reset
-                                                </Button>
-                                                <Button
-                                                    type="submit"
-                                                    disabled={createVariantMutation.isPending}
-                                                >
-                                                    {createVariantMutation.isPending ? 'Creating...' : 'Create Variant'}
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    </Form>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
                     </Tabs>
                 </TabsContent>
 

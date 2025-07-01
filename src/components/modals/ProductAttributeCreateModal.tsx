@@ -42,7 +42,7 @@ import {
 // Form schema
 const formSchema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-    displayType: z.enum(['RADIO', 'SELECT', 'COLOR', 'CHECKBOX'] as const, {
+    displayType: z.enum(['RADIO', 'SELECT', 'COLOR', 'CHECKBOX', 'TEXTBOX'] as const, {
         required_error: 'Display type is required',
     }),
     variantCreationMode: z.enum(['INSTANTLY', 'DYNAMICALLY', 'NEVER'] as const, {
@@ -56,7 +56,7 @@ type FormData = z.infer<typeof formSchema>;
 interface AttributeValue {
     name: string;
     colorCode?: string;
-    priceExtra?: number;
+    textValue?: string;
     description?: string;
 }
 
@@ -69,7 +69,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
     const { toast } = useToast();
     const [saveAndNew, setSaveAndNew] = useState(false);
     const [attributeValues, setAttributeValues] = useState<AttributeValue[]>([]);
-    const [newValue, setNewValue] = useState<AttributeValue>({ name: '', colorCode: '', priceExtra: 0, description: '' });
+    const [newValue, setNewValue] = useState<AttributeValue>({ name: '', colorCode: '', textValue: '', description: '' });
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
@@ -104,7 +104,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
         }
 
         setAttributeValues([...attributeValues, { ...newValue }]);
-        setNewValue({ name: '', colorCode: '', priceExtra: 0, description: '' });
+        setNewValue({ name: '', colorCode: '', textValue: '', description: '' });
     };
 
     const removeValue = (index: number) => {
@@ -133,7 +133,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                         name: value.name,
                         colorCode: value.colorCode || undefined,
                         sequence: index + 1,
-                        priceExtra: value.priceExtra || undefined,
+                        textValue: value.textValue || undefined,
                         description: value.description || undefined,
                         attributeId: createdAttribute.id,
                     };
@@ -151,7 +151,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
             if (saveAndNew) {
                 form.reset();
                 setAttributeValues([]);
-                setNewValue({ name: '', colorCode: '', priceExtra: 0, description: '' });
+                setNewValue({ name: '', colorCode: '', textValue: '', description: '' });
                 setSaveAndNew(false);
             } else {
                 handleClose();
@@ -169,7 +169,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
         onOpenChange(false);
         form.reset();
         setAttributeValues([]);
-        setNewValue({ name: '', colorCode: '', priceExtra: 0, description: '' });
+        setNewValue({ name: '', colorCode: '', textValue: '', description: '' });
         setSaveAndNew(false);
     };
 
@@ -229,6 +229,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                                                         <SelectItem value="RADIO">Radio Buttons</SelectItem>
                                                         <SelectItem value="COLOR">Color Picker</SelectItem>
                                                         <SelectItem value="CHECKBOX">Checkboxes</SelectItem>
+                                        <SelectItem value="TEXTBOX">Text Input</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormDescription>
@@ -288,10 +289,11 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                         </Card>
 
                         {/* Attribute Values */}
+                        {displayType !== 'TEXTBOX' && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Attribute Values</CardTitle>
-                                <CardDescription>Add possible values for this attribute (optional)</CardDescription>
+                                <CardDescription>Add possible values for this attribute (not needed for textbox type)</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {/* Add new value form */}
@@ -324,15 +326,16 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                                         </div>
                                     )}
                                     
-                                    <div>
-                                        <label className="text-sm font-medium">Price Extra</label>
-                                        <Input
-                                            type="number"
-                                            value={newValue.priceExtra || ''}
-                                            onChange={(e) => setNewValue({ ...newValue, priceExtra: Number(e.target.value) })}
-                                            placeholder="0"
-                                        />
-                                    </div>
+                                    {displayType === 'TEXTBOX' && (
+                                        <div>
+                                            <label className="text-sm font-medium">Default Text Value</label>
+                                            <Input
+                                                value={newValue.textValue || ''}
+                                                onChange={(e) => setNewValue({ ...newValue, textValue: e.target.value })}
+                                                placeholder="Default value (optional)"
+                                            />
+                                        </div>
+                                    )}
                                     
                                     <div className="flex items-end">
                                         <Button type="button" onClick={addValue} className="w-full">
@@ -358,12 +361,9 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                                                         )}
                                                         <div>
                                                             <span className="font-medium">{value.name}</span>
-                                                            {value.priceExtra && value.priceExtra > 0 && (
-                                                                <span className="ml-2 text-sm text-green-600">
-                                                                    +{new Intl.NumberFormat('vi-VN', {
-                                                                        style: 'currency',
-                                                                        currency: 'VND',
-                                                                    }).format(value.priceExtra)}
+                                                            {value.textValue && (
+                                                                <span className="ml-2 text-sm text-gray-600">
+                                                                    "{value.textValue}"
                                                                 </span>
                                                             )}
                                                         </div>
@@ -383,6 +383,7 @@ export function ProductAttributeCreateModal({ open, onOpenChange }: ProductAttri
                                 )}
                             </CardContent>
                         </Card>
+                        )}
 
                         <div className="flex items-center space-x-2">
                             <Checkbox
