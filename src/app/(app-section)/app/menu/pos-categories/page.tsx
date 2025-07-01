@@ -52,92 +52,15 @@ import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { PosCategoryModal, PosCategoryEditModal } from '@/components/modals';
+import { 
+    useAllPosCategories, 
+    useDeletePosCategory, 
+    useMoveCategorySequence,
+    PosCategoryResponse 
+} from '@/api/v1/menu/pos-categories';
+import { Loader2 } from 'lucide-react';
 
-// Mock data - expanded
-const allCategories = [
-    {
-        id: 1,
-        name: 'Appetizers',
-        parentCategory: null,
-        sequence: 1,
-        productCount: 8,
-        createdAt: '2024-01-15',
-    },
-    {
-        id: 2,
-        name: 'Main Course',
-        parentCategory: null,
-        sequence: 2,
-        productCount: 15,
-        createdAt: '2024-01-14',
-    },
-    {
-        id: 3,
-        name: 'Pho',
-        parentCategory: 'Main Course',
-        sequence: 1,
-        productCount: 6,
-        createdAt: '2024-01-13',
-    },
-    {
-        id: 4,
-        name: 'Noodles',
-        parentCategory: 'Main Course',
-        sequence: 2,
-        productCount: 4,
-        createdAt: '2024-01-12',
-    },
-    {
-        id: 5,
-        name: 'Beverages',
-        parentCategory: null,
-        sequence: 3,
-        productCount: 12,
-        createdAt: '2024-01-11',
-    },
-    {
-        id: 6,
-        name: 'Coffee',
-        parentCategory: 'Beverages',
-        sequence: 1,
-        productCount: 5,
-        createdAt: '2024-01-10',
-    },
-    {
-        id: 7,
-        name: 'Desserts',
-        parentCategory: null,
-        sequence: 4,
-        productCount: 6,
-        createdAt: '2024-01-09',
-    },
-    {
-        id: 8,
-        name: 'Tea',
-        parentCategory: 'Beverages',
-        sequence: 2,
-        productCount: 3,
-        createdAt: '2024-01-08',
-    },
-    {
-        id: 9,
-        name: 'Smoothie',
-        parentCategory: 'Beverages',
-        sequence: 3,
-        productCount: 4,
-        createdAt: '2024-01-07',
-    },
-    {
-        id: 10,
-        name: 'Banh Mi',
-        parentCategory: 'Main Course',
-        sequence: 3,
-        productCount: 2,
-        createdAt: '2024-01-06',
-    },
-];
-
-type SortField = 'name' | 'sequence' | 'productCount' | 'createdAt';
+type SortField = 'name' | 'sequence' | 'productsCount' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
 export default function PosCategoriesPage() {
@@ -151,8 +74,13 @@ export default function PosCategoriesPage() {
     });
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<any>(null);
+    const [selectedCategory, setSelectedCategory] = useState<PosCategoryResponse | null>(null);
     const { toast } = useToast();
+
+    // API hooks
+    const { data: allCategories = [], isLoading, error } = useAllPosCategories();
+    const deletePosCategoryMutation = useDeletePosCategory();
+    const moveCategoryMutation = useMoveCategorySequence();
 
     // Filter and sort logic
     const filteredAndSortedCategories = useMemo(() => {
@@ -163,8 +91,8 @@ export default function PosCategoriesPage() {
             const matchesParent =
                 filters.parentCategory === 'all' ||
                 (filters.parentCategory === 'root'
-                    ? !category.parentCategory
-                    : category.parentCategory === filters.parentCategory);
+                    ? !category.parentName
+                    : category.parentName === filters.parentCategory);
 
             return matchesSearch && matchesParent;
         });
@@ -216,25 +144,56 @@ export default function PosCategoriesPage() {
         );
     };
 
-    const handleDelete = (categoryId: number, categoryName: string) => {
-        toast({
-            title: 'Category Deleted',
-            description: `${categoryName} has been deleted successfully.`,
-        });
+    const handleDelete = async (categoryId: number, categoryName: string) => {
+        if (!confirm(`Are you sure you want to delete "${categoryName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await deletePosCategoryMutation.mutateAsync(categoryId);
+            toast({
+                title: 'Category Deleted',
+                description: `${categoryName} has been deleted successfully.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to delete category. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
-    const handleMoveUp = (categoryId: number, categoryName: string) => {
-        toast({
-            title: 'Moved Up',
-            description: `${categoryName} has been moved up.`,
-        });
+    const handleMoveUp = async (categoryId: number, categoryName: string) => {
+        try {
+            await moveCategoryMutation.mutateAsync({ id: categoryId, direction: 'up' });
+            toast({
+                title: 'Moved Up',
+                description: `${categoryName} has been moved up.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to move category. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
-    const handleMoveDown = (categoryId: number, categoryName: string) => {
-        toast({
-            title: 'Moved Down',
-            description: `${categoryName} has been moved down.`,
-        });
+    const handleMoveDown = async (categoryId: number, categoryName: string) => {
+        try {
+            await moveCategoryMutation.mutateAsync({ id: categoryId, direction: 'down' });
+            toast({
+                title: 'Moved Down',
+                description: `${categoryName} has been moved down.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to move category. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
     const handleEdit = (category: any) => {
@@ -249,6 +208,45 @@ export default function PosCategoriesPage() {
         setSearchTerm('');
         setCurrentPage(1);
     };
+
+    // Get unique parent categories for filter dropdown
+    const uniqueParentCategories = useMemo(() => {
+        const parents = allCategories
+            .map(cat => cat.parentName)
+            .filter((name): name is string => name !== null && name !== undefined);
+        return [...new Set(parents)];
+    }, [allCategories]);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <PageTitle
+                    icon={Layers}
+                    title="POS Categories"
+                    description="Manage product categories displayed on Point of Sale"
+                />
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <span className="ml-2">Loading categories...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <PageTitle
+                    icon={Layers}
+                    title="POS Categories"
+                    description="Manage product categories displayed on Point of Sale"
+                />
+                <div className="text-center text-red-500 min-h-[400px] flex items-center justify-center">
+                    Failed to load categories. Please try again.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -331,12 +329,11 @@ export default function PosCategoriesPage() {
                                                     <SelectItem value="root">
                                                         Root Categories
                                                     </SelectItem>
-                                                    <SelectItem value="Main Course">
-                                                        Children of Main Course
-                                                    </SelectItem>
-                                                    <SelectItem value="Beverages">
-                                                        Children of Beverages
-                                                    </SelectItem>
+                                                    {uniqueParentCategories.map((parentName) => (
+                                                        <SelectItem key={parentName} value={parentName}>
+                                                            Children of {parentName}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -378,12 +375,12 @@ export default function PosCategoriesPage() {
                                     <Button
                                         variant="ghost"
                                         onClick={() =>
-                                            handleSort('productCount')
+                                            handleSort('productsCount')
                                         }
                                         className="h-auto p-0 font-semibold"
                                     >
                                         Product Count
-                                        {getSortIcon('productCount')}
+                                        {getSortIcon('productsCount')}
                                     </Button>
                                 </TableHead>
                                 <TableHead>
@@ -405,7 +402,7 @@ export default function PosCategoriesPage() {
                             {paginatedCategories.map((category) => (
                                 <TableRow key={category.id}>
                                     <TableCell className="font-medium">
-                                        {category.parentCategory && (
+                                        {category.parentName && (
                                             <span className="text-gray-400 mr-2">
                                                 └─
                                             </span>
@@ -413,11 +410,11 @@ export default function PosCategoriesPage() {
                                         {category.name}
                                     </TableCell>
                                     <TableCell>
-                                        {category.parentCategory || '—'}
+                                        {category.parentName || '—'}
                                     </TableCell>
                                     <TableCell>{category.sequence}</TableCell>
                                     <TableCell>
-                                        {category.productCount}
+                                        {category.productsCount}
                                     </TableCell>
                                     <TableCell className="text-sm text-muted-foreground">
                                         {new Date(
@@ -464,6 +461,7 @@ export default function PosCategoriesPage() {
                                                                 category.name
                                                             )
                                                         }
+                                                        disabled={moveCategoryMutation.isPending}
                                                     >
                                                         <ArrowUp className="mr-2 h-4 w-4" />
                                                         Move Up
@@ -475,6 +473,7 @@ export default function PosCategoriesPage() {
                                                                 category.name
                                                             )
                                                         }
+                                                        disabled={moveCategoryMutation.isPending}
                                                     >
                                                         <ArrowDown className="mr-2 h-4 w-4" />
                                                         Move Down
@@ -487,6 +486,7 @@ export default function PosCategoriesPage() {
                                                                 category.name
                                                             )
                                                         }
+                                                        disabled={deletePosCategoryMutation.isPending}
                                                         className="text-red-600"
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />

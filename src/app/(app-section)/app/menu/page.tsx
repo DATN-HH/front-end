@@ -20,7 +20,7 @@ export default function MenuModulePage() {
                 title="Menu Management"
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -32,6 +32,20 @@ export default function MenuModulePage() {
                         <div className="text-2xl font-bold">245</div>
                         <p className="text-xs text-muted-foreground">
                             +20% from last month
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Categories
+                        </CardTitle>
+                        <Tags className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">8</div>
+                        <p className="text-xs text-muted-foreground">
+                            +1 new category
                         </p>
                     </CardContent>
                 </Card>
@@ -65,15 +79,29 @@ export default function MenuModulePage() {
                     </Card>
                 </Link>
 
-                <Link href="/app/menu/pos-categories">
+                <Link href="/app/menu/categories">
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardHeader className="text-center">
                             <Tags className="h-8 w-8 mx-auto text-green-500" />
                             <CardTitle className="text-lg">
+                                Categories
+                            </CardTitle>
+                            <CardDescription>
+                                Manage product categories
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                </Link>
+
+                <Link href="/app/menu/pos-categories">
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                        <CardHeader className="text-center">
+                            <Tags className="h-8 w-8 mx-auto text-yellow-500" />
+                            <CardTitle className="text-lg">
                                 POS Categories
                             </CardTitle>
                             <CardDescription>
-                                Organize products by categories
+                                Organize POS display categories
                             </CardDescription>
                         </CardHeader>
                     </Card>

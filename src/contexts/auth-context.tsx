@@ -65,6 +65,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function fetchData() {
+      // Development mode bypass - auto login with admin role
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+        const devBypass = localStorage.getItem('dev_bypass_auth');
+        if (devBypass === 'true') {
+          // Mock admin user for development
+          const mockAdminUser: UserDtoResponse = {
+            id: 1,
+            email: 'admin@dev.com',
+            username: 'admin',
+            fullName: 'Development Admin',
+            birthdate: '1990-01-01',
+            gender: 'MALE',
+            phoneNumber: '+1234567890',
+            isFullRole: true,
+            userRoles: [{
+              id: 1,
+              userId: 1,
+              roleId: 1,
+              role: {
+                id: 1,
+                name: 'SYSTEM_ADMIN',
+                description: 'System Administrator',
+                hexColor: '#FF0000',
+                rolePermissions: [],
+                roleScreens: [],
+                createdAt: new Date().toISOString(),
+                createdBy: 1,
+                updatedAt: new Date().toISOString(),
+                updatedBy: 1,
+                status: 'ACTIVE',
+                createdUsername: 'system',
+                updatedUsername: 'system'
+              }
+            }],
+            branch: {
+              id: 1,
+              name: 'Main Branch',
+              address: '123 Main St',
+              phone: '+1234567890',
+              manager: {} as UserDtoResponse,
+              createdAt: new Date().toISOString(),
+              createdBy: 1,
+              updatedAt: new Date().toISOString(),
+              updatedBy: 1,
+              status: 'ACTIVE',
+              createdUsername: 'system',
+              updatedUsername: 'system'
+            },
+            displayName: 'Development Admin',
+            createdAt: new Date().toISOString(),
+            createdBy: 1,
+            updatedAt: new Date().toISOString(),
+            updatedBy: 1,
+            status: 'ACTIVE',
+            createdUsername: 'system',
+            updatedUsername: 'system'
+          };
+          
+          setUser(mockAdminUser);
+          setToken('dev-token-' + Date.now());
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const storedToken =
         typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (storedToken) {
