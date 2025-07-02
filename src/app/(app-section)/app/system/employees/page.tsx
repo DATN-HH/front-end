@@ -151,6 +151,9 @@ import { ProtectedRoute } from '@/components/protected-component';
                         email: currentEmployee.email,
                         fullName: currentEmployee.fullName,
                         phoneNumber: currentEmployee.phoneNumber,
+                        birthdate: currentEmployee.birthdate,
+                        gender: currentEmployee.gender,
+                        username: currentEmployee.username,
                         userRoles: currentEmployee.userRoles.map((role: any) => ({
                             userId: currentEmployee.id,
                             roleId: role.roleId,
