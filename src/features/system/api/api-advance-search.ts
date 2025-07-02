@@ -11,7 +11,6 @@ export async function advanceSearch(
         },
     });
     const payload = response.data.payload;
-    console.log('advanceSearch: ', payload);
     return payload.map((item: any) => ({
         field: item.columnName,
         label: item.label,

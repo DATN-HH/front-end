@@ -160,21 +160,12 @@ const AddShiftModal = () => {
         }
 
         try {
-            console.log('Registering staff shift:', {
-                staffId,
-                scheduledShiftId: shift.id,
-                shiftName: shift.shiftName,
-                selectedStaffName
-            })
-
             const result = await createStaffShiftMutation.mutateAsync({
                 staffId: staffId,
                 scheduledShiftId: shift.id,
                 shiftStatus: 'DRAFT',
                 // note: `Registered via AddShiftModal for ${selectedStaffName}`
             })
-
-            console.log('Staff shift created successfully:', result)
 
             // Invalidate and refetch queries to update the UI
             await Promise.all([

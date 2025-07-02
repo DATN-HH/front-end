@@ -39,9 +39,6 @@ export interface RoleUpdateDto {
 // API calls
 export const getRoles = async (params: BaseListRequest): Promise<PageResponse<RoleResponseDto>> => {
   const response = await apiClient.get<BaseResponse<PageResponse<RoleResponseDto>>>('/role', { params });
-  if (response.data.success) {
-    console.log(response.data.payload);
-  }
   return response.data.payload;
 };
 

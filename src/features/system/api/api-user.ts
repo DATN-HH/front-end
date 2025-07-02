@@ -12,7 +12,6 @@ export async function getListUsers(query: BaseListRequest = {}): Promise<any> {
             }),
     });
 
-    // console.log('=====> getListUsers: ', response.data.payload);
     return response.data.payload;
 }
 

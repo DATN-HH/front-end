@@ -16,7 +16,6 @@ export async function getRoles(
     });
 
     const payload = response.data.payload;
-    console.log('getRoles', payload);
     return {
         page: payload.page,
         size: payload.size,
@@ -37,7 +36,6 @@ export async function updateRole(
 ): Promise<RoleResponse> {
     const response = await apiClient.put(`/role/${id}`, roleUpdateRequest);
     const data = response.data.payload;
-    console.log('updateRole', data);
     return {
         id: data.id,
         name: data.name,
@@ -52,7 +50,6 @@ export async function createRole(
 ): Promise<RoleResponse> {
     const response = await apiClient.post('/role', roleCreateRequest);
     const data = response.data.payload;
-    console.log('createRole', data);
     return {
         id: data.id,
         name: data.name,
@@ -64,5 +61,4 @@ export async function createRole(
 
 export async function deleteRole(id: number): Promise<void> {
     await apiClient.delete(`/role/${id}`);
-    console.log('deleteRole', id);
 }
