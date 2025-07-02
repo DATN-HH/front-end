@@ -175,7 +175,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.account);
         setToken(data.token);
 
-        console.log('Login successful:', data.account);
         success('Success', 'Login successful');
 
         if (typeof window !== 'undefined') {

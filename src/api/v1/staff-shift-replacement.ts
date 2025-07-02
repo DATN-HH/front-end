@@ -101,8 +101,6 @@ export const getReplacementStaff = async (staffShiftId: number): Promise<Replace
   }
   
   const result = response.data.payload || []
-  console.log('🔍 Final result:', { result, resultLength: result.length })
-  
   return result
 }
 

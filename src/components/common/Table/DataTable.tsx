@@ -182,7 +182,6 @@ export function DataTable<TData, TValue>({
 
     // Handle advanced filters change
     useEffect(() => {
-        // console.log('Advanced filters changed:', advancedFilters);
         onFilterChange(advancedFilters);
     }, [advancedFilters, onFilterChange]);
 

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/common/logo'
-import { SIDEBAR_CONFIG } from '../../../config/sidebar-config'
+import { SIDEBAR_CONFIG } from '@/config/sidebar-config'
 import { useAuth } from '@/contexts/auth-context'
 import { ProtectedElement } from '@/components/protected-component'
 
@@ -22,10 +22,6 @@ export function SectionSidebar({ className }: SectionSidebarProps) {
     const [openModule, setOpenModule] = useState<string | null>(null)
     const [isHovered, setIsHovered] = useState(false)
     const { user } = useAuth()
-
-    // Debug logging
-    console.log('Sidebar - User:', user)
-    console.log('Sidebar - User roles:', user?.userRoles)
 
     const toggleModule = (moduleId: string) => {
         setOpenModule((current) => (current === moduleId ? null : moduleId))

@@ -122,7 +122,6 @@ export default function ProductDetailPage() {
     const { data: variants = [], isLoading: variantsLoading } = useProductVariants(Number(productId));
     
     // Debug: Log variants data
-    console.log('Variants data:', variants, 'Loading:', variantsLoading);
     const assignAttributesMutation = useAssignAttributesToProduct();
     const removeAttributesMutation = useRemoveAttributesFromProduct();
     const createVariantMutation = useCreateProductVariant();
@@ -295,9 +294,7 @@ export default function ProductDetailPage() {
             };
 
             const newVariants = await assignAttributesMutation.mutateAsync(requestData);
-            
-            console.log('Assignment successful, new variants:', newVariants);
-            
+                        
             toast({
                 title: 'Attributes Assigned',
                 description: `Successfully assigned attributes and generated ${newVariants.length} variants.`,
