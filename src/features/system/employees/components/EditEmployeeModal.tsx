@@ -16,14 +16,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { UserResponseDto } from '@/api/v1/users';
 import { RoleResponseDto } from '@/api/v1/auth';
 
 interface EditEmployeeModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    employee: UserResponseDto | null;
-    setEmployee: (employee: UserResponseDto) => void;
+    employee: any | null;
+    setEmployee: (employee: any) => void;
     onSubmit: () => void;
     isLoading: boolean;
     roles?: RoleResponseDto[];
@@ -86,6 +85,20 @@ export function EditEmployeeModal({
                                 setEmployee({
                                     ...employee,
                                     phoneNumber: e.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="edit-birthdate">Birthdate</Label>
+                        <Input
+                            id="edit-birthdate"
+                            type="date"
+                            value={employee.birthdate}
+                            onChange={(e) =>
+                                setEmployee({
+                                    ...employee,
+                                    birthdate: e.target.value,
                                 })
                             }
                         />
