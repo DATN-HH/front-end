@@ -56,4 +56,6 @@ export const employeeRole = [
   Role.CASHIER,
   Role.ACCOUNTANT,
   Role.EMPLOYEE,
+  Role.SUPPORT,
+  Role.SYSTEM_ADMIN,
 ]
