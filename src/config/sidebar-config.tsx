@@ -15,6 +15,8 @@ import {
   Printer,
   Clock,
   ShoppingCart,
+  Monitor,
+  KeyRound,
 } from 'lucide-react';
 import { Role, employeeRole } from '@/lib/rbac';
 
@@ -123,6 +125,24 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           href: '/app/menu/kitchen-printers',
           label: 'Kitchen Printers',
           icon: <Printer className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      id: 'pos',
+      label: 'Point of Sale',
+      icon: <Monitor className="h-5 w-5" />,
+      activePaths: ['/app/pos', '/app/pin-management'],
+      items: [
+        {
+          href: '/app/pos',
+          label: 'POS Terminal',
+          icon: <Monitor className="h-4 w-4" />,
+        },
+        {
+          href: '/app/pin-management',
+          label: 'PIN Management',
+          icon: <KeyRound className="h-4 w-4" />,
         },
       ],
     },
