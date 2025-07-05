@@ -3,6 +3,7 @@
 import { useContext, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Plus } from "lucide-react"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 import { ShiftStatus } from "@/api/v1/publish-shifts"
@@ -116,9 +117,12 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             }
             openShiftsData[dateStr].push({
                 id: shift.id,
-                name: 'Open Shift',
+                name: shift.shiftName || 'Open Shift',
                 time: shift.startTime && shift.endTime ? `${shift.startTime}-${shift.endTime}` : '',
-                status: 'DRAFT'
+                status: 'DRAFT',
+                startTime: shift.startTime,
+                endTime: shift.endTime,
+                requirements: shift.requirements || []
             })
         })
 
@@ -186,6 +190,47 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             .join("")
             .toUpperCase()
             .slice(0, 2)
+    }
+
+    // Get registered staff count for open shifts (similar to ShiftInfoModal)
+    const getRegisteredStaffCount = (shift: any, date: string) => {
+        if (!staffShiftsGrouped) return { total: 0, byRole: [], isComplete: false }
+
+        const dateStr = dayjs(date).format("YYYY-MM-DD")
+        let totalRegistered = 0
+        const roleBreakdown: any[] = []
+
+        // Count staff registered for this shift across all roles
+        Object.keys(staffShiftsGrouped.data).forEach(roleName => {
+            const roleData = staffShiftsGrouped.data[roleName]
+            let roleCount = 0
+
+            Object.keys(roleData).forEach(staffName => {
+                const staffShifts = roleData[staffName].shifts[dateStr] || []
+                const hasShift = staffShifts.some((s: any) =>
+                    s.startTime === shift.startTime && s.endTime === shift.endTime
+                )
+                if (hasShift) {
+                    roleCount++
+                    totalRegistered++
+                }
+            })
+
+            if (roleCount > 0) {
+                roleBreakdown.push({ role: roleName, count: roleCount })
+            }
+        })
+
+        // Check if shift requirements are met
+        let isComplete = true
+        if (shift.requirements && shift.requirements.length > 0) {
+            isComplete = shift.requirements.every((req: any) => {
+                const registered = roleBreakdown.find(r => r.role === req.role)?.count || 0
+                return registered >= req.quantity
+            })
+        }
+
+        return { total: totalRegistered, byRole: roleBreakdown, isComplete }
     }
 
     const handleCreateOpenShift = (date: string) => {
@@ -263,15 +308,67 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             )
         }
 
+        // Check if any open shift is incomplete
+        const incompleteShifts = shifts.filter(shift => {
+            const registeredInfo = getRegisteredStaffCount(shift, date)
+            return !registeredInfo.isComplete
+        })
+
+        const hasIncompleteShifts = incompleteShifts.length > 0
+
+        // Generate tooltip content
+        const tooltipContent = incompleteShifts.map(shift => {
+            const registeredInfo = getRegisteredStaffCount(shift, date)
+            const missingRequirements = shift.requirements?.filter((req: any) => {
+                const registered = registeredInfo.byRole.find(r => r.role === req.role)?.count || 0
+                return registered < req.quantity
+            }) || []
+
+            return {
+                name: shift.name,
+                time: shift.time,
+                missing: missingRequirements.map((req: any) => {
+                    const registered = registeredInfo.byRole.find(r => r.role === req.role)?.count || 0
+                    return `${req.role}: ${registered}/${req.quantity}`
+                })
+            }
+        })
+
         return (
-            <div
-                className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
-                onClick={() => handleOpenShiftClick(date)}
-            >
-                <div className="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {shifts.length}
-                </div>
-            </div>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div
+                            className={`p-2 h-12 flex items-center justify-center cursor-pointer transition-colors gap-1 ${hasIncompleteShifts
+                                ? 'bg-red-300 hover:bg-red-200'
+                                : 'hover:bg-gray-50'
+                                }`}
+                            onClick={() => handleOpenShiftClick(date)}
+                        >
+                            <div className="w-7 h-7 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                                {shifts.length}
+                            </div>
+                        </div>
+                    </TooltipTrigger>
+                    {hasIncompleteShifts && (
+                        <TooltipContent className="max-w-xs">
+                            <div className="space-y-2">
+                                <div className="font-medium text-sm">Understaffed shifts:</div>
+                                {tooltipContent.map((shift, index) => (
+                                    <div key={index} className="text-xs">
+                                        <div className="font-medium">{shift.name} ({shift.time})</div>
+                                        {shift.missing.map((missing: string, i: number) => (
+                                            <div key={i} className="text-muted-foreground ml-2">
+                                                {missing}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
+            </TooltipProvider>
         )
 
     }
@@ -416,6 +513,12 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                             <span className="text-sm text-white font-medium">1</span>
                         </div>
                         <span className="text-sm text-gray-600">Open shifts</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-red-100 border border-red-200 rounded flex items-center justify-center">
+                            <span className="text-xs text-red-600 font-medium">!</span>
+                        </div>
+                        <span className="text-sm text-gray-600">Understaffed shifts</span>
                     </div>
                 </div>
             </div>
