@@ -30,7 +30,7 @@ import {
     type LeaveRequest,
 } from '@/api/v1/leave-management';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface ManagerLeaveManagementProps {
     open: boolean;
@@ -48,10 +48,11 @@ interface RejectModalProps {
 
 function RejectModal({ open, onOpenChange, onConfirm, requestId, employeeName }: RejectModalProps) {
     const [reason, setReason] = useState('');
+    const { error } = useCustomToast();
 
     const handleConfirm = () => {
         if (!reason.trim()) {
-            toast.error('Rejection reason is required');
+            error('Error', 'Rejection reason is required');
             return;
         }
         onConfirm(reason);
@@ -100,6 +101,7 @@ export function ManagerLeaveManagement({
     branchId,
 }: ManagerLeaveManagementProps) {
     const currentYear = new Date().getFullYear();
+    const { success, error } = useCustomToast();
     const [rejectModal, setRejectModal] = useState<{
         open: boolean;
         requestId: number;
@@ -145,9 +147,9 @@ export function ManagerLeaveManagement({
     const handleApprove = async (requestId: number) => {
         try {
             await approveMutation.mutateAsync(requestId);
-            toast.success('Leave request approved successfully');
-        } catch (error) {
-            toast.error('Failed to approve leave request');
+            success('Success', 'Leave request approved successfully');
+        } catch (err) {
+            error('Error', 'Failed to approve leave request');
         }
     };
 
@@ -165,9 +167,9 @@ export function ManagerLeaveManagement({
                 requestId: rejectModal.requestId,
                 reason,
             });
-            toast.success('Leave request rejected');
-        } catch (error) {
-            toast.error('Failed to reject leave request');
+            success('Success', 'Leave request rejected');
+        } catch (err) {
+            error('Error', 'Failed to reject leave request');
         }
     };
 

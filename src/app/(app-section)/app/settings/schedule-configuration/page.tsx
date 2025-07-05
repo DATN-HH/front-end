@@ -370,7 +370,7 @@ function ScheduleConfiguration() {
                                                 type="number"
                                                 min="1"
                                                 max="30"
-                                                value={formData.registrationDaysInAdvance || ''}
+                                                value={formData.registrationDaysInAdvance ?? ''}
                                                 onChange={(e) => handleInputChange('registrationDaysInAdvance', parseInt(e.target.value) || 7)}
                                                 className="h-11"
                                             />
@@ -418,8 +418,7 @@ function ScheduleConfiguration() {
                                             id="maxShiftsPerWeek"
                                             type="number"
                                             min="1"
-                                            max="7"
-                                            value={formData.maxShiftsPerWeek || ''}
+                                            value={formData.maxShiftsPerWeek ?? ''}
                                             onChange={(e) => handleInputChange('maxShiftsPerWeek', parseInt(e.target.value) || 5)}
                                             className="h-11"
                                         />
@@ -434,8 +433,7 @@ function ScheduleConfiguration() {
                                             id="maxShiftsPerDay"
                                             type="number"
                                             min="1"
-                                            max="3"
-                                            value={formData.maxShiftsPerDay || ''}
+                                            value={formData.maxShiftsPerDay ?? ''}
                                             onChange={(e) => handleInputChange('maxShiftsPerDay', parseInt(e.target.value) || 2)}
                                             className="h-11"
                                         />
@@ -449,10 +447,10 @@ function ScheduleConfiguration() {
                                         <Input
                                             id="minRestHours"
                                             type="number"
-                                            min="4"
+                                            min="0"
                                             max="24"
-                                            value={formData.minRestHoursBetweenShifts || ''}
-                                            onChange={(e) => handleInputChange('minRestHoursBetweenShifts', parseInt(e.target.value) || 8)}
+                                            value={formData.minRestHoursBetweenShifts ?? ''}
+                                            onChange={(e) => handleInputChange('minRestHoursBetweenShifts', isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value))}
                                             className="h-11"
                                         />
                                         <p className="text-xs text-muted-foreground">Minimum hours between shifts</p>
@@ -469,7 +467,7 @@ function ScheduleConfiguration() {
                                             type="number"
                                             min="1"
                                             max="168"
-                                            value={formData.responseDeadlineHours || ''}
+                                            value={formData.responseDeadlineHours ?? ''}
                                             onChange={(e) => handleInputChange('responseDeadlineHours', parseInt(e.target.value) || 24)}
                                             className="h-11"
                                         />
@@ -484,7 +482,7 @@ function ScheduleConfiguration() {
                         <Separator className="my-8" />
 
                         {/* Assignment Settings */}
-                        <Card className="shadow-sm hover:shadow-md transition-shadow">
+                        {/* <Card className="shadow-sm hover:shadow-md transition-shadow">
                             <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/5 rounded-t-lg">
                                 <CardTitle className="flex items-center gap-3 text-foreground">
                                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground">
@@ -536,10 +534,10 @@ function ScheduleConfiguration() {
                                     />
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Approval Settings */}
-                        <Card className="shadow-sm hover:shadow-md transition-shadow">
+                        {/* <Card className="shadow-sm hover:shadow-md transition-shadow">
                             <CardHeader className="bg-gradient-to-r from-accent/10 to-accent/5 rounded-t-lg">
                                 <CardTitle className="flex items-center gap-3 text-foreground">
                                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-destructive text-destructive-foreground">
@@ -565,7 +563,7 @@ function ScheduleConfiguration() {
                                     />
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
                     </div>
                 )}
 

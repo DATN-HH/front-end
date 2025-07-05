@@ -175,7 +175,7 @@ const AddShiftModal = () => {
             ])
 
             successToast(`Successfully registered ${selectedStaffName} for ${shift.shiftName}`, `Successfully registered ${selectedStaffName} for ${shift.shiftName}`)
-            handleClose()
+            // handleClose()
         } catch (error: any) {
             console.error('Error registering for shift:', error)
             errorToast("Failed to register for shift", error?.response?.data?.message ||

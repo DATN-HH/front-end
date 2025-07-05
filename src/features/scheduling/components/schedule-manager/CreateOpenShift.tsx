@@ -86,7 +86,7 @@ const CreateOpenShift = ({ selectedDate }: CreateOpenShiftProps) => {
             })
 
             toast.success("Open shift created successfully")
-            setIsCreateOpenShiftDialogOpen(false)
+            // setIsCreateOpenShiftDialogOpen(false)
 
             // Refresh the scheduled shifts data
             queryClient.invalidateQueries({ queryKey: ['scheduled-shifts'] })
