@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             createdUsername: 'system',
             updatedUsername: 'system'
           };
-          
+
           setUser(mockAdminUser);
           setToken('dev-token-' + Date.now());
           setIsLoading(false);
@@ -186,8 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (redirectUrl) {
             router.push(redirectUrl);
-          // } else if (data.account.isFullRole) {
-          //   router.push('/app');
+            // } else if (data.account.isFullRole) {
+            //   router.push('/app');
           } else if (data.account.userRoles && data.account.userRoles.length > 0) {
             const targetUrl = getDefaultRedirectByRole(data.account.userRoles[0].role);
             router.push(targetUrl);
@@ -214,7 +214,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('token');
       }
       queryClient.clear();
-      router.push('/login');
+      // Force redirect to login without any query parameters
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      } else {
+        router.push('/login');
+      }
     } catch (error: any) {
       console.error('Logout failed:', error);
       toastError('Error', error?.response?.data?.message || 'Logout failed');

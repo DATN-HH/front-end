@@ -1,17 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties, useMemo } from 'react';
 import {
     type ColumnDef,
     type ColumnFiltersState,
     type SortingState,
     type VisibilityState,
+    type ColumnPinningState,
+    type Column,
     flexRender,
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import {
     ChevronLeft,
     ChevronRight,
@@ -47,11 +62,23 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DraggableColumnHeader } from './DraggableColumnHeader';
 import { AdvancedFilter } from './AdvancedFilter';
 import type { FilterDefinition } from './types';
 import { downloadToCSV, downloadToExcel } from './export-utils';
 import { SearchCondition } from '@/lib/response-object';
+
+// Import utilities and constants
+import { getCommonPinningStyles } from './utils/tableStyles';
+import { extractPinningFromColumns, combineColumnPinning } from './utils/columnHelpers';
+import {
+    DEFAULT_PAGE_SIZES,
+    DEFAULT_TABLE_CONFIG,
+    TABLE_STATE_KEYS,
+    SEARCH_DEBOUNCE_DELAY,
+    MAX_TABLE_HEIGHT
+} from './constants';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -66,10 +93,15 @@ interface DataTableProps<TData, TValue> {
     // Callback functions
     onPaginationChange: (pageIndex: number, pageSize: number) => void;
     onSortingChange: (sorting: string) => void;
-    onFilterChange: (filters: TableFilterValue[]) => void;
+    onFilterChange: (filters: SearchCondition[]) => void;
     onSearchChange: (searchTerm: string) => void;
     // Filter definitions
     filterDefinitions?: FilterDefinition[];
+    // Initial column pinning
+    initialColumnPinning?: {
+        left?: string[];
+        right?: string[];
+    };
     // Feature toggles
     enableSearch?: boolean;
     enableColumnVisibility?: boolean;
@@ -95,61 +127,97 @@ export function DataTable<TData, TValue>({
     onFilterChange = () => { },
     onSearchChange = () => { },
     filterDefinitions = [],
-    enableSearch = true,
-    enableColumnVisibility = true,
-    enableSorting = true,
-    enablePinning = true,
-    enableColumnOrdering = true,
-    enableFiltering = true,
-    enablePagination = true,
-    enableExport = true,
-    loading = false,
+    initialColumnPinning,
+    enableSearch = DEFAULT_TABLE_CONFIG.enableSearch,
+    enableColumnVisibility = DEFAULT_TABLE_CONFIG.enableColumnVisibility,
+    enableSorting = DEFAULT_TABLE_CONFIG.enableSorting,
+    enablePinning = DEFAULT_TABLE_CONFIG.enablePinning,
+    enableColumnOrdering = DEFAULT_TABLE_CONFIG.enableColumnOrdering,
+    enableFiltering = DEFAULT_TABLE_CONFIG.enableFiltering,
+    enablePagination = DEFAULT_TABLE_CONFIG.enablePagination,
+    enableExport = DEFAULT_TABLE_CONFIG.enableExport,
+    loading = DEFAULT_TABLE_CONFIG.loading,
 }: DataTableProps<TData, TValue>) {
+
+    /* ==========================================
+     * INITIAL SETUP & MEMOIZED VALUES
+     * ========================================== */
+
+    // Get initial pinning state with useMemo to avoid recalculation
+    const initialPinning = useMemo((): ColumnPinningState => {
+        const pinningFromColumns = extractPinningFromColumns(columns);
+        return combineColumnPinning(pinningFromColumns, initialColumnPinning);
+    }, [columns, initialColumnPinning]);
+
+    // Convert currentSorting prop to TanStack Table sorting state for UI display
+    const parsedSorting: SortingState = useMemo(() => {
+        return currentSorting
+            ? (() => {
+                const [id, direction] = currentSorting.split(':');
+                return [{ id, desc: direction === 'desc' }];
+            })()
+            : [];
+    }, [currentSorting]);
+
+    /* ==========================================
+     * STATE MANAGEMENT
+     * ========================================== */
+
     // Local UI state (not affecting API calls)
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        {}
-    );
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [columnOrder, setColumnOrder] = useState<string[]>([]);
-    const [pinnedColumns, setPinnedColumns] = useState<
-        Record<string, 'left' | 'right' | false>
-    >({});
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(initialPinning);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
     // Local state for UI controls
     const [searchTerm, setSearchTerm] = useState('');
-    const [advancedFilters, setAdvancedFilters] = useState<SearchCondition[]>(
-        []
+    const [advancedFilters, setAdvancedFilters] = useState<SearchCondition[]>([]);
+
+    // Drag and drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
     );
 
-    // Convert currentSorting prop to TanStack Table sorting state for UI display
-    const parsedSorting: SortingState = currentSorting
-        ? (() => {
-            const [id, direction] = currentSorting.split(':');
-            return [{ id, desc: direction === 'desc' }];
-        })()
-        : [];
+    /* ==========================================
+     * LOCALSTORAGE & LIFECYCLE EFFECTS
+     * ========================================== */
 
     // Load saved state from localStorage
     useEffect(() => {
         if (typeof window !== 'undefined' && tableId) {
             try {
-                const savedState = localStorage.getItem(
-                    `table-state-${tableId}`
-                );
+                const savedState = localStorage.getItem(`table-state-${tableId}`);
                 if (savedState) {
                     const parsedState = JSON.parse(savedState);
-                    setColumnVisibility(parsedState.columnVisibility || {});
-                    setColumnOrder(parsedState.columnOrder || []);
-                    setPinnedColumns(parsedState.pinnedColumns || {});
+                    setColumnVisibility(parsedState[TABLE_STATE_KEYS.COLUMN_VISIBILITY] || {});
+                    setColumnOrder(parsedState[TABLE_STATE_KEYS.COLUMN_ORDER] || []);
+                    // Use saved pinning if it exists and has content, otherwise keep initial pinning
+                    if (parsedState[TABLE_STATE_KEYS.COLUMN_PINNING] &&
+                        (parsedState[TABLE_STATE_KEYS.COLUMN_PINNING].left?.length > 0 ||
+                            parsedState[TABLE_STATE_KEYS.COLUMN_PINNING].right?.length > 0)) {
+                        setColumnPinning(parsedState[TABLE_STATE_KEYS.COLUMN_PINNING]);
+                    }
+                    // If no saved pinning, keep the initial pinning that was already set
                 }
+                // If no saved state at all, keep the initial pinning that was already set
             } catch (error) {
-                console.error(
-                    'Error loading table state from localStorage:',
-                    error
-                );
+                console.error('Error loading table state from localStorage:', error);
+                // On error, keep the initial pinning that was already set
             }
         }
     }, [tableId]);
+
+    // Apply initial pinning on mount
+    useEffect(() => {
+        // Apply initial pinning if current pinning is empty and we have initial config
+        if ((!columnPinning.left?.length && !columnPinning.right?.length) &&
+            (initialPinning.left?.length || initialPinning.right?.length)) {
+            setColumnPinning(initialPinning);
+        }
+    }, [initialPinning]);
 
     // Save state to localStorage
     useEffect(() => {
@@ -158,25 +226,22 @@ export function DataTable<TData, TValue>({
                 localStorage.setItem(
                     `table-state-${tableId}`,
                     JSON.stringify({
-                        columnVisibility,
-                        columnOrder,
-                        pinnedColumns,
+                        [TABLE_STATE_KEYS.COLUMN_VISIBILITY]: columnVisibility,
+                        [TABLE_STATE_KEYS.COLUMN_ORDER]: columnOrder,
+                        [TABLE_STATE_KEYS.COLUMN_PINNING]: columnPinning,
                     })
                 );
             } catch (error) {
-                console.error(
-                    'Error saving table state to localStorage:',
-                    error
-                );
+                console.error('Error saving table state to localStorage:', error);
             }
         }
-    }, [tableId, columnVisibility, columnOrder, pinnedColumns]);
+    }, [tableId, columnVisibility, columnOrder, columnPinning]);
 
     // Handle search with debounce
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
             onSearchChange(searchTerm);
-        }, 300);
+        }, SEARCH_DEBOUNCE_DELAY);
         return () => clearTimeout(debounceTimer);
     }, [searchTerm, onSearchChange]);
 
@@ -184,6 +249,10 @@ export function DataTable<TData, TValue>({
     useEffect(() => {
         onFilterChange(advancedFilters);
     }, [advancedFilters, onFilterChange]);
+
+    /* ==========================================
+     * TABLE INSTANCE SETUP
+     * ========================================== */
 
     // Handle sorting change - call parent's onSortingChange
     const handleSortingChange = (updaterOrValue: any) => {
@@ -216,10 +285,13 @@ export function DataTable<TData, TValue>({
         onColumnVisibilityChange: setColumnVisibility,
         onSortingChange: handleSortingChange,
         onColumnFiltersChange: setColumnFilters,
+        onColumnPinningChange: setColumnPinning,
+        enableColumnPinning: enablePinning,
         state: {
             sorting: parsedSorting,
             columnFilters,
             columnVisibility,
+            columnPinning,
             pagination: {
                 pageIndex,
                 pageSize,
@@ -233,24 +305,35 @@ export function DataTable<TData, TValue>({
         enableMultiSort: false, // Disable multi-column sorting
     });
 
-    // Handle column reordering
-    const handleColumnReorder = (
-        draggedColumnId: string,
-        targetColumnId: string
-    ) => {
-        const currentColumnOrder = table
-            .getAllColumns()
-            .map((column) => column.id);
-        const draggedColumnIndex = currentColumnOrder.indexOf(draggedColumnId);
-        const targetColumnIndex = currentColumnOrder.indexOf(targetColumnId);
+    // Initialize columnOrder from table columns
+    useEffect(() => {
+        if (columnOrder.length === 0) {
+            const initialColumnOrder = table.getAllColumns().map((column) => column.id);
+            setColumnOrder(initialColumnOrder);
+        }
+    }, [table, columnOrder.length]);
 
-        if (draggedColumnIndex === -1 || targetColumnIndex === -1) return;
+    /* ==========================================
+     * EVENT HANDLERS
+     * ========================================== */
 
-        const newColumnOrder = [...currentColumnOrder];
-        newColumnOrder.splice(draggedColumnIndex, 1);
-        newColumnOrder.splice(targetColumnIndex, 0, draggedColumnId);
+    // Handle column drag end
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
 
-        setColumnOrder(newColumnOrder);
+        if (!over) return;
+
+        if (active.id !== over.id) {
+            setColumnOrder((currentOrder) => {
+                const oldIndex = currentOrder.indexOf(active.id as string);
+                const newIndex = currentOrder.indexOf(over.id as string);
+
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    return arrayMove(currentOrder, oldIndex, newIndex);
+                }
+                return currentOrder;
+            });
+        }
     };
 
     // Handle column pinning
@@ -258,10 +341,10 @@ export function DataTable<TData, TValue>({
         columnId: string,
         position: 'left' | 'right' | false
     ) => {
-        setPinnedColumns((prev) => ({
-            ...prev,
-            [columnId]: position,
-        }));
+        const column = table.getColumn(columnId);
+        if (column) {
+            column.pin(position);
+        }
     };
 
     // Export functions
@@ -271,6 +354,47 @@ export function DataTable<TData, TValue>({
 
     const handleExportExcel = () => {
         downloadToExcel(data, columns, tableId);
+    };
+
+    // Column visibility handlers
+    const handleShowAllColumns = () => {
+        table.getAllColumns().forEach((column) => {
+            if (column.getCanHide()) {
+                column.toggleVisibility(true);
+            }
+        });
+    };
+
+    const handleHideAllColumns = () => {
+        table.getAllColumns().forEach((column) => {
+            if (column.getCanHide()) {
+                column.toggleVisibility(false);
+            }
+        });
+    };
+
+    // Handle toggle all columns
+    const handleToggleAllColumns = () => {
+        const hidableColumns = table.getAllColumns().filter((column) => column.getCanHide());
+        const allVisible = hidableColumns.every((column) => column.getIsVisible());
+
+        if (allVisible) {
+            // If all visible, hide all
+            handleHideAllColumns();
+        } else {
+            // If some or none visible, show all
+            handleShowAllColumns();
+        }
+    };
+
+    // Get checkbox state for select all
+    const getSelectAllState = () => {
+        const hidableColumns = table.getAllColumns().filter((column) => column.getCanHide());
+        const visibleCount = hidableColumns.filter((column) => column.getIsVisible()).length;
+
+        if (visibleCount === 0) return false; // None visible
+        if (visibleCount === hidableColumns.length) return true; // All visible
+        return 'indeterminate'; // Some visible
     };
 
     // Clear all filters
@@ -304,21 +428,12 @@ export function DataTable<TData, TValue>({
         onPaginationChange(0, newPageSize); // Reset to first page when changing page size
     };
 
+    /* ==========================================
+     * COMPUTED VALUES
+     * ========================================== */
+
     // Get active filter count
     const activeFilterCount = advancedFilters.length + (searchTerm ? 1 : 0);
-
-    // Sort columns by pinned status
-    const sortedColumns = [...table.getAllColumns()];
-    sortedColumns.sort((a, b) => {
-        const aPin = pinnedColumns[a.id] || false;
-        const bPin = pinnedColumns[b.id] || false;
-
-        if (aPin === 'left' && bPin !== 'left') return -1;
-        if (aPin !== 'left' && bPin === 'left') return 1;
-        if (aPin === 'right' && bPin !== 'right') return 1;
-        if (aPin !== 'right' && bPin === 'right') return -1;
-        return 0;
-    });
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / pageSize);
@@ -327,8 +442,165 @@ export function DataTable<TData, TValue>({
     const startRow = pageIndex * pageSize + 1;
     const endRow = Math.min((pageIndex + 1) * pageSize, total);
 
+    /* ==========================================
+     * RENDER HELPERS
+     * ========================================== */
+
+    // Render header groups with proper pinning
+    const renderHeaderGroups = (headerGroups: any[]) => {
+        return headerGroups.map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                <SortableContext
+                    items={columnOrder}
+                    strategy={horizontalListSortingStrategy}
+                >
+                    {headerGroup.headers.map((header: any) => {
+                        const columnId = header.column.id;
+                        const isPinned = header.column.getIsPinned();
+                        const pinningStyles = getCommonPinningStyles(header.column);
+
+                        return (
+                            <TableHead
+                                key={header.id}
+                                colSpan={header.colSpan}
+                                style={pinningStyles}
+                                className="px-6 py-4 text-left text-xs font-semibold text-foreground uppercase tracking-wider border-b border-border"
+                            >
+                                {enableColumnOrdering ? (
+                                    <DraggableColumnHeader
+                                        header={header}
+                                        columnId={columnId}
+                                        onPinColumn={
+                                            enablePinning
+                                                ? handlePinColumn
+                                                : undefined
+                                        }
+                                        isPinned={isPinned}
+                                        sorting={currentSorting}
+                                        enableSorting={enableSorting}
+                                        enableDragAndDrop={enableColumnOrdering}
+                                    >
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </DraggableColumnHeader>
+                                ) : header.isPlaceholder ? null : (
+                                    flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                    )
+                                )}
+                            </TableHead>
+                        );
+                    })}
+                </SortableContext>
+            </TableRow>
+        ));
+    };
+
+    // Render table rows with proper pinning
+    const renderTableRows = () => {
+        if (loading) {
+            return (
+                <TableRow>
+                    <TableCell colSpan={columns.length} className="h-32 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-3">
+                            <div className="relative">
+                                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary"></div>
+                            </div>
+                            <span className="text-muted-foreground font-medium">
+                                Loading data...
+                            </span>
+                        </div>
+                    </TableCell>
+                </TableRow>
+            );
+        }
+
+        if (!data?.length) {
+            return (
+                <TableRow>
+                    <TableCell colSpan={columns.length} className="h-32 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-3">
+                            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                                <Search className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-sm font-medium text-foreground">
+                                    No results found
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Try adjusting your search or filter criteria
+                                </p>
+                            </div>
+                            {activeFilterCount > 0 && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={clearAllFilters}
+                                    className="text-primary border-primary/30 hover:bg-primary/10"
+                                >
+                                    Clear filters
+                                </Button>
+                            )}
+                        </div>
+                    </TableCell>
+                </TableRow>
+            );
+        }
+
+        return data.map((row, index) => {
+            const tableRow = table.getRowModel().rows[index];
+            return (
+                <TableRow
+                    key={index}
+                    className={`
+                        transition-colors duration-150 border-b border-border/30 last:border-b-0
+                        hover:bg-muted/50
+                        ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}
+                    `}
+                >
+                    {tableRow?.getVisibleCells().map((cell) => {
+                        const pinningStyles = getCommonPinningStyles(cell.column);
+
+                        return (
+                            <TableCell
+                                key={cell.id}
+                                style={{
+                                    ...pinningStyles,
+                                    backgroundColor: pinningStyles.backgroundColor
+                                        ? index % 2 === 0
+                                            ? 'hsl(var(--background))'
+                                            : 'hsl(var(--muted))'
+                                        : undefined
+                                }}
+                                className="px-6 py-4 text-sm text-foreground"
+                            >
+                                {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                )}
+                            </TableCell>
+                        );
+                    })}
+                </TableRow>
+            );
+        });
+    };
+
+    /* ==========================================
+     * MAIN RENDER
+     * ========================================== */
+
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
             <div className="w-full">
                 {/* Header Section */}
                 <div className="bg-gradient-to-r from-muted to-muted/50 border border-border rounded-t-xl p-6">
@@ -410,32 +682,65 @@ export function DataTable<TData, TValue>({
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
                                         align="end"
-                                        className="w-48 bg-popover border-border shadow-lg"
+                                        className="w-56 bg-popover border-border shadow-lg"
+                                        onCloseAutoFocus={(e) => e.preventDefault()}
                                     >
-                                        <div className="p-2 border-b border-border/30">
+                                        <div className="p-3 border-b border-border/30">
                                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                                 Show/Hide Columns
                                             </span>
                                         </div>
-                                        {table
-                                            .getAllColumns()
-                                            .filter((column) =>
-                                                column.getCanHide()
-                                            )
-                                            .map((column) => (
-                                                <DropdownMenuCheckboxItem
-                                                    key={column.id}
-                                                    className="capitalize hover:bg-accent"
-                                                    checked={column.getIsVisible()}
-                                                    onCheckedChange={(value) =>
-                                                        column.toggleVisibility(
-                                                            !!value
-                                                        )
-                                                    }
+
+                                        {/* Toggle All Controls */}
+                                        <div className="p-2 border-b border-border/30">
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id="toggle-all"
+                                                    checked={getSelectAllState()}
+                                                    onCheckedChange={handleToggleAllColumns}
+                                                    className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                                                />
+                                                <label
+                                                    htmlFor="toggle-all"
+                                                    className="text-sm font-medium text-foreground cursor-pointer"
                                                 >
-                                                    {column.id}
-                                                </DropdownMenuCheckboxItem>
-                                            ))}
+                                                    {getSelectAllState() === true ? 'Hide All' : 'Show All'}
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Individual Column Controls */}
+                                        <div className="max-h-64 overflow-y-auto">
+                                            {table
+                                                .getAllColumns()
+                                                .filter((column) =>
+                                                    column.getCanHide()
+                                                )
+                                                .map((column) => (
+                                                    <div
+                                                        key={column.id}
+                                                        className="flex items-center space-x-2 p-2 hover:bg-accent/50 transition-colors"
+                                                        onClick={(e) => e.preventDefault()}
+                                                    >
+                                                        <Checkbox
+                                                            id={`column-${column.id}`}
+                                                            checked={column.getIsVisible()}
+                                                            onCheckedChange={(value) =>
+                                                                column.toggleVisibility(
+                                                                    !!value
+                                                                )
+                                                            }
+                                                            className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                                                        />
+                                                        <label
+                                                            htmlFor={`column-${column.id}`}
+                                                            className="text-sm capitalize text-foreground cursor-pointer flex-1"
+                                                        >
+                                                            {column.id}
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                        </div>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             )}
@@ -444,6 +749,7 @@ export function DataTable<TData, TValue>({
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button
+                                            disabled
                                             size="sm"
                                             className="bg-orange-500 hover:bg-orange-600"
                                         >
@@ -477,204 +783,14 @@ export function DataTable<TData, TValue>({
                 </div>
 
                 {/* Table Section */}
-                <div className="border border-t-0 border-border rounded-b-xl overflow-hidden bg-background shadow-sm">
-                    <div className="max-h-[60vh] overflow-auto">
-                        <Table>
-                            <TableHeader className="bg-muted border-b border-border">
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow
-                                        key={headerGroup.id}
-                                        className="hover:bg-transparent"
-                                    >
-                                        {headerGroup.headers.map((header) => {
-                                            const columnId = header.column.id;
-                                            const isPinned =
-                                                pinnedColumns[columnId] ||
-                                                false;
-
-                                            return (
-                                                <TableHead
-                                                    key={header.id}
-                                                    style={{
-                                                        position: isPinned
-                                                            ? 'sticky'
-                                                            : 'static',
-                                                        left:
-                                                            isPinned === 'left'
-                                                                ? 0
-                                                                : 'auto',
-                                                        right:
-                                                            isPinned === 'right'
-                                                                ? 0
-                                                                : 'auto',
-                                                        zIndex: isPinned
-                                                            ? 10
-                                                            : 0,
-                                                    }}
-                                                    className={`
-                                                        px-6 py-4 text-left text-xs font-semibold text-foreground uppercase tracking-wider
-                                                        ${isPinned ? 'bg-muted/80 shadow-sm border-r border-border' : 'bg-muted'}
-                                                    `}
-                                                >
-                                                    {enableColumnOrdering ? (
-                                                        <DraggableColumnHeader
-                                                            header={header}
-                                                            columnId={columnId}
-                                                            onColumnReorder={
-                                                                handleColumnReorder
-                                                            }
-                                                            onPinColumn={
-                                                                enablePinning
-                                                                    ? handlePinColumn
-                                                                    : undefined
-                                                            }
-                                                            isPinned={isPinned}
-                                                            sorting={
-                                                                currentSorting
-                                                            }
-                                                            enableSorting={
-                                                                enableSorting
-                                                            }
-                                                        >
-                                                            {header.isPlaceholder
-                                                                ? null
-                                                                : flexRender(
-                                                                    header
-                                                                        .column
-                                                                        .columnDef
-                                                                        .header,
-                                                                    header.getContext()
-                                                                )}
-                                                        </DraggableColumnHeader>
-                                                    ) : header.isPlaceholder ? null : (
-                                                        flexRender(
-                                                            header.column
-                                                                .columnDef
-                                                                .header,
-                                                            header.getContext()
-                                                        )
-                                                    )}
-                                                </TableHead>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
+                <div className="border border-t-0 border-border rounded-b-xl bg-background shadow-sm">
+                    <div className={`overflow-auto max-h-[${MAX_TABLE_HEIGHT}]`} style={{ borderCollapse: 'separate' }}>
+                        <Table className="min-w-full" style={{ width: table.getTotalSize() }}>
+                            <TableHeader className="border-b border-border sticky top-0 z-10 bg-background shadow-sm">
+                                {renderHeaderGroups(table.getHeaderGroups())}
                             </TableHeader>
                             <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={columns.length}
-                                            className="h-32 text-center"
-                                        >
-                                            <div className="flex flex-col items-center justify-center space-y-3">
-                                                <div className="relative">
-                                                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary"></div>
-                                                </div>
-                                                <span className="text-muted-foreground font-medium">
-                                                    Loading data...
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : data?.length ? (
-                                    data.map((row, index) => {
-                                        const tableRow =
-                                            table.getRowModel().rows[index];
-                                        return (
-                                            <TableRow
-                                                key={index}
-                                                className={`
-                                                    transition-colors duration-150 border-b border-border/30 last:border-b-0
-                                                    hover:bg-muted
-                                                    ${index % 2 === 0 ? 'bg-background' : 'bg-muted/25'}
-                                                `}
-                                            >
-                                                {tableRow
-                                                    ?.getVisibleCells()
-                                                    .map((cell) => {
-                                                        const columnId =
-                                                            cell.column.id;
-                                                        const isPinned =
-                                                            pinnedColumns[
-                                                            columnId
-                                                            ] || false;
-
-                                                        return (
-                                                            <TableCell
-                                                                key={cell.id}
-                                                                style={{
-                                                                    position:
-                                                                        isPinned
-                                                                            ? 'sticky'
-                                                                            : 'static',
-                                                                    left:
-                                                                        isPinned ===
-                                                                            'left'
-                                                                            ? 0
-                                                                            : 'auto',
-                                                                    right:
-                                                                        isPinned ===
-                                                                            'right'
-                                                                            ? 0
-                                                                            : 'auto',
-                                                                    zIndex: isPinned
-                                                                        ? 5
-                                                                        : 0,
-                                                                }}
-                                                                className={`
-                                                                px-6 py-4 text-sm text-foreground
-                                                                ${isPinned ? 'bg-background shadow-sm border-r border-border' : ''}
-                                                            `}
-                                                            >
-                                                                {flexRender(
-                                                                    cell.column
-                                                                        .columnDef
-                                                                        .cell,
-                                                                    cell.getContext()
-                                                                )}
-                                                            </TableCell>
-                                                        );
-                                                    })}
-                                            </TableRow>
-                                        );
-                                    })
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={columns.length}
-                                            className="h-32 text-center"
-                                        >
-                                            <div className="flex flex-col items-center justify-center space-y-3">
-                                                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                                                    <Search className="h-5 w-5 text-muted-foreground" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <h3 className="text-sm font-medium text-foreground">
-                                                        No results found
-                                                    </h3>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Try adjusting your
-                                                        search or filter
-                                                        criteria
-                                                    </p>
-                                                </div>
-                                                {activeFilterCount > 0 && (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={
-                                                            clearAllFilters
-                                                        }
-                                                        className="text-primary border-primary/30 hover:bg-primary/10"
-                                                    >
-                                                        Clear filters
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
+                                {renderTableRows()}
                             </TableBody>
                         </Table>
                     </div>
@@ -701,7 +817,7 @@ export function DataTable<TData, TValue>({
                                             side="top"
                                             className="bg-popover border-border"
                                         >
-                                            {[10, 20, 50, 100].map((size) => (
+                                            {DEFAULT_PAGE_SIZES.map((size) => (
                                                 <SelectItem
                                                     key={size}
                                                     value={`${size}`}
@@ -765,7 +881,7 @@ export function DataTable<TData, TValue>({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
+                                        className="h-9 w-9 p-0 border-border hover:bg-accent disabled:opacity-50"
                                         onClick={handleLastPage}
                                         disabled={!canNextPage}
                                     >
@@ -780,6 +896,6 @@ export function DataTable<TData, TValue>({
                     </div>
                 )}
             </div>
-        </DndProvider>
+        </DndContext>
     );
 }

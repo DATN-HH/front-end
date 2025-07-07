@@ -30,6 +30,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('token');
+      // Force redirect to login without any query parameters
       window.location.href = '/login';
     }
     return Promise.reject(error);

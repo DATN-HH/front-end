@@ -21,6 +21,7 @@ export const ShiftTableColumns = ({
         {
             accessorKey: 'name',
             header: 'Shift Name',
+            enableSorting: false,
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 min-w-[140px]">
                     <div className="p-1.5 rounded-full bg-primary/10">
@@ -29,6 +30,9 @@ export const ShiftTableColumns = ({
                     <span className="font-semibold text-foreground">{row.original.name}</span>
                 </div>
             ),
+            meta: {
+                pin: 'left'  // Pin column to left
+            }
         },
         {
             id: 'timeRange',
@@ -113,6 +117,7 @@ export const ShiftTableColumns = ({
         {
             accessorKey: 'branchName',
             header: 'Branch',
+            enableSorting: false,
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 min-w-[120px]">
                     <div className="p-1.5 rounded-full bg-gold-100">
@@ -127,6 +132,7 @@ export const ShiftTableColumns = ({
         {
             accessorKey: 'status',
             header: 'Status',
+            enableSorting: false,
             cell: ({ row }) => {
                 const status = row.getValue('status') as string;
                 const isActive = status === 'ACTIVE';
@@ -153,6 +159,7 @@ export const ShiftTableColumns = ({
         {
             accessorKey: 'createdAt',
             header: 'Created',
+            enableSorting: false,
             cell: ({ row }) => (
                 <div className="flex flex-col text-sm min-w-[100px]">
                     <span className="font-medium text-foreground">
@@ -167,6 +174,7 @@ export const ShiftTableColumns = ({
         {
             accessorKey: 'updatedAt',
             header: 'Last Updated',
+            enableSorting: false,
             cell: ({ row }) => (
                 <div className="flex flex-col text-sm min-w-[100px]">
                     <span className="font-medium text-foreground">
@@ -188,9 +196,7 @@ export const ShiftTableColumns = ({
                 return (
                     <div className="flex items-center gap-1.5 min-w-[80px]">
                         <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+                            className="primary-button"
                             onClick={() => onEdit(row.original)}
                             title="Edit shift"
                         >
@@ -198,8 +204,7 @@ export const ShiftTableColumns = ({
                         </Button>
                         <Button
                             variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+                            className="text-red-500"
                             onClick={() => onDelete(row.original)}
                             title="Delete shift"
                         >
@@ -208,6 +213,9 @@ export const ShiftTableColumns = ({
                     </div>
                 );
             },
+            meta: {
+                pin: 'right'  // Pin column to right
+            }
         },
     ];
 
