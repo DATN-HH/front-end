@@ -97,6 +97,41 @@ export const markAllNotificationsRead = async (): Promise<void> => {
   await apiClient.patch('/api/pos/notifications/read-all');
 };
 
+// ================== NEW: Create Order ==================
+export interface CreatePosOrderRequest {
+  sessionId: number;
+  customerId?: number;
+  orderType: 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY' | 'PICKUP';
+  customerNotes?: string;
+  specialInstructions?: string;
+  items: Array<{
+    itemType: 'PRODUCT' | 'COMBO';
+    productId?: number;
+    comboId?: number;
+    comboVariantId?: number;
+    quantity: number;
+    unitPrice?: number;
+    notes?: string;
+    specialInstructions?: string;
+  }>;
+}
+
+export const createPosOrder = async (data: CreatePosOrderRequest): Promise<PosOrder> => {
+  const response = await apiClient.post<PosApiResponse<PosOrder>>('/api/pos/orders', data);
+  return response.data.data;
+};
+
+export const useCreatePosOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createPosOrder,
+    onSuccess: (order) => {
+      // cache order
+      queryClient.setQueryData(['pos', 'orders', order.id], order);
+    },
+  });
+};
+
 // ========== React Query Hooks ==========
 
 // Get orders summary

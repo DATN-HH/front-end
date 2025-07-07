@@ -47,6 +47,7 @@ export interface PosState {
   updateItemQuantity: (localId: string, quantity: number) => void;
   removeItem: (localId: string) => void;
   clearOrder: () => void;
+  setOrderId: (id?: number) => void;
   
   // Order management
   setOrderType: (type: 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY' | 'PICKUP') => void;
@@ -80,6 +81,9 @@ export interface PosState {
   getTax: () => number;
   getTotal: () => number;
   getItemCount: () => number;
+  
+  // New state
+  orderId: number | undefined;
 }
 
 export const usePosStore = create<PosState>()(
@@ -99,6 +103,7 @@ export const usePosStore = create<PosState>()(
       showCustomerModal: false,
       showNotesModal: false,
       showPaymentModal: false,
+      orderId: undefined,
       
       // Actions
       addItem: (product, itemType) => {
@@ -179,6 +184,7 @@ export const usePosStore = create<PosState>()(
       
       clearOrder: () => {
         set({ 
+          orderId: undefined,
           currentOrder: [],
           customerNotes: '',
           specialInstructions: '',
@@ -195,7 +201,7 @@ export const usePosStore = create<PosState>()(
       // Draft order management
       saveDraftOrder: () => {
         const state = get();
-        const draftOrder: PosOrder = {
+        const draftOrder: any = {
           id: state.currentDraftOrderId || Date.now(),
           sessionId: 0, // Will be set when actually saving to backend
           orderStatus: 'DRAFT',
@@ -287,7 +293,9 @@ export const usePosStore = create<PosState>()(
       getItemCount: () => {
         const state = get();
         return state.currentOrder.reduce((sum, item) => sum + item.quantity, 0);
-      }
+      },
+      
+      setOrderId: (id?: number) => set({ orderId: id }),
     }),
     {
       name: 'pos-store',

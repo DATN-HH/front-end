@@ -29,6 +29,7 @@ import {
     Receipt,
     Star,
     ChevronDown,
+    ChevronUp,
     Filter, Delete,
 } from 'lucide-react';
 import { useCurrentPosSession, useCategories, useProducts, useSearchProducts, useFeaturedProducts, useProductsByCategory } from '@/api/v1/pos';
@@ -37,6 +38,11 @@ import { CustomerSelectionModal } from './components/CustomerSelectionModal';
 import { CustomerNotesModal } from './components/CustomerNotesModal';
 import { ComboSelectionModal } from './components/ComboSelectionModal';
 import { PaymentModal } from './components/PaymentModal';
+import { PaymentScreen } from './components/PaymentScreen';
+import { AddTipModal } from './components/AddTipModal';
+import { PaymentSuccessView } from './components/PaymentSuccessView';
+import { CustomerSearchModal } from './components/CustomerSearchModal';
+import { useCreatePosOrder } from '@/api/v1/pos/operations';
 
 export default function ComprehensivePosPage() {
     const router = useRouter();
@@ -70,12 +76,22 @@ export default function ComprehensivePosPage() {
         getSubtotal,
         getTax,
         getTotal,
-        getItemCount
+        getItemCount,
+        orderId,
+        setOrderId
     } = usePosStore();
 
     // Local state
     const [showNumpad, setShowNumpad] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<string | null>(null);
+    
+    // New payment flow state
+    const [paymentMode, setPaymentMode] = useState<'order' | 'payment' | 'success'>('order');
+    const [showTipModal, setShowTipModal] = useState(false);
+    const [showCustomerSearchModal, setShowCustomerSearchModal] = useState(false);
+    const [currentTipAmount, setCurrentTipAmount] = useState(0);
+    const [paymentResponse, setPaymentResponse] = useState<any>(null);
+    const [isPaymentInterfaceCollapsed, setIsPaymentInterfaceCollapsed] = useState(false);
 
     // API hooks
     const { data: session, isLoading: sessionLoading, error: sessionError } = useCurrentPosSession();
@@ -83,10 +99,11 @@ export default function ComprehensivePosPage() {
     const { data: featuredProducts = [] } = useFeaturedProducts();
     const { data: categoryProducts = [] } = useProductsByCategory(selectedCategory || 0);
     const { data: searchResults = [] } = useSearchProducts(searchTerm);
+    const createOrderMutation = useCreatePosOrder();
 
     // Redirect to login if not authenticated
     useEffect(() => {
-        if (!sessionLoading && (!session || session.isLocked)) {
+        if (!sessionLoading && (!session || (session as any)?.isLocked)) {
             router.push('/pos/login');
         }
     }, [session, sessionLoading, router]);
@@ -175,6 +192,95 @@ export default function ComprehensivePosPage() {
         setNumpadValue('');
     };
 
+    // New payment flow handlers
+    const handlePaymentClick = async () => {
+        if (currentOrder.length === 0) {
+            toast({
+                title: 'Empty Order',
+                description: 'Add items to your order before processing payment',
+                variant: 'destructive'
+            });
+            return;
+        }
+
+        if (!session) {
+            toast({ title: 'Error', description: 'No session', variant: 'destructive' });
+            return;
+        }
+
+        // Ensure order exists in backend (draft-first)
+        if (!orderId) {
+            try {
+                const draft = await createOrderMutation.mutateAsync({
+                    sessionId: (session as any).id,
+                    customerId: selectedCustomer?.id,
+                    orderType,
+                    customerNotes: '',
+                    specialInstructions: '',
+                    items: currentOrder.map((item) => ({
+                        itemType: item.itemType,
+                        productId: item.productId,
+                        comboId: item.comboId,
+                        comboVariantId: (item as any).comboVariantId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                    })),
+                });
+                setOrderId(draft.id);
+            } catch (err) {
+                toast({ title: 'Error', description: 'Failed to create order', variant: 'destructive' });
+                return;
+            }
+        }
+
+        setPaymentMode('payment');
+    };
+
+    const handleTipClick = () => {
+        setShowTipModal(true);
+    };
+
+    const handleCustomerClick = () => {
+        setShowCustomerSearchModal(true);
+    };
+
+    const handleTipApplied = (tipAmount: number) => {
+        setCurrentTipAmount(tipAmount);
+        setShowTipModal(false);
+    };
+
+    const handlePaymentSuccess = (response: any) => {
+        setPaymentResponse(response);
+        setPaymentMode('success');
+    };
+
+    const handleNewOrder = () => {
+        setPaymentMode('order');
+        setCurrentTipAmount(0);
+        setPaymentResponse(null);
+        setIsPaymentInterfaceCollapsed(false); // Reset payment interface for new order
+        clearOrder();
+    };
+
+    const handleTogglePaymentInterface = () => {
+        setIsPaymentInterfaceCollapsed(!isPaymentInterfaceCollapsed);
+    };
+
+    // Keyboard shortcut for collapsing payment interface
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            // Only in payment mode and when Ctrl/Cmd + H is pressed
+            if ((paymentMode === 'payment' || paymentMode === 'success') && 
+                (event.ctrlKey || event.metaKey) && event.key === 'h') {
+                event.preventDefault();
+                handleTogglePaymentInterface();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyPress);
+        return () => document.removeEventListener('keydown', handleKeyPress);
+    }, [paymentMode, isPaymentInterfaceCollapsed]);
+
     // Show loading if checking session
     if (sessionLoading) {
         return (
@@ -226,8 +332,8 @@ export default function ComprehensivePosPage() {
                 {/* Right side - User info and actions */}
                 <div className="flex items-center space-x-2">
                     <div className="text-white text-sm">
-                        <div className="font-medium">{session.user?.fullName || 'User'}</div>
-                        <div className="text-xs opacity-90">{session.branch?.name || 'Branch'}</div>
+                        <div className="font-medium">{(session as any)?.user?.fullName || 'User'}</div>
+                        <div className="text-xs opacity-90">{(session as any)?.branch?.name || 'Branch'}</div>
                     </div>
                     <Button
                         variant="ghost"
@@ -259,16 +365,18 @@ export default function ComprehensivePosPage() {
                                 <ShoppingCart className="h-5 w-5 mr-2 text-orange-600" />
                                 Current Order
                             </h2>
-                            {currentOrder.length > 0 && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={clearOrder}
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {currentOrder.length > 0 && paymentMode === 'order' && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={clearOrder}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                         
                         {/* Order Type & Customer */}
@@ -310,7 +418,7 @@ export default function ComprehensivePosPage() {
                         </Badge>
                     </div>
 
-                    {/* Order Items - Scrollable Area */}
+                    {/* Order Items - Always Visible Scrollable Area */}
                     <div className="flex-1 overflow-y-auto p-4 min-h-0">
                         {currentOrder.length === 0 ? (
                             <div className="text-center py-8 text-gray-500">
@@ -370,108 +478,72 @@ export default function ComprehensivePosPage() {
                         )}
                     </div>
 
-                    {/* Fixed Bottom Section - Totals, Numpad, Actions */}
-                    <div className="flex-shrink-0 border-t bg-gray-50 p-4">
-                        {/* Order Totals */}
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Subtotal:</span>
-                                <span>${orderSubtotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Tax (10%):</span>
-                                <span>${orderTax.toFixed(2)}</span>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between text-lg font-semibold">
-                                <span>Total:</span>
-                                <span className="text-orange-600">${orderTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        {/* Built-in Numpad */}
-                        <div className="bg-white rounded-lg p-3 mb-4 border">
-                            <h3 className="text-sm font-medium text-gray-700 mb-3 text-center">Quick Numpad</h3>
-                            <div className="grid grid-cols-3 gap-2">
-                                {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((num) => (
-                                    <Button
-                                        key={num}
-                                        variant="outline"
-                                        onClick={() => handleNumberClick(num.toString())}
-                                        className="h-10 text-lg font-semibold"
-                                    >
-                                        {num}
-                                    </Button>
-                                ))}
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleNumberClick(".")}
-                                    className="h-10"
-                                >
-                                    .
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleNumberClick("0")}
-                                    className="h-10 text-lg font-semibold"
-                                >
-                                    0
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={handleClearLastNumber}
-                                    className="h-10"
-                                >
-                                    <Delete className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            {numpadValue && (
-                                <div className="mt-2 p-2 bg-gray-50 rounded border">
-                                    <div className="text-right text-lg font-mono">{numpadValue}</div>
+                    {/* Dynamic Bottom Section */}
+                    {paymentMode === 'order' && (
+                        <div className="flex-shrink-0 border-t bg-gray-50 p-4">
+                            {/* Order Totals */}
+                            <div className="space-y-2 mb-4">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Subtotal:</span>
+                                    <span>${orderSubtotal.toFixed(2)}</span>
                                 </div>
-                            )}
-                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Tax (10%):</span>
+                                    <span>${orderTax.toFixed(2)}</span>
+                                </div>
+                                {currentTipAmount > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Tip:</span>
+                                        <span className="text-orange-600">${currentTipAmount.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                <Separator />
+                                <div className="flex justify-between text-lg font-semibold">
+                                    <span>Total:</span>
+                                    <span className="text-orange-600">${(orderTotal + currentTipAmount).toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="space-y-2">
                                 <Button
-                                    variant="outline"
-                                    onClick={handleClearNumpad}
-                                    className="h-8 text-sm text-red-600"
+                                    variant="outline" 
                                     size="sm"
+                                    className="w-full h-10"
                                 >
-                                    Clear
+                                    <Receipt className="h-4 w-4 mr-2" />
+                                    Print Receipt
                                 </Button>
-                                <Button
-                                    onClick={handleApplyNumpad}
-                                    className="h-8 text-sm bg-orange-600 hover:bg-orange-700"
-                                    size="sm"
-                                    disabled={!numpadValue}
-                                >
-                                    Apply
-                                </Button>
+                                
+                                {currentOrder.length > 0 && (
+                                    <Button
+                                        onClick={handlePaymentClick}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+                                    >
+                                        <CreditCard className="h-5 w-5 mr-2" />
+                                        PAYMENT - ${(orderTotal + currentTipAmount).toFixed(2)}
+                                    </Button>
+                                )}
                             </div>
                         </div>
+                    )}
 
-                        {/* Action Buttons */}
-                        <div className="space-y-2">
-                            <Button
-                                variant="outline" 
-                                size="sm"
-                                className="w-full h-10"
-                            >
-                                <Receipt className="h-4 w-4 mr-2" />
-                                Print Receipt
-                            </Button>
-                            
-                            {currentOrder.length > 0 && (
-                                <Button
-                                    onClick={openPaymentModal}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
-                                >
-                                    <CreditCard className="h-5 w-5 mr-2" />
-                                    PAYMENT - ${orderTotal.toFixed(2)}
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+                    {paymentMode === 'payment' && (
+                        <PaymentScreen
+                            onTipClick={handleTipClick}
+                            onCustomerClick={handleCustomerClick}
+                            onPaymentSuccess={handlePaymentSuccess}
+                            isCollapsed={isPaymentInterfaceCollapsed}
+                            onToggleCollapse={handleTogglePaymentInterface}
+                        />
+                    )}
+
+                    {paymentMode === 'success' && paymentResponse && (
+                        <PaymentSuccessView
+                            paymentResponse={paymentResponse}
+                            onNewOrder={handleNewOrder}
+                        />
+                    )}
                 </div>
 
                 {/* Right Panel - Product Catalog (55-60%) */}
@@ -584,6 +656,19 @@ export default function ComprehensivePosPage() {
             <CustomerNotesModal />
             <ComboSelectionModal />
             <PaymentModal />
+            
+            {/* New Payment Flow Modals */}
+            <AddTipModal
+                isOpen={showTipModal}
+                onClose={() => setShowTipModal(false)}
+                onTipApplied={handleTipApplied}
+                currentTipAmount={currentTipAmount}
+            />
+            
+            <CustomerSearchModal
+                isOpen={showCustomerSearchModal}
+                onClose={() => setShowCustomerSearchModal(false)}
+            />
         </div>
     );
 }
