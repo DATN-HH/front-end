@@ -1,4 +1,7 @@
-import HeaderBar from "@/components/pos/header-bar";
+// import HeaderBar from "@/components/pos/header-bar";
+
+
+import HeaderBar from '../../components/pos/header-bar';
 
 export default function POSPage() {
   return (

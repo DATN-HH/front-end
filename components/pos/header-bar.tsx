@@ -1,3 +1,5 @@
+"use client";
+
 import { Landmark, ClipboardList, Menu as MenuIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UserDropdown from './user-dropdown'; // Import the actual UserDropdown
