@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Edit, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -74,37 +74,27 @@ export const BranchTableColumns = ({
         },
         {
             id: 'actions',
+            header: 'Actions',
             cell: ({ row }) => {
                 const branch = row.original;
 
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                            >
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={() => onEdit(branch)}
-                                className="cursor-pointer"
-                            >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => onDelete(branch)}
-                                className="cursor-pointer text-red-600"
-                            >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        onClick={() => onEdit(row.original)}
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() => onDelete(row.original)}
+                    >
+                        <Trash className="h-4 w-4" />
+                    </Button>
+                </div>
                 );
             },
         },

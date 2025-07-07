@@ -52,26 +52,26 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       id: 'scheduling',
       label: 'Scheduling',
       icon: <Calendar className="h-5 w-5" />,
-      activePaths: ['/app/scheduling'],
+      activePaths: ['/app/schedule'],
       roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập scheduling
       items: [
         {
-          href: '/app/scheduling',
+          href: '/app/schedule',
           label: 'Overview',
           icon: <BarChart3 className="h-4 w-4" />,
         },
         {
-          href: '/app/scheduling/schedule',
+          href: '/app/schedule/schedule',
           label: 'Scheduling',
           icon: <BarChart4 className="h-4 w-4" />,
         },
         {
-          href: '/app/scheduling/working-shift',
+          href: '/app/schedule/working-shift',
           label: 'Working Shifts',
           icon: <Clock className="h-4 w-4" />,
         },
         {
-          href: '/app/scheduling/leave-management',
+          href: '/app/schedule/leave-management',
           label: 'Leave Management',
           icon: <CalendarDays className="h-4 w-4" />,
         },
@@ -135,13 +135,13 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       items: [
         {
           href: '/app/system/branches',
-          label: 'Branch Management',
+          label: 'Branches',
           icon: <Building className="h-4 w-4" />,
           roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
         },
         {
           href: '/app/system/roles',
-          label: 'Role Management',
+          label: 'Roles',
           icon: <UserCog className="h-4 w-4" />,
           roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý role
         },

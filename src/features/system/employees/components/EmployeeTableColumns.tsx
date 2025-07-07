@@ -123,34 +123,22 @@ export const EmployeeTableColumns = ({
             header: 'Actions',
             cell: ({ row }) => {
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            {onManageUnavailability && (
-                                <DropdownMenuItem
-                                    onClick={() => onManageUnavailability(row.original)}
-                                >
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    Manage Unavailability
-                                </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => onDelete(row.original)}
-                            >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        onClick={() => onEdit(row.original)}
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() => onDelete(row.original)}
+                    >
+                        <Trash className="h-4 w-4" />
+                    </Button>
+                </div>
                 );
             },
         },

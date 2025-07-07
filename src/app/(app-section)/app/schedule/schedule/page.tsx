@@ -63,7 +63,7 @@ function SchedulePage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setIsCreateShiftDialogOpen(true)}>Add Shift</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/app/scheduling/working-shift')}>View Shifts</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/app/schedule/working-shift')}>View Shifts</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsCopyOpenShiftOpen(true)}>Copy Open Shift</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsCopyWeekWithScheduleOpen(true)}>Copy Schedule</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsShiftSuggestionsOpen(true)}>Suggestions</DropdownMenuItem>

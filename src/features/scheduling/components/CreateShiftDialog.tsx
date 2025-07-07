@@ -207,8 +207,8 @@ export function CreateShiftDialog({ isOpen, onOpenChange, onSubmit }: CreateShif
       if (onOpenChange) {
         await Promise.resolve(onOpenChange(false));
       }
-    } catch (error) {
-      customToast.error("Error", "Failed to create shift: " + (error as Error).message);
+    } catch (error: any) {
+      customToast.error("Error", error?.response?.data?.message || 'Failed to create shift');
     } finally {
       setIsSubmitting(false);
     }
@@ -269,7 +269,7 @@ export function CreateShiftDialog({ isOpen, onOpenChange, onSubmit }: CreateShif
                   placeholder="Enter shift name"
                   className="h-11 bg-white "
                   required
-/>
+                />
               </div>
             </CardContent>
           </Card>
