@@ -784,7 +784,13 @@ export function DataTable<TData, TValue>({
 
                 {/* Table Section */}
                 <div className="border border-t-0 border-border rounded-b-xl bg-background shadow-sm">
-                    <div className={`overflow-auto max-h-[${MAX_TABLE_HEIGHT}]`} style={{ borderCollapse: 'separate' }}>
+                    <div
+                        className="overflow-auto"
+                        style={{
+                            borderCollapse: 'separate',
+                            maxHeight: MAX_TABLE_HEIGHT
+                        }}
+                    >
                         <Table className="min-w-full" style={{ width: table.getTotalSize() }}>
                             <TableHeader className="border-b border-border sticky top-0 z-10 bg-background shadow-sm">
                                 {renderHeaderGroups(table.getHeaderGroups())}
@@ -799,10 +805,16 @@ export function DataTable<TData, TValue>({
                 {/* Pagination Section */}
                 {enablePagination && (
                     <div className="bg-background border border-t-0 border-border rounded-b-xl px-6 py-4">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            {/* Results info and page size selector */}
-                            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-2">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                            {/* Results info */}
+                            <div className="text-sm text-muted-foreground">
+                                Showing {startRow} to {endRow} of {total} results
+                            </div>
+
+                            {/* Pagination controls */}
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                {/* Page size selector */}
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <span>Show</span>
                                     <Select
                                         value={`${pageSize}`}
@@ -830,66 +842,82 @@ export function DataTable<TData, TValue>({
                                     <span>entries</span>
                                 </div>
 
-                                <div className="text-muted-foreground">
-                                    Showing {startRow} to {endRow} of {total}{' '}
-                                    results
-                                </div>
-                            </div>
+                                {/* Page navigation */}
+                                <div className="flex items-center gap-3">
+                                    {/* Navigation buttons */}
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
+                                            onClick={handleFirstPage}
+                                            disabled={!canPreviousPage}
+                                        >
+                                            <ChevronsLeft className="h-4 w-4" />
+                                            <span className="sr-only">First page</span>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
+                                            onClick={handlePreviousPage}
+                                            disabled={!canPreviousPage}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                            <span className="sr-only">Previous page</span>
+                                        </Button>
+                                    </div>
 
-                            {/* Pagination controls */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-                                    Page {pageIndex + 1} of {totalPages || 1}
-                                </div>
-                                <div className="flex items-center gap-1 ml-4">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
-                                        onClick={handleFirstPage}
-                                        disabled={!canPreviousPage}
-                                    >
-                                        <ChevronsLeft className="h-4 w-4" />
-                                        <span className="sr-only">
-                                            First page
-                                        </span>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
-                                        onClick={handlePreviousPage}
-                                        disabled={!canPreviousPage}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        <span className="sr-only">
-                                            Previous page
-                                        </span>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
-                                        onClick={handleNextPage}
-                                        disabled={!canNextPage}
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                        <span className="sr-only">
-                                            Next page
-                                        </span>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-9 w-9 p-0 border-border hover:bg-accent disabled:opacity-50"
-                                        onClick={handleLastPage}
-                                        disabled={!canNextPage}
-                                    >
-                                        <ChevronsRight className="h-4 w-4" />
-                                        <span className="sr-only">
-                                            Last page
-                                        </span>
-                                    </Button>
+                                    {/* Page input */}
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <span className="text-muted-foreground">Page</span>
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            max={totalPages || 1}
+                                            value={pageIndex + 1}
+                                            onChange={(e) => {
+                                                const value = parseInt(e.target.value);
+                                                if (value >= 1 && value <= totalPages) {
+                                                    onPaginationChange(value - 1, pageSize);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const value = parseInt(e.currentTarget.value);
+                                                    if (value >= 1 && value <= totalPages) {
+                                                        onPaginationChange(value - 1, pageSize);
+                                                    }
+                                                }
+                                            }}
+                                            className="h-9 w-16 text-center border-input focus:ring-2 focus:ring-primary/20"
+                                        />
+                                        <span className="text-muted-foreground">of {totalPages || 1}</span>
+                                    </div>
+
+                                    {/* Navigation buttons */}
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
+                                            onClick={handleNextPage}
+                                            disabled={!canNextPage}
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                            <span className="sr-only">Next page</span>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-9 w-9 p-0 border-input hover:bg-accent disabled:opacity-50"
+                                            onClick={handleLastPage}
+                                            disabled={!canNextPage}
+                                        >
+                                            <ChevronsRight className="h-4 w-4" />
+                                            <span className="sr-only">Last page</span>
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
