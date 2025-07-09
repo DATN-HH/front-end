@@ -11,6 +11,7 @@ import { useDeleteScheduledShift } from "@/api/v1/scheduled-shift"
 import { useDeleteStaffShift } from "@/api/v1/staff-shifts"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCustomToast } from "@/lib/show-toast"
+import { isStatusCountedInRequirements } from "@/config/status-colors"
 import dayjs from "dayjs"
 
 const ShiftInfoModal = () => {
@@ -96,6 +97,7 @@ const ShiftInfoModal = () => {
         const roleBreakdown: any[] = []
 
         // Count staff registered for this shift across all roles using new structure
+        // Only count shifts with statuses that count toward requirements
         Object.keys(staffShiftsGrouped.data).forEach(roleName => {
             const roleData = staffShiftsGrouped.data[roleName]
             let roleCount = 0
@@ -103,7 +105,9 @@ const ShiftInfoModal = () => {
             Object.keys(roleData).forEach(staffName => {
                 const staffShifts = roleData[staffName].shifts[dateStr] || []
                 const hasShift = staffShifts.some((s: any) =>
-                    s.startTime === shift.startTime && s.endTime === shift.endTime
+                    s.startTime === shift.startTime &&
+                    s.endTime === shift.endTime &&
+                    isStatusCountedInRequirements(s.shiftStatus)
                 )
                 if (hasShift) {
                     roleCount++

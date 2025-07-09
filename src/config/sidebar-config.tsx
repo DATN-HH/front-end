@@ -15,6 +15,7 @@ import {
   Printer,
   Clock,
   ShoppingCart,
+  ClipboardList,
 } from 'lucide-react';
 import { Role, employeeRole } from '@/lib/rbac';
 
@@ -49,31 +50,36 @@ interface SidebarConfig {
 export const SIDEBAR_CONFIG: SidebarConfig = {
   modules: [
     {
-      id: 'scheduling',
-      label: 'Scheduling',
+      id: 'schedule',
+      label: 'Schedule Management',
       icon: <Calendar className="h-5 w-5" />,
       activePaths: ['/app/schedule'],
-      roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập scheduling
+      roles: [Role.MANAGER], // Temporarily commented out for debugging
       items: [
         {
           href: '/app/schedule',
-          label: 'Overview',
-          icon: <BarChart3 className="h-4 w-4" />,
-        },
-        {
-          href: '/app/schedule/schedule',
-          label: 'Scheduling',
+          label: 'Schedule Overview',
           icon: <BarChart4 className="h-4 w-4" />,
         },
         {
-          href: '/app/schedule/working-shift',
-          label: 'Working Shifts',
-          icon: <Clock className="h-4 w-4" />,
+          href: '/app/schedule/schedule',
+          label: 'Schedule Manager',
+          icon: <Calendar className="h-4 w-4" />,
         },
         {
-          href: '/app/schedule/leave-management',
-          label: 'Leave Management',
-          icon: <CalendarDays className="h-4 w-4" />,
+          href: '/app/schedule/working-shift',
+          label: 'Working Shift',
+          icon: <Clock className="h-4 w-4" />,
+        },
+        // {
+        //   href: '/app/schedule/leave-management',
+        //   label: 'Leave Management',
+        //   icon: <FileText className="h-4 w-4" />,
+        // },
+        {
+          href: '/app/schedule/shift-leave',
+          label: 'Shift Leave Management',
+          icon: <ClipboardList className="h-4 w-4" />,
         },
       ],
     },
@@ -137,7 +143,7 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           href: '/app/system/branches',
           label: 'Branches',
           icon: <Building className="h-4 w-4" />,
-          roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
+          roles: [Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
         },
         {
           href: '/app/system/roles',
@@ -181,16 +187,22 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       icon: <CalendarDays className="h-5 w-5" />,
       roles: employeeRole,
     },
-    {
-      href: '/app/employee-portal/leave-management',
-      label: 'My Leave',
-      icon: <FileText className="h-5 w-5" />,
-      roles: employeeRole,
-    },
+    // {
+    //   href: '/app/employee-portal/leave-management',
+    //   label: 'My Leave',
+    //   icon: <FileText className="h-5 w-5" />,
+    //   roles: employeeRole,
+    // },
     {
       href: '/app/employee-portal/shift-registration',
       label: 'Shift Registration',
       icon: <Calendar className="h-5 w-5" />,
+      roles: employeeRole,
+    },
+    {
+      href: '/app/employee-portal/shift-leave',
+      label: 'Shift Leave Request',
+      icon: <ClipboardList className="h-5 w-5" />,
       roles: employeeRole,
     },
   ],

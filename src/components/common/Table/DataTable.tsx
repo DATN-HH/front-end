@@ -95,6 +95,7 @@ interface DataTableProps<TData, TValue> {
     onSortingChange: (sorting: string) => void;
     onFilterChange: (filters: SearchCondition[]) => void;
     onSearchChange: (searchTerm: string) => void;
+    onClickRow?: (row: TData) => void;
     // Filter definitions
     filterDefinitions?: FilterDefinition[];
     // Initial column pinning
@@ -126,6 +127,7 @@ export function DataTable<TData, TValue>({
     onSortingChange = () => { },
     onFilterChange = () => { },
     onSearchChange = () => { },
+    onClickRow,
     filterDefinitions = [],
     initialColumnPinning,
     enableSearch = DEFAULT_TABLE_CONFIG.enableSearch,
@@ -561,7 +563,9 @@ export function DataTable<TData, TValue>({
                         transition-colors duration-150 border-b border-border/30 last:border-b-0
                         hover:bg-muted/50
                         ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}
+                        ${onClickRow ? 'cursor-pointer' : ''}
                     `}
+                    onClick={onClickRow ? () => onClickRow(row) : undefined}
                 >
                     {tableRow?.getVisibleCells().map((cell) => {
                         const pinningStyles = getCommonPinningStyles(cell.column);
