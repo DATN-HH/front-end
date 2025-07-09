@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useContext, useMemo } from "react"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 import { ShiftStatus } from "@/api/v1/publish-shifts"
+import { getStatusConfig } from "@/config/status-colors"
 import dayjs from "dayjs"
 
 const EmployeeTimeline = () => {
@@ -52,31 +53,43 @@ const EmployeeTimeline = () => {
 
   // Get shift status styling
   const getShiftStatusStyle = (status: string) => {
+    const config = getStatusConfig(status as ShiftStatus)
+
     switch (status) {
       case ShiftStatus.DRAFT:
         return {
           className: "opacity-70 border-dashed",
-          indicator: { color: "#EAB308", label: "Draft" }
+          indicator: { color: config.color, label: config.label }
         }
       case ShiftStatus.PENDING:
         return {
           className: "opacity-80",
-          indicator: { color: "#F97316", label: "Pending" }
+          indicator: { color: config.color, label: config.label }
         }
       case ShiftStatus.PUBLISHED:
         return {
           className: "",
-          indicator: { color: "#22C55E", label: "Published" }
+          indicator: { color: config.color, label: config.label }
         }
       case ShiftStatus.CONFLICTED:
         return {
           className: "opacity-90 border-dashed",
-          indicator: { color: "#EF4444", label: "Conflicted" }
+          indicator: { color: config.color, label: config.label }
         }
       case ShiftStatus.REQUEST_CHANGE:
         return {
           className: "opacity-85",
-          indicator: { color: "#3467EB", label: "Change Requested" }
+          indicator: { color: config.color, label: config.label }
+        }
+      case ShiftStatus.APPROVED_LEAVE_VALID:
+        return {
+          className: "opacity-95",
+          indicator: { color: config.color, label: config.label }
+        }
+      case ShiftStatus.APPROVED_LEAVE_EXCEEDED:
+        return {
+          className: "opacity-90 border-dashed",
+          indicator: { color: config.color, label: config.label }
         }
       default:
         return {
@@ -280,26 +293,18 @@ const EmployeeTimeline = () => {
       <div className="border-t border-gray-300 bg-gray-50 p-4">
         <div className="flex items-center gap-6 flex-wrap">
           <div className="text-sm font-medium text-gray-700">Status Legend:</div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-sm text-gray-600">Published</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span className="text-sm text-gray-600">Draft</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-sm text-gray-600">Pending</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-sm text-gray-600">Conflicted</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-            <span className="text-sm text-gray-600">Change Requested</span>
-          </div>
+          {Object.values(ShiftStatus).map((status) => {
+            const config = getStatusConfig(status)
+            return (
+              <div key={status} className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: config.color }}
+                ></div>
+                <span className="text-sm text-gray-600">{config.label}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

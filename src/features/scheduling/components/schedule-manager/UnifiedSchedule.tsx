@@ -4,12 +4,14 @@ import { useContext, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Plus } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Plus, ChevronDown } from "lucide-react"
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
 import { ShiftStatus } from "@/api/v1/publish-shifts"
+import { getStatusConfig, isStatusCountedInRequirements } from "@/config/status-colors"
 import AddShiftModal from "./AddShiftModal"
 import dayjs from "dayjs"
-import { useEffect, useState, useRef } from 'react'
+
 
 interface UnifiedScheduleProps {
     viewMode: "weekly" | "monthly"
@@ -32,34 +34,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         setSelectedStaffName
     } = useContext(ScheduleContext)
 
-    // Sticky footer state
-    const [isSticky, setIsSticky] = useState(false)
-    const footerRef = useRef<HTMLDivElement>(null)
-    const sentinelRef = useRef<HTMLDivElement>(null)
 
-    // Use Intersection Observer on a sentinel element
-    useEffect(() => {
-        if (!sentinelRef.current) return
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0]
-                // When sentinel goes out of view (footer scrolled past), make footer sticky
-                setIsSticky(!entry.isIntersecting)
-            },
-            {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0
-            }
-        )
-
-        observer.observe(sentinelRef.current)
-
-        return () => {
-            observer.disconnect()
-        }
-    }, [])
 
     // Generate dates based on view mode and context date range
     const generateScheduleData = () => {
@@ -175,13 +150,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         return { backgroundColor: role.hexColor }
     }
 
-    const statusConfig = {
-        [ShiftStatus.DRAFT]: { color: "bg-yellow-500", text: "text-white", label: "Draft" },
-        [ShiftStatus.PENDING]: { color: "bg-orange-500", text: "text-white", label: "Pending" },
-        [ShiftStatus.PUBLISHED]: { color: "bg-green-500", text: "text-white", label: "Published" },
-        [ShiftStatus.CONFLICTED]: { color: "bg-red-500", text: "text-white", label: "Conflicted" },
-        [ShiftStatus.REQUEST_CHANGE]: { color: "bg-blue-500", text: "text-white", label: "Change Requested" },
-    }
+    // Status configs are now imported from the centralized config file
 
     const getInitials = (name: string): string => {
         return name
@@ -201,6 +170,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
         const roleBreakdown: any[] = []
 
         // Count staff registered for this shift across all roles
+        // Only count shifts with DRAFT/PENDING/PUBLISHED status for requirements
         Object.keys(staffShiftsGrouped.data).forEach(roleName => {
             const roleData = staffShiftsGrouped.data[roleName]
             let roleCount = 0
@@ -208,7 +178,9 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             Object.keys(roleData).forEach(staffName => {
                 const staffShifts = roleData[staffName].shifts[dateStr] || []
                 const hasShift = staffShifts.some((s: any) =>
-                    s.startTime === shift.startTime && s.endTime === shift.endTime
+                    s.startTime === shift.startTime &&
+                    s.endTime === shift.endTime &&
+                    isStatusCountedInRequirements(s.shiftStatus)
                 )
                 if (hasShift) {
                     roleCount++
@@ -269,27 +241,104 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
             return acc
         }, {} as Record<string, number>)
 
-        return (
-            <div
-                className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
-                onClick={() => handleEmployeeShiftClick(employeeName, date)}
-            >
-                {Object.entries(statusCounts).map(([status, count]) => {
-                    if (count === 0) return null
-                    const config = statusConfig[status as ShiftStatus]
-                    if (!config) return null
+        // Filter out statuses with zero counts
+        const activeStatuses = Object.entries(statusCounts).filter(([_, count]) => count > 0)
 
-                    return (
-                        <div
-                            key={status}
-                            className={`w-7 h-7 ${config.color} ${config.text} rounded-full flex items-center justify-center text-sm font-medium`}
-                            title={`${count} ${config.label} shift${count > 1 ? 's' : ''}`}
-                        >
-                            {count}
+        // Generate tooltip content for all statuses
+        const tooltipContent = activeStatuses.map(([status, count]) => {
+            const config = getStatusConfig(status as ShiftStatus)
+            return { status: status as ShiftStatus, count, config }
+        })
+
+        // Single status - show normally
+        if (activeStatuses.length === 1) {
+            const [status, count] = activeStatuses[0]
+            const config = getStatusConfig(status as ShiftStatus)
+
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1"
+                                onClick={() => handleEmployeeShiftClick(employeeName, date)}
+                            >
+                                <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium"
+                                    style={{
+                                        backgroundColor: config.color,
+                                        color: config.textColor
+                                    }}
+                                >
+                                    {count}
+                                </div>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <div className="flex items-center gap-2">
+                                <div
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: config.color }}
+                                />
+                                <span>{count} {config.label} shift{count > 1 ? 's' : ''}</span>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
+        }
+
+        // Multiple statuses - show dropdown
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="p-2 h-12 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors gap-1">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <div className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 rounded-full px-2 py-1">
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {shifts.length}
+                                        </span>
+                                        <ChevronDown className="w-3 h-3 text-gray-600" />
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="center" className="w-48">
+                                    {tooltipContent.map(({ status, count, config }) => (
+                                        <DropdownMenuItem
+                                            key={status}
+                                            onClick={() => handleEmployeeShiftClick(employeeName, date)}
+                                        >
+                                            <div className="flex items-center gap-3 w-full">
+                                                <div
+                                                    className="w-4 h-4 rounded-full"
+                                                    style={{ backgroundColor: config.color }}
+                                                />
+                                                <span className="flex-1">{config.label}</span>
+                                                <span className="font-medium">{count}</span>
+                                            </div>
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                    )
-                })}
-            </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                        <div className="space-y-1">
+                            <div className="font-medium text-sm">All shifts on this day:</div>
+                            {tooltipContent.map(({ status, count, config }) => (
+                                <div key={status} className="flex items-center gap-2">
+                                    <div
+                                        className="w-3 h-3 rounded-full"
+                                        style={{ backgroundColor: config.color }}
+                                    />
+                                    <span className="text-sm">{count} {config.label} shift{count > 1 ? 's' : ''}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         )
     }
 
@@ -483,45 +532,7 @@ const UnifiedSchedule = ({ viewMode }: UnifiedScheduleProps) => {
                 <AddShiftModal />
             </div>
 
-            {/* Sentinel element for sticky detection */}
-            <div
-                ref={sentinelRef}
-                className="h-1 w-full pointer-events-none"
-                aria-hidden="true"
-            />
 
-            {/* Smart Sticky Footer Legend */}
-            <div
-                ref={footerRef}
-                className={`
-                    border-t border-gray-300 bg-gray-50/95 backdrop-blur-sm p-4 shadow-lg z-10 transition-all duration-200
-                    ${isSticky ? 'fixed bottom-0 left-0 right-0' : 'relative'}
-                `}
-            >
-                <div className="flex items-center gap-6 flex-wrap justify-center">
-                    <div className="text-sm font-medium text-gray-700">Legend:</div>
-                    {Object.entries(statusConfig).map(([status, config]) => (
-                        <div key={status} className="flex items-center gap-2">
-                            <div className={`w-7 h-7 ${config.color} rounded-full flex items-center justify-center`}>
-                                <span className="text-sm text-white font-medium">1</span>
-                            </div>
-                            <span className="text-sm text-gray-600">{config.label} shifts</span>
-                        </div>
-                    ))}
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-purple-500 rounded-full flex items-center justify-center">
-                            <span className="text-sm text-white font-medium">1</span>
-                        </div>
-                        <span className="text-sm text-gray-600">Open shifts</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-red-100 border border-red-200 rounded flex items-center justify-center">
-                            <span className="text-xs text-red-600 font-medium">!</span>
-                        </div>
-                        <span className="text-sm text-gray-600">Understaffed shifts</span>
-                    </div>
-                </div>
-            </div>
         </>
     )
 }

@@ -7,7 +7,9 @@ export enum StaffShiftStatus {
   PENDING = 'PENDING',
   PUBLISHED = 'PUBLISHED',
   CONFLICTED = 'CONFLICTED',
-  REQUEST_CHANGE = 'REQUEST_CHANGE'
+  REQUEST_CHANGE = 'REQUEST_CHANGE',
+  APPROVED_LEAVE_VALID = 'APPROVED_LEAVE_VALID',
+  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED'
 }
 
 export enum LeaveRequestStatus {
@@ -141,6 +143,8 @@ export const getStaffShiftStatusColor = (status: StaffShiftStatus): 'default' | 
     case StaffShiftStatus.PENDING: return 'secondary';
     case StaffShiftStatus.CONFLICTED: return 'destructive';
     case StaffShiftStatus.REQUEST_CHANGE: return 'outline';
+    case StaffShiftStatus.APPROVED_LEAVE_VALID: return 'default';
+    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED: return 'destructive';
     default: return 'outline';
   }
 };
@@ -152,6 +156,8 @@ export const getStaffShiftStatusLabel = (status: StaffShiftStatus): string => {
     case StaffShiftStatus.PUBLISHED: return 'Đã công bố';
     case StaffShiftStatus.CONFLICTED: return 'Xung đột';
     case StaffShiftStatus.REQUEST_CHANGE: return 'Yêu cầu thay đổi';
+    case StaffShiftStatus.APPROVED_LEAVE_VALID: return 'Nghỉ phép được chấp nhận';
+    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED: return 'Nghỉ phép vượt quá';
     default: return status;
   }
 };

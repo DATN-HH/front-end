@@ -25,9 +25,8 @@ export function getDefaultRedirectByRole(role: RoleResponseDto): string {
     case Role.ACCOUNTANT:
     case Role.SUPPORT:
     case Role.EMPLOYEE:
-      return '/app/employee-portal';
     case Role.SYSTEM_ADMIN:
-      return '/app/system-admin';
+      return '/app/employee-portal';
     case Role.CUSTOMER:
     default:
       return '/';

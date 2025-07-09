@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import dayjs from "dayjs"
 import { useCustomToast } from '@/lib/show-toast'
 import { ScheduleContext } from "@/features/scheduling/contexts/context-schedule"
+import { isStatusCountedInRequirements } from "@/config/status-colors"
 
 const AddShiftModal = () => {
     const { success: successToast, error: errorToast, info: infoToast } = useCustomToast()
@@ -132,7 +133,9 @@ const AddShiftModal = () => {
             Object.keys(roleData).forEach(staffName => {
                 const staffShifts = roleData[staffName].shifts[dateStr] || []
                 const hasShift = staffShifts.some((s: any) =>
-                    s.startTime === shift.startTime && s.endTime === shift.endTime
+                    s.startTime === shift.startTime &&
+                    s.endTime === shift.endTime &&
+                    isStatusCountedInRequirements(s.shiftStatus)
                 )
                 if (hasShift) registered++
             })
