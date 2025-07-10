@@ -10,14 +10,15 @@ import { useCreatePayment, useCreateOrder } from '@/api/v1/pos';
 import { useCurrentPosSession } from '@/api/v1/pos';
 import { CreditCard, DollarSign, Smartphone, Gift, Receipt, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MobilePaymentModal } from './MobilePaymentModal';
 
 type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'MOBILE_PAYMENT' | 'GIFT_CARD';
 
 export function PaymentModal() {
     const { toast } = useToast();
-    const { 
-        showPaymentModal, 
-        closePaymentModal, 
+    const {
+        showPaymentModal,
+        closePaymentModal,
         currentOrder,
         orderType,
         selectedCustomer,
@@ -37,6 +38,7 @@ export function PaymentModal() {
     const [cashReceived, setCashReceived] = useState('');
     const [tipAmount, setTipAmount] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showMobilePaymentModal, setShowMobilePaymentModal] = useState(false);
 
     const subtotal = getSubtotal();
     const tax = getTax();
@@ -76,6 +78,12 @@ export function PaymentModal() {
                 description: 'Cash received is less than the total amount',
                 variant: 'destructive'
             });
+            return;
+        }
+
+        // Handle Mobile Payment separately
+        if (selectedPaymentMethod === 'MOBILE_PAYMENT') {
+            setShowMobilePaymentModal(true);
             return;
         }
 
@@ -171,7 +179,7 @@ export function PaymentModal() {
     const handlePrintReceipt = (orderNumber: string) => {
         // Generate receipt content
         const receiptContent = generateReceiptContent(orderNumber);
-        
+
         // Open in new window for printing
         const printWindow = window.open('', '_blank');
         if (printWindow) {
@@ -234,156 +242,179 @@ export function PaymentModal() {
         `;
     };
 
+    const handleMobilePaymentSuccess = () => {
+        // Clear order and close both modals
+        clearOrder();
+        setShowMobilePaymentModal(false);
+        closePaymentModal();
+
+        toast({
+            title: 'Payment Successful',
+            description: 'Mobile payment completed successfully',
+            variant: 'default'
+        });
+    };
+
     return (
-        <Dialog open={showPaymentModal} onOpenChange={closePaymentModal}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center">
-                        <CreditCard className="h-5 w-5 mr-2 text-orange-600" />
-                        Process Payment
-                    </DialogTitle>
-                </DialogHeader>
+        <>
+            {/* Mobile Payment Modal */}
+            <MobilePaymentModal
+                isOpen={showMobilePaymentModal}
+                onClose={() => setShowMobilePaymentModal(false)}
+                orderTotal={total}
+                onPaymentSuccess={handleMobilePaymentSuccess}
+            />
 
-                <div className="space-y-4">
-                    {/* Order Summary */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex justify-between text-sm mb-2">
-                            <span>Subtotal:</span>
-                            <span>${subtotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm mb-2">
-                            <span>Tax (10%):</span>
-                            <span>${tax.toFixed(2)}</span>
-                        </div>
-                        <Separator className="my-2" />
-                        <div className="flex justify-between font-semibold">
-                            <span>Total:</span>
-                            <span className="text-orange-600">${total.toFixed(2)}</span>
-                        </div>
-                    </div>
+            {/* Main Payment Modal */}
+            <Dialog open={showPaymentModal} onOpenChange={closePaymentModal}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center">
+                            <CreditCard className="h-5 w-5 mr-2 text-orange-600" />
+                            Process Payment
+                        </DialogTitle>
+                    </DialogHeader>
 
-                    {/* Payment Method Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Payment Method
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {paymentMethods.map((method) => {
-                                const Icon = method.icon;
-                                return (
-                                    <Button
-                                        key={method.id}
-                                        variant={selectedPaymentMethod === method.id ? 'default' : 'outline'}
-                                        onClick={() => setSelectedPaymentMethod(method.id)}
-                                        className={`p-3 h-auto ${
-                                            selectedPaymentMethod === method.id ? method.color : ''
-                                        }`}
-                                    >
-                                        <div className="flex flex-col items-center">
-                                            <Icon className="h-5 w-5 mb-1" />
-                                            <span className="text-xs">{method.name}</span>
-                                        </div>
-                                    </Button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Cash Payment Details */}
-                    {selectedPaymentMethod === 'CASH' && (
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Cash Received
-                                </label>
-                                <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    value={cashReceived}
-                                    onChange={(e) => setCashReceived(e.target.value)}
-                                    className="text-lg"
-                                />
+                    <div className="space-y-4">
+                        {/* Order Summary */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex justify-between text-sm mb-2">
+                                <span>Subtotal:</span>
+                                <span>${subtotal.toFixed(2)}</span>
                             </div>
-                            
-                            {/* Quick Cash Buttons */}
-                            <div className="grid grid-cols-3 gap-2">
-                                {quickCashAmounts.slice(0, 6).map((amount) => (
-                                    <Button
-                                        key={amount}
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setCashReceived(amount.toFixed(2))}
-                                    >
-                                        ${amount.toFixed(2)}
-                                    </Button>
-                                ))}
+                            <div className="flex justify-between text-sm mb-2">
+                                <span>Tax (10%):</span>
+                                <span>${tax.toFixed(2)}</span>
                             </div>
+                            <Separator className="my-2" />
+                            <div className="flex justify-between font-semibold">
+                                <span>Total:</span>
+                                <span className="text-orange-600">${total.toFixed(2)}</span>
+                            </div>
+                        </div>
 
-                            {/* Change Calculation */}
-                            {cashValue > 0 && (
-                                <div className="p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Cash Received:</span>
-                                        <span>${cashValue.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span>Total Due:</span>
-                                        <span>${(total + tipValue).toFixed(2)}</span>
-                                    </div>
-                                    <Separator className="my-2" />
-                                    <div className="flex justify-between font-semibold">
-                                        <span>Change:</span>
-                                        <span className={change >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                            ${change.toFixed(2)}
-                                        </span>
-                                    </div>
+                        {/* Payment Method Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Payment Method
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {paymentMethods.map((method) => {
+                                    const Icon = method.icon;
+                                    return (
+                                        <Button
+                                            key={method.id}
+                                            variant={selectedPaymentMethod === method.id ? 'default' : 'outline'}
+                                            onClick={() => setSelectedPaymentMethod(method.id)}
+                                            className={`p-3 h-auto ${selectedPaymentMethod === method.id ? method.color : ''
+                                                }`}
+                                        >
+                                            <div className="flex flex-col items-center">
+                                                <Icon className="h-5 w-5 mb-1" />
+                                                <span className="text-xs">{method.name}</span>
+                                            </div>
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Cash Payment Details */}
+                        {selectedPaymentMethod === 'CASH' && (
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Cash Received
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={cashReceived}
+                                        onChange={(e) => setCashReceived(e.target.value)}
+                                        className="text-lg"
+                                    />
                                 </div>
-                            )}
+
+                                {/* Quick Cash Buttons */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    {quickCashAmounts.slice(0, 6).map((amount) => (
+                                        <Button
+                                            key={amount}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCashReceived(amount.toFixed(2))}
+                                        >
+                                            ${amount.toFixed(2)}
+                                        </Button>
+                                    ))}
+                                </div>
+
+                                {/* Change Calculation */}
+                                {cashValue > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex justify-between text-sm">
+                                            <span>Cash Received:</span>
+                                            <span>${cashValue.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span>Total Due:</span>
+                                            <span>${(total + tipValue).toFixed(2)}</span>
+                                        </div>
+                                        <Separator className="my-2" />
+                                        <div className="flex justify-between font-semibold">
+                                            <span>Change:</span>
+                                            <span className={change >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                                ${change.toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Tip Amount */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tip Amount (Optional)
+                            </label>
+                            <Input
+                                type="number"
+                                placeholder="0.00"
+                                value={tipAmount}
+                                onChange={(e) => setTipAmount(e.target.value)}
+                            />
                         </div>
-                    )}
 
-                    {/* Tip Amount */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tip Amount (Optional)
-                        </label>
-                        <Input
-                            type="number"
-                            placeholder="0.00"
-                            value={tipAmount}
-                            onChange={(e) => setTipAmount(e.target.value)}
-                        />
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-4 border-t">
+                            <Button
+                                variant="outline"
+                                onClick={closePaymentModal}
+                                className="flex-1"
+                                disabled={isProcessing}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleProcessPayment}
+                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                disabled={isProcessing || (selectedPaymentMethod === 'CASH' && cashValue < total)}
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        Complete Payment
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-4 border-t">
-                        <Button
-                            variant="outline"
-                            onClick={closePaymentModal}
-                            className="flex-1"
-                            disabled={isProcessing}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleProcessPayment}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                            disabled={isProcessing || (selectedPaymentMethod === 'CASH' && cashValue < total)}
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    Complete Payment
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
