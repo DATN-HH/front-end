@@ -145,7 +145,7 @@ export function ShiftRegistration() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             <PageTitle
                 icon={CalendarDays}
                 title="Shift Registration"
@@ -153,13 +153,13 @@ export function ShiftRegistration() {
 
             {/* Registration Status */}
             <Alert className={registrationStatus.canRegister ? "border-green-200 bg-green-50" : "border-yellow-200 bg-yellow-50"}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                     {registrationStatus.canRegister ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                     ) : (
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
                     )}
-                    <AlertDescription className={registrationStatus.canRegister ? "text-green-800" : "text-yellow-800"}>
+                    <AlertDescription className={`${registrationStatus.canRegister ? "text-green-800" : "text-yellow-800"} text-sm`}>
                         {registrationStatus.message}
                     </AlertDescription>
                 </div>
@@ -168,37 +168,37 @@ export function ShiftRegistration() {
             {/* Configuration Info */}
             {config && (
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Info className="h-5 w-5 text-blue-500" />
+                    <CardHeader className="p-4 lg:p-6">
+                        <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                            <Info className="h-4 w-4 lg:h-5 lg:w-5 text-blue-500" />
                             Registration Rules
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 p-4 lg:p-6 pt-0">
                         <div className="text-center p-3 bg-blue-50 rounded-lg">
-                            <div className="text-lg font-semibold text-blue-700">{config.registrationDaysInAdvance} days</div>
-                            <div className="text-sm text-blue-600">In advance</div>
+                            <div className="text-base lg:text-lg font-semibold text-blue-700">{config.registrationDaysInAdvance} days</div>
+                            <div className="text-xs lg:text-sm text-blue-600">In advance</div>
                         </div>
                         <div className="text-center p-3 bg-green-50 rounded-lg">
-                            <div className="text-lg font-semibold text-green-700">{config.maxShiftsPerWeek}</div>
-                            <div className="text-sm text-green-600">Max shifts per week</div>
+                            <div className="text-base lg:text-lg font-semibold text-green-700">{config.maxShiftsPerWeek}</div>
+                            <div className="text-xs lg:text-sm text-green-600">Max shifts per week</div>
                         </div>
                         <div className="text-center p-3 bg-purple-50 rounded-lg">
-                            <div className="text-lg font-semibold text-purple-700">{config.maxShiftsPerDay}</div>
-                            <div className="text-sm text-purple-600">Max shifts per day</div>
+                            <div className="text-base lg:text-lg font-semibold text-purple-700">{config.maxShiftsPerDay}</div>
+                            <div className="text-xs lg:text-sm text-purple-600">Max shifts per day</div>
                         </div>
                         <div className="text-center p-3 bg-orange-50 rounded-lg">
-                            <div className="text-lg font-semibold text-orange-700">{config.minRestHoursBetweenShifts}h</div>
-                            <div className="text-sm text-orange-600">Min rest time</div>
+                            <div className="text-base lg:text-lg font-semibold text-orange-700">{config.minRestHoursBetweenShifts}h</div>
+                            <div className="text-xs lg:text-sm text-orange-600">Min rest time</div>
                         </div>
                     </CardContent>
                 </Card>
             )}
 
             {/* Available Shifts */}
-            <div className="grid gap-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">Available Shifts - Next Week</h2>
+            <div className="grid gap-4 lg:gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <h2 className="text-xl lg:text-2xl font-bold">Available Shifts - Next Week</h2>
                     <div className="text-sm text-muted-foreground">
                         {format(nextWeekStart, 'MMM dd')} - {format(nextWeekEnd, 'MMM dd, yyyy')}
                     </div>
@@ -210,49 +210,50 @@ export function ShiftRegistration() {
                         <span className="text-muted-foreground">Loading available shifts...</span>
                     </div>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4 lg:space-y-6">
                         {weekDays.map((date) => {
                             const shiftsForDay = shiftsByDate[date] || [];
                             return (
                                 <Card key={date}>
-                                    <CardHeader className="pb-4">
+                                    <CardHeader className="pb-4 p-4 lg:p-6">
                                         <CardTitle className="flex items-center gap-3">
-                                            <Calendar className="h-5 w-5 text-primary" />
+                                            <Calendar className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
                                             <div>
-                                                <div className="text-lg font-semibold">{getDayName(date)}</div>
+                                                <div className="text-base lg:text-lg font-semibold">{getDayName(date)}</div>
                                                 <div className="text-sm text-muted-foreground">{getFormattedDate(date)}</div>
                                             </div>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="p-4 lg:p-6 pt-0">
                                         {shiftsForDay.length === 0 ? (
                                             <div className="text-center py-8 text-muted-foreground">
                                                 No shifts available for this day
                                             </div>
                                         ) : (
-                                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                                                 {shiftsForDay.map((shift) => {
 
                                                     return (
                                                         <Card key={shift.scheduledShiftId} className="border-l-4 border-l-primary">
                                                             <CardContent className="p-4">
                                                                 <div className="space-y-3">
-                                                                    <div className="flex items-center justify-between">
+                                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                                                         <h4 className="font-semibold text-foreground">{shift.shiftName}</h4>
-                                                                        <Badge variant={shift.canRegister ? "default" : "secondary"}>
+                                                                        <Badge variant={shift.canRegister ? "default" : "secondary"} className="self-start sm:self-center">
                                                                             {shift.canRegister ? "Available" : "Unavailable"}
                                                                         </Badge>
                                                                     </div>
 
                                                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                        <Clock className="h-4 w-4" />
+                                                                        <Clock className="h-4 w-4 flex-shrink-0" />
                                                                         {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
                                                                     </div>
 
                                                                     <div className="flex items-center justify-between p-2 bg-muted/30 rounded">
                                                                         <div className="flex items-center gap-2 text-sm font-medium">
-                                                                            <Users className="h-4 w-4 text-blue-600" />
-                                                                            Staff Count
+                                                                            <Users className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                                                            <span className="hidden sm:inline">Staff Count</span>
+                                                                            <span className="sm:hidden">Count</span>
                                                                         </div>
                                                                         <div className="text-sm font-semibold">
                                                                             <span className="text-green-600">{shift.registeredCount}</span>
@@ -306,13 +307,13 @@ export function ShiftRegistration() {
 
             {/* Registration Dialog */}
             <Dialog open={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto m-4">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <UserCheck className="h-5 w-5 text-primary" />
+                        <DialogTitle className="flex items-center gap-2 text-lg">
+                            <UserCheck className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
                             Register for Shift
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm">
                             Confirm your registration for this shift. Your registration will be pending manager approval.
                         </DialogDescription>
                     </DialogHeader>
@@ -320,58 +321,63 @@ export function ShiftRegistration() {
                     {selectedShift && (
                         <div className="space-y-4">
                             <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                                <div className="font-medium">{selectedShift.shiftName}</div>
+                                <div className="font-medium break-words">{selectedShift.shiftName}</div>
                                 <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
-                                    {format(parseISO(selectedShift.date), 'EEEE, MMM dd, yyyy')}
+                                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                                    <span className="break-words">{format(parseISO(selectedShift.date), 'EEEE, MMM dd, yyyy')}</span>
                                 </div>
                                 <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <Clock className="h-4 w-4" />
+                                    <Clock className="h-4 w-4 flex-shrink-0" />
                                     {formatTime(selectedShift.startTime)} - {formatTime(selectedShift.endTime)}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="note">Optional Note</Label>
+                                <Label htmlFor="note" className="text-sm font-medium">Optional Note</Label>
                                 <Textarea
                                     id="note"
                                     value={registrationNote}
                                     onChange={(e) => setRegistrationNote(e.target.value)}
                                     placeholder="Add any additional information or availability notes..."
                                     rows={3}
+                                    className="text-sm"
                                 />
                             </div>
 
                             <Alert>
-                                <ShieldCheck className="h-4 w-4" />
-                                <AlertDescription>
+                                <ShieldCheck className="h-4 w-4 flex-shrink-0" />
+                                <AlertDescription className="text-sm">
                                     Your registration will create a DRAFT assignment that requires manager approval before being confirmed.
                                 </AlertDescription>
                             </Alert>
                         </div>
                     )}
 
-                    <DialogFooter>
+                    <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
                         <Button
                             variant="outline"
                             onClick={() => setIsRegisterDialogOpen(false)}
                             disabled={registerMutation.isPending}
+                            className="w-full sm:w-auto"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleRegisterSubmit}
                             disabled={registerMutation.isPending}
+                            className="w-full sm:w-auto"
                         >
                             {registerMutation.isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Registering...
+                                    <span className="hidden sm:inline">Registering...</span>
+                                    <span className="sm:hidden">Register...</span>
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="h-4 w-4 mr-2" />
-                                    Confirm Registration
+                                    <span className="hidden sm:inline">Confirm Registration</span>
+                                    <span className="sm:hidden">Confirm</span>
                                 </>
                             )}
                         </Button>
@@ -380,7 +386,7 @@ export function ShiftRegistration() {
             </Dialog>
         </div>
     );
-} 
+}
 
 export default function ShiftRegistrationPage() {
     return (

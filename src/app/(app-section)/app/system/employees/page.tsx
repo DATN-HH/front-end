@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Role } from '@/lib/rbac';
 import { ProtectedRoute } from '@/components/protected-component';
 
-    export function Employees() {
+export function Employees() {
     const { user } = useAuth();
 
     // State management
@@ -198,7 +198,7 @@ import { ProtectedRoute } from '@/components/protected-component';
     };
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 lg:gap-6">
             <PageTitle
                 icon={Users}
                 title="Employees"
@@ -207,9 +207,11 @@ import { ProtectedRoute } from '@/components/protected-component';
                         onClick={() => {
                             setIsCreateDialogOpen(true);
                         }}
+                        className="w-full sm:w-auto justify-center"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Employee
+                        <span className="hidden sm:inline">Add Employee</span>
+                        <span className="sm:hidden">Add</span>
                     </Button>
                 }
             />

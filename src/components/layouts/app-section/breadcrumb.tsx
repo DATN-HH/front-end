@@ -19,7 +19,7 @@ export function SectionBreadcrumb() {
     }
 
     return (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
                 <Link
                     href="/"
@@ -32,14 +32,14 @@ export function SectionBreadcrumb() {
                         <ChevronRight className="h-4 w-4" />
                         <Link
                             href={`/${segments.slice(0, index + 1).join('/')}`}
-                            className="ml-1 hover:text-foreground"
+                            className="ml-1 hover:text-foreground truncate"
                         >
                             {formatSegment(segment)}
                         </Link>
                     </div>
                 ))}
             </nav>
-            <div className="text-sm text-muted-foreground">{currentDate}</div>
+            <div className="text-sm text-muted-foreground hidden sm:block sm:text-right">{currentDate}</div>
         </div>
     )
 } 

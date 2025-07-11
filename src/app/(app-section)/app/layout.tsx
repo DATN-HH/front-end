@@ -1,5 +1,5 @@
 'use client'
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import { SectionSidebar } from '@/components/layouts/app-section/sidebar'
 import { SectionHeader } from '@/components/layouts/app-section/header'
 import { SectionBreadcrumb } from '@/components/layouts/app-section/breadcrumb'
@@ -12,20 +12,41 @@ interface SectionLayoutProps {
 }
 
 export default function SectionLayout({ children }: SectionLayoutProps) {
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+
     return (
         <Providers>
             <NotificationProvider>
-            <div className="flex h-screen bg-background">
-                <SectionSidebar />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                    <SectionHeader />
-                    <div className="flex-1 overflow-auto p-6">
-                        <SectionBreadcrumb />
-                        <main className="mt-4">{children}</main>
+                <div className="flex h-screen bg-background">
+                    {/* Mobile sidebar overlay */}
+                    {isMobileSidebarOpen && (
+                        <div
+                            className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+                            onClick={() => setIsMobileSidebarOpen(false)}
+                        />
+                    )}
+
+                    {/* Sidebar */}
+                    <div className={`
+                        fixed lg:relative z-50 lg:z-auto transition-transform duration-300 lg:translate-x-0
+                        ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                    `}>
+                        <SectionSidebar />
+                    </div>
+
+                    {/* Main content */}
+                    <div className="flex flex-col flex-1 overflow-hidden lg:ml-0">
+                        <SectionHeader
+                            onMobileSidebarToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                            isMobileSidebarOpen={isMobileSidebarOpen}
+                        />
+                        <div className="flex-1 overflow-auto p-4 lg:p-6">
+                            <SectionBreadcrumb />
+                            <main className="mt-4">{children}</main>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <Toaster />
+                <Toaster />
             </NotificationProvider>
         </Providers>
     )

@@ -117,74 +117,80 @@ export function WeeklyScheduleCalendar() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {/* Week Header */}
-                            <div className="grid grid-cols-7 gap-2">
-                                {weekDays.map((day) => (
-                                    <div
-                                        key={day.toISOString()}
-                                        className={`text-center p-2 rounded-lg text-sm font-medium ${isToday(day)
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'text-muted-foreground'
-                                            }`}
-                                    >
-                                        <div className="text-xs">{format(day, 'EEE')}</div>
-                                        <div className="text-lg font-bold">{format(day, 'dd')}</div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Week Calendar Grid */}
-                            <div className="grid grid-cols-7 gap-2">
-                                {weekDays.map((day) => {
-                                    const dayShifts = getShiftsForDay(day);
-                                    return (
-                                        <div
-                                            key={day.toISOString()}
-                                            className={`min-h-32 p-2 border rounded-lg ${isToday(day)
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-muted'
-                                                }`}
-                                        >
-                                            <div className="space-y-1">
-                                                {dayShifts.length === 0 ? (
-                                                    <div className="text-xs text-muted-foreground text-center py-4">
-                                                        No shifts
-                                                    </div>
-                                                ) : (
-                                                    dayShifts.map((shift) => (
-                                                        <div
-                                                            key={shift.id}
-                                                            onClick={() => handleShiftClick(shift, day)}
-                                                            className="p-2 bg-primary/10 border border-primary/20 rounded text-xs space-y-1 cursor-pointer hover:bg-primary/20 transition-colors"
-                                                        >
-                                                            <div className="font-medium text-primary truncate">
-                                                                {shift.shiftName}
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-muted-foreground">
-                                                                <Clock className="h-3 w-3" />
-                                                                <span className="truncate">
-                                                                    {shift.startTime.slice(0, 5)} - {shift.endTime.slice(0, 5)}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-muted-foreground">
-                                                                <MapPin className="h-3 w-3" />
-                                                                <span className="truncate">{shift.branchName}</span>
-                                                            </div>
-                                                            {shift.note && (
-                                                                <div className="text-xs text-muted-foreground italic truncate">
-                                                                    {shift.note}
-                                                                </div>
-                                                            )}
-                                                            <Badge variant="outline" className="text-xs px-1 py-0">
-                                                                Published
-                                                            </Badge>
-                                                        </div>
-                                                    ))
-                                                )}
-                                            </div>
+                            <div className="overflow-x-auto">
+                                <div style={{ minWidth: '700px' }}>
+                                    <div className="space-y-4">
+                                        {/* Week Header */}
+                                        <div className="grid grid-cols-7 gap-2">
+                                            {weekDays.map((day) => (
+                                                <div
+                                                    key={day.toISOString()}
+                                                    className={`text-center p-2 rounded-lg text-sm font-medium ${isToday(day)
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'text-muted-foreground'
+                                                        }`}
+                                                >
+                                                    <div className="text-xs">{format(day, 'EEE')}</div>
+                                                    <div className="text-lg font-bold">{format(day, 'dd')}</div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    );
-                                })}
+
+                                        {/* Week Calendar Grid */}
+                                        <div className="grid grid-cols-7 gap-2">
+                                            {weekDays.map((day) => {
+                                                const dayShifts = getShiftsForDay(day);
+                                                return (
+                                                    <div
+                                                        key={day.toISOString()}
+                                                        className={`min-h-32 p-2 border rounded-lg ${isToday(day)
+                                                            ? 'border-primary bg-primary/5'
+                                                            : 'border-muted'
+                                                            }`}
+                                                    >
+                                                        <div className="space-y-1">
+                                                            {dayShifts.length === 0 ? (
+                                                                <div className="text-xs text-muted-foreground text-center py-4">
+                                                                    No shifts
+                                                                </div>
+                                                            ) : (
+                                                                dayShifts.map((shift) => (
+                                                                    <div
+                                                                        key={shift.id}
+                                                                        onClick={() => handleShiftClick(shift, day)}
+                                                                        className="p-2 bg-primary/10 border border-primary/20 rounded text-xs space-y-1 cursor-pointer hover:bg-primary/20 transition-colors"
+                                                                    >
+                                                                        <div className="font-medium text-primary truncate">
+                                                                            {shift.shiftName}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1 text-muted-foreground">
+                                                                            <Clock className="h-3 w-3" />
+                                                                            <span className="truncate">
+                                                                                {shift.startTime.slice(0, 5)} - {shift.endTime.slice(0, 5)}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1 text-muted-foreground">
+                                                                            <MapPin className="h-3 w-3" />
+                                                                            <span className="truncate">{shift.branchName}</span>
+                                                                        </div>
+                                                                        {shift.note && (
+                                                                            <div className="text-xs text-muted-foreground italic truncate">
+                                                                                {shift.note}
+                                                                            </div>
+                                                                        )}
+                                                                        <Badge variant="outline" className="text-xs px-1 py-0">
+                                                                            Published
+                                                                        </Badge>
+                                                                    </div>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Summary */}

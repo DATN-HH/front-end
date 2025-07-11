@@ -225,38 +225,54 @@ export function ShiftLeaveManagement() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             <PageTitle
                 icon={FileText}
                 title="Shift Leave Management"
                 left={
                     <Button
                         onClick={() => setIsAddLeaveDialogOpen(true)}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto justify-center"
                     >
                         <UserPlus className="h-4 w-4" />
-                        Add Leave for Employee
+                        <span className="hidden sm:inline">Add Leave for Employee</span>
+                        <span className="sm:hidden">Add Leave</span>
                     </Button>
                 }
             />
 
-            <Tabs defaultValue="pending" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="pending">Pending Requests</TabsTrigger>
-                    <TabsTrigger value="all">All Requests</TabsTrigger>
-                    <TabsTrigger value="balances">Balance Management</TabsTrigger>
-                    <TabsTrigger value="low-balance">Low Balance Employees</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="pending" className="space-y-4 lg:space-y-6">
+                <div className="overflow-x-auto">
+                    <TabsList className="grid w-full grid-cols-4 min-w-max">
+                        <TabsTrigger value="pending" className="text-sm whitespace-nowrap px-3 py-2">
+                            <span className="hidden sm:inline">Pending Requests</span>
+                            <span className="sm:hidden">Pending</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="all" className="text-sm whitespace-nowrap px-3 py-2">
+                            <span className="hidden sm:inline">All Requests</span>
+                            <span className="sm:hidden">All</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="balances" className="text-sm whitespace-nowrap px-3 py-2">
+                            <span className="hidden sm:inline">Balance Management</span>
+                            <span className="sm:hidden">Balance</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="low-balance" className="text-sm whitespace-nowrap px-3 py-2">
+                            <span className="hidden sm:inline">Low Balance Employees</span>
+                            <span className="sm:hidden">Low Balance</span>
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="pending" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Clock className="h-5 w-5" />
-                                Pending Shift Leave Requests
+                        <CardHeader className="p-4 lg:p-6">
+                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                                <Clock className="h-4 w-4 lg:h-5 lg:w-5" />
+                                <span className="hidden sm:inline">Pending Shift Leave Requests</span>
+                                <span className="sm:hidden">Pending Requests</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 lg:p-6">
                             <DataTable
                                 columns={pendingShiftLeaveColumns(pendingColumnActions)}
                                 data={pending}
@@ -282,13 +298,14 @@ export function ShiftLeaveManagement() {
 
                 <TabsContent value="all" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="h-5 w-5" />
-                                All Shift Leave Requests
+                        <CardHeader className="p-4 lg:p-6">
+                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                                <FileText className="h-4 w-4 lg:h-5 lg:w-5" />
+                                <span className="hidden sm:inline">All Shift Leave Requests</span>
+                                <span className="sm:hidden">All Requests</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 lg:p-6">
                             <DataTable
                                 columns={allShiftLeaveColumns(allColumnActions)}
                                 data={all}
@@ -314,13 +331,14 @@ export function ShiftLeaveManagement() {
 
                 <TabsContent value="balances" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Calculator className="h-5 w-5" />
-                                Branch Shift Leave Balances
+                        <CardHeader className="p-4 lg:p-6">
+                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                                <Calculator className="h-4 w-4 lg:h-5 lg:w-5" />
+                                <span className="hidden sm:inline">Branch Shift Leave Balances</span>
+                                <span className="sm:hidden">Balances</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 lg:p-6">
                             <DataTable
                                 columns={balanceColumns(balanceColumnActions)}
                                 data={balances}
@@ -345,13 +363,14 @@ export function ShiftLeaveManagement() {
 
                 <TabsContent value="low-balance" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <TrendingDown className="h-5 w-5" />
-                                Low Balance Employees
+                        <CardHeader className="p-4 lg:p-6">
+                            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                                <TrendingDown className="h-4 w-4 lg:h-5 lg:w-5" />
+                                <span className="hidden sm:inline">Low Balance Employees</span>
+                                <span className="sm:hidden">Low Balance</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-4 lg:p-6">
                             <DataTable
                                 columns={lowBalanceColumns(balanceColumnActions)}
                                 data={lowBalance}
@@ -377,31 +396,33 @@ export function ShiftLeaveManagement() {
 
             {/* Details Dialog */}
             <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto m-4">
                     <DialogHeader>
-                        <DialogTitle>Shift Leave Request Details</DialogTitle>
+                        <DialogTitle className="text-lg lg:text-xl">Shift Leave Request Details</DialogTitle>
                     </DialogHeader>
                     {selectedRequest && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4 lg:space-y-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="font-medium">Employee</Label>
-                                    <p>{selectedRequest.employee.fullName}</p>
-                                    <p className="text-sm text-gray-600">{selectedRequest.employee.email}</p>
+                                    <p className="break-words">{selectedRequest.employee.fullName}</p>
+                                    <p className="text-sm text-gray-600 break-words">{selectedRequest.employee.email}</p>
                                 </div>
                                 <div>
                                     <Label className="font-medium">Status</Label>
-                                    <Badge className={getStatusColor(selectedRequest.requestStatus)}>
-                                        {selectedRequest.requestStatus === 'PENDING' ? 'Pending' :
-                                            selectedRequest.requestStatus === 'APPROVED' ? 'Approved' : 'Rejected'}
-                                    </Badge>
+                                    <div className="mt-1">
+                                        <Badge className={getStatusColor(selectedRequest.requestStatus)}>
+                                            {selectedRequest.requestStatus === 'PENDING' ? 'Pending' :
+                                                selectedRequest.requestStatus === 'APPROVED' ? 'Approved' : 'Rejected'}
+                                        </Badge>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="font-medium">Period</Label>
-                                    <p>{format(new Date(selectedRequest.startDate), 'dd/MM/yyyy')} - {format(new Date(selectedRequest.endDate), 'dd/MM/yyyy')}</p>
+                                    <p className="break-words">{format(new Date(selectedRequest.startDate), 'dd/MM/yyyy')} - {format(new Date(selectedRequest.endDate), 'dd/MM/yyyy')}</p>
                                 </div>
                                 <div>
                                     <Label className="font-medium">Affected Shifts</Label>
@@ -411,14 +432,14 @@ export function ShiftLeaveManagement() {
 
                             <div>
                                 <Label className="font-medium">Reason</Label>
-                                <p>{selectedRequest.reason}</p>
+                                <p className="break-words">{selectedRequest.reason}</p>
                             </div>
 
                             <div>
                                 <Label className="font-medium">Requested Shifts</Label>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 mt-2">
                                     {selectedRequest.requestedShifts.map(shift => (
-                                        <Badge key={shift.id} variant="secondary">
+                                        <Badge key={shift.id} variant="secondary" className="text-xs">
                                             {shift.name} ({formatTime(shift.startTime)} - {formatTime(shift.endTime)})
                                         </Badge>
                                     ))}
@@ -428,14 +449,14 @@ export function ShiftLeaveManagement() {
                             {selectedRequest.managerNote && (
                                 <div>
                                     <Label className="font-medium">Manager Note</Label>
-                                    <p>{selectedRequest.managerNote}</p>
+                                    <p className="break-words">{selectedRequest.managerNote}</p>
                                 </div>
                             )}
 
                             {selectedRequest.approvedBy && (
                                 <div>
                                     <Label className="font-medium">Approved By</Label>
-                                    <p>{selectedRequest.approvedBy.fullName}</p>
+                                    <p className="break-words">{selectedRequest.approvedBy.fullName}</p>
                                     {selectedRequest.approvedAt && (
                                         <p className="text-sm text-gray-600">
                                             Approved on: {format(new Date(selectedRequest.approvedAt), 'dd/MM/yyyy HH:mm')}
@@ -444,11 +465,13 @@ export function ShiftLeaveManagement() {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Calendar className="h-4 w-4" />
-                                <span>Created: {format(new Date(selectedRequest.createdAt), 'dd/MM/yyyy HH:mm')}</span>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600">
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>Created: {format(new Date(selectedRequest.createdAt), 'dd/MM/yyyy HH:mm')}</span>
+                                </div>
                                 {selectedRequest.isManagerAdded && (
-                                    <Badge variant="outline" className="ml-2">Manager Added</Badge>
+                                    <Badge variant="outline" className="w-fit">Manager Added</Badge>
                                 )}
                             </div>
                         </div>

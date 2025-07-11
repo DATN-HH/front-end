@@ -1,5 +1,5 @@
 'use client'
-import { Settings } from 'lucide-react'
+import { Settings, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -15,7 +15,12 @@ import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { useAuth } from '@/contexts/auth-context'
 import { NotificationCenter } from './notification-center'
 
-export function SectionHeader() {
+interface SectionHeaderProps {
+    onMobileSidebarToggle?: () => void
+    isMobileSidebarOpen?: boolean
+}
+
+export function SectionHeader({ onMobileSidebarToggle, isMobileSidebarOpen }: SectionHeaderProps) {
     const { user, logout } = useAuth()
 
     const handleLogout = async () => {
@@ -27,18 +32,31 @@ export function SectionHeader() {
     }
 
     return (
-        <header className="flex h-16 items-center justify-between border-b bg-white shadow-sm px-6">
-            {/* Search */}
-            <div className="w-[400px]">
-                <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="w-full border-gray-200 focus:border-primary focus:ring-primary"
-                />
+        <header className="flex h-16 items-center justify-between border-b bg-white shadow-sm px-4 lg:px-6">
+            {/* Left section - Mobile menu button + Search */}
+            <div className="flex items-center gap-2 lg:gap-4 flex-1">
+                {/* Mobile menu button */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onMobileSidebarToggle}
+                    className="lg:hidden"
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+
+                {/* Search */}
+                <div className="w-full max-w-sm lg:w-[400px]">
+                    <Input
+                        type="search"
+                        placeholder="Search..."
+                        className="w-full border-gray-200 focus:border-primary focus:ring-primary"
+                    />
+                </div>
             </div>
 
             {/* Right section */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 lg:gap-4">
                 {/* Notifications */}
                 <NotificationCenter />
 
@@ -47,8 +65,10 @@ export function SectionHeader() {
                     <Settings className="h-5 w-5" />
                 </Button>
 
-                {/* Language Switcher */}
-                <LanguageSwitcher />
+                {/* Language Switcher - Hide on very small screens */}
+                <div className="hidden sm:block">
+                    <LanguageSwitcher />
+                </div>
 
                 {/* User Menu */}
                 <DropdownMenu>

@@ -52,12 +52,13 @@ function SchedulePage() {
         icon={Calendar}
         title="Schedule Manager"
         left={
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
+                <Button size="sm" className="w-full sm:w-auto justify-center">
                   <Edit className="h-4 w-4" />
-                  Data Entry
+                  <span className="hidden sm:inline ml-2">Data Entry</span>
+                  <span className="sm:hidden ml-2">Entry</span>
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -70,16 +71,16 @@ function SchedulePage() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button onClick={() => setIsPublishShiftsOpen(true)}>
+            <Button onClick={() => setIsPublishShiftsOpen(true)} size="sm" className="w-full sm:w-auto justify-center">
               <Send className="h-4 w-4" />
-              Publish
+              <span className="ml-2">Publish</span>
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto justify-center">
                   <Settings className="h-4 w-4" />
-                  Settings
+                  <span className="ml-2">Settings</span>
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>

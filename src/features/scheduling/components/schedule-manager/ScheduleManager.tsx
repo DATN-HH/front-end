@@ -371,37 +371,39 @@ function ScheduleManager() {
   }, [isLoading, viewMode, renderLoadingSkeleton])
 
   return (
-    <div className="w-full p-3">
-      <div className="flex items-center space-x-4 mb-4">
+    <div className="w-full p-3 lg:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
         {/* View Mode Selector */}
-        <Select value={viewMode} onValueChange={handleViewModeChange}>
-          <SelectTrigger className="w-[160px] bg-white border-slate-200 hover:border-slate-300 transition-colors">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {useMemo(() =>
-              VIEW_MODE_OPTIONS.map((option) => {
-                const IconComponent = option.icon
-                return (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className="w-4 h-4" />
-                      <span>{option.label}</span>
-                    </div>
-                  </SelectItem>
-                )
-              }), []
-            )}
-          </SelectContent>
-        </Select>
+        <div className="flex-shrink-0">
+          <Select value={viewMode} onValueChange={handleViewModeChange}>
+            <SelectTrigger className="w-full sm:w-[160px] bg-white border-slate-200 hover:border-slate-300 transition-colors">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {useMemo(() =>
+                VIEW_MODE_OPTIONS.map((option) => {
+                  const IconComponent = option.icon
+                  return (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center space-x-2">
+                        <IconComponent className="w-4 h-4" />
+                        <span>{option.label}</span>
+                      </div>
+                    </SelectItem>
+                  )
+                }), []
+              )}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Date Navigation */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center sm:justify-start space-x-2 flex-1 min-w-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handlePrevious}
-            className="h-9 w-9 p-0"
+            className="h-9 w-9 p-0 flex-shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -410,9 +412,9 @@ function ScheduleManager() {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="h-9 px-4 font-medium min-w-[200px] justify-center"
+                className="h-9 px-3 sm:px-4 font-medium max-w-[160px] sm:max-w-none justify-center text-sm"
               >
-                {displayText}
+                <span className="truncate">{displayText}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
@@ -429,29 +431,34 @@ function ScheduleManager() {
             variant="outline"
             size="sm"
             onClick={handleNext}
-            className="h-9 w-9 p-0"
+            className="h-9 w-9 p-0 flex-shrink-0"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
-        <Button
-          onClick={handleRefresh}
-          variant="outline"
-          size="sm"
-          className="h-9"
-          disabled={isLoading || isRefreshing}
-        >
-          <RefreshCw className={`w-4 h-4 text-primary ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} />
-        </Button>
+        {/* Right side controls */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            className="h-9 justify-center"
+            disabled={isLoading || isRefreshing}
+            title="Refresh"
+          >
+            <RefreshCw className={`w-4 h-4 text-primary ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} />
+            <span className="ml-2">Refresh</span>
+          </Button>
 
-        {/* Data indicator */}
-        {useMemo(() => (
-          <div className="text-xs text-gray-500 hidden lg:block">
-            {dataCounts.shifts > 0 && `${dataCounts.shifts} shifts`}
-            {dataCounts.scheduledShifts > 0 && ` • ${dataCounts.scheduledShifts} scheduled shifts`}
-          </div>
-        ), [dataCounts.shifts, dataCounts.scheduledShifts])}
+          {/* Data indicator */}
+          {useMemo(() => (
+            <div className="text-xs text-gray-500 hidden lg:block">
+              {dataCounts.shifts > 0 && `${dataCounts.shifts} shifts`}
+              {dataCounts.scheduledShifts > 0 && ` • ${dataCounts.scheduledShifts} scheduled shifts`}
+            </div>
+          ), [dataCounts.shifts, dataCounts.scheduledShifts])}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
