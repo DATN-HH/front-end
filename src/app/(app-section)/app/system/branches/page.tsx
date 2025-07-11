@@ -180,7 +180,7 @@ export function Branches() {
     };
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 lg:gap-6">
             <PageTitle
                 icon={Building2}
                 title="Branches"
@@ -189,9 +189,11 @@ export function Branches() {
                         onClick={() => {
                             setIsCreateDialogOpen(true);
                         }}
+                        className="w-full sm:w-auto justify-center"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Branch
+                        <span className="hidden sm:inline">Add Branch</span>
+                        <span className="sm:hidden">Add</span>
                     </Button>
                 }
             />

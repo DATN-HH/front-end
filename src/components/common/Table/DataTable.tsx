@@ -145,11 +145,32 @@ export function DataTable<TData, TValue>({
      * INITIAL SETUP & MEMOIZED VALUES
      * ========================================== */
 
+    // Mobile detection
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIsMobile = () => {
+            if (typeof window !== 'undefined') {
+                setIsMobile(window.innerWidth < 768); // sm breakpoint
+            }
+        };
+
+        checkIsMobile();
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', checkIsMobile);
+            return () => window.removeEventListener('resize', checkIsMobile);
+        }
+    }, []);
+
     // Get initial pinning state with useMemo to avoid recalculation
     const initialPinning = useMemo((): ColumnPinningState => {
+        // Disable pinning on mobile
+        if (isMobile) {
+            return { left: [], right: [] };
+        }
         const pinningFromColumns = extractPinningFromColumns(columns);
         return combineColumnPinning(pinningFromColumns, initialColumnPinning);
-    }, [columns, initialColumnPinning]);
+    }, [columns, initialColumnPinning, isMobile]);
 
     // Convert currentSorting prop to TanStack Table sorting state for UI display
     const parsedSorting: SortingState = useMemo(() => {
@@ -170,6 +191,11 @@ export function DataTable<TData, TValue>({
     const [columnOrder, setColumnOrder] = useState<string[]>([]);
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(initialPinning);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+    // Update pinning when mobile state or initial pinning changes
+    useEffect(() => {
+        setColumnPinning(initialPinning);
+    }, [initialPinning]);
 
     // Local state for UI controls
     const [searchTerm, setSearchTerm] = useState('');
@@ -288,7 +314,7 @@ export function DataTable<TData, TValue>({
         onSortingChange: handleSortingChange,
         onColumnFiltersChange: setColumnFilters,
         onColumnPinningChange: setColumnPinning,
-        enableColumnPinning: enablePinning,
+        enableColumnPinning: enablePinning && !isMobile, // Disable pinning on mobile
         state: {
             sorting: parsedSorting,
             columnFilters,
@@ -321,6 +347,9 @@ export function DataTable<TData, TValue>({
 
     // Handle column drag end
     const handleDragEnd = (event: DragEndEvent) => {
+        // Disable drag and drop on mobile
+        if (isMobile) return;
+
         const { active, over } = event;
 
         if (!over) return;
@@ -465,7 +494,7 @@ export function DataTable<TData, TValue>({
                             <TableHead
                                 key={header.id}
                                 colSpan={header.colSpan}
-                                style={pinningStyles}
+                                style={isMobile ? {} : pinningStyles}
                                 className="px-6 py-4 text-left text-xs font-semibold text-foreground uppercase tracking-wider border-b border-border"
                             >
                                 {enableColumnOrdering ? (
@@ -473,14 +502,14 @@ export function DataTable<TData, TValue>({
                                         header={header}
                                         columnId={columnId}
                                         onPinColumn={
-                                            enablePinning
+                                            enablePinning && !isMobile
                                                 ? handlePinColumn
                                                 : undefined
                                         }
                                         isPinned={isPinned}
                                         sorting={currentSorting}
                                         enableSorting={enableSorting}
-                                        enableDragAndDrop={enableColumnOrdering}
+                                        enableDragAndDrop={enableColumnOrdering && !isMobile}
                                     >
                                         {header.isPlaceholder
                                             ? null
@@ -573,7 +602,7 @@ export function DataTable<TData, TValue>({
                         return (
                             <TableCell
                                 key={cell.id}
-                                style={{
+                                style={isMobile ? {} : {
                                     ...pinningStyles,
                                     backgroundColor: pinningStyles.backgroundColor
                                         ? index % 2 === 0
@@ -601,195 +630,197 @@ export function DataTable<TData, TValue>({
 
     return (
         <DndContext
-            sensors={sensors}
+            sensors={isMobile ? [] : sensors}
             collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+            onDragEnd={isMobile ? () => { } : handleDragEnd}
         >
             <div className="w-full">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-muted to-muted/50 border border-border rounded-t-xl p-6">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                        {/* Left Section - Search and Filters */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1 w-full lg:w-auto">
-                            {enableSearch && (
-                                <div className="relative w-full sm:w-80">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search across all columns..."
-                                        value={searchTerm}
-                                        onChange={(e) =>
-                                            setSearchTerm(e.target.value)
-                                        }
-                                        className="pl-10 pr-4 h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm transition-all duration-200"
-                                    />
-                                    {searchTerm && (
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => setSearchTerm('')}
-                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-accent"
-                                        >
-                                            ×
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
-
-                            {enableFiltering &&
-                                filterDefinitions.length > 0 && (
-                                    <div className="flex items-center gap-2">
-                                        <AdvancedFilter
-                                            filterDefinitions={
-                                                filterDefinitions
+                {!isMobile && (enableSearch || enableFiltering || enableColumnVisibility || enableExport) && (
+                    <div className="bg-gradient-to-r from-muted to-muted/50 border border-border rounded-t-xl p-4 lg:p-6">
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
+                            {/* Left Section - Search and Filters */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:gap-4 flex-1 w-full lg:w-auto">
+                                {enableSearch && (
+                                    <div className="relative w-full sm:w-80">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search across all columns..."
+                                            value={searchTerm}
+                                            onChange={(e) =>
+                                                setSearchTerm(e.target.value)
                                             }
-                                            filters={advancedFilters}
-                                            onFiltersChange={setAdvancedFilters}
+                                            className="pl-10 pr-4 h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm transition-all duration-200"
                                         />
-                                        {activeFilterCount > 0 && (
-                                            <div className="flex items-center gap-2">
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="bg-primary/15 text-primary border-primary/30"
-                                                >
-                                                    {activeFilterCount} filter
-                                                    {activeFilterCount > 1
-                                                        ? 's'
-                                                        : ''}{' '}
-                                                    active
-                                                </Badge>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={clearAllFilters}
-                                                    className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-accent"
-                                                >
-                                                    Clear all
-                                                </Button>
-                                            </div>
+                                        {searchTerm && (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setSearchTerm('')}
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-accent"
+                                            >
+                                                ×
+                                            </Button>
                                         )}
                                     </div>
                                 )}
-                        </div>
 
-                        {/* Right Section - Actions */}
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                            {enableColumnVisibility && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            size="sm"
-                                            className="bg-orange-500 hover:bg-orange-600"
-                                        >
-                                            <Columns className="h-4 w-4 mr-2" />
-                                            Columns
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="end"
-                                        className="w-56 bg-popover border-border shadow-lg"
-                                        onCloseAutoFocus={(e) => e.preventDefault()}
-                                    >
-                                        <div className="p-3 border-b border-border/30">
-                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                                Show/Hide Columns
-                                            </span>
-                                        </div>
-
-                                        {/* Toggle All Controls */}
-                                        <div className="p-2 border-b border-border/30">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id="toggle-all"
-                                                    checked={getSelectAllState()}
-                                                    onCheckedChange={handleToggleAllColumns}
-                                                    className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                                                />
-                                                <label
-                                                    htmlFor="toggle-all"
-                                                    className="text-sm font-medium text-foreground cursor-pointer"
-                                                >
-                                                    {getSelectAllState() === true ? 'Hide All' : 'Show All'}
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {/* Individual Column Controls */}
-                                        <div className="max-h-64 overflow-y-auto">
-                                            {table
-                                                .getAllColumns()
-                                                .filter((column) =>
-                                                    column.getCanHide()
-                                                )
-                                                .map((column) => (
-                                                    <div
-                                                        key={column.id}
-                                                        className="flex items-center space-x-2 p-2 hover:bg-accent/50 transition-colors"
-                                                        onClick={(e) => e.preventDefault()}
+                                {enableFiltering &&
+                                    filterDefinitions.length > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <AdvancedFilter
+                                                filterDefinitions={
+                                                    filterDefinitions
+                                                }
+                                                filters={advancedFilters}
+                                                onFiltersChange={setAdvancedFilters}
+                                            />
+                                            {activeFilterCount > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-primary/15 text-primary border-primary/30"
                                                     >
-                                                        <Checkbox
-                                                            id={`column-${column.id}`}
-                                                            checked={column.getIsVisible()}
-                                                            onCheckedChange={(value) =>
-                                                                column.toggleVisibility(
-                                                                    !!value
-                                                                )
-                                                            }
-                                                            className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                                                        />
-                                                        <label
-                                                            htmlFor={`column-${column.id}`}
-                                                            className="text-sm capitalize text-foreground cursor-pointer flex-1"
-                                                        >
-                                                            {column.id}
-                                                        </label>
-                                                    </div>
-                                                ))}
+                                                        {activeFilterCount} filter
+                                                        {activeFilterCount > 1
+                                                            ? 's'
+                                                            : ''}{' '}
+                                                        active
+                                                    </Badge>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={clearAllFilters}
+                                                        className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-accent"
+                                                    >
+                                                        Clear all
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            )}
+                                    )}
+                            </div>
 
-                            {enableExport && (
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            disabled
-                                            size="sm"
-                                            className="bg-orange-500 hover:bg-orange-600"
+                            {/* Right Section - Actions */}
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                {enableColumnVisibility && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                size="sm"
+                                                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
+                                            >
+                                                <Columns className="h-4 w-4 mr-2" />
+                                                <span className="hidden sm:inline">Columns</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            className="w-56 bg-popover border-border shadow-lg"
+                                            onCloseAutoFocus={(e) => e.preventDefault()}
                                         >
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Export
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="end"
-                                        className="w-40 bg-popover border-border shadow-lg"
-                                    >
-                                        <DropdownMenuItem
-                                            onClick={handleExportCSV}
-                                            className="hover:bg-accent cursor-pointer"
+                                            <div className="p-3 border-b border-border/30">
+                                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                                    Show/Hide Columns
+                                                </span>
+                                            </div>
+
+                                            {/* Toggle All Controls */}
+                                            <div className="p-2 border-b border-border/30">
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="toggle-all"
+                                                        checked={getSelectAllState()}
+                                                        onCheckedChange={handleToggleAllColumns}
+                                                        className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                                                    />
+                                                    <label
+                                                        htmlFor="toggle-all"
+                                                        className="text-sm font-medium text-foreground cursor-pointer"
+                                                    >
+                                                        {getSelectAllState() === true ? 'Hide All' : 'Show All'}
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {/* Individual Column Controls */}
+                                            <div className="max-h-64 overflow-y-auto">
+                                                {table
+                                                    .getAllColumns()
+                                                    .filter((column) =>
+                                                        column.getCanHide()
+                                                    )
+                                                    .map((column) => (
+                                                        <div
+                                                            key={column.id}
+                                                            className="flex items-center space-x-2 p-2 hover:bg-accent/50 transition-colors"
+                                                            onClick={(e) => e.preventDefault()}
+                                                        >
+                                                            <Checkbox
+                                                                id={`column-${column.id}`}
+                                                                checked={column.getIsVisible()}
+                                                                onCheckedChange={(value) =>
+                                                                    column.toggleVisibility(
+                                                                        !!value
+                                                                    )
+                                                                }
+                                                                className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                                                            />
+                                                            <label
+                                                                htmlFor={`column-${column.id}`}
+                                                                className="text-sm capitalize text-foreground cursor-pointer flex-1"
+                                                            >
+                                                                {column.id}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
+
+                                {enableExport && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                disabled
+                                                size="sm"
+                                                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
+                                            >
+                                                <Download className="h-4 w-4 mr-2" />
+                                                <span className="hidden sm:inline">Export</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            className="w-40 bg-popover border-border shadow-lg"
                                         >
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Export CSV
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={handleExportExcel}
-                                            className="hover:bg-accent cursor-pointer"
-                                        >
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Export Excel
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            )}
+                                            <DropdownMenuItem
+                                                onClick={handleExportCSV}
+                                                className="hover:bg-accent cursor-pointer"
+                                            >
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Export CSV
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={handleExportExcel}
+                                                className="hover:bg-accent cursor-pointer"
+                                            >
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Export Excel
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Table Section */}
-                <div className="border border-t-0 border-border rounded-b-xl bg-background shadow-sm">
+                <div className={`border ${(!isMobile && (enableSearch || enableFiltering || enableColumnVisibility || enableExport)) ? 'border-t-0' : ''} border-border ${(!isMobile && (enableSearch || enableFiltering || enableColumnVisibility || enableExport)) ? 'rounded-b-xl' : 'rounded-xl'} bg-background shadow-sm`}>
                     <div
-                        className="overflow-auto"
+                        className="overflow-x-auto"
                         style={{
                             borderCollapse: 'separate',
                             maxHeight: MAX_TABLE_HEIGHT
@@ -808,18 +839,18 @@ export function DataTable<TData, TValue>({
 
                 {/* Pagination Section */}
                 {enablePagination && (
-                    <div className="bg-background border border-t-0 border-border rounded-b-xl px-6 py-4">
-                        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                    <div className={`bg-background border border-t-0 border-border rounded-b-xl px-4 lg:px-6 py-3 lg:py-4`}>
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-3 lg:gap-4">
                             {/* Results info */}
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground text-center lg:text-left">
                                 Showing {startRow} to {endRow} of {total} results
                             </div>
 
                             {/* Pagination controls */}
-                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
                                 {/* Page size selector */}
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <span>Show</span>
+                                    <span className="hidden sm:inline">Show</span>
                                     <Select
                                         value={`${pageSize}`}
                                         onValueChange={(value) =>
@@ -843,11 +874,11 @@ export function DataTable<TData, TValue>({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <span>entries</span>
+                                    <span className="hidden sm:inline">entries</span>
                                 </div>
 
                                 {/* Page navigation */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 lg:gap-3">
                                     {/* Navigation buttons */}
                                     <div className="flex items-center gap-1">
                                         <Button
@@ -873,8 +904,8 @@ export function DataTable<TData, TValue>({
                                     </div>
 
                                     {/* Page input */}
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <span className="text-muted-foreground">Page</span>
+                                    <div className="flex items-center gap-1 lg:gap-2 text-sm">
+                                        <span className="text-muted-foreground hidden sm:inline">Page</span>
                                         <Input
                                             type="number"
                                             min="1"
@@ -894,9 +925,9 @@ export function DataTable<TData, TValue>({
                                                     }
                                                 }
                                             }}
-                                            className="h-9 w-16 text-center border-input focus:ring-2 focus:ring-primary/20"
+                                            className="h-9 w-14 lg:w-16 text-center border-input focus:ring-2 focus:ring-primary/20"
                                         />
-                                        <span className="text-muted-foreground">of {totalPages || 1}</span>
+                                        <span className="text-muted-foreground">/ {totalPages || 1}</span>
                                     </div>
 
                                     {/* Navigation buttons */}

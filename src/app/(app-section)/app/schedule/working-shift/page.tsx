@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { ProtectedRoute } from '@/components/protected-component';
 import { Role } from '@/lib/rbac';
 
-export function WorkingShift() {    
+export function WorkingShift() {
     const { user } = useAuth();
 
     // State management
@@ -153,7 +153,7 @@ export function WorkingShift() {
     };
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 lg:gap-6">
             <PageTitle
                 icon={Clock}
                 title="Working Shifts"
@@ -162,6 +162,7 @@ export function WorkingShift() {
                         onClick={() => {
                             setIsCreateDialogOpen(true);
                         }}
+                        className="w-full sm:w-auto"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Create Shift

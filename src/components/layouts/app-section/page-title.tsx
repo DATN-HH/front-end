@@ -11,12 +11,19 @@ interface PageTitleProps {
 
 export function PageTitle({ icon: Icon, title, left, className }: PageTitleProps) {
     return (
-        <div className={cn('mb-6 flex items-center justify-between', className)}>
-            <div className="flex items-center gap-4">
-                {Icon && <Icon className="h-6 w-6 text-primary" />}
-                <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <div className={cn(
+            'mb-4 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+            className
+        )}>
+            <div className="flex items-center gap-2 sm:gap-4">
+                {Icon && <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />}
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{title}</h1>
             </div>
-            {left && <div className="flex items-center gap-2">{left}</div>}
+            {left && (
+                <div className="flex items-center gap-2 sm:gap-2">
+                    {left}
+                </div>
+            )}
         </div>
     )
 } 

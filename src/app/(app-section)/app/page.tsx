@@ -309,59 +309,65 @@ export function RestaurantDashboard() {
     const avgOrderValue = totalRevenue / totalOrders;
 
     return (
-        <div className="flex flex-col gap-4 h-screen overflow-hidden">
+        <div className="flex flex-col gap-4 lg:gap-6 h-screen overflow-hidden">
             <PageTitle
                 icon={Activity}
                 title="Dashboard"
             />
 
-            <Tabs defaultValue="overview" className="flex-1 px-6 pb-6">
-                <TabsList className="grid w-full grid-cols-4 mb-4">
-                    <TabsTrigger
-                        value="overview"
-                        className="flex items-center gap-2"
-                    >
-                        <Activity className="h-4 w-4" />
-                        Overview
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="analytics"
-                        className="flex items-center gap-2"
-                    >
-                        <PieChart className="h-4 w-4" />
-                        Analytics
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="orders"
-                        className="flex items-center gap-2"
-                    >
-                        <ShoppingCart className="h-4 w-4" />
-                        Orders
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="performance"
-                        className="flex items-center gap-2"
-                    >
-                        <BarChart3 className="h-4 w-4" />
-                        Performance
-                    </TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="overview" className="flex-1 px-4 sm:px-6 pb-4 sm:pb-6">
+                <div className="overflow-x-auto pb-2">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 min-w-max mb-4">
+                        <TabsTrigger
+                            value="overview"
+                            className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2"
+                        >
+                            <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Overview</span>
+                            <span className="sm:hidden">Home</span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="analytics"
+                            className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2"
+                        >
+                            <PieChart className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Analytics</span>
+                            <span className="sm:hidden">Stats</span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="orders"
+                            className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2"
+                        >
+                            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Orders</span>
+                            <span className="sm:hidden">Orders</span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="performance"
+                            className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2"
+                        >
+                            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Performance</span>
+                            <span className="sm:hidden">Perf</span>
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent
                     value="overview"
-                    className="space-y-4 h-full overflow-auto"
+                    className="space-y-4 lg:space-y-6 h-full overflow-auto"
                 >
                     {/* Main Stats Cards */}
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Weekly Revenue
                                 </CardTitle>
                                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">
                                     ${totalRevenue.toLocaleString()}
                                 </div>
                                 <p className="text-xs text-muted-foreground flex items-center">
@@ -372,14 +378,14 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Total Orders
                                 </CardTitle>
                                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">
                                     {totalOrders}
                                 </div>
                                 <p className="text-xs text-muted-foreground flex items-center">
@@ -390,14 +396,14 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Today's Customers
                                 </CardTitle>
                                 <Users className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">127</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">127</div>
                                 <p className="text-xs text-muted-foreground flex items-center">
                                     <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                                     +15.3% from yesterday
@@ -406,14 +412,14 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Average Rating
                                 </CardTitle>
                                 <Star className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">4.8</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">4.8</div>
                                 <p className="text-xs text-muted-foreground flex items-center">
                                     <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                                     +0.2 from last month
@@ -423,26 +429,27 @@ export function RestaurantDashboard() {
                     </div>
 
                     {/* Quick Actions and Recent Activity */}
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-2">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Quick Actions
                                 </CardTitle>
                                 <CardDescription>
-                                    Common restaurant management tasks
+                                    <span className="hidden sm:inline">Common restaurant management tasks</span>
+                                    <span className="sm:hidden">Management tasks</span>
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-2 gap-3">
+                            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 lg:p-6 pt-0">
                                 <Link href="/orders">
-                                    <Button className="w-full bg-orange-500 hover:bg-orange-600 h-12">
+                                    <Button className="w-full bg-orange-500 hover:bg-orange-600 h-10 sm:h-12">
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Orders
                                     </Button>
                                 </Link>
                                 <Link href="/menu">
                                     <Button
-                                        className="w-full h-12"
+                                        className="w-full h-10 sm:h-12"
                                         variant="outline"
                                     >
                                         <Utensils className="mr-2 h-4 w-4" />
@@ -451,7 +458,7 @@ export function RestaurantDashboard() {
                                 </Link>
                                 <Link href="/inventory">
                                     <Button
-                                        className="w-full h-12"
+                                        className="w-full h-10 sm:h-12"
                                         variant="outline"
                                     >
                                         <Package className="mr-2 h-4 w-4" />
@@ -460,7 +467,7 @@ export function RestaurantDashboard() {
                                 </Link>
                                 <Link href="/staff">
                                     <Button
-                                        className="w-full h-12"
+                                        className="w-full h-10 sm:h-12"
                                         variant="outline"
                                     >
                                         <ChefHat className="mr-2 h-4 w-4" />
@@ -471,20 +478,22 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Today's Highlights
                                 </CardTitle>
                                 <CardDescription>
-                                    Key metrics and achievements
+                                    <span className="hidden sm:inline">Key metrics and achievements</span>
+                                    <span className="sm:hidden">Key metrics</span>
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                         <span className="text-sm">
-                                            Peak hour revenue
+                                            <span className="hidden sm:inline">Peak hour revenue</span>
+                                            <span className="sm:hidden">Peak revenue</span>
                                         </span>
                                     </div>
                                     <span className="font-semibold">
@@ -495,7 +504,8 @@ export function RestaurantDashboard() {
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                         <span className="text-sm">
-                                            Most popular dish
+                                            <span className="hidden sm:inline">Most popular dish</span>
+                                            <span className="sm:hidden">Top dish</span>
                                         </span>
                                     </div>
                                     <span className="font-semibold">
@@ -506,7 +516,8 @@ export function RestaurantDashboard() {
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                         <span className="text-sm">
-                                            Avg prep time
+                                            <span className="hidden sm:inline">Avg prep time</span>
+                                            <span className="sm:hidden">Prep time</span>
                                         </span>
                                     </div>
                                     <span className="font-semibold">
@@ -517,7 +528,8 @@ export function RestaurantDashboard() {
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                                         <span className="text-sm">
-                                            Customer satisfaction
+                                            <span className="hidden sm:inline">Customer satisfaction</span>
+                                            <span className="sm:hidden">Satisfaction</span>
                                         </span>
                                     </div>
                                     <span className="font-semibold">4.8/5</span>
@@ -529,19 +541,19 @@ export function RestaurantDashboard() {
 
                 <TabsContent
                     value="analytics"
-                    className="space-y-4 h-full overflow-auto"
+                    className="space-y-4 lg:space-y-6 h-full overflow-auto"
                 >
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Weekly Revenue
                                 </CardTitle>
                                 <CardDescription>
                                     Daily revenue trend
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 lg:p-6 pt-0">
                                 <SimpleBarChart
                                     data={revenueData}
                                     dataKey="revenue"
@@ -551,15 +563,15 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Hourly Orders
                                 </CardTitle>
                                 <CardDescription>
                                     Order distribution today
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 lg:p-6 pt-0">
                                 <SimpleLineChart
                                     data={hourlyOrdersData}
                                     dataKey="orders"
@@ -568,31 +580,31 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Order Status
                                 </CardTitle>
                                 <CardDescription>
                                     Current distribution
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 lg:p-6 pt-0">
                                 <DonutChart data={orderStatusData} />
                             </CardContent>
                         </Card>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-2">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Top Selling Dishes
                                 </CardTitle>
                                 <CardDescription>
                                     Most popular items today
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 lg:p-6 pt-0">
                                 <div className="space-y-3">
                                     {popularDishes
                                         .slice(0, 4)
@@ -606,11 +618,11 @@ export function RestaurantDashboard() {
                                                         <span className="text-sm font-medium">
                                                             #{index + 1}
                                                         </span>
-                                                        <span className="text-sm">
+                                                        <span className="text-sm truncate">
                                                             {dish.name}
                                                         </span>
                                                     </div>
-                                                    <div className="text-right">
+                                                    <div className="text-right flex-shrink-0">
                                                         <span className="text-sm font-semibold">
                                                             ${dish.revenue}
                                                         </span>
@@ -634,15 +646,15 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Revenue Breakdown
                                 </CardTitle>
                                 <CardDescription>
                                     Revenue sources analysis
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span>Dine-in</span>
@@ -692,56 +704,57 @@ export function RestaurantDashboard() {
 
                 <TabsContent
                     value="orders"
-                    className="space-y-4 h-full overflow-auto"
+                    className="space-y-4 lg:space-y-6 h-full overflow-auto"
                 >
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Active Orders
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">11</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">11</div>
                                 <p className="text-xs text-muted-foreground">
-                                    Currently processing
+                                    <span className="hidden sm:inline">Currently processing</span>
+                                    <span className="sm:hidden">Processing</span>
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Completed Today
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">24</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">24</div>
                                 <p className="text-xs text-muted-foreground">
                                     +3 from yesterday
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Avg Wait Time
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">18m</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">18m</div>
                                 <p className="text-xs text-muted-foreground">
                                     -2m from yesterday
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Rush Hour
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">6-8PM</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">6-8PM</div>
                                 <p className="text-xs text-muted-foreground">
                                     Peak time today
                                 </p>
@@ -750,16 +763,16 @@ export function RestaurantDashboard() {
                     </div>
 
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">
+                        <CardHeader className="p-4 lg:p-6">
+                            <CardTitle className="text-base lg:text-lg">
                                 Recent Orders
                             </CardTitle>
                             <CardDescription>
                                 Latest order activity and status
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                        <CardContent className="p-4 lg:p-6 pt-0">
+                            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                                 {recentOrders.map((order, index) => (
                                     <div
                                         key={index}
@@ -785,7 +798,7 @@ export function RestaurantDashboard() {
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium">
+                                            <p className="text-sm font-medium truncate">
                                                 {order.customer}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
@@ -805,18 +818,18 @@ export function RestaurantDashboard() {
 
                 <TabsContent
                     value="performance"
-                    className="space-y-4 h-full overflow-auto"
+                    className="space-y-4 lg:space-y-6 h-full overflow-auto"
                 >
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Avg Order Value
                                 </CardTitle>
                                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">
                                     ${avgOrderValue.toFixed(0)}
                                 </div>
                                 <p className="text-xs text-muted-foreground flex items-center">
@@ -827,14 +840,14 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
                                     Cancellation Rate
                                 </CardTitle>
                                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">2.8%</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">2.8%</div>
                                 <p className="text-xs text-muted-foreground flex items-center">
                                     <ArrowDownRight className="h-3 w-3 text-green-500 mr-1" />
                                     -0.5% from last week
@@ -843,14 +856,15 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-2 p-4 lg:p-6">
                                 <CardTitle className="text-sm font-medium">
-                                    Customer Retention
+                                    <span className="hidden sm:inline">Customer Retention</span>
+                                    <span className="sm:hidden">Retention</span>
                                 </CardTitle>
                                 <Users className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">78%</div>
+                            <CardContent className="p-4 lg:p-6 pt-0">
+                                <div className="text-xl lg:text-2xl font-bold">78%</div>
                                 <p className="text-xs text-muted-foreground flex items-center">
                                     <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                                     +5% from last month
@@ -859,20 +873,23 @@ export function RestaurantDashboard() {
                         </Card>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-2">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
                                     Performance Metrics
                                 </CardTitle>
                                 <CardDescription>
                                     Key operational indicators
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 p-4 lg:p-6 pt-0">
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span>Kitchen Efficiency</span>
+                                        <span>
+                                            <span className="hidden sm:inline">Kitchen Efficiency</span>
+                                            <span className="sm:hidden">Kitchen</span>
+                                        </span>
                                         <span className="font-semibold">
                                             92%
                                         </span>
@@ -887,7 +904,10 @@ export function RestaurantDashboard() {
 
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span>Order Accuracy</span>
+                                        <span>
+                                            <span className="hidden sm:inline">Order Accuracy</span>
+                                            <span className="sm:hidden">Accuracy</span>
+                                        </span>
                                         <span className="font-semibold">
                                             97%
                                         </span>
@@ -902,7 +922,10 @@ export function RestaurantDashboard() {
 
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span>Customer Satisfaction</span>
+                                        <span>
+                                            <span className="hidden sm:inline">Customer Satisfaction</span>
+                                            <span className="sm:hidden">Satisfaction</span>
+                                        </span>
                                         <span className="font-semibold">
                                             96%
                                         </span>
@@ -917,7 +940,10 @@ export function RestaurantDashboard() {
 
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span>Staff Productivity</span>
+                                        <span>
+                                            <span className="hidden sm:inline">Staff Productivity</span>
+                                            <span className="sm:hidden">Productivity</span>
+                                        </span>
                                         <span className="font-semibold">
                                             88%
                                         </span>
@@ -933,19 +959,21 @@ export function RestaurantDashboard() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">
-                                    Alerts & Notifications
+                            <CardHeader className="p-4 lg:p-6">
+                                <CardTitle className="text-base lg:text-lg">
+                                    <span className="hidden sm:inline">Alerts & Notifications</span>
+                                    <span className="sm:hidden">Alerts</span>
                                 </CardTitle>
                                 <CardDescription>
-                                    Important updates and warnings
+                                    <span className="hidden sm:inline">Important updates and warnings</span>
+                                    <span className="sm:hidden">Updates & warnings</span>
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 lg:p-6 pt-0">
                                 <div className="space-y-3">
                                     <div className="flex items-start gap-3 p-2 bg-red-50 rounded-lg">
-                                        <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
-                                        <div className="space-y-1">
+                                        <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                        <div className="space-y-1 min-w-0">
                                             <p className="text-sm font-medium">
                                                 Low inventory alert
                                             </p>
@@ -956,8 +984,8 @@ export function RestaurantDashboard() {
                                     </div>
 
                                     <div className="flex items-start gap-3 p-2 bg-orange-50 rounded-lg">
-                                        <Clock className="h-4 w-4 text-orange-500 mt-0.5" />
-                                        <div className="space-y-1">
+                                        <Clock className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                                        <div className="space-y-1 min-w-0">
                                             <p className="text-sm font-medium">
                                                 Long wait time
                                             </p>
@@ -968,8 +996,8 @@ export function RestaurantDashboard() {
                                     </div>
 
                                     <div className="flex items-start gap-3 p-2 bg-green-50 rounded-lg">
-                                        <TrendingUp className="h-4 w-4 text-green-500 mt-0.5" />
-                                        <div className="space-y-1">
+                                        <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                        <div className="space-y-1 min-w-0">
                                             <p className="text-sm font-medium">
                                                 Revenue milestone
                                             </p>

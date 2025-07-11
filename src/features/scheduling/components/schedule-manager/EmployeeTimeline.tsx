@@ -175,118 +175,122 @@ const EmployeeTimeline = () => {
 
   return (
     <div className="w-full bg-white">
-      {/* Header with time labels */}
-      <div className="flex border-b">
-        <div className="w-64 flex-shrink-0 p-4 bg-gray-50">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium">Work Schedule - {dayjs(selectedDate).format("DD/MM/YYYY")}</span>
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: `${Math.max(1200, 256 + 24 * 40)}px` }}>
+          {/* Header with time labels */}
+          <div className="flex border-b">
+            <div className="w-64 flex-shrink-0 p-4 bg-gray-50">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium">Work Schedule - {dayjs(selectedDate).format("DD/MM/YYYY")}</span>
+              </div>
+            </div>
+            <div className="flex-1 relative" style={{ minWidth: `${24 * 40}px` }}>
+              <div className="flex">
+                {hours.map((hour, index) => (
+                  <div
+                    key={hour}
+                    className="text-center text-xs text-gray-500 py-2 border-l border-gray-200"
+                    style={{ width: '40px', minWidth: '40px' }}
+                  >
+                    {hour}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex-1 relative">
-          <div className="flex">
-            {hours.map((hour, index) => (
-              <div
-                key={hour}
-                className="flex-1 text-center text-xs text-gray-500 py-2 border-l border-gray-200"
-                style={{ width: `${100 / 24}%` }}
-              >
-                {hour}
+
+          {/* Employee rows grouped by role */}
+          <div className="divide-y divide-gray-300">
+            {getEmployeeScheduleData.map(({ role, roleLabel, roleColor, employees }) => (
+              <div key={role} className="bg-gray-25">
+                {/* Role header */}
+                <div className="flex bg-gray-100">
+                  <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3">
+                    <Badge
+                      className={`${getRoleColor(role)} font-medium`}
+                      style={getRoleStyle(role)}
+                    >
+                      {roleLabel}
+                    </Badge>
+                    <span className="text-sm text-gray-600">({employees.length} staff)</span>
+                  </div>
+                  <div className="flex-1 bg-gray-50" style={{ minWidth: `${24 * 40}px` }}></div>
+                </div>
+
+                {/* Employees in this role */}
+                <div className="divide-y divide-gray-200">
+                  {employees.map((employee, empIndex) => (
+                    <div key={`${role}-${empIndex}`} className="flex min-h-16">
+                      {/* Employee info */}
+                      <div className="w-64 flex-shrink-0 p-3 bg-white flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
+                            {getInitials(employee.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">{employee.name}</div>
+                        </div>
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div className="flex-1 relative bg-white" style={{ minWidth: `${24 * 40}px` }}>
+                        {/* Hour grid lines */}
+                        <div className="absolute inset-0 flex">
+                          {Array.from({ length: 24 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="border-l border-gray-100"
+                              style={{ width: '40px', minWidth: '40px' }}
+                            ></div>
+                          ))}
+                        </div>
+
+                        {/* Shifts */}
+                        <div className="relative h-full py-2">
+                          {employee.shifts.map((shift, shiftIndex) => {
+                            const position = getShiftPosition(shift.startTime.toString(), shift.endTime.toString())
+                            const statusStyle = getShiftStatusStyle(shift.shiftStatus)
+
+                            return (
+                              <div
+                                key={shiftIndex}
+                                className={`absolute h-8 rounded-md border-2 flex items-center justify-center top-2 ${statusStyle.className}`}
+                                style={{
+                                  left: position.left,
+                                  width: position.width,
+                                  minWidth: '80px',
+                                  ...getShiftStyle(role)
+                                }}
+                                title={`${shift.shiftName} - ${shift.startTime} - ${shift.endTime} (${statusStyle.indicator.label})`}
+                              >
+                                <div className="flex items-center gap-1">
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs bg-white/90 border-0 font-medium px-1.5 py-0.5"
+                                  >
+                                    {shift.startTime.toString().slice(0, 5)} - {shift.endTime.toString().slice(0, 5)}
+                                  </Badge>
+                                  <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: statusStyle.indicator.color }}
+                                    title={statusStyle.indicator.label}
+                                  ></div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Employee rows grouped by role */}
-      <div className="divide-y divide-gray-300">
-        {getEmployeeScheduleData.map(({ role, roleLabel, roleColor, employees }) => (
-          <div key={role} className="bg-gray-25">
-            {/* Role header */}
-            <div className="flex bg-gray-100">
-              <div className="w-64 flex-shrink-0 p-3 flex items-center gap-3">
-                <Badge
-                  className={`${getRoleColor(role)} font-medium`}
-                  style={getRoleStyle(role)}
-                >
-                  {roleLabel}
-                </Badge>
-                <span className="text-sm text-gray-600">({employees.length} staff)</span>
-              </div>
-              <div className="flex-1 bg-gray-50"></div>
-            </div>
-
-            {/* Employees in this role */}
-            <div className="divide-y divide-gray-200">
-              {employees.map((employee, empIndex) => (
-                <div key={`${role}-${empIndex}`} className="flex min-h-16">
-                  {/* Employee info */}
-                  <div className="w-64 flex-shrink-0 p-3 bg-white flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
-                        {getInitials(employee.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">{employee.name}</div>
-                    </div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                  </div>
-
-                  {/* Timeline */}
-                  <div className="flex-1 relative bg-white">
-                    {/* Hour grid lines */}
-                    <div className="absolute inset-0 flex">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="flex-1 border-l border-gray-100"
-                          style={{ width: `${100 / 24}%` }}
-                        ></div>
-                      ))}
-                    </div>
-
-                    {/* Shifts */}
-                    <div className="relative h-full py-2">
-                      {employee.shifts.map((shift, shiftIndex) => {
-                        const position = getShiftPosition(shift.startTime.toString(), shift.endTime.toString())
-                        const statusStyle = getShiftStatusStyle(shift.shiftStatus)
-
-                        return (
-                          <div
-                            key={shiftIndex}
-                            className={`absolute h-8 rounded-md border-2 flex items-center justify-center top-2 ${statusStyle.className}`}
-                            style={{
-                              left: position.left,
-                              width: position.width,
-                              minWidth: '80px',
-                              ...getShiftStyle(role)
-                            }}
-                            title={`${shift.shiftName} - ${shift.startTime} - ${shift.endTime} (${statusStyle.indicator.label})`}
-                          >
-                            <div className="flex items-center gap-1">
-                              <Badge
-                                variant="outline"
-                                className="text-xs bg-white/90 border-0 font-medium px-1.5 py-0.5"
-                              >
-                                {shift.startTime.toString().slice(0, 5)} - {shift.endTime.toString().slice(0, 5)}
-                              </Badge>
-                              <div
-                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: statusStyle.indicator.color }}
-                                title={statusStyle.indicator.label}
-                              ></div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Status Legend */}
