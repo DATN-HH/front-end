@@ -6,26 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { DataTable } from '@/components/common/Table/DataTable';
 import {
     Clock,
     FileText,
-    Eye,
-    Check,
-    X,
-    Users,
     Calculator,
     TrendingDown,
     Calendar,
-    Plus,
     UserPlus,
-    Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
@@ -45,9 +35,6 @@ import {
     useLowBalanceEmployees,
     type ShiftLeaveRequestDto,
     type ShiftLeaveBalanceDto,
-    type ApproveRejectRequest,
-    type ShiftLeaveRequestForEmployee,
-    type UpdateShiftLeaveBalanceRequest
 } from '@/api/v1/shift-leave-management';
 import {
     pendingShiftLeaveColumns,
@@ -60,7 +47,6 @@ import {
 import { ApproveRejectModal } from './ApproveRejectModal';
 import { AddLeaveForEmployeeModal } from './AddLeaveForEmployeeModal';
 import { UpdateLeaveBalanceModal } from './UpdateLeaveBalanceModal';
-// import { ShiftLeaveDetailModal } from './ShiftLeaveDetailModal';
 
 export function ShiftLeaveManagement() {
     const { user } = useAuth();

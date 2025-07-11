@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, ShoppingCart, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -23,7 +23,7 @@ export function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const { state } = useCart();
-
+    const router = useRouter();
     const totalItems = state.items.reduce(
         (sum, item) => sum + item.quantity,
         0
@@ -120,7 +120,7 @@ export function Navigation() {
                                     </Link>
                                 ))}
                                 <div className="pt-4 border-t">
-                                    <Button className="w-full">
+                                    <Button className="w-full" onClick={() => router.push('/login')}>
                                         <User className="h-4 w-4 mr-2" />
                                         Login / Register
                                     </Button>
