@@ -66,10 +66,17 @@ export const deleteBranch = async (id: number): Promise<BaseResponse<void>> => {
 };
 
 // Hooks
-export const useBranches = (params: BaseListRequest) => {
+export const useBranches = (params?: BaseListRequest) => {
+    const defaultParams: BaseListRequest = {
+        page: 1,
+        size: 1000,
+        sortBy: 'name',
+        ...params
+    };
+    
     return useQuery({
-        queryKey: ['branches', params],
-        queryFn: () => getBranches(params),
+        queryKey: ['branches', defaultParams],
+        queryFn: () => getBranches(defaultParams),
     });
 };
 
