@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import {
     Calendar, Clock, Users, AlertTriangle,
-    BarChart3, UserX, FileText
+    BarChart3, UserX, FileText, Calculator
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -205,8 +205,8 @@ export function ScheduleOverview() {
                     <CardContent className="p-4 lg:p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xl lg:text-2xl font-bold">{data.leaveRequestStats.pendingRequests || 0}</p>
-                                <p className="text-xs text-muted-foreground">Pending Leaves</p>
+                                <p className="text-xl lg:text-2xl font-bold">{data.shiftLeaveStats.pendingRequests || 0}</p>
+                                <p className="text-xs text-muted-foreground">Pending Shift Leaves</p>
                             </div>
                             <AlertTriangle className="h-6 w-6 lg:h-8 lg:w-8 text-muted-foreground" />
                         </div>
@@ -259,7 +259,7 @@ export function ScheduleOverview() {
         if (!data) return null;
 
         return (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
                 {/* Staff Shift Statistics */}
                 <Card>
                     <CardHeader>
@@ -300,42 +300,82 @@ export function ScheduleOverview() {
                     </CardContent>
                 </Card>
 
-                {/* Leave Request Statistics */}
+                {/* Shift Leave Statistics */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
                             <FileText className="h-5 w-5" />
-                            Leave Statistics
+                            Shift Leave Requests
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3 lg:gap-4">
                                 <div className="bg-green-50 p-3 rounded-lg text-center">
-                                    <div className="text-xl lg:text-2xl font-bold text-green-600">{data.leaveRequestStats.approvedRequests || 0}</div>
+                                    <div className="text-xl lg:text-2xl font-bold text-green-600">{data.shiftLeaveStats.approvedRequests || 0}</div>
                                     <div className="text-xs text-green-600 font-medium">Approved</div>
                                 </div>
                                 <div className="bg-yellow-50 p-3 rounded-lg text-center">
-                                    <div className="text-xl lg:text-2xl font-bold text-yellow-600">{data.leaveRequestStats.pendingRequests || 0}</div>
+                                    <div className="text-xl lg:text-2xl font-bold text-yellow-600">{data.shiftLeaveStats.pendingRequests || 0}</div>
                                     <div className="text-xs text-yellow-600 font-medium">Pending</div>
                                 </div>
                                 <div className="bg-red-50 p-3 rounded-lg text-center">
-                                    <div className="text-xl lg:text-2xl font-bold text-red-600">{data.leaveRequestStats.rejectedRequests || 0}</div>
+                                    <div className="text-xl lg:text-2xl font-bold text-red-600">{data.shiftLeaveStats.rejectedRequests || 0}</div>
                                     <div className="text-xs text-red-600 font-medium">Rejected</div>
                                 </div>
                                 <div className="bg-gray-50 p-3 rounded-lg text-center">
-                                    <div className="text-xl lg:text-2xl font-bold text-gray-600">{data.leaveRequestStats.cancelledRequests || 0}</div>
+                                    <div className="text-xl lg:text-2xl font-bold text-gray-600">{data.shiftLeaveStats.cancelledRequests || 0}</div>
                                     <div className="text-xs text-gray-600 font-medium">Cancelled</div>
                                 </div>
                             </div>
                             <div className="space-y-2 pt-2 border-t">
                                 <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Total Leave Days</span>
-                                    <span className="font-medium">{(data.leaveRequestStats.totalApprovedDays || 0).toFixed(1)} days</span>
+                                    <span className="text-sm text-muted-foreground">Total Affected Shifts</span>
+                                    <span className="font-medium">{data.shiftLeaveStats.totalAffectedShifts || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Average per Request</span>
-                                    <span className="font-medium">{(data.leaveRequestStats.averageApprovedDays || 0).toFixed(1)} days</span>
+                                    <span className="font-medium">{(data.shiftLeaveStats.averageAffectedShifts || 0).toFixed(1)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Shift Leave Balance */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                            <Calculator className="h-5 w-5" />
+                            Shift Leave Balance
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-3 lg:gap-4">
+                                <div className="bg-blue-50 p-3 rounded-lg text-center">
+                                    <div className="text-xl lg:text-2xl font-bold text-blue-600">{data.shiftLeaveStats.totalEmployeesWithBalance || 0}</div>
+                                    <div className="text-xs text-blue-600 font-medium">Employees with Balance</div>
+                                </div>
+                                <div className="bg-purple-50 p-3 rounded-lg text-center">
+                                    <div className="text-xl lg:text-2xl font-bold text-purple-600">{(data.shiftLeaveStats.averageShiftBalance || 0).toFixed(1)}</div>
+                                    <div className="text-xs text-purple-600 font-medium">Average Balance</div>
+                                </div>
+                            </div>
+                            <div className="space-y-2 pt-2 border-t">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Total Shifts Used</span>
+                                    <span className="font-medium">{data.shiftLeaveStats.totalShiftsUsed || 0}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Total Available</span>
+                                    <span className="font-medium">{data.shiftLeaveStats.totalShiftsAvailable || 0}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Usage Rate</span>
+                                    <span className="font-medium">
+                                        {Math.round(((data.shiftLeaveStats.totalShiftsUsed || 0) / (data.shiftLeaveStats.totalShiftsAvailable || 1)) * 100)}%
+                                    </span>
                                 </div>
                             </div>
                         </div>

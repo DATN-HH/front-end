@@ -30,15 +30,19 @@ export interface StaffShiftStatisticsDto {
   statusBreakdown: Record<string, number>;
 }
 
-export interface LeaveRequestStatisticsDto {
-  totalLeaveRequests: number;
+export interface ShiftLeaveStatisticsDto {
+  totalShiftLeaveRequests: number;
   pendingRequests: number;
   approvedRequests: number;
   rejectedRequests: number;
   cancelledRequests: number;
   statusBreakdown: Record<string, number>;
-  totalApprovedDays: number;
-  averageApprovedDays: number;
+  totalAffectedShifts: number;
+  averageAffectedShifts: number;
+  totalEmployeesWithBalance: number;
+  averageShiftBalance: number;
+  totalShiftsUsed: number;
+  totalShiftsAvailable: number;
 }
 
 export interface RoleShortfallDto {
@@ -90,7 +94,7 @@ export interface ScheduleOverviewDto {
   branchId: number;
   branchName: string;
   staffShiftStats: StaffShiftStatisticsDto;
-  leaveRequestStats: LeaveRequestStatisticsDto;
+  shiftLeaveStats: ShiftLeaveStatisticsDto;
   underStaffedShifts: UnderStaffedShiftDto;
   staffWorkingStats: StaffWorkingStatisticsDto;
 }
