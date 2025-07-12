@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Edit3, Trash2, Eye, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { FloorResponse } from '@/api/v1/floors';
+import { useRouter } from 'next/navigation';
 
 interface FloorCardProps {
     floor: FloorResponse;
@@ -15,6 +16,12 @@ interface FloorCardProps {
 }
 
 export function FloorCard({ floor, onEdit, onDelete, onViewImage }: FloorCardProps) {
+    const router = useRouter();
+
+    const handleManageTables = () => {
+        router.push(`/app/floor-management/${floor.id}`);
+    };
+
     return (
         <Card className="overflow-hidden hover:shadow-md transition-shadow">
             <CardContent className="p-0">
@@ -122,8 +129,8 @@ export function FloorCard({ floor, onEdit, onDelete, onViewImage }: FloorCardPro
                                 <Button
                                     // variant="outline"
                                     size="sm"
-                                    disabled
-                                    className="gap-2 justify-start opacity-50"
+                                    onClick={handleManageTables}
+                                    className="gap-2 justify-start"
                                 >
                                     <Settings className="w-4 h-4" />
                                     Table Layout
