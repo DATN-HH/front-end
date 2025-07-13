@@ -17,6 +17,8 @@ import {
   Clock,
   ShoppingCart,
   ClipboardList,
+  Table,
+  LayoutGrid,
 } from 'lucide-react';
 import { Role, employeeRole } from '@/lib/rbac';
 
@@ -134,11 +136,11 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       ],
     },
     {
-      id: 'systemUser',
-      label: 'System & User',
+      id: 'system',
+      label: 'System',
       icon: <Shield className="h-5 w-5" />,
-      activePaths: ['/app/system', '/app/branches', '/app/floor-management'],
-      roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Manager và System Admin mới có quyền
+      activePaths: ['/app/system', '/app/branches'],
+      roles: [Role.MANAGER], // Manager và System Admin mới có quyền
       items: [
         {
           href: '/app/system/branches',
@@ -147,9 +149,9 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           roles: [Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý branch
         },
         {
-          href: '/app/floor-management',
-          label: 'Floor Management',
-          icon: <Building2 className="h-4 w-4" />,
+          href: '/app/system/employees',
+          label: 'Employees',
+          icon: <Users className="h-5 w-5" />,
           roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Manager và System Admin mới có quyền
         },
         {
@@ -157,12 +159,6 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           label: 'Roles',
           icon: <UserCog className="h-4 w-4" />,
           roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Chỉ System Admin mới có quyền quản lý role
-        },
-        {
-          href: '/app/system/employees',
-          label: 'Employees',
-          icon: <Users className="h-5 w-5" />,
-          roles: [Role.MANAGER, Role.SYSTEM_ADMIN], // Manager và System Admin mới có quyền
         },
       ],
     },
@@ -177,6 +173,19 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           href: '/app/settings/schedule-configuration',
           label: 'Schedule Configuration',
           icon: <Calendar className="h-4 w-4" />,
+          roles: [Role.MANAGER],
+        },
+        {
+          href: '/app/settings/table-types',
+          label: 'Table Types',
+          icon: <Table className="h-4 w-4" />,
+          roles: [Role.MANAGER],
+        },
+        {
+          href: '/app/settings/floor-management',
+          label: 'Floor Management',
+          icon: <LayoutGrid className="h-4 w-4" />,
+          roles: [Role.MANAGER],
         },
       ],
     },

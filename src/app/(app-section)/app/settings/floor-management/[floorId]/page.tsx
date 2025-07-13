@@ -108,7 +108,7 @@ export function FloorDetailPage() {
                     tableName: table.tableName,
                     capacity: table.capacity,
                     tableShape: table.tableShape,
-                    tableType: table.tableType,
+                    tableTypeId: typeof table.tableType === 'object' ? table.tableType.id : 1,
                     xRatio: Math.max(0, Math.min(1, xRatio)),
                     yRatio: Math.max(0, Math.min(1, yRatio)),
                     widthRatio: table.widthRatio,
@@ -138,7 +138,7 @@ export function FloorDetailPage() {
                     tableName: table.tableName,
                     capacity: table.capacity,
                     tableShape: table.tableShape,
-                    tableType: table.tableType,
+                    tableTypeId: typeof table.tableType === 'object' ? table.tableType.id : 1,
                     xRatio: (table.xRatio ?? table.xratio) ?? 0.5,
                     yRatio: (table.yRatio ?? table.yratio) ?? 0.5,
                     widthRatio: Math.max(0.01, Math.min(1, widthRatio)),
@@ -182,9 +182,8 @@ export function FloorDetailPage() {
                     <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h2 className="text-2xl font-semibold text-gray-900 mb-2">Floor not found</h2>
                     <p className="text-gray-600 mb-4">This floor does not exist or has been deleted</p>
-                    <Button onClick={() => router.push('/app/floor-management')}>
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back
+                    <Button onClick={() => router.push('/app/settings/floor-management')}>
+                        Back to Floor Management
                     </Button>
                 </div>
             </div>
@@ -203,9 +202,10 @@ export function FloorDetailPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => router.push('/app/floor-management')}
+                                    onClick={() => router.push('/app/settings/floor-management')}
+                                    className="flex items-center gap-2"
                                 >
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    <ArrowLeft className="w-4 h-4" />
                                     Back
                                 </Button>
                                 <PageTitle

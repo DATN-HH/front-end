@@ -1,7 +1,8 @@
 'use client';
 
-import { TableResponse, TableShape, TableType, getTableColor, getTableTypeLabel } from '@/api/v1/tables';
-import { Users, Crown, Leaf, Home, Heart, Building, Cigarette, CigaretteOff, Accessibility } from 'lucide-react';
+import { TableResponse, TableShape, getTableColor, getTableIcon } from '@/api/v1/tables';
+import { Users } from 'lucide-react';
+import { getIconByName } from '@/lib/icon-utils';
 
 interface TableElementProps {
     table: TableResponse;
@@ -11,36 +12,29 @@ interface TableElementProps {
 }
 
 export function TableElement({ table, isSelected, onClick, isDragging }: TableElementProps) {
-    const getTableIcon = (tableType: TableType) => {
-        const iconProps = { size: 16, className: "text-white" };
-
-        switch (tableType) {
-            case TableType.VIP:
-                return <Crown {...iconProps} />;
-            case TableType.OUTDOOR:
-                return <Leaf {...iconProps} />;
-            case TableType.PRIVATE:
-                return <Home {...iconProps} />;
-            case TableType.COUPLE:
-                return <Heart {...iconProps} />;
-            case TableType.FAMILY:
-                return <Users {...iconProps} />;
-            case TableType.BUSINESS:
-                return <Building {...iconProps} />;
-            case TableType.SMOKING:
-                return <Cigarette {...iconProps} />;
-            case TableType.NON_SMOKING:
-                return <CigaretteOff {...iconProps} />;
-            case TableType.WHEELCHAIR_ACCESSIBLE:
-                return <Accessibility {...iconProps} />;
-            default:
-                return <Users {...iconProps} />;
+    const getTableTypeDisplay = (tableType: any) => {
+        if (typeof tableType === 'object' && tableType) {
+            return {
+                color: tableType.color,
+                icon: tableType.icon
+            };
         }
+        // Legacy fallback for old enum values
+        return {
+            color: getTableColor(tableType),
+            icon: getTableIcon(tableType)
+        };
+    };
+
+    const renderIcon = (iconName: string) => {
+        const IconComponent = getIconByName(iconName);
+        return <IconComponent size={16} className="text-white" />;
     };
 
     const renderTableShape = () => {
-        const color = getTableColor(table.tableType);
-        const icon = getTableIcon(table.tableType);
+        const tableTypeInfo = getTableTypeDisplay(table.tableType);
+        const color = tableTypeInfo.color;
+        const icon = renderIcon(tableTypeInfo.icon);
 
         const commonClasses = `
             w-full h-full flex flex-col items-center justify-center
