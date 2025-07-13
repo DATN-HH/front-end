@@ -68,7 +68,7 @@ export const deleteBranch = async (id: number): Promise<BaseResponse<void>> => {
 // Hooks
 export const useBranches = (params?: BaseListRequest) => {
     const defaultParams: BaseListRequest = {
-        page: 1,
+        page: 0,
         size: 1000,
         sortBy: 'name',
         ...params

@@ -47,12 +47,12 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
         const content = (
             <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                    {icon}
-                    <span className="text-xs font-semibold truncate px-1">
+                    <span className="hidden sm:block">{icon}</span>
+                    <span className="text-xs sm:text-xs md:text-sm lg:text-xs xl:text-sm font-semibold truncate px-1">
                         {table.tableName}
                     </span>
                 </div>
-                <div className="text-xs opacity-90">
+                <div className="text-xs sm:text-xs md:text-sm lg:text-xs xl:text-sm opacity-90 hidden sm:block">
                     {table.capacity} seats
                 </div>
             </div>

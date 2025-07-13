@@ -177,7 +177,7 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
         },
         {
           href: '/app/settings/table-types',
-          label: 'Table Types',
+          label: 'Table Configuration',
           icon: <Table className="h-4 w-4" />,
           roles: [Role.MANAGER],
         },
