@@ -1,258 +1,398 @@
 "use client"
 
-import { useState } from "react"
-import { Calendar } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Calendar, Clock, Users, MapPin, Building, User, Phone, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import type { BookingData } from "@/lib/types"
-import { tables } from "@/lib/table-data"
+import { Badge } from "@/components/ui/badge"
+import { useBranches } from "@/api/v1/branches"
+import { useFloorsByBranch } from "@/api/v1/floors"
+import { useTablesByFloor, TableResponse } from "@/api/v1/tables"
+import { FloorCanvas } from "@/app/(app-section)/app/settings/floor-management/[floorId]/components/FloorCanvas"
+import { getIconByName } from "@/lib/icon-utils"
+import { formatCurrency } from "@/api/v1/table-types"
 
-const branches = ["Downtown Location", "Mall Branch", "Airport Terminal", "Suburban Plaza"]
+interface BookingData {
+  startTime: string
+  guests: number
+  notes: string
+  branchId: number
+  floorId: number
+  tableId: number
+  customerName: string
+  customerPhone: string
+}
 
 export default function TableBookingPage() {
-  const [selectedTable, setSelectedTable] = useState<string>("")
+  const [selectedBranch, setSelectedBranch] = useState<number | null>(null)
+  const [selectedFloor, setSelectedFloor] = useState<number | null>(null)
+  const [selectedTable, setSelectedTable] = useState<TableResponse | null>(null)
   const [bookingData, setBookingData] = useState<BookingData>({
     startTime: "",
     guests: 2,
     notes: "",
-    branch: "",
+    branchId: 0,
+    floorId: 0,
+    tableId: 0,
     customerName: "John Doe", // Fake user data
     customerPhone: "+1 (555) 123-4567", // Fake user data
   })
 
-  const handleTableSelect = (tableId: string) => {
-    const table = tables.find((t) => t.id === tableId)
-    if (table && table.status === "available") {
-      setSelectedTable(tableId)
-      setBookingData((prev) => ({ ...prev, tableId }))
-    }
+  // API hooks
+  const { data: branches = [], isLoading: branchesLoading } = useBranches()
+  const { data: floors = [], isLoading: floorsLoading } = useFloorsByBranch(selectedBranch || 0)
+  const { data: floorData, isLoading: tablesLoading } = useTablesByFloor(selectedFloor || 0)
+
+  // Reset selections when parent changes
+  useEffect(() => {
+    setSelectedFloor(null)
+    setSelectedTable(null)
+  }, [selectedBranch])
+
+  useEffect(() => {
+    setSelectedTable(null)
+  }, [selectedFloor])
+
+  const handleBranchChange = (branchId: string) => {
+    const id = parseInt(branchId)
+    setSelectedBranch(id)
+    setBookingData(prev => ({ ...prev, branchId: id }))
   }
 
-  const getTableStatusColor = (status: string) => {
-    switch (status) {
-      case "available":
-        return "bg-green-500"
-      case "occupied":
-        return "bg-red-500"
-      case "reserved":
-        return "bg-yellow-500"
-      default:
-        return "bg-gray-500"
+  const handleFloorChange = (floorId: string) => {
+    const id = parseInt(floorId)
+    setSelectedFloor(id)
+    setBookingData(prev => ({ ...prev, floorId: id }))
+  }
+
+  const handleTableSelect = (table: TableResponse) => {
+    setSelectedTable(table)
+    setBookingData(prev => ({
+      ...prev,
+      tableId: table.id,
+      guests: Math.min(prev.guests, table.capacity) // Ensure guests don't exceed table capacity
+    }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTable) {
+      alert("Please select a table first")
+      return
     }
+
+    // Here you would typically send the booking data to your API
+    console.log("Booking data:", bookingData)
+    alert("Booking submitted successfully!")
+  }
+
+  const renderIcon = (iconName: string) => {
+    const IconComponent = getIconByName(iconName)
+    return <IconComponent className="w-4 h-4" />
+  }
+
+  const getSelectedBranch = () => {
+    return branches.find(b => b.id === selectedBranch)
+  }
+
+  const getSelectedFloor = () => {
+    return floors.find(f => f.id === selectedFloor)
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">Table Booking</h1>
-        <p className="text-muted-foreground">Reserve your perfect dining experience</p>
+        <h1 className="text-3xl font-bold mb-2">Table Booking</h1>
+        <p className="text-gray-600">Select a table and make your reservation</p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Restaurant Floor Plan */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Your Table</CardTitle>
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span>Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-500 rounded"></div>
-                <span>Occupied</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                <span>Reserved</span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="relative bg-muted/20 rounded-lg p-4 h-96 border-2 border-dashed border-muted">
-              {/* Restaurant Layout Background */}
-              <div className="absolute inset-4 bg-gradient-to-br from-muted/10 to-muted/30 rounded-lg">
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground">
-                  Kitchen
-                </div>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground">
-                  Entrance
-                </div>
-              </div>
-
-              {/* Tables */}
-              {tables.map((table) => (
-                <button
-                  key={table.id}
-                  onClick={() => handleTableSelect(table.id)}
-                  disabled={table.status !== "available"}
-                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full border-2 flex items-center justify-center text-white font-bold text-sm transition-all hover:scale-110 ${getTableStatusColor(
-                    table.status,
-                  )} ${selectedTable === table.id ? "ring-4 ring-primary ring-offset-2" : ""} ${
-                    table.status !== "available" ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-                  }`}
-                  style={{
-                    left: `${table.x}%`,
-                    top: `${table.y}%`,
-                  }}
-                  title={`Table ${table.number} (${table.capacity} seats) - ${table.status}`}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Selection Panel */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Location Selection */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Building className="w-5 h-5" />
+                Select Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Branch Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select
+                  value={selectedBranch?.toString() || ""}
+                  onValueChange={handleBranchChange}
+                  disabled={branchesLoading}
                 >
-                  {table.number}
-                </button>
-              ))}
-            </div>
+                  <SelectTrigger>
+                    <SelectValue placeholder={branchesLoading ? "Loading..." : "Select a branch"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          <div>
+                            <div className="font-medium">{branch.name}</div>
+                            {branch.address && (
+                              <div className="text-sm text-gray-500">{branch.address}</div>
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
+              {/* Floor Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="floor">Floor</Label>
+                <Select
+                  value={selectedFloor?.toString() || ""}
+                  onValueChange={handleFloorChange}
+                  disabled={floorsLoading || !selectedBranch}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      !selectedBranch
+                        ? "Select a branch first"
+                        : floorsLoading
+                          ? "Loading..."
+                          : "Select a floor"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {floors.map((floor) => (
+                      <SelectItem key={floor.id} value={floor.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <Building className="w-4 h-4" />
+                          {floor.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Booking Form - Always Visible */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar className="w-5 h-5" />
+                Booking Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="datetime" className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Date & Time
+                  </Label>
+                  <Input
+                    id="datetime"
+                    type="datetime-local"
+                    value={bookingData.startTime}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, startTime: e.target.value }))}
+                    disabled={!selectedTable}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="guests" className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Number of Guests
+                  </Label>
+                  <Select
+                    value={bookingData.guests.toString()}
+                    onValueChange={(value) => setBookingData(prev => ({ ...prev, guests: parseInt(value) }))}
+                    disabled={!selectedTable}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedTable ? (
+                        Array.from({ length: selectedTable.capacity }, (_, i) => i + 1).map(num => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num} {num === 1 ? 'person' : 'people'}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="2">2 people</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customerName" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Customer Name
+                  </Label>
+                  <Input
+                    id="customerName"
+                    value={bookingData.customerName}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, customerName: e.target.value }))}
+                    disabled={!selectedTable}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customerPhone" className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="customerPhone"
+                    type="tel"
+                    value={bookingData.customerPhone}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                    disabled={!selectedTable}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    Special Requests
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Any special requests or notes..."
+                    value={bookingData.notes}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, notes: e.target.value }))}
+                    disabled={!selectedTable}
+                    rows={3}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full mt-6"
+                  disabled={!selectedTable}
+                >
+                  {selectedTable ? 'Complete Booking' : 'Select a Table First'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Floor Map */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Floor Map
+                {getSelectedBranch() && getSelectedFloor() && (
+                  <div className="ml-auto text-sm text-gray-500 hidden sm:block">
+                    {getSelectedBranch()?.name} - {getSelectedFloor()?.name}
+                  </div>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Click on a table to select it for booking
+              </CardDescription>
+            </CardHeader>
+
+            {/* Selected Table Info - Between Description and Map */}
             {selectedTable && (
-              <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                <p className="text-sm font-medium">
-                  Selected: Table {tables.find((t) => t.id === selectedTable)?.number}(
-                  {tables.find((t) => t.id === selectedTable)?.capacity} seats)
-                </p>
+              <div className="mx-6 mb-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-blue-900">Selected Table</span>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 mb-1">Table</span>
+                      <span className="font-semibold text-gray-900">{selectedTable.tableName}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 mb-1">Capacity</span>
+                      <Badge variant="secondary" className="font-semibold w-fit">
+                        {selectedTable.capacity} people
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 mb-1">Type</span>
+                      <div className="flex items-center gap-2">
+                        {renderIcon(selectedTable.tableType.icon)}
+                        <span className="font-semibold text-gray-900">{selectedTable.tableType.tableType}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 mb-1">Deposit</span>
+                      <span className="font-semibold text-green-600">
+                        {formatCurrency(selectedTable.tableType.depositForBooking)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Booking Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Booking Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Customer Info (Pre-filled) */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={bookingData.customerName}
-                  onChange={(e) => setBookingData((prev) => ({ ...prev, customerName: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={bookingData.customerPhone}
-                  onChange={(e) => setBookingData((prev) => ({ ...prev, customerPhone: e.target.value }))}
-                />
-              </div>
-            </div>
+            <CardContent>
+              {!selectedBranch && (
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <Building className="w-12 h-12 mx-auto mb-4" />
+                    <p>Please select a branch first</p>
+                  </div>
+                </div>
+              )}
 
-            {/* Branch Selection */}
-            <div>
-              <Label htmlFor="branch">Branch</Label>
-              <Select
-                value={bookingData.branch}
-                onValueChange={(value) => setBookingData((prev) => ({ ...prev, branch: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch} value={branch}>
-                      {branch}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              {selectedBranch && !selectedFloor && (
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <Building className="w-12 h-12 mx-auto mb-4" />
+                    <p>Please select a floor</p>
+                  </div>
+                </div>
+              )}
 
-            {/* Date and Time */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={bookingData.startTime.split("T")[0] || ""}
-                  onChange={(e) =>
-                    setBookingData((prev) => ({
-                      ...prev,
-                      startTime: e.target.value + "T" + (prev.startTime.split("T")[1] || "19:00"),
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="time">Time</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={bookingData.startTime.split("T")[1] || ""}
-                  onChange={(e) =>
-                    setBookingData((prev) => ({
-                      ...prev,
-                      startTime: (prev.startTime.split("T")[0] || "") + "T" + e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
+              {selectedFloor && tablesLoading && (
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p>Loading floor map...</p>
+                  </div>
+                </div>
+              )}
 
-            {/* End Time (Optional) */}
-            <div>
-              <Label htmlFor="endTime">End Time (Optional)</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={bookingData.endTime || ""}
-                onChange={(e) => setBookingData((prev) => ({ ...prev, endTime: e.target.value }))}
-              />
-            </div>
-
-            {/* Number of Guests */}
-            <div>
-              <Label htmlFor="guests">Number of Guests</Label>
-              <Select
-                value={bookingData.guests.toString()}
-                onValueChange={(value) => setBookingData((prev) => ({ ...prev, guests: Number.parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? "Guest" : "Guests"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Special Notes */}
-            <div>
-              <Label htmlFor="notes">Special Requests</Label>
-              <Textarea
-                id="notes"
-                placeholder="Any special occasions, dietary requirements, or preferences..."
-                value={bookingData.notes}
-                onChange={(e) => setBookingData((prev) => ({ ...prev, notes: e.target.value }))}
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                className="flex-1"
-                size="lg"
-                disabled={!selectedTable || !bookingData.startTime || !bookingData.branch}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Book Table
-              </Button>
-              <Button variant="outline" size="lg" onClick={() => (window.location.href = "/menu-booking")}>
-                Pre-Order Menu
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              {selectedFloor && floorData && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <FloorCanvas
+                    floor={floorData.floor}
+                    tables={floorData.tables}
+                    selectedTable={selectedTable}
+                    onTableSelect={handleTableSelect}
+                    onTableDrop={() => { }} // Disabled for guests
+                    onTableResize={() => { }} // Disabled for guests
+                    isDragging={false}
+                    onDragStart={() => { }}
+                    onDragEnd={() => { }}
+                    modeView="booking"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

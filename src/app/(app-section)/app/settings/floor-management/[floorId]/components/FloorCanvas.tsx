@@ -17,12 +17,13 @@ interface FloorCanvasProps {
     };
     tables: TableResponse[];
     selectedTable: TableResponse | null;
-    onTableSelect: (table: TableResponse) => void;
+    onTableSelect: (table: TableResponse | null) => void;
     onTableDrop: (tableId: number, newPosition: { x: number; y: number }, imageSize?: { width: number; height: number; offsetX: number; offsetY: number }) => void;
     onTableResize: (tableId: number, newSize: { width: number; height: number }, imageSize?: { width: number; height: number; offsetX: number; offsetY: number }) => void;
     isDragging: boolean;
     onDragStart: () => void;
     onDragEnd: () => void;
+    modeView?: 'edit' | 'booking'; // New prop for view mode
 }
 
 export function FloorCanvas({
@@ -34,7 +35,8 @@ export function FloorCanvas({
     onTableResize,
     isDragging,
     onDragStart,
-    onDragEnd
+    onDragEnd,
+    modeView = 'edit'
 }: FloorCanvasProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -171,12 +173,15 @@ export function FloorCanvas({
 
     const handleTableClick = (table: TableResponse, event: React.MouseEvent) => {
         event.stopPropagation();
-        onTableSelect(table);
+        if (table && table.id) {
+            onTableSelect(table);
+        }
     };
 
     const handleCanvasClick = () => {
-        if (selectedTable) {
-            onTableSelect(null as any); // Deselect
+        // Only allow deselection in edit mode to prevent accidental deselection in booking mode
+        if (modeView === 'edit') {
+            onTableSelect(null);
         }
     };
 
@@ -185,7 +190,8 @@ export function FloorCanvas({
             {/* Background Image */}
             {floor.imageUrl && (
                 <div
-                    className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-30"
+                    className={`absolute inset-0 bg-contain bg-center bg-no-repeat ${modeView === 'booking' ? 'opacity-60' : 'opacity-30'
+                        }`}
                     style={{ backgroundImage: `url(${floor.imageUrl})` }}
                 />
             )}
@@ -197,17 +203,19 @@ export function FloorCanvas({
                 onClick={handleCanvasClick}
                 style={{ minHeight: '600px' }}
             >
-                {/* Grid overlay */}
-                <div className="absolute inset-0 opacity-10">
-                    <svg width="100%" height="100%">
-                        <defs>
-                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="gray" strokeWidth="1" />
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
-                    </svg>
-                </div>
+                {/* Grid overlay - only show in edit mode */}
+                {modeView === 'edit' && (
+                    <div className="absolute inset-0 opacity-10">
+                        <svg width="100%" height="100%">
+                            <defs>
+                                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="gray" strokeWidth="1" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+                        </svg>
+                    </div>
+                )}
 
                 {/* Tables */}
                 {tables.map((table) => {
@@ -217,6 +225,8 @@ export function FloorCanvas({
                     const y = ratioToPixelsPosition(yRatio, 'height');
                     const width = ratioToPixelsSize(table.widthRatio, 'width');
                     const height = ratioToPixelsSize(table.heightRatio, 'height');
+
+                    const isBookingMode = modeView === 'booking';
 
                     return (
                         <Rnd
@@ -229,8 +239,9 @@ export function FloorCanvas({
                                 x: pendingUpdates[table.id]?.x ?? x,
                                 y: pendingUpdates[table.id]?.y ?? y
                             }}
-                            onDragStart={onDragStart}
-                            onDragStop={(e, d) => {
+                            // Completely disable drag/resize in booking mode
+                            onDragStart={isBookingMode ? () => { } : onDragStart}
+                            onDragStop={isBookingMode ? () => { } : (e, d) => {
                                 onDragEnd();
                                 const newPosition = {
                                     x: Math.max(imageSize.offsetX, Math.min(imageSize.offsetX + imageSize.width - width, d.x)),
@@ -241,8 +252,8 @@ export function FloorCanvas({
                                     [table.id]: { ...prev[table.id], x: newPosition.x, y: newPosition.y }
                                 }));
                             }}
-                            onResizeStart={onDragStart}
-                            onResizeStop={(e, direction, ref, delta, position) => {
+                            onResizeStart={isBookingMode ? () => { } : onDragStart}
+                            onResizeStop={isBookingMode ? () => { } : (e, direction, ref, delta, position) => {
                                 onDragEnd();
                                 const newSize = {
                                     width: ref.offsetWidth,
@@ -254,7 +265,8 @@ export function FloorCanvas({
                                 }));
                             }}
                             bounds="parent"
-                            enableResizing={{
+                            disableDragging={isBookingMode}
+                            enableResizing={isBookingMode ? false : {
                                 top: true,
                                 right: true,
                                 bottom: true,
@@ -264,7 +276,7 @@ export function FloorCanvas({
                                 bottomLeft: true,
                                 topLeft: true
                             }}
-                            resizeHandleStyles={{
+                            resizeHandleStyles={isBookingMode ? {} : {
                                 topRight: {
                                     width: '10px',
                                     height: '10px',
@@ -305,6 +317,7 @@ export function FloorCanvas({
                             className={`
                                 ${selectedTable?.id === table.id ? 'ring-2 ring-blue-500' : ''}
                                 ${isDragging ? 'z-50' : 'z-10'}
+                                ${isBookingMode ? 'cursor-pointer' : 'cursor-move'}
                             `}
                         >
                             <TableElement
@@ -322,10 +335,13 @@ export function FloorCanvas({
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center p-8 bg-white/80 rounded-lg">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                No tables yet
+                                {modeView === 'booking' ? 'No tables available' : 'No tables yet'}
                             </h3>
                             <p className="text-gray-600 mb-4">
-                                Click "Add Table" to create the first table for this floor
+                                {modeView === 'booking'
+                                    ? 'This floor has no tables available for booking'
+                                    : 'Click "Add Table" to create the first table for this floor'
+                                }
                             </p>
                         </div>
                     </div>
@@ -340,14 +356,16 @@ export function FloorCanvas({
                 </div>
             </div>
 
-            {/* Instructions */}
-            <div className="absolute top-4 right-4 bg-white/90 px-3 py-2 rounded-lg text-sm text-gray-600">
-                <div className="space-y-1">
-                    <div>• Drag to move table</div>
-                    <div>• Drag corner to resize</div>
-                    <div>• Click to select table</div>
+            {/* Instructions - only show in edit mode */}
+            {modeView === 'edit' && (
+                <div className="absolute top-4 right-4 bg-white/90 px-3 py-2 rounded-lg text-sm text-gray-600">
+                    <div className="space-y-1">
+                        <div>• Drag to move table</div>
+                        <div>• Drag corner to resize</div>
+                        <div>• Click to select table</div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 } 

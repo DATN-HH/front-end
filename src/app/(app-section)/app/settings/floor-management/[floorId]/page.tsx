@@ -150,7 +150,7 @@ export function FloorDetailPage() {
         }
     }, [floorData?.tables, updateTableMutation, error]);
 
-    const handleTableSelect = useCallback((table: TableResponse) => {
+    const handleTableSelect = useCallback((table: TableResponse | null) => {
         setSelectedTable(table);
     }, []);
 
@@ -162,6 +162,14 @@ export function FloorDetailPage() {
     const handleDeleteTableDialog = (table: TableResponse) => {
         setSelectedTable(table);
         setIsDeleteDialogOpen(true);
+    };
+
+    const handleDragStart = () => {
+        setIsDragging(true);
+    };
+
+    const handleDragEnd = () => {
+        setIsDragging(false);
     };
 
     if (isLoadingFloor) {
@@ -233,8 +241,9 @@ export function FloorDetailPage() {
                                 onTableDrop={handleTableDrop}
                                 onTableResize={handleTableResize}
                                 isDragging={isDragging}
-                                onDragStart={() => setIsDragging(true)}
-                                onDragEnd={() => setIsDragging(false)}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                modeView="edit"
                             />
                         </div>
                     </div>
