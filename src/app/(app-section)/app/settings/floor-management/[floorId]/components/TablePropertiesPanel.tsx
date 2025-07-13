@@ -1,11 +1,13 @@
 'use client';
 
-import { TableResponse, getTableTypeLabel, getTableShapeLabel } from '@/api/v1/tables';
+import { TableResponse, getTableShapeLabel, getTableIcon, getTableColor } from '@/api/v1/tables';
+import { formatCurrency } from '@/api/v1/table-types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, Trash2, Users, MapPin, Maximize2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { getIconByName } from '@/lib/icon-utils';
 
 interface TablePropertiesPanelProps {
     selectedTable: TableResponse | null;
@@ -14,6 +16,29 @@ interface TablePropertiesPanelProps {
 }
 
 export function TablePropertiesPanel({ selectedTable, onEdit, onDelete }: TablePropertiesPanelProps) {
+    const renderIcon = (iconName: string) => {
+        const IconComponent = getIconByName(iconName);
+        return <IconComponent className="w-4 h-4" />;
+    };
+
+    const getTableTypeDisplay = (tableType: any) => {
+        if (typeof tableType === 'object' && tableType) {
+            return {
+                name: tableType.tableType,
+                color: tableType.color,
+                icon: tableType.icon,
+                deposit: tableType.depositForBooking
+            };
+        }
+        // Legacy fallback for old enum values
+        return {
+            name: typeof tableType === 'string' ? tableType : 'Unknown',
+            color: getTableColor(tableType),
+            icon: getTableIcon(tableType),
+            deposit: 0
+        };
+    };
+
     if (!selectedTable) {
         return (
             <div className="h-full flex items-center justify-center p-6">
@@ -32,6 +57,8 @@ export function TablePropertiesPanel({ selectedTable, onEdit, onDelete }: TableP
         );
     }
 
+    const tableTypeInfo = getTableTypeDisplay(selectedTable.tableType);
+
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
@@ -47,7 +74,7 @@ export function TablePropertiesPanel({ selectedTable, onEdit, onDelete }: TableP
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base flex items-center justify-between">
-                            <span>{selectedTable.tableName}</span>
+                            <span className="break-words">{selectedTable.tableName}</span>
                             <Badge
                                 variant={selectedTable.status === 'ACTIVE' ? 'default' : 'secondary'}
                             >
@@ -77,9 +104,27 @@ export function TablePropertiesPanel({ selectedTable, onEdit, onDelete }: TableP
                             </div>
                             <div>
                                 <span className="text-sm font-medium text-gray-500">Type</span>
-                                <p className="text-sm">{getTableTypeLabel(selectedTable.tableType)}</p>
+                                <div className="flex items-center gap-2">
+                                    <div
+                                        className="w-5 h-5 rounded flex items-center justify-center text-white flex-shrink-0"
+                                        style={{ backgroundColor: tableTypeInfo.color }}
+                                    >
+                                        {renderIcon(tableTypeInfo.icon)}
+                                    </div>
+                                    <span className="text-sm break-words">{tableTypeInfo.name}</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Deposit information */}
+                        {tableTypeInfo.deposit > 0 && (
+                            <div>
+                                <span className="text-sm font-medium text-gray-500">Booking Deposit</span>
+                                <p className="text-sm font-medium text-green-600">
+                                    {formatCurrency(tableTypeInfo.deposit)}
+                                </p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

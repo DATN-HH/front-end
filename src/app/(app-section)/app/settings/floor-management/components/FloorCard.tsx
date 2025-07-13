@@ -19,7 +19,7 @@ export function FloorCard({ floor, onEdit, onDelete, onViewImage }: FloorCardPro
     const router = useRouter();
 
     const handleManageTables = () => {
-        router.push(`/app/floor-management/${floor.id}`);
+        router.push(`/app/settings/floor-management/${floor.id}`);
     };
 
     return (

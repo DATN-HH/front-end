@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { apiClient } from '../../services/api-client';
+import { TableTypeResponse } from './table-types';
 
 // Enums
 export enum TableShape {
@@ -10,6 +11,7 @@ export enum TableShape {
   OVAL = 'OVAL'
 }
 
+// Legacy enum for backward compatibility
 export enum TableType {
   STANDARD = 'STANDARD',
   VIP = 'VIP',
@@ -23,7 +25,7 @@ export enum TableType {
   WHEELCHAIR_ACCESSIBLE = 'WHEELCHAIR_ACCESSIBLE'
 }
 
-// Interfaces
+// Updated Interfaces
 export interface TableCreateRequest {
   tableName: string;
   capacity: number;
@@ -32,7 +34,7 @@ export interface TableCreateRequest {
   widthRatio: number;
   heightRatio: number;
   tableShape: TableShape;
-  tableType: TableType;
+  tableTypeId: number; // Changed from tableType enum to tableTypeId
   floorId: number;
 }
 
@@ -44,7 +46,7 @@ export interface TableUpdateRequest {
   widthRatio: number;
   heightRatio: number;
   tableShape: TableShape;
-  tableType: TableType;
+  tableTypeId: number; // Changed from tableType enum to tableTypeId
 }
 
 export interface TableResponse {
@@ -58,7 +60,7 @@ export interface TableResponse {
   widthRatio: number;
   heightRatio: number;
   tableShape: TableShape;
-  tableType: TableType;
+  tableType: TableTypeResponse; // Changed from TableType enum to TableTypeResponse object
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -180,8 +182,13 @@ export const useDeleteTable = () => {
   });
 };
 
-// Utility functions
-export const getTableColor = (tableType: TableType): string => {
+// Updated utility functions to work with TableTypeResponse object
+export const getTableColor = (tableType: TableTypeResponse | TableType): string => {
+  if (typeof tableType === 'object' && tableType.color) {
+    return tableType.color;
+  }
+  
+  // Legacy fallback for old enum values
   switch (tableType) {
     case TableType.VIP:
       return '#fbbf24'; // amber
@@ -206,7 +213,12 @@ export const getTableColor = (tableType: TableType): string => {
   }
 };
 
-export const getTableTypeLabel = (tableType: TableType): string => {
+export const getTableTypeLabel = (tableType: TableTypeResponse | TableType): string => {
+  if (typeof tableType === 'object' && tableType.tableType) {
+    return tableType.tableType;
+  }
+  
+  // Legacy fallback for old enum values
   switch (tableType) {
     case TableType.STANDARD:
       return 'Standard';
@@ -229,7 +241,37 @@ export const getTableTypeLabel = (tableType: TableType): string => {
     case TableType.WHEELCHAIR_ACCESSIBLE:
       return 'Wheelchair Accessible';
     default:
-      return tableType;
+      return typeof tableType === 'string' ? tableType : 'Unknown';
+  }
+};
+
+export const getTableIcon = (tableType: TableTypeResponse | TableType): string => {
+  if (typeof tableType === 'object' && tableType.icon) {
+    return tableType.icon;
+  }
+  
+  // Legacy fallback for old enum values
+  switch (tableType) {
+    case TableType.VIP:
+      return 'Crown';
+    case TableType.PRIVATE:
+      return 'Lock';
+    case TableType.COUPLE:
+      return 'Heart';
+    case TableType.FAMILY:
+      return 'Users';
+    case TableType.BUSINESS:
+      return 'Briefcase';
+    case TableType.OUTDOOR:
+      return 'TreePalm';
+    case TableType.SMOKING:
+      return 'Cigarette';
+    case TableType.NON_SMOKING:
+      return 'Ban';
+    case TableType.WHEELCHAIR_ACCESSIBLE:
+      return 'Accessibility';
+    default:
+      return 'Table';
   }
 };
 
@@ -305,8 +347,8 @@ export const validateTableData = (tableData: Partial<TableCreateRequest | TableU
     errors.tableShape = 'Table shape is required';
   }
 
-  if (!tableData.tableType) {
-    errors.tableType = 'Table type is required';
+  if (!tableData.tableTypeId) {
+    errors.tableTypeId = 'Table type is required';
   }
 
   return {

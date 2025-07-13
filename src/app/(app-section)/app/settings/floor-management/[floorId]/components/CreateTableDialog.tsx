@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TableShape, TableType, TableCreateRequest, getTableTypeLabel, getTableShapeLabel, validateTableData } from '@/api/v1/tables';
+import { TableShape, TableCreateRequest, getTableShapeLabel, validateTableData } from '@/api/v1/tables';
+import { useActiveTableTypes } from '@/api/v1/table-types';
+import { getIconByName } from '@/lib/icon-utils';
 
 interface CreateTableDialogProps {
     isOpen: boolean;
@@ -24,10 +26,13 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
         widthRatio: 0.15,
         heightRatio: 0.1,
         tableShape: TableShape.SQUARE,
-        tableType: TableType.STANDARD
+        tableTypeId: 0 // Changed from tableType to tableTypeId
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Fetch active table types
+    const { data: tableTypes = [], isLoading: isLoadingTableTypes } = useActiveTableTypes();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,7 +61,7 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
             widthRatio: 0.15,
             heightRatio: 0.1,
             tableShape: TableShape.SQUARE,
-            tableType: TableType.STANDARD
+            tableTypeId: 0
         });
         setErrors({});
         onClose();
@@ -68,6 +73,13 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
     };
+
+    const renderIcon = (iconName: string) => {
+        const IconComponent = getIconByName(iconName);
+        return <IconComponent className="w-4 h-4" />;
+    };
+
+    const selectedTableType = tableTypes.find(type => type.id === formData.tableTypeId);
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -93,39 +105,39 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
                         )}
                     </div>
 
+                    <div className="space-y-2">
+                        <Label htmlFor="capacity" className="text-sm font-medium">
+                            Capacity <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                            id="capacity"
+                            type="number"
+                            min="1"
+                            max="50"
+                            value={formData.capacity}
+                            onChange={(e) => handleInputChange('capacity', parseInt(e.target.value))}
+                            disabled={isLoading}
+                        />
+                        {errors.capacity && (
+                            <p className="text-sm text-red-500">{errors.capacity}</p>
+                        )}
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="capacity" className="text-sm font-medium">
-                                Capacity <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="capacity"
-                                type="number"
-                                min="1"
-                                max="50"
-                                value={formData.capacity}
-                                onChange={(e) => handleInputChange('capacity', parseInt(e.target.value))}
-                                disabled={isLoading}
-                            />
-                            {errors.capacity && (
-                                <p className="text-sm text-red-500">{errors.capacity}</p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
                             <Label htmlFor="tableShape" className="text-sm font-medium">
-                                Shape <span className="text-red-500">*</span>
+                                Table Shape <span className="text-red-500">*</span>
                             </Label>
                             <Select
                                 value={formData.tableShape}
-                                onValueChange={(value) => handleInputChange('tableShape', value as TableShape)}
+                                onValueChange={(value) => handleInputChange('tableShape', value)}
                                 disabled={isLoading}
                             >
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Select shape" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Object.values(TableShape).map((shape) => (
+                                    {Object.values(TableShape).map(shape => (
                                         <SelectItem key={shape} value={shape}>
                                             {getTableShapeLabel(shape)}
                                         </SelectItem>
@@ -136,34 +148,58 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
                                 <p className="text-sm text-red-500">{errors.tableShape}</p>
                             )}
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="tableTypeId" className="text-sm font-medium">
+                                Table Type <span className="text-red-500">*</span>
+                            </Label>
+                            <Select
+                                value={formData.tableTypeId.toString()}
+                                onValueChange={(value) => handleInputChange('tableTypeId', parseInt(value))}
+                                disabled={isLoading || isLoadingTableTypes}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select table type">
+                                        {selectedTableType && (
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-4 rounded flex items-center justify-center"
+                                                    style={{ backgroundColor: selectedTableType.color }}
+                                                >
+                                                    {renderIcon(selectedTableType.icon)}
+                                                </div>
+                                                <span>{selectedTableType.tableType}</span>
+                                            </div>
+                                        )}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tableTypes.map(type => (
+                                        <SelectItem key={type.id} value={type.id.toString()}>
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-4 rounded flex items-center justify-center"
+                                                    style={{ backgroundColor: type.color }}
+                                                >
+                                                    {renderIcon(type.icon)}
+                                                </div>
+                                                <span>{type.tableType}</span>
+                                                {type.depositForBooking > 0 && (
+                                                    <span className="text-xs text-gray-500">
+                                                        (+{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(type.depositForBooking)})
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.tableTypeId && (
+                                <p className="text-sm text-red-500">{errors.tableTypeId}</p>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="tableType" className="text-sm font-medium">
-                            Table Type <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                            value={formData.tableType}
-                            onValueChange={(value) => handleInputChange('tableType', value as TableType)}
-                            disabled={isLoading}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Object.values(TableType).map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                        {getTableTypeLabel(type)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.tableType && (
-                            <p className="text-sm text-red-500">{errors.tableType}</p>
-                        )}
-                    </div>
-
-                    {/* Position & Size */}
                     <div className="border-t pt-4">
                         <h4 className="text-sm font-medium mb-3">Position & Size</h4>
 
@@ -248,6 +284,32 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
                         </div>
                     </div>
 
+                    {/* Preview */}
+                    {selectedTableType && (
+                        <div className="bg-gray-50 p-4 rounded-lg border-t">
+                            <h4 className="text-sm font-medium mb-2">Preview</h4>
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                                    style={{ backgroundColor: selectedTableType.color }}
+                                >
+                                    {renderIcon(selectedTableType.icon)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium break-words">{formData.tableName || 'Table Name'}</div>
+                                    <div className="text-sm text-gray-600">
+                                        {selectedTableType.tableType} • {formData.capacity} seats
+                                    </div>
+                                    {selectedTableType.depositForBooking > 0 && (
+                                        <div className="text-xs text-gray-500">
+                                            Deposit: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(selectedTableType.depositForBooking)}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Helper text */}
                     <div className="bg-blue-50 p-3 rounded-lg">
                         <p className="text-sm text-blue-800">
@@ -268,7 +330,7 @@ export function CreateTableDialog({ isOpen, onClose, onSubmit, isLoading }: Crea
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || isLoadingTableTypes}
                             className="flex-1 sm:flex-none"
                         >
                             {isLoading ? 'Creating...' : 'Create Table'}
