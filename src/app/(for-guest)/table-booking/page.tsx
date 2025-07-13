@@ -69,13 +69,15 @@ export default function TableBookingPage() {
     setBookingData(prev => ({ ...prev, floorId: id }))
   }
 
-  const handleTableSelect = (table: TableResponse) => {
+  const handleTableSelect = (table: TableResponse | null) => {
     setSelectedTable(table)
-    setBookingData(prev => ({
-      ...prev,
-      tableId: table.id,
-      guests: Math.min(prev.guests, table.capacity) // Ensure guests don't exceed table capacity
-    }))
+    if (table) {
+      setBookingData(prev => ({
+        ...prev,
+        tableId: table.id,
+        guests: Math.min(prev.guests, table.capacity) // Ensure guests don't exceed table capacity
+      }))
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
