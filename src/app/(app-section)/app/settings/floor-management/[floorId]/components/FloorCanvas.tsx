@@ -24,6 +24,7 @@ interface FloorCanvasProps {
     onDragStart: () => void;
     onDragEnd: () => void;
     modeView?: 'edit' | 'booking'; // New prop for view mode
+    selectableTables?: number[]; // Array of table IDs that can be selected. If not provided, all tables are selectable
 }
 
 export function FloorCanvas({
@@ -36,7 +37,8 @@ export function FloorCanvas({
     isDragging,
     onDragStart,
     onDragEnd,
-    modeView = 'edit'
+    modeView = 'edit',
+    selectableTables
 }: FloorCanvasProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -325,6 +327,7 @@ export function FloorCanvas({
                                 isSelected={selectedTable?.id === table.id}
                                 onClick={(e) => handleTableClick(table, e)}
                                 isDragging={isDragging}
+                                unable={selectableTables ? !selectableTables.includes(table.id) : (table as any).unable}
                             />
                         </Rnd>
                     );

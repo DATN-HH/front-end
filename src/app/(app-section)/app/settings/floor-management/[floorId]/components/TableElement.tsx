@@ -9,9 +9,10 @@ interface TableElementProps {
     isSelected: boolean;
     onClick: (e: React.MouseEvent) => void;
     isDragging: boolean;
+    unable?: boolean; // New prop - if true, table appears disabled/unavailable
 }
 
-export function TableElement({ table, isSelected, onClick, isDragging }: TableElementProps) {
+export function TableElement({ table, isSelected, onClick, isDragging, unable = false }: TableElementProps) {
     const getTableTypeDisplay = (tableType: any) => {
         if (typeof tableType === 'object' && tableType) {
             return {
@@ -33,15 +34,16 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
 
     const renderTableShape = () => {
         const tableTypeInfo = getTableTypeDisplay(table.tableType);
-        const color = tableTypeInfo.color;
+        const color = unable ? '#9ca3af' : tableTypeInfo.color; // Gray color when unable
         const icon = renderIcon(tableTypeInfo.icon);
 
         const commonClasses = `
             w-full h-full flex flex-col items-center justify-center
-            text-white font-medium cursor-pointer
-            transition-all duration-200
+            text-white font-medium transition-all duration-200
+            ${unable ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
             ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
-            ${isDragging ? 'opacity-80' : 'hover:opacity-90'}
+            ${isDragging ? 'opacity-80' : (!unable ? 'hover:opacity-90' : '')}
+            ${unable ? 'grayscale' : ''}
         `;
 
         const content = (
@@ -64,7 +66,7 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={onClick}
+                        onClick={unable ? undefined : onClick}
                     >
                         {content}
                     </div>
@@ -75,7 +77,7 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={onClick}
+                        onClick={unable ? undefined : onClick}
                     >
                         {content}
                     </div>
@@ -86,7 +88,7 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
                     <div
                         className={`${commonClasses} rounded-full border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={onClick}
+                        onClick={unable ? undefined : onClick}
                     >
                         {content}
                     </div>
@@ -100,7 +102,7 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
                             backgroundColor: color,
                             borderRadius: '50%'
                         }}
-                        onClick={onClick}
+                        onClick={unable ? undefined : onClick}
                     >
                         {content}
                     </div>
@@ -111,7 +113,7 @@ export function TableElement({ table, isSelected, onClick, isDragging }: TableEl
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={onClick}
+                        onClick={unable ? undefined : onClick}
                     >
                         {content}
                     </div>
