@@ -1,27 +1,26 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { Calendar, Clock, Users, MapPin, Building, User, Phone, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useBranches } from "@/api/v1/branches"
 import { useFloorsByBranch } from "@/api/v1/floors"
 import { useTablesByFloor, TableResponse } from "@/api/v1/tables"
-import { FloorCanvas } from "@/app/(app-section)/app/settings/floor-management/[floorId]/components/FloorCanvas"
 import { getIconByName } from "@/lib/icon-utils"
 import { formatCurrency } from "@/api/v1/table-types"
 import {
   useFloorTablesStatus,
-  formatDateTime,
   TableStatus,
   AvailableTable
 } from "@/api/v1/table-status"
+import { useCreateBooking, CreateBookingRequest, CreateBookingResponse } from "@/api/v1/table-booking"
+import { LocationSelector } from "./components/LocationSelector"
+import { DateTimeSelector } from "./components/DateTimeSelector"
+import { BookingForm } from "./components/BookingForm"
+import { MultiSelectFloorCanvas } from "./components/MultiSelectFloorCanvas"
+import { BookingConfirmDialog } from "./components/BookingConfirmDialog"
+import { useCustomToast } from "@/lib/show-toast"
 
 
 interface BookingData {
@@ -31,7 +30,7 @@ interface BookingData {
   notes: string
   branchId: number
   floorId: number
-  tableId: number
+  tableIds: number[] // Changed from single tableId to array
   customerName: string
   customerPhone: string
 }
@@ -40,7 +39,7 @@ export default function TableBookingPage() {
   // Basic selection state
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null)
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null)
-  const [selectedTable, setSelectedTable] = useState<TableResponse | null>(null)
+  const [selectedTables, setSelectedTables] = useState<TableResponse[]>([]) // Changed to array
 
   // Separate date and hour selection
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -55,20 +54,30 @@ export default function TableBookingPage() {
 
   const [bookingData, setBookingData] = useState<BookingData>({
     startTime: "",
-    duration: 1, // Default 2 hours
+    duration: 1, // Default 1 hour
     guests: 2,
     notes: "",
     branchId: 0,
     floorId: 0,
-    tableId: 0,
+    tableIds: [], // Changed to array
     customerName: "John Doe", // Fake user data
     customerPhone: "0345888777", // Fake user data
   })
+
+  // Dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [bookingResponse, setBookingResponse] = useState<CreateBookingResponse | null>(null)
+
+  // Toast hook
+  const { success, error } = useCustomToast()
 
   // API hooks for basic data
   const { data: branches = [], isLoading: branchesLoading } = useBranches()
   const { data: floors = [], isLoading: floorsLoading } = useFloorsByBranch(selectedBranch || 0)
   const { data: floorData, isLoading: tablesLoading } = useTablesByFloor(selectedFloor || 0)
+
+  // Booking API
+  const createBookingMutation = useCreateBooking()
 
   // Compute selectedDateTime string directly without timezone conversion
   const selectedDateTimeString = useMemo(() => {
@@ -103,14 +112,14 @@ export default function TableBookingPage() {
   // Reset selections when parent changes
   useEffect(() => {
     setSelectedFloor(null)
-    setSelectedTable(null)
+    setSelectedTables([]) // Reset to empty array
     // Reset to default date and hour
     setSelectedDate(new Date().toISOString().split('T')[0])
     setSelectedHour((new Date().getHours() + 1) % 24)
   }, [selectedBranch])
 
   useEffect(() => {
-    setSelectedTable(null)
+    setSelectedTables([]) // Reset to empty array
   }, [selectedFloor])
 
   // Update booking data when selections change
@@ -122,6 +131,11 @@ export default function TableBookingPage() {
       }))
     }
   }, [selectedDateTime])
+
+  // Debug effect for dialog state
+  useEffect(() => {
+    console.log("Dialog state changed:", { showConfirmDialog, bookingResponse })
+  }, [showConfirmDialog, bookingResponse])
 
   const handleBranchChange = useCallback((branchId: string) => {
     const id = parseInt(branchId)
@@ -143,31 +157,56 @@ export default function TableBookingPage() {
     setSelectedHour(parseInt(hourValue))
   }, [])
 
-  const handleTableSelect = useCallback((table: TableResponse | null) => {
-    setSelectedTable(table)
-    if (table) {
-      setBookingData(prev => ({
-        ...prev,
-        tableId: table.id,
-        guests: Math.min(prev.guests, table.capacity)
-      }))
-    }
+  const handleTableSelect = useCallback((tables: TableResponse[]) => {
+    setSelectedTables(tables)
+    const tableIds = tables.map(t => t.id)
+    const maxCapacity = tables.reduce((sum, table) => sum + table.capacity, 0)
+
+    setBookingData(prev => ({
+      ...prev,
+      tableIds,
+      guests: maxCapacity > 0 ? Math.min(prev.guests, maxCapacity) : prev.guests
+    }))
   }, [])
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedTable || !selectedDate) {
-      alert("Please select a table and date/time first")
+    if (selectedTables.length === 0 || !selectedDate || !selectedDateTime) {
+      error("Validation Error", "Please select table(s) and date/time first")
       return
     }
 
-    console.log("Booking data:", {
-      ...bookingData,
-      endTime: selectedDateTime ? new Date(selectedDateTime.getTime() + bookingData.duration * 60 * 60 * 1000).toISOString() : null
-    })
-    alert(`Booking submitted successfully for ${bookingData.duration} hour${bookingData.duration > 1 ? 's' : ''}!`)
-  }, [selectedTable, selectedDate, bookingData, selectedDateTime])
+    const request: CreateBookingRequest = {
+      startTime: selectedDateTimeString,
+      duration: bookingData.duration,
+      guests: bookingData.guests,
+      notes: bookingData.notes || undefined,
+      tableId: bookingData.tableIds,
+      customerName: bookingData.customerName,
+      customerPhone: bookingData.customerPhone
+    }
+
+    try {
+      const response = await createBookingMutation.mutateAsync(request)
+      console.log("API Response:", response) // Debug log
+
+      if (response.success && response.payload) {
+        console.log("Setting booking response:", response.payload) // Debug log
+        setBookingResponse(response.payload)
+        console.log("Setting dialog to true") // Debug log
+        setShowConfirmDialog(true)
+        success("Success", "Booking created successfully!")
+      } else {
+        console.log("API failed:", response) // Debug log
+        error("Booking Failed", response.error?.message || response.message || "Failed to create booking")
+      }
+    } catch (err: any) {
+      console.error("Booking error:", err)
+      const errorMessage = err.response?.data?.error?.message || err.response?.data?.message || err.message || "Failed to create booking"
+      error("Booking Failed", errorMessage)
+    }
+  }, [selectedTables, selectedDate, selectedDateTime, bookingData, createBookingMutation, success, error])
 
   const renderIcon = useCallback((iconName: string) => {
     const IconComponent = getIconByName(iconName)
@@ -199,21 +238,15 @@ export default function TableBookingPage() {
     if (!floorData) return null
 
     return (
-      <FloorCanvas
+      <MultiSelectFloorCanvas
         floor={floorData.floor}
         tables={floorData.tables}
-        selectedTable={selectedTable}
+        selectedTables={selectedTables}
         onTableSelect={handleTableSelect}
-        onTableDrop={() => { }}
-        onTableResize={() => { }}
-        isDragging={false}
-        onDragStart={() => { }}
-        onDragEnd={() => { }}
-        modeView="booking"
         selectableTables={selectableTables}
       />
     )
-  }, [floorData, selectedTable, selectableTables, handleTableSelect])
+  }, [floorData, selectedTables, selectableTables, handleTableSelect])
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -226,244 +259,42 @@ export default function TableBookingPage() {
         {/* Selection Panel */}
         <div className="lg:col-span-1 space-y-4">
           {/* Location Selection */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Building className="w-4 h-4" />
-                Select Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Branch Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="branch">Branch</Label>
-                <Select
-                  value={selectedBranch?.toString() || ""}
-                  onValueChange={handleBranchChange}
-                  disabled={branchesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={branchesLoading ? "Loading..." : "Select a branch"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {branches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          <div>
-                            <div className="font-medium">{branch.name}</div>
-                            {branch.address && (
-                              <div className="text-sm text-gray-500">{branch.address}</div>
-                            )}
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Floor Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="floor">Floor</Label>
-                <Select
-                  value={selectedFloor?.toString() || ""}
-                  onValueChange={handleFloorChange}
-                  disabled={floorsLoading || !selectedBranch}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={
-                      !selectedBranch
-                        ? "Select a branch first"
-                        : floorsLoading
-                          ? "Loading..."
-                          : "Select a floor"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {floors.map((floor) => (
-                      <SelectItem key={floor.id} value={floor.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <Building className="w-4 h-4" />
-                          {floor.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+          <LocationSelector
+            branches={branches}
+            floors={floors}
+            selectedBranch={selectedBranch}
+            selectedFloor={selectedFloor}
+            onBranchChange={handleBranchChange}
+            onFloorChange={handleFloorChange}
+            branchesLoading={branchesLoading}
+            floorsLoading={floorsLoading}
+          />
 
           {/* Date & Time Selection */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="w-4 h-4" />
-                Date & Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="date" className="text-sm">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => handleDateChange(e.target.value)}
-                    disabled={!selectedFloor}
-                    required
-                    min={new Date().toISOString().split('T')[0]}
-                    className="h-8"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="hour" className="text-sm">Hour</Label>
-                  <Select
-                    value={selectedHour.toString()}
-                    onValueChange={handleHourChange}
-                    disabled={!selectedFloor}
-                  >
-                    <SelectTrigger className="h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <SelectItem key={i} value={i.toString()}>
-                          {i.toString().padStart(2, '0')}:00
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Duration Selection */}
-              <div className="space-y-2">
-                <Label className="text-sm">Duration</Label>
-                <RadioGroup
-                  value={bookingData.duration.toString()}
-                  onValueChange={(value) => setBookingData(prev => ({ ...prev, duration: parseInt(value) }))}
-                  disabled={!selectedFloor}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="1" id="duration-1" />
-                    <Label htmlFor="duration-1" className="text-sm cursor-pointer">1 hour</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="2" id="duration-2" />
-                    <Label htmlFor="duration-2" className="text-sm cursor-pointer">2 hours</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="3" id="duration-3" />
-                    <Label htmlFor="duration-3" className="text-sm cursor-pointer">3 hours</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            </CardContent>
-          </Card>
+          <DateTimeSelector
+            selectedDate={selectedDate}
+            selectedHour={selectedHour}
+            duration={bookingData.duration}
+            onDateChange={handleDateChange}
+            onHourChange={handleHourChange}
+            onDurationChange={(duration) => setBookingData(prev => ({ ...prev, duration }))}
+            disabled={!selectedFloor}
+          />
 
           {/* Booking Form */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="w-4 h-4" />
-                Booking Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-3">
-
-                <div className="space-y-1">
-                  <Label htmlFor="guests" className="flex items-center gap-2 text-sm">
-                    <Users className="w-4 h-4" />
-                    Guests
-                  </Label>
-                  <Select
-                    value={bookingData.guests.toString()}
-                    onValueChange={(value) => setBookingData(prev => ({ ...prev, guests: parseInt(value) }))}
-                    disabled={!selectedTable}
-                  >
-                    <SelectTrigger className="h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedTable ? (
-                        Array.from({ length: selectedTable.capacity }, (_, i) => i + 1).map(num => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num} {num === 1 ? 'person' : 'people'}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="2">2 people</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="customerName" className="flex items-center gap-2 text-sm">
-                      <User className="w-4 h-4" />
-                      Name
-                    </Label>
-                    <Input
-                      id="customerName"
-                      value={bookingData.customerName}
-                      onChange={(e) => setBookingData(prev => ({ ...prev, customerName: e.target.value }))}
-                      disabled={!selectedTable}
-                      required
-                      className="h-8"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label htmlFor="customerPhone" className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4" />
-                      Phone
-                    </Label>
-                    <Input
-                      id="customerPhone"
-                      type="tel"
-                      value={bookingData.customerPhone}
-                      onChange={(e) => setBookingData(prev => ({ ...prev, customerPhone: e.target.value }))}
-                      disabled={!selectedTable}
-                      required
-                      className="h-8"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="notes" className="flex items-center gap-2 text-sm">
-                    <MessageSquare className="w-4 h-4" />
-                    Notes
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Special requests..."
-                    value={bookingData.notes}
-                    onChange={(e) => setBookingData(prev => ({ ...prev, notes: e.target.value }))}
-                    disabled={!selectedTable}
-                    rows={2}
-                    className="text-sm"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full mt-4 h-9"
-                  disabled={!selectedTable || !selectedDate}
-                >
-                  {!selectedDate ? 'Select Date & Time First' :
-                    !selectedTable ? 'Select a Table' :
-                      'Complete Booking'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          <BookingForm
+            bookingData={{
+              guests: bookingData.guests,
+              customerName: bookingData.customerName,
+              customerPhone: bookingData.customerPhone,
+              notes: bookingData.notes
+            }}
+            selectedTables={selectedTables}
+            selectedDate={selectedDate}
+            onBookingDataChange={(data) => setBookingData(prev => ({ ...prev, ...data }))}
+            onSubmit={handleSubmit}
+            isSubmitting={createBookingMutation.isPending}
+          />
         </div>
 
         {/* Floor Map and Status */}
@@ -485,39 +316,59 @@ export default function TableBookingPage() {
               </CardDescription>
             </CardHeader>
 
-            {/* Selected Table Info */}
-            {selectedTable && (
+            {/* Selected Tables Info */}
+            {selectedTables.length > 0 && (
               <div className="mx-4 mb-3">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-xs font-medium text-blue-900">Selected Table</span>
+                    <span className="text-xs font-medium text-blue-900">
+                      Selected Table{selectedTables.length > 1 ? 's' : ''} ({selectedTables.length})
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                    <div className="flex flex-col">
-                      <span className="text-gray-600 mb-1">Table</span>
-                      <span className="font-semibold text-gray-900">{selectedTable.tableName}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-600 mb-1">Capacity</span>
-                      <Badge variant="secondary" className="font-semibold w-fit text-xs h-5">
-                        {selectedTable.capacity} people
-                      </Badge>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-600 mb-1">Type</span>
-                      <div className="flex items-center gap-1">
-                        {renderIcon(selectedTable.tableType.icon)}
-                        <span className="font-semibold text-gray-900">{selectedTable.tableType.tableType}</span>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedTables.map((table, index) => (
+                      <div key={table.id} className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs p-2 bg-white rounded border">
+                        <div className="flex flex-col">
+                          <span className="text-gray-600 mb-1">Table</span>
+                          <span className="font-semibold text-gray-900">{table.tableName}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-600 mb-1">Capacity</span>
+                          <Badge variant="secondary" className="font-semibold w-fit text-xs h-5">
+                            {table.capacity} people
+                          </Badge>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-600 mb-1">Type</span>
+                          <div className="flex items-center gap-1">
+                            {renderIcon(table.tableType.icon)}
+                            <span className="font-semibold text-gray-900">{table.tableType.tableType}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-600 mb-1">Deposit</span>
+                          <span className="font-semibold text-green-600">
+                            {formatCurrency(table.tableType.depositForBooking)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedTables.length > 1 && (
+                    <div className="mt-2 pt-2 border-t border-blue-200">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Total Capacity:</span>
+                        <span className="font-semibold">{selectedTables.reduce((sum, t) => sum + t.capacity, 0)} people</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Total Deposit:</span>
+                        <span className="font-semibold text-green-600">
+                          {formatCurrency(selectedTables.reduce((sum, t) => sum + t.tableType.depositForBooking, 0))}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-600 mb-1">Deposit</span>
-                      <span className="font-semibold text-green-600">
-                        {formatCurrency(selectedTable.tableType.depositForBooking)}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -560,6 +411,45 @@ export default function TableBookingPage() {
 
         </div>
       </div>
+
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmDialog
+        open={showConfirmDialog}
+        onOpenChange={(open) => {
+          console.log("Dialog open change:", open) // Debug log
+          setShowConfirmDialog(open)
+        }}
+        bookingData={bookingResponse}
+        onConfirm={() => {
+          console.log("Dialog confirmed") // Debug log
+          setShowConfirmDialog(false)
+          // Reset form after successful booking
+          setSelectedTables([])
+          setBookingData(prev => ({
+            ...prev,
+            tableIds: [],
+            guests: 2,
+            notes: ""
+          }))
+        }}
+        onCancel={() => {
+          console.log("Dialog cancelled") // Debug log
+          setShowConfirmDialog(false)
+        }}
+        onPaymentSuccess={() => {
+          console.log("Payment successful") // Debug log
+          success("Payment Success", "Payment completed successfully! Your booking is confirmed.")
+          setShowConfirmDialog(false)
+          // Reset form after successful payment
+          setSelectedTables([])
+          setBookingData(prev => ({
+            ...prev,
+            tableIds: [],
+            guests: 2,
+            notes: ""
+          }))
+        }}
+      />
     </div>
   )
 }
