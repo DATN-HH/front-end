@@ -26,17 +26,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X, Palette } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
     useCreateProductAttribute,
     useCreateAttributeValue,
     ProductAttributeCreateRequest,
-    ProductAttributeValueCreateRequest,
-    DisplayType,
-    VariantCreationMode
+    ProductAttributeValueCreateRequest
 } from '@/api/v1/menu/product-attributes';
 
 // Form schema

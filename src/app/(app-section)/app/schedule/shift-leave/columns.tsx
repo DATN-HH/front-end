@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
-import { Eye, Check, X, Clock } from 'lucide-react';
+import { Eye, Check, X } from 'lucide-react';
 import { ShiftLeaveRequestDto } from '@/api/v1/shift-leave-management';
 
 // Format time helper

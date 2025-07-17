@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, Trash2, Settings, Package, Plus, Eye } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useParams, useRouter } from 'next/navigation';
@@ -22,7 +22,6 @@ import {
     useAttributeValues,
     useDeleteProductAttribute,
     useDeleteAttributeValue,
-    ProductAttributeResponse,
     ProductAttributeValueResponse,
     DisplayType,
     VariantCreationMode,

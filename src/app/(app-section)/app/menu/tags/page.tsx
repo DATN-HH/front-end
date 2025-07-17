@@ -7,13 +7,10 @@ import {
     Plus,
     Edit,
     Archive,
-    Eye,
     Tag,
-    Search,
     TrendingUp,
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
-import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/Table/DataTable';

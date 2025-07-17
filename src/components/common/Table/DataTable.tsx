@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, CSSProperties, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     type ColumnDef,
     type ColumnFiltersState,
     type SortingState,
     type VisibilityState,
     type ColumnPinningState,
-    type Column,
     flexRender,
     getCoreRowModel,
     useReactTable,
@@ -47,7 +46,6 @@ import {
 } from '@/components/ui/table';
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
     DropdownMenuItem,

@@ -9,7 +9,7 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Role, Permission, rolePermissions } from '@/lib/rbac';
+import { Role, Permission } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
 import { useSignIn, useSignOut, useVerifyToken, UserDtoResponse, RoleResponseDto } from '@/api/v1/auth';
 import { useQueryClient } from '@tanstack/react-query';

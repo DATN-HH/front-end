@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, Clock } from 'lucide-react';
@@ -10,7 +10,6 @@ import { DataTable } from '@/components/common/Table/DataTable';
 import { SearchCondition } from '@/lib/response-object';
 import { useShifts, useUpdateShift, useDeleteShift, ShiftResponseDto } from '@/api/v1/shifts';
 import { useAdvanceSearch } from '@/api/v1/advance-search';
-import { BaseListRequest } from '@/api/v1';
 import { ShiftTableColumns } from '@/features/scheduling/components/ShiftTableColumns';
 import { CreateShiftDialog } from '@/features/scheduling/components/CreateShiftDialog';
 import { EditShiftModal } from '@/features/scheduling/components/EditShiftModal';

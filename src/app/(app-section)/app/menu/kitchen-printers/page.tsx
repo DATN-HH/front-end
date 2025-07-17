@@ -8,8 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { ArrowLeft, Printer } from 'lucide-react';
-import Link from 'next/link';
+import { Printer } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 
 export default function KitchenPrintersPage() {

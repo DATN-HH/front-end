@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -8,7 +7,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Package, Tags, ArrowLeft, Utensils, Printer } from 'lucide-react';
+import { Package, Tags, Utensils, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 

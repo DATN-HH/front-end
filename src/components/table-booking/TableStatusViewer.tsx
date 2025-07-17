@@ -8,8 +8,7 @@ import {
     TableStatus,
     HourlyStatus,
     TableStatusResponse,
-    getStatusColor,
-    getStatusLabel
+    getStatusColor
 } from '@/api/v1/table-status';
 
 interface TableStatusViewerProps {

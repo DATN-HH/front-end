@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
-import { TableResponse, useDebounce } from '@/api/v1/tables';
+import { TableResponse } from '@/api/v1/tables';
 import { TableElement } from '@/app/(app-section)/app/settings/floor-management/[floorId]/components/TableElement';
 
 interface MultiSelectFloorCanvasProps {

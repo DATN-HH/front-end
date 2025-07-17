@@ -21,7 +21,6 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { NumberInput } from '@/components/ui/number-input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -44,7 +43,7 @@ import { useUploadImage } from '@/api/v1/images';
 import { useAllCategories } from '@/api/v1/menu/categories';
 import { useAssignTagsToProduct, ProductTagResponse } from '@/api/v1/menu/product-tags';
 import { TagSelector } from '@/components/forms/TagSelector';
-import { Loader2, Package, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Package, X, Image as ImageIcon } from 'lucide-react';
 
 // Form validation schema
 const productSchema = z.object({
