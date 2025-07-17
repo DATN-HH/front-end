@@ -21,7 +21,6 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { 
     useProductDetail, 
@@ -41,13 +40,11 @@ import {
     useDeleteProductVariant,
     useArchiveProductVariant,
     useUnarchiveProductVariant,
-    ProductAttributeResponse,
     ProductVariantResponse,
     ProductVariantCreateRequest,
     ProductVariantUpdateRequest,
     ProductVariantPricingRequest,
-    ProductAttributeAssignRequest,
-    AttributeAssignment
+    ProductAttributeAssignRequest
 } from '@/api/v1/menu/product-attributes';
 import { 
     Package, 
@@ -68,7 +65,6 @@ import {
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 

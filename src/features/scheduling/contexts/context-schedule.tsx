@@ -1,5 +1,5 @@
 import { useScheduledShifts, useScheduledShiftsGrouped, ScheduledShiftResponseDto, ScheduledShiftGroupedResponseDto } from "@/api/v1/scheduled-shift";
-import { useRoles, RoleResponseDto, useStaffShiftsGrouped, StaffShiftGroupedResponseDto, StaffShiftData } from "@/api/v1";
+import { useRoles, RoleResponseDto, useStaffShiftsGrouped, StaffShiftGroupedResponseDto } from "@/api/v1";
 import { useShifts, ShiftResponseDto } from "@/api/v1/shifts";
 import { useAuth } from "@/contexts/auth-context";
 import { endOfWeek, startOfWeek } from "date-fns";

@@ -5,7 +5,7 @@ import { formatCurrency } from '@/api/v1/table-types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Trash2, Users, MapPin, Maximize2 } from 'lucide-react';
+import { Edit, Trash2, Users, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { getIconByName } from '@/lib/icon-utils';
 

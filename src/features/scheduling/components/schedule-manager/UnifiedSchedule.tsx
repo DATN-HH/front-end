@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useMemo } from "react"
+import { useContext } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"

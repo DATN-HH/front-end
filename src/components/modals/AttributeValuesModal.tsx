@@ -29,7 +29,6 @@ import {
     Plus,
     Edit,
     Trash2,
-    Palette,
     DollarSign,
     Save,
     X,

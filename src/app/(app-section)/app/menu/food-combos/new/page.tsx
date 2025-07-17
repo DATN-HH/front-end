@@ -21,13 +21,10 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { 
     ArrowLeft, 
     Save, 
     Plus, 
-    Minus, 
-    ShoppingCart, 
     Search,
     X,
     Package

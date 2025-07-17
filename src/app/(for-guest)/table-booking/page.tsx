@@ -327,7 +327,7 @@ export default function TableBookingPage() {
                     </span>
                   </div>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {selectedTables.map((table, index) => (
+                    {selectedTables.map((table, _) => (
                       <div key={table.id} className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs p-2 bg-white rounded border">
                         <div className="flex flex-col">
                           <span className="text-gray-600 mb-1">Table</span>

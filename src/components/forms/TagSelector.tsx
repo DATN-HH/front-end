@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAllTags, useSearchTags, ProductTagResponse } from '@/api/v1/menu/product-tags';
-import { Check, ChevronsUpDown, Tag, X, Plus } from 'lucide-react';
+import { ChevronsUpDown, Tag, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TagSelectorProps {

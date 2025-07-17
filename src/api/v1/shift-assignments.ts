@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api-client';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { BaseResponse } from '.';
 
 // Original Shift Assignment Interfaces (keeping for backward compatibility)

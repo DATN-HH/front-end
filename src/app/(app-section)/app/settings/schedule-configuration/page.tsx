@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Settings, Clock, Users, Shield, Loader2, BarChart3, CalendarCheck, Trash2, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Settings, Clock, Loader2, BarChart3, CalendarCheck, Trash2, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { useCustomToast } from '@/lib/show-toast';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -22,7 +22,7 @@ import {
     useDeleteBranchScheduleConfig,
     BranchScheduleConfigRequest,
 } from '@/api/v1/branch-schedule-config';
-import { ProtectedElement, ProtectedRoute } from '@/components/protected-component';
+import { ProtectedRoute } from '@/components/protected-component';
 import { Role } from '@/lib/rbac';
 
 const DAYS_OF_WEEK = [

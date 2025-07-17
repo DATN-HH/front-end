@@ -1,13 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
+
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Edit, MoreHorizontal, Trash, Calendar, CheckCircle } from 'lucide-react';
+import { Edit, Trash, CheckCircle } from 'lucide-react';
 import dayjs from 'dayjs';
 import { UserResponseDto } from '@/api/v1/users';
 

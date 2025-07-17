@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     ArrowLeft,
@@ -17,9 +16,7 @@ import {
     Clock,
     DollarSign,
     Image as ImageIcon,
-    RotateCcw,
-    Settings,
-    Eye
+    Settings
 } from 'lucide-react';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import Link from 'next/link';
@@ -28,7 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import { 
     useFoodCombo, 
     useDeleteFoodCombo,
-    FoodComboResponse,
     ComboItemResponse,
     Status 
 } from '@/api/v1/menu/food-combos';

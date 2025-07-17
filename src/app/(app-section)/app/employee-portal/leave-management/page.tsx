@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
-import { FileText, Calendar, Clock, CheckCircle, XCircle, Plus, TrendingUp } from 'lucide-react';
+import { FileText, Calendar, Clock, CheckCircle, XCircle, Plus } from 'lucide-react';
 import { EmployeeLeaveManagement as EmployeeLeaveManagementComponent } from '@/features/employee-portal/components/EmployeeLeaveManagement';
 import {
     useMyLeaveRequests,

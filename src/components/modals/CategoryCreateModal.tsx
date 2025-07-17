@@ -32,8 +32,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { 
     useCreateCategory, 
-    CategoryCreateRequest,
-    Status 
+    CategoryCreateRequest 
 } from '@/api/v1/menu/categories';
 import { Loader2 } from 'lucide-react';
 

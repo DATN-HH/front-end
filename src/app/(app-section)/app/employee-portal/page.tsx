@@ -10,17 +10,12 @@ import Link from 'next/link';
 import {
     Clock,
     User,
-    FileText,
-    CalendarDays,
     AlertTriangle,
     CheckCircle,
-    Plus,
     Activity,
     XCircle,
     ClipboardList,
-    ExternalLink,
-    Zap,
-    Calendar
+    Zap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -29,16 +24,12 @@ import {
 import {
     useMyLeaveBalance,
     useMyLeaveRequests,
-    LeaveStatus,
-    getLeaveTypeLabel,
-    getLeaveStatusLabel,
-    getStatusColor
+    LeaveStatus
 } from '@/api/v1/leave-management';
 import { useMyPendingShifts } from '@/api/v1/publish-shifts';
 import { useMyShiftLeaveRequests, useMyShiftLeaveBalance } from '@/api/v1/shift-leave-management';
 import { PendingShiftsModal } from '@/features/employee-portal/components/PendingShiftsModal';
 import { EmployeeLeaveManagement } from '@/features/employee-portal/components/EmployeeLeaveManagement';
-import { NotificationsPanel } from '@/features/employee-portal/components/NotificationsPanel';
 import { WeeklyScheduleCalendar } from '@/features/employee-portal/components/WeeklyScheduleCalendar';
 import { format, parseISO, differenceInHours } from 'date-fns';
 import { ProtectedRoute } from '@/components/protected-component';

@@ -12,7 +12,6 @@ import {
     Package,
     Grid3X3,
     List,
-    ImageIcon,
     Image as ImageLucide,
     ChevronRight,
     Tag,
@@ -34,7 +33,6 @@ import {
     ProductListParams,
     ProductGroupedParams,
     ProductListResponse,
-    ProductGroupedResponse,
     ProductType
 } from '@/api/v1/menu/products';
 import { useAllTags, ProductTagResponse } from '@/api/v1/menu/product-tags';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -33,8 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
     useUpdateCategory, 
     CategoryUpdateRequest,
-    CategoryResponse,
-    Status 
+    CategoryResponse 
 } from '@/api/v1/menu/categories';
 import { Loader2 } from 'lucide-react';
 

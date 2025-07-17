@@ -1,7 +1,6 @@
 'use client';
 
 import { TableResponse, TableShape, getTableColor, getTableIcon } from '@/api/v1/tables';
-import { Users } from 'lucide-react';
 import { getIconByName } from '@/lib/icon-utils';
 
 interface TableElementProps {

@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/api-client';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { BaseResponse } from '.';
 
 // Types
 export interface SignInRequest {
@@ -122,13 +123,6 @@ export interface BranchRespondDto {
   status: 'ACTIVE' | 'INACTIVE' | 'DELETED';
   createdUsername: string;
   updatedUsername: string;
-}
-
-export interface BaseResponse<T> {
-  success: boolean;
-  code: number;
-  message: string;
-  payload: T;
 }
 
 // API calls
