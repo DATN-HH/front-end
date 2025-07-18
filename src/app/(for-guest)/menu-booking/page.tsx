@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Clock, MapPin, Home, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import type { OrderData } from "@/lib/types"
 
 const branches = ["Downtown Location", "Mall Branch", "Airport Terminal", "Suburban Plaza"]
 
-export default function MenuBookingPage() {
+function MenuBookingContent() {
   const searchParams = useSearchParams()
 
   // Get query parameters
@@ -215,5 +215,38 @@ export default function MenuBookingPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+function MenuBookingPageFallback() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">Pre-Order Menu</h1>
+        <p className="text-muted-foreground">Order ahead and skip the wait</p>
+      </div>
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="animate-pulse space-y-6">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+export default function MenuBookingPage() {
+  return (
+    <Suspense fallback={<MenuBookingPageFallback />}>
+      <MenuBookingContent />
+    </Suspense>
   )
 }
