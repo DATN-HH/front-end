@@ -420,6 +420,7 @@ export default function TableBookingPage() {
           setShowConfirmDialog(open)
         }}
         bookingData={bookingResponse}
+        branchId={selectedBranch || undefined}
         onConfirm={() => {
           console.log("Dialog confirmed") // Debug log
           setShowConfirmDialog(false)

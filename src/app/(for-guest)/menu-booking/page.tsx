@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Clock, MapPin, Home } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { Clock, MapPin, Home, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,16 +10,51 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { OrderData } from "@/lib/types"
 
 const branches = ["Downtown Location", "Mall Branch", "Airport Terminal", "Suburban Plaza"]
 
 export default function MenuBookingPage() {
+  const searchParams = useSearchParams()
+
+  // Get query parameters
+  const bookingtableId = searchParams.get('bookingtableId')
+  const branchId = searchParams.get('branchId')
+  const time = searchParams.get('time')
+  const duration = searchParams.get('duration')
+
   const [orderData, setOrderData] = useState<OrderData>({
     type: "dine-in",
     notes: "",
     scheduledTime: "",
   })
+
+  // Pre-fill data when coming from table booking
+  useEffect(() => {
+    if (time) {
+      // Convert ISO string to local datetime format for input
+      const date = new Date(time)
+      const localDateTime = date.toISOString().slice(0, 16)
+      setOrderData(prev => ({
+        ...prev,
+        scheduledTime: localDateTime,
+        // Pre-set to dine-in since it's from table booking
+        type: "dine-in"
+      }))
+    }
+  }, [time])
+
+  const formatBookingTime = (timeString: string) => {
+    const date = new Date(timeString)
+    return date.toLocaleString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -26,6 +62,26 @@ export default function MenuBookingPage() {
         <h1 className="text-4xl font-bold mb-4">Pre-Order Menu</h1>
         <p className="text-muted-foreground">Order ahead and skip the wait</p>
       </div>
+
+      {/* Show booking info if coming from table booking */}
+      {bookingtableId && (
+        <div className="max-w-2xl mx-auto mb-6">
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-semibold">Table Booking Confirmed!</span>
+                  <p className="text-sm mt-1">
+                    Booking ID: #{bookingtableId} • {time && formatBookingTime(time)}
+                    {duration && ` • ${duration} hour${parseInt(duration) > 1 ? 's' : ''}`}
+                  </p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto">
         <Card>
