@@ -12,8 +12,10 @@ import { EditTableTypeDialog } from './components/EditTableTypeDialog';
 import { DeleteTableTypeDialog } from './components/DeleteTableTypeDialog';
 import { TableTypeResponse } from '@/api/v1/table-types';
 import { getIconByName } from '@/lib/icon-utils';
+import { ProtectedRoute } from '@/components/protected-component';
+import { Role } from '@/lib/rbac';
 
-export default function TableTypesPage() {
+export function TableTypes() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -170,5 +172,13 @@ export default function TableTypesPage() {
                 onConfirm={handleDeleteConfirm}
             />
         </div>
+    );
+} 
+
+export default function TableTypesPage() {
+    return (
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
+            <TableTypes />
+        </ProtectedRoute>
     );
 } 

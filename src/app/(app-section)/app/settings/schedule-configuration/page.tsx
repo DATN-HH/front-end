@@ -638,7 +638,7 @@ function ScheduleConfiguration() {
 
 export default function ScheduleConfigurationPage() {
     return (
-        <ProtectedRoute requiredRoles={Role.MANAGER}>
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
             <ScheduleConfiguration />
         </ProtectedRoute>
     );

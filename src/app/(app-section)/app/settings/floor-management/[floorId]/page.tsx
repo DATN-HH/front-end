@@ -199,7 +199,7 @@ export function FloorDetailPage() {
     }
 
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
             <div className="min-h-screen bg-gray-50">
                 <div className="flex flex-col lg:flex-row h-screen">
                     {/* Main Canvas Area */}

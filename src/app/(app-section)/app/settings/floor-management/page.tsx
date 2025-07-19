@@ -126,7 +126,7 @@ export function FloorManagementPage() {
     };
 
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER]}>
+        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.SYSTEM_ADMIN]}>
             <div className="min-h-screen bg-white">
                 <PageTitle
                     icon={Building2}
