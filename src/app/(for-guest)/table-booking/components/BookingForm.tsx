@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, Users, User, Phone, MessageSquare } from "lucide-react"
+import { Calendar, Users, User, Phone, MessageSquare, CreditCard } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ interface BookingData {
   customerName: string
   customerPhone: string
   notes: string
+  paymentType?: 'cash' | 'banking'
 }
 
 interface BookingFormProps {
@@ -23,6 +24,7 @@ interface BookingFormProps {
   onBookingDataChange: (data: Partial<BookingData>) => void
   onSubmit: (e: React.FormEvent) => void
   isSubmitting?: boolean
+  mode?: 'guest' | 'admin'
 }
 
 export function BookingForm({
@@ -31,7 +33,8 @@ export function BookingForm({
   selectedDate,
   onBookingDataChange,
   onSubmit,
-  isSubmitting = false
+  isSubmitting = false,
+  mode = 'guest'
 }: BookingFormProps) {
   const maxCapacity = selectedTables.reduce((sum, table) => sum + table.capacity, 0)
   const hasSelectedTables = selectedTables.length > 0
@@ -49,98 +52,114 @@ export function BookingForm({
           <div className="space-y-1">
             <Label htmlFor="guests" className="flex items-center gap-2 text-sm">
               <Users className="w-4 h-4" />
-              Guests
+              Number of Guests
             </Label>
             <Select
               value={bookingData.guests.toString()}
               onValueChange={(value) => onBookingDataChange({ guests: parseInt(value) })}
-              disabled={!hasSelectedTables}
             >
-              <SelectTrigger className="h-8">
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {hasSelectedTables ? (
-                  Array.from({ length: maxCapacity }, (_, i) => i + 1).map(num => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? 'person' : 'people'}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="2">2 people</SelectItem>
-                )}
+                {Array.from({ length: Math.max(1, maxCapacity) }, (_, i) => i + 1).map((num) => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num} {num === 1 ? 'guest' : 'guests'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {hasSelectedTables && (
-              <p className="text-xs text-gray-500">
-                Maximum capacity: {maxCapacity} people across {selectedTables.length} table{selectedTables.length > 1 ? 's' : ''}
+              <p className="text-xs text-muted-foreground">
+                Maximum capacity: {maxCapacity} guests
               </p>
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="customerName" className="flex items-center gap-2 text-sm">
-                <User className="w-4 h-4" />
-                Name
-              </Label>
-              <Input
-                id="customerName"
-                value={bookingData.customerName}
-                onChange={(e) => onBookingDataChange({ customerName: e.target.value })}
-                disabled={!hasSelectedTables}
-                required
-                className="h-8"
-                placeholder="Enter your full name"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="customerPhone" className="flex items-center gap-2 text-sm">
-                <Phone className="w-4 h-4" />
-                Phone
-              </Label>
-              <Input
-                id="customerPhone"
-                type="tel"
-                value={bookingData.customerPhone}
-                onChange={(e) => onBookingDataChange({ customerPhone: e.target.value })}
-                disabled={!hasSelectedTables}
-                required
-                className="h-8"
-                placeholder="0345888777"
-                pattern="[0-9]{10,11}"
-                title="Please enter a valid Vietnamese phone number (10-11 digits)"
-              />
-            </div>
+          <div className="space-y-1">
+            <Label htmlFor="customerName" className="flex items-center gap-2 text-sm">
+              <User className="w-4 h-4" />
+              Customer Name
+            </Label>
+            <Input
+              id="customerName"
+              type="text"
+              placeholder="Enter customer name"
+              value={bookingData.customerName}
+              onChange={(e) => onBookingDataChange({ customerName: e.target.value })}
+              required
+            />
           </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="customerPhone" className="flex items-center gap-2 text-sm">
+              <Phone className="w-4 h-4" />
+              Phone Number
+            </Label>
+            <Input
+              id="customerPhone"
+              type="tel"
+              placeholder="Enter phone number"
+              value={bookingData.customerPhone}
+              onChange={(e) => onBookingDataChange({ customerPhone: e.target.value })}
+              required
+            />
+          </div>
+
+          {/* Payment Type - Only for admin mode */}
+          {mode === 'admin' && (
+            <div className="space-y-1">
+              <Label htmlFor="paymentType" className="flex items-center gap-2 text-sm">
+                <CreditCard className="w-4 h-4" />
+                Payment Type
+              </Label>
+              <Select
+                value={bookingData.paymentType || 'cash'}
+                onValueChange={(value: 'cash' | 'banking') => onBookingDataChange({ paymentType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="banking">Banking</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-1">
             <Label htmlFor="notes" className="flex items-center gap-2 text-sm">
               <MessageSquare className="w-4 h-4" />
-              Notes
+              Special Notes (Optional)
             </Label>
             <Textarea
               id="notes"
-              placeholder="Special requests..."
+              placeholder="Any special requests or notes..."
               value={bookingData.notes}
               onChange={(e) => onBookingDataChange({ notes: e.target.value })}
-              disabled={!hasSelectedTables}
-              rows={2}
-              className="text-sm"
+              rows={3}
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full mt-4 h-9"
-            disabled={!hasSelectedTables || !selectedDate || isSubmitting}
+            className="w-full"
+            disabled={!hasSelectedTables || isSubmitting}
           >
-            {isSubmitting ? 'Creating Booking...' :
-              !selectedDate ? 'Select Date & Time First' :
-                !hasSelectedTables ? 'Select Table(s)' :
-                  'Complete Booking'}
+            {isSubmitting
+              ? "Processing..."
+              : mode === 'admin'
+                ? "Complete Booking"
+                : "Book Now"
+            }
           </Button>
+
+          {!hasSelectedTables && (
+            <p className="text-sm text-muted-foreground text-center">
+              Please select at least one table to continue
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

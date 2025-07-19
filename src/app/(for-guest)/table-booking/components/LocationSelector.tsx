@@ -25,6 +25,8 @@ interface LocationSelectorProps {
   onFloorChange: (floorId: string) => void
   branchesLoading: boolean
   floorsLoading: boolean
+  disableBranch?: boolean
+  disableFloor?: boolean
 }
 
 export function LocationSelector({
@@ -35,7 +37,9 @@ export function LocationSelector({
   onBranchChange,
   onFloorChange,
   branchesLoading,
-  floorsLoading
+  floorsLoading,
+  disableBranch,
+  disableFloor
 }: LocationSelectorProps) {
   return (
     <Card>
@@ -52,7 +56,7 @@ export function LocationSelector({
           <Select
             value={selectedBranch?.toString() || ""}
             onValueChange={onBranchChange}
-            disabled={branchesLoading}
+            disabled={branchesLoading || disableBranch}
           >
             <SelectTrigger>
               <SelectValue placeholder={branchesLoading ? "Loading..." : "Select a branch"} />
@@ -81,7 +85,7 @@ export function LocationSelector({
           <Select
             value={selectedFloor?.toString() || ""}
             onValueChange={onFloorChange}
-            disabled={floorsLoading || !selectedBranch}
+            disabled={floorsLoading || !selectedBranch || disableFloor}
           >
             <SelectTrigger>
               <SelectValue placeholder={

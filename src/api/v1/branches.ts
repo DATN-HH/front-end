@@ -41,7 +41,23 @@ export interface BranchUpdateDto {
 
 // API calls
 export const getBranches = async (params: BaseListRequest): Promise<BranchResponseDto[]> => {
-    const response = await apiClient.get<BaseResponse<PageResponse<BranchResponseDto>>>('/branch', { params });
+    // Build query string manually to ensure proper encoding
+    const queryParams = new URLSearchParams();
+    
+    // Add basic params
+    if (params.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params.keyword) queryParams.append('keyword', params.keyword);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.status) queryParams.append('status', params.status);
+    
+    // Handle searchCondition with proper encoding
+    if (params.searchCondition) {
+        queryParams.append('searchCondition', params.searchCondition);
+    }
+    
+    const url = `/branch?${queryParams.toString()}`;
+    const response = await apiClient.get<BaseResponse<PageResponse<BranchResponseDto>>>(url);
     return response.data.payload.data;
 };
 

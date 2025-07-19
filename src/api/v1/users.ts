@@ -60,7 +60,25 @@ export interface UserForgetPasswordRequest {
 
 // API calls
 export const getUsers = async (params: UserListRequest): Promise<PageResponse<UserDtoResponse>> => {
-  const response = await apiClient.get<BaseResponse<PageResponse<UserDtoResponse>>>('/user/list', { params });
+  // Build query string manually to ensure proper encoding
+  const queryParams = new URLSearchParams();
+  
+  // Add basic params
+  if (params.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params.size !== undefined) queryParams.append('size', params.size.toString());
+  if (params.keyword) queryParams.append('keyword', params.keyword);
+  if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params.status) queryParams.append('status', params.status);
+  if (params.branchId !== undefined) queryParams.append('branchId', params.branchId.toString());
+  if (params.isEmployee !== undefined) queryParams.append('isEmployee', params.isEmployee.toString());
+  
+  // Handle searchCondition with proper encoding
+  if (params.searchCondition) {
+    queryParams.append('searchCondition', params.searchCondition);
+  }
+  
+  const url = `/user/list?${queryParams.toString()}`;
+  const response = await apiClient.get<BaseResponse<PageResponse<UserDtoResponse>>>(url);
   return response.data.payload;
 };
 
