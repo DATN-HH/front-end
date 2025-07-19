@@ -23,7 +23,7 @@ export function PaymentQRCode({ bookingId, amount, onPaymentSuccess }: PaymentQR
   const createPaymentMutation = useCreatePaymentLinkForBookingTable()
 
   const [payOSConfig, setPayOSConfig] = useState<PayOSConfig>({
-    RETURN_URL: "https://example.com/payment/success",
+    RETURN_URL: "http://example.com/payment/success",
     ELEMENT_ID: "embedded-payment-container",
     CHECKOUT_URL: "",
     embedded: true,
