@@ -234,13 +234,13 @@ export default function TableBookingPage() {
   }, [floorTablesStatus, selectedDate])
 
   // Enhanced FloorCanvas that uses table status
-  const renderFloorCanvas = useMemo(() => {
-    if (!floorData) return null
+  const floorCanvas = useMemo(() => {
+    if (!floorData?.floor) return null
 
     return (
       <MultiSelectFloorCanvas
         floor={floorData.floor}
-        tables={floorData.tables}
+        tables={Array.isArray(floorData.tables) ? floorData.tables : []}
         selectedTables={selectedTables}
         onTableSelect={handleTableSelect}
         selectableTables={selectableTables}
@@ -403,7 +403,7 @@ export default function TableBookingPage() {
 
               {selectedFloor && floorData && (
                 <div className="bg-gray-50 rounded-lg p-3">
-                  {renderFloorCanvas}
+                  {floorCanvas}
                 </div>
               )}
             </CardContent>

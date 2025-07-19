@@ -80,3 +80,4 @@ export * from './shifts';
 export * from './staff-shifts';
 export * from './scheduled-shift';
 export * from './advance-search';
+export * from './table-booking';

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import { TableResponse } from '@/api/v1/tables';
 import { TableElement } from '@/app/(app-section)/app/settings/floor-management/[floorId]/components/TableElement';
+import { cn } from '@/lib/utils';
 
 interface MultiSelectFloorCanvasProps {
   floor: {
@@ -122,11 +123,10 @@ export function MultiSelectFloorCanvas({
       <div className="absolute top-2 right-2 z-20 flex gap-2">
         <button
           onClick={() => setIsMultiSelectMode(!isMultiSelectMode)}
-          className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-            isMultiSelectMode
-              ? 'bg-blue-500 text-white border-blue-500'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-          }`}
+          className={`px-3 py-1 text-xs rounded-full border transition-colors ${isMultiSelectMode
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
         >
           {isMultiSelectMode ? 'Multi-Select ON' : 'Multi-Select OFF'}
         </button>
@@ -148,7 +148,7 @@ export function MultiSelectFloorCanvas({
         style={{ minHeight: '600px' }}
       >
         {/* Tables */}
-        {tables.map((table) => {
+        {Array.isArray(tables) && tables.map((table) => {
           const x = ratioToPixels(table.xRatio ?? table.xratio ?? 0.5, 'width');
           const y = ratioToPixels(table.yRatio ?? table.yratio ?? 0.5, 'height');
           const width = (table.widthRatio ?? table.widthratio ?? 0.1) * imageSize.width;
@@ -180,6 +180,16 @@ export function MultiSelectFloorCanvas({
             </Rnd>
           );
         })}
+
+        {/* Show message when no tables available */}
+        {(!Array.isArray(tables) || tables.length === 0) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <p className="text-lg font-medium">No tables available</p>
+              <p className="text-sm">Please select a different floor or time</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Multi-select instructions */}

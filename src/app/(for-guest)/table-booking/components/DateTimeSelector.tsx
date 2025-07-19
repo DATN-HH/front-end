@@ -9,22 +9,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface DateTimeSelectorProps {
   selectedDate: string
-  selectedHour: number
-  duration: number
+  selectedHour: number | null
+  duration?: number
   onDateChange: (date: string) => void
-  onHourChange: (hour: string) => void
-  onDurationChange: (duration: number) => void
-  disabled: boolean
+  onHourChange: (hour: number) => void
+  onDurationChange?: (duration: number) => void
+  disabled?: boolean
 }
 
 export function DateTimeSelector({
   selectedDate,
   selectedHour,
-  duration,
+  duration = 2,
   onDateChange,
   onHourChange,
   onDurationChange,
-  disabled
+  disabled = false
 }: DateTimeSelectorProps) {
   return (
     <Card>
@@ -41,7 +41,7 @@ export function DateTimeSelector({
             <Input
               id="date"
               type="date"
-              value={selectedDate}
+              value={selectedDate || ''}
               onChange={(e) => onDateChange(e.target.value)}
               disabled={disabled}
               required
@@ -52,12 +52,12 @@ export function DateTimeSelector({
           <div className="space-y-1">
             <Label htmlFor="hour" className="text-sm">Hour</Label>
             <Select
-              value={selectedHour.toString()}
-              onValueChange={onHourChange}
+              value={selectedHour !== null ? selectedHour.toString() : ''}
+              onValueChange={(value) => onHourChange(parseInt(value))}
               disabled={disabled}
             >
               <SelectTrigger className="h-8">
-                <SelectValue />
+                <SelectValue placeholder="Select hour" />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 24 }, (_, i) => (
@@ -70,29 +70,31 @@ export function DateTimeSelector({
           </div>
         </div>
 
-        {/* Duration Selection */}
-        <div className="space-y-2">
-          <Label className="text-sm">Duration</Label>
-          <RadioGroup
-            value={duration.toString()}
-            onValueChange={(value) => onDurationChange(parseInt(value))}
-            disabled={disabled}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="1" id="duration-1" />
-              <Label htmlFor="duration-1" className="text-sm cursor-pointer">1 hour</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="2" id="duration-2" />
-              <Label htmlFor="duration-2" className="text-sm cursor-pointer">2 hours</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="3" id="duration-3" />
-              <Label htmlFor="duration-3" className="text-sm cursor-pointer">3 hours</Label>
-            </div>
-          </RadioGroup>
-        </div>
+        {/* Duration Selection - Only show if onDurationChange is provided */}
+        {onDurationChange && (
+          <div className="space-y-2">
+            <Label className="text-sm">Duration</Label>
+            <RadioGroup
+              value={duration.toString()}
+              onValueChange={(value) => onDurationChange(parseInt(value))}
+              disabled={disabled}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1" id="duration-1" />
+                <Label htmlFor="duration-1" className="text-sm cursor-pointer">1 hour</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="2" id="duration-2" />
+                <Label htmlFor="duration-2" className="text-sm cursor-pointer">2 hours</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="3" id="duration-3" />
+                <Label htmlFor="duration-3" className="text-sm cursor-pointer">3 hours</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

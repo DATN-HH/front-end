@@ -1,7 +1,45 @@
+import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/api-client';
+import { BaseListRequest, BaseResponse, PageResponse, Status } from '.';
 
-// Request interfaces
+// ===== ADMIN TABLE RESERVATION TYPES =====
+export interface BookingTableResponseDto {
+  id: number;
+  timeStart: string;
+  timeEnd: string;
+  guestCount: number;
+  bookingStatus: BookingStatus;
+  note?: string;
+  customerName: string;
+  customerPhone: string;
+  totalDeposit: number;
+  expireTime: string;
+  status: Status;
+  createdAt: string;
+  updatedAt: string;
+  bookedTables: BookedTableDto[];
+}
+
+export interface BookedTableDto {
+  tableId: number;
+  tableName: string;
+  tableType: string;
+  floorName: string;
+  deposit: number;
+}
+
+export type BookingStatus = 'BOOKED' | 'DEPOSIT_PAID' | 'COMPLETED' | 'CANCELLED';
+
+export interface BookingTableListRequest extends BaseListRequest {
+  customerName?: string;
+  customerPhone?: string;
+  bookingStatus?: BookingStatus;
+  timeStart?: string;
+  timeEnd?: string;
+  branchId?: number;
+}
+
+// ===== GUEST BOOKING TYPES =====
 export interface CreateBookingRequest {
   startTime: string;      // ISO 8601 format
   duration: number;       // Hours (min: 1)
@@ -12,7 +50,6 @@ export interface CreateBookingRequest {
   customerPhone: string;  // 10-11 digits
 }
 
-// Response interfaces
 export interface BookedTable {
   tableId: number;
   tableName: string;
@@ -34,7 +71,6 @@ export interface CreateBookingResponse {
   bookedTables: BookedTable[];
 }
 
-// Payment status check response interface
 export interface BookingPaymentStatusResponse {
   bookingId: number;
   customerName: string;
@@ -61,7 +97,34 @@ export interface ApiResponse<T> {
   };
 }
 
-// API functions
+// ===== ADMIN TABLE RESERVATION API CALLS =====
+export const getBookingTables = async (params: BookingTableListRequest): Promise<PageResponse<BookingTableResponseDto>> => {
+  // Build query string manually to ensure proper encoding
+  const queryParams = new URLSearchParams();
+  
+  // Add basic params
+  if (params.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params.size !== undefined) queryParams.append('size', params.size.toString());
+  if (params.keyword) queryParams.append('keyword', params.keyword);
+  if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params.customerName) queryParams.append('customerName', params.customerName);
+  if (params.customerPhone) queryParams.append('customerPhone', params.customerPhone);
+  if (params.bookingStatus) queryParams.append('bookingStatus', params.bookingStatus);
+  if (params.timeStart) queryParams.append('timeStart', params.timeStart);
+  if (params.timeEnd) queryParams.append('timeEnd', params.timeEnd);
+  if (params.branchId !== undefined) queryParams.append('branchId', params.branchId.toString());
+  
+  // Handle searchCondition with proper encoding
+  if (params.searchCondition) {
+    queryParams.append('searchCondition', params.searchCondition);
+  }
+  
+  const url = `/booking-table?${queryParams.toString()}`;
+  const response = await apiClient.get<BaseResponse<PageResponse<BookingTableResponseDto>>>(url);
+  return response.data.payload;
+};
+
+// ===== GUEST BOOKING API CALLS =====
 const createBooking = async (request: CreateBookingRequest): Promise<ApiResponse<CreateBookingResponse>> => {
   const response = await apiClient.post('/booking-table/create', request);
   return response.data;
@@ -72,7 +135,31 @@ const checkBookingPaymentStatus = async (bookingId: number): Promise<ApiResponse
   return response.data;
 };
 
-// React Query hooks
+// ===== ADMIN BOOKING API CALLS =====
+const createAdminBooking = async (request: CreateBookingRequest & { paymentType: 'cash' | 'banking' }): Promise<ApiResponse<CreateBookingResponse>> => {
+  const response = await apiClient.post('/booking-table/admin/create', request);
+  return response.data;
+};
+
+// ===== ADMIN BOOKING HOOKS =====
+export const useCreateAdminBooking = () => {
+  return useMutation({
+    mutationFn: createAdminBooking,
+    onError: (error: unknown) => {
+      console.error('Admin booking creation failed:', error);
+    },
+  });
+};
+
+// ===== ADMIN TABLE RESERVATION HOOKS =====
+export const useBookingTables = (params: BookingTableListRequest) => {
+  return useQuery({
+    queryKey: ['booking-tables', params],
+    queryFn: () => getBookingTables(params),
+  });
+};
+
+// ===== GUEST BOOKING HOOKS =====
 export const useCreateBooking = () => {
   return useMutation({
     mutationFn: createBooking,

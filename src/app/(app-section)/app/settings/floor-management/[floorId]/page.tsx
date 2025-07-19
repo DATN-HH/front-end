@@ -218,7 +218,7 @@ export function FloorDetailPage() {
                                 </Button>
                                 <PageTitle
                                     icon={Building2}
-                                    title={`${floorData.floor.name} - ${floorData.tables.length} tables`}
+                                    title={`${floorData.floor.name} - ${Array.isArray(floorData.tables) ? floorData.tables.length : 0} tables`}
                                     className="mb-0"
                                 />
                             </div>
@@ -235,7 +235,7 @@ export function FloorDetailPage() {
                         <div className="flex-1 p-4">
                             <FloorCanvas
                                 floor={floorData.floor}
-                                tables={floorData.tables}
+                                tables={Array.isArray(floorData.tables) ? floorData.tables : []}
                                 selectedTable={selectedTable}
                                 onTableSelect={handleTableSelect}
                                 onTableDrop={handleTableDrop}

@@ -38,7 +38,23 @@ export interface RoleUpdateDto {
 
 // API calls
 export const getRoles = async (params: BaseListRequest): Promise<PageResponse<RoleResponseDto>> => {
-  const response = await apiClient.get<BaseResponse<PageResponse<RoleResponseDto>>>('/role', { params });
+  // Build query string manually to ensure proper encoding
+  const queryParams = new URLSearchParams();
+  
+  // Add basic params
+  if (params.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params.size !== undefined) queryParams.append('size', params.size.toString());
+  if (params.keyword) queryParams.append('keyword', params.keyword);
+  if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params.status) queryParams.append('status', params.status);
+  
+  // Handle searchCondition with proper encoding
+  if (params.searchCondition) {
+    queryParams.append('searchCondition', params.searchCondition);
+  }
+  
+  const url = `/role?${queryParams.toString()}`;
+  const response = await apiClient.get<BaseResponse<PageResponse<RoleResponseDto>>>(url);
   return response.data.payload;
 };
 
