@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Table,
   LayoutGrid,
+  CalendarRange,
 } from 'lucide-react';
 import { Role, employeeRole } from '@/lib/rbac';
 
@@ -133,6 +134,21 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       ],
     },
     {
+      id: 'booking',
+      label: 'Reservation',
+      icon: <CalendarRange className="h-5 w-5" />,
+      // activePaths: ['/app/booking'],
+      roles: [Role.SUPPORT],
+      items: [
+        {
+          href: '/app/reservation/table-reservation',
+          label: 'Table Reservation',
+          icon: <Table className="h-4 w-4" />,
+          roles: [Role.SUPPORT],
+        }
+      ],
+    },
+    {
       id: 'system',
       label: 'System',
       icon: <Shield className="h-5 w-5" />,
@@ -164,25 +180,25 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
       label: 'Settings',
       icon: <Settings className="h-5 w-5" />,
       activePaths: ['/app/settings'],
-      roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập settings
+      roles: [Role.MANAGER, Role.SYSTEM_ADMIN],
       items: [
         {
           href: '/app/settings/schedule-configuration',
           label: 'Schedule Configuration',
           icon: <Calendar className="h-4 w-4" />,
-          roles: [Role.MANAGER],
+          roles: [Role.MANAGER, Role.SYSTEM_ADMIN],
         },
         {
           href: '/app/settings/table-types',
           label: 'Table Configuration',
           icon: <Table className="h-4 w-4" />,
-          roles: [Role.MANAGER],
+          roles: [Role.MANAGER, Role.SYSTEM_ADMIN],
         },
         {
           href: '/app/settings/floor-management',
           label: 'Floor Management',
           icon: <LayoutGrid className="h-4 w-4" />,
-          roles: [Role.MANAGER],
+          roles: [Role.MANAGER, Role.SYSTEM_ADMIN],
         },
       ],
     },
