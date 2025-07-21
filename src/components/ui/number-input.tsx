@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Input } from './input';
+
 import { formatNumberInput, parseNumberInput } from '@/utils/currency';
+
+import { Input } from './input';
 
 interface NumberInputProps {
   value?: number;
@@ -14,14 +16,14 @@ interface NumberInputProps {
   max?: number;
 }
 
-export function NumberInput({ 
-  value, 
-  onChange, 
-  placeholder = "0", 
+export function NumberInput({
+  value,
+  onChange,
+  placeholder = '0',
   className,
   disabled,
   min,
-  max
+  max,
 }: NumberInputProps) {
   const [displayValue, setDisplayValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -43,7 +45,7 @@ export function NumberInput({
 
     // Parse the value and call onChange
     const numericValue = parseNumberInput(inputValue);
-    
+
     // Apply min/max constraints
     let finalValue = numericValue;
     if (finalValue !== undefined) {
@@ -54,7 +56,7 @@ export function NumberInput({
         finalValue = max;
       }
     }
-    
+
     onChange(finalValue);
   };
 
@@ -88,4 +90,4 @@ export function NumberInput({
       disabled={disabled}
     />
   );
-} 
+}

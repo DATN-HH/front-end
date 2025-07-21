@@ -2,7 +2,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { Role, Permission } from '@/lib/rbac';
 
 export const usePermissions = () => {
-  const { user, hasRole, hasPermission, isAuthenticated, isLoading } = useAuth();
+  const { user, hasRole, hasPermission, isAuthenticated, isLoading } =
+    useAuth();
 
   const checkRole = (role: Role | Role[]): boolean => {
     if (!isAuthenticated()) return false;
@@ -16,22 +17,22 @@ export const usePermissions = () => {
 
   const checkAnyRole = (roles: Role[]): boolean => {
     if (!isAuthenticated()) return false;
-    return roles.some(role => hasRole(role));
+    return roles.some((role) => hasRole(role));
   };
 
   const checkAllRoles = (roles: Role[]): boolean => {
     if (!isAuthenticated()) return false;
-    return roles.every(role => hasRole(role));
+    return roles.every((role) => hasRole(role));
   };
 
   const checkAnyPermission = (permissions: Permission[]): boolean => {
     if (!isAuthenticated()) return false;
-    return permissions.some(permission => hasPermission(permission));
+    return permissions.some((permission) => hasPermission(permission));
   };
 
   const checkAllPermissions = (permissions: Permission[]): boolean => {
     if (!isAuthenticated()) return false;
-    return permissions.every(permission => hasPermission(permission));
+    return permissions.every((permission) => hasPermission(permission));
   };
 
   const isManager = (): boolean => checkRole(Role.MANAGER);
@@ -52,4 +53,4 @@ export const usePermissions = () => {
     isEmployee,
     isSystemAdmin,
   };
-}; 
+};

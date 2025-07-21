@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../services/api-client';
+
+import { apiClient } from '@/services/api-client';
+
+import { BaseResponse } from '.';
 
 // Interfaces
 export interface Branch {
@@ -13,7 +16,7 @@ export interface FloorResponse {
   id: number;
   name: string;
   imageUrl?: string;
-  order: number; // 🆕 NEW: Order field in response
+  order: number;
   branch?: Branch;
   createdAt: string;
   updatedAt: string;
@@ -27,84 +30,91 @@ export interface FloorResponse {
 export interface CreateFloorRequest {
   name: string;
   branchId: number;
-  order?: number; // 🆕 NEW: Optional order field
+  order?: number;
   image?: File;
 }
 
 export interface UpdateFloorRequest {
   name: string;
-  order?: number; // 🆕 NEW: Optional order field
+  order?: number;
   image?: File;
 }
 
-export interface BaseResponse<T> {
-  success: boolean;
-  code: number;
-  message: string;
-  payload: T | null;
-}
-
 // API Functions
-export const createFloor = async (data: CreateFloorRequest): Promise<FloorResponse> => {
+const createFloor = async (
+  data: CreateFloorRequest
+): Promise<FloorResponse> => {
   const formData = new FormData();
   formData.append('name', data.name);
   formData.append('branchId', data.branchId.toString());
-  
-  // 🆕 NEW: Add optional order field
+
   if (data.order !== undefined) {
     formData.append('order', data.order.toString());
   }
-  
+
   if (data.image) {
     formData.append('image', data.image);
   }
 
-  const response = await apiClient.post<BaseResponse<FloorResponse>>('/floors', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await apiClient.post<BaseResponse<FloorResponse>>(
+    '/floors',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
 
   return response.data.payload!;
 };
 
-export const updateFloor = async (id: number, data: UpdateFloorRequest): Promise<FloorResponse> => {
+const updateFloor = async (
+  id: number,
+  data: UpdateFloorRequest
+): Promise<FloorResponse> => {
   const formData = new FormData();
   formData.append('name', data.name);
-  
-  // 🆕 NEW: Add optional order field
+
   if (data.order !== undefined) {
     formData.append('order', data.order.toString());
   }
-  
+
   if (data.image) {
     formData.append('image', data.image);
   }
 
-  const response = await apiClient.put<BaseResponse<FloorResponse>>(`/floors/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await apiClient.put<BaseResponse<FloorResponse>>(
+    `/floors/${id}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
 
   return response.data.payload!;
 };
 
-export const getFloorsByBranch = async (branchId: number, includeDeleted: boolean = false): Promise<FloorResponse[]> => {
+const getFloorsByBranch = async (
+  branchId: number,
+  includeDeleted: boolean = false
+): Promise<FloorResponse[]> => {
   const response = await apiClient.get<BaseResponse<FloorResponse[]>>(
     `/floors/branches/${branchId}/floors${includeDeleted ? '?includeDeleted=true' : ''}`
   );
   return response.data.payload || [];
 };
 
-export const deleteFloor = async (id: number): Promise<void> => {
+const deleteFloor = async (id: number): Promise<void> => {
   await apiClient.delete(`/floors/${id}`);
 };
 
 // React Query Hooks
 export const useCreateFloor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createFloor,
     onSuccess: () => {
@@ -115,16 +125,20 @@ export const useCreateFloor = () => {
 
 export const useUpdateFloor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateFloorRequest }) => updateFloor(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateFloorRequest }) =>
+      updateFloor(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['floors'] });
     },
   });
 };
 
-export const useFloorsByBranch = (branchId: number, includeDeleted: boolean = false) => {
+export const useFloorsByBranch = (
+  branchId: number,
+  includeDeleted: boolean = false
+) => {
   return useQuery({
     queryKey: ['floors', branchId, includeDeleted],
     queryFn: () => getFloorsByBranch(branchId, includeDeleted),
@@ -134,11 +148,11 @@ export const useFloorsByBranch = (branchId: number, includeDeleted: boolean = fa
 
 export const useDeleteFloor = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteFloor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['floors'] });
     },
   });
-}; 
+};

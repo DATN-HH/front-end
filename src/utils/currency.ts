@@ -31,4 +31,4 @@ export const parseNumberInput = (value: string) => {
   const cleaned = value.replace(/,/g, '');
   const num = parseFloat(cleaned);
   return isNaN(num) ? undefined : num;
-}; 
+};

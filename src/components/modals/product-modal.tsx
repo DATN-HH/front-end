@@ -1,14 +1,18 @@
-"use client"
+'use client';
 
-import type React from "react"
+import { Save, Plus } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -16,112 +20,124 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Save, Plus } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ProductModal({ open, onOpenChange }: ProductModalProps) {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    salesPrice: "",
-    cost: "",
-    internalReference: "",
-    category: "",
-    posCategory: "",
+    name: '',
+    type: '',
+    salesPrice: '',
+    cost: '',
+    internalReference: '',
+    category: '',
+    posCategory: '',
     canBeSold: true,
     canBePurchased: false,
     availableInPos: true,
-    description: "",
-  })
+    description: '',
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name || !formData.type || !formData.salesPrice) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      })
-      return
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
     }
 
     toast({
-      title: "Product Created",
+      title: 'Product Created',
       description: `${formData.name} has been created successfully.`,
-    })
+    });
 
     // Reset form and close modal
     setFormData({
-      name: "",
-      type: "",
-      salesPrice: "",
-      cost: "",
-      internalReference: "",
-      category: "",
-      posCategory: "",
+      name: '',
+      type: '',
+      salesPrice: '',
+      cost: '',
+      internalReference: '',
+      category: '',
+      posCategory: '',
       canBeSold: true,
       canBePurchased: false,
       availableInPos: true,
-      description: "",
-    })
-    onOpenChange(false)
-  }
+      description: '',
+    });
+    onOpenChange(false);
+  };
 
   const handleSaveAndNew = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name || !formData.type || !formData.salesPrice) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      })
-      return
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
     }
 
     toast({
-      title: "Product Created",
+      title: 'Product Created',
       description: `${formData.name} has been created successfully. Create another product.`,
-    })
+    });
 
     // Reset form but keep modal open
     setFormData({
-      name: "",
-      type: "",
-      salesPrice: "",
-      cost: "",
-      internalReference: "",
-      category: "",
-      posCategory: "",
+      name: '',
+      type: '',
+      salesPrice: '',
+      cost: '',
+      internalReference: '',
+      category: '',
+      posCategory: '',
       canBeSold: true,
       canBePurchased: false,
       availableInPos: true,
-      description: "",
-    })
-  }
+      description: '',
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Product</DialogTitle>
-          <DialogDescription>Add a new food item, beverage, or service to the system</DialogDescription>
+          <DialogDescription>
+            Add a new food item, beverage, or service to the system
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Enter the basic information of the product</CardDescription>
+              <CardDescription>
+                Enter the basic information of the product
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -130,14 +146,27 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="Enter product name"
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Product Type *</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        type: value,
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select product type" />
                     </SelectTrigger>
@@ -157,7 +186,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                     id="salesPrice"
                     type="number"
                     value={formData.salesPrice}
-                    onChange={(e) => setFormData({ ...formData, salesPrice: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        salesPrice: e.target.value,
+                      })
+                    }
                     placeholder="0"
                     required
                   />
@@ -168,7 +202,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                     id="cost"
                     type="number"
                     value={formData.cost}
-                    onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cost: e.target.value,
+                      })
+                    }
                     placeholder="0"
                   />
                 </div>
@@ -180,7 +219,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                   <Input
                     id="internalReference"
                     value={formData.internalReference}
-                    onChange={(e) => setFormData({ ...formData, internalReference: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        internalReference: e.target.value,
+                      })
+                    }
                     placeholder="Enter internal reference"
                   />
                 </div>
@@ -188,7 +232,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                   <Label htmlFor="category">Internal Category</Label>
                   <Select
                     value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        category: value,
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -207,7 +256,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Enter product description"
                   rows={3}
                 />
@@ -218,14 +272,21 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
           <Card>
             <CardHeader>
               <CardTitle>Sales Configuration</CardTitle>
-              <CardDescription>Set up sales options for the product</CardDescription>
+              <CardDescription>
+                Set up sales options for the product
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="canBeSold"
                   checked={formData.canBeSold}
-                  onCheckedChange={(checked) => setFormData({ ...formData, canBeSold: checked as boolean })}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      canBeSold: checked as boolean,
+                    })
+                  }
                 />
                 <Label htmlFor="canBeSold">Can be sold</Label>
               </div>
@@ -233,7 +294,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                 <Checkbox
                   id="canBePurchased"
                   checked={formData.canBePurchased}
-                  onCheckedChange={(checked) => setFormData({ ...formData, canBePurchased: checked as boolean })}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      canBePurchased: checked as boolean,
+                    })
+                  }
                 />
                 <Label htmlFor="canBePurchased">Can be purchased</Label>
               </div>
@@ -250,7 +316,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                 <Checkbox
                   id="availableInPos"
                   checked={formData.availableInPos}
-                  onCheckedChange={(checked) => setFormData({ ...formData, availableInPos: checked as boolean })}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      availableInPos: checked as boolean,
+                    })
+                  }
                 />
                 <Label htmlFor="availableInPos">Available in POS</Label>
               </div>
@@ -258,7 +329,12 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                 <Label htmlFor="posCategory">POS Category</Label>
                 <Select
                   value={formData.posCategory}
-                  onValueChange={(value) => setFormData({ ...formData, posCategory: value })}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      posCategory: value,
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select POS category" />
@@ -275,7 +351,11 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
           </Card>
 
           <DialogFooter className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="button" variant="outline" onClick={handleSaveAndNew}>
@@ -290,5 +370,5 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

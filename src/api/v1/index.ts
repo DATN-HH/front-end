@@ -1,21 +1,44 @@
 // Common Types
 export type Status = 'ACTIVE' | 'INACTIVE' | 'DELETED';
 export type Gender = 'FEMALE' | 'MALE' | 'OTHER';
-export type RoleName = 'MANAGER' | 'WAITER' | 'HOST' | 'KITCHEN' | 'CASHIER' | 'ACCOUNTANT' | 'EMPLOYEE' | 'CUSTOMER' | 'SUPPORT' | 'SYSTEM_ADMIN';
-export type OperandType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'DATE' | 'TIME' | 'DATETIME' | 'BOOLEAN' | 'ENUM';
+export type RoleName =
+  | 'MANAGER'
+  | 'WAITER'
+  | 'HOST'
+  | 'KITCHEN'
+  | 'CASHIER'
+  | 'ACCOUNTANT'
+  | 'EMPLOYEE'
+  | 'CUSTOMER'
+  | 'SUPPORT'
+  | 'SYSTEM_ADMIN';
+export type OperandType =
+  | 'STRING'
+  | 'INTEGER'
+  | 'DECIMAL'
+  | 'DATE'
+  | 'TIME'
+  | 'DATETIME'
+  | 'BOOLEAN'
+  | 'ENUM';
 export enum OperatorType {
-    CONTAIN = 'CONTAIN',
-    START_WITH = 'START_WITH',
-    END_WITH = 'END_WITH',
-    EQUAL = 'EQUAL',
-    GREATER_EQUAL = 'GREATER_EQUAL',
-    LESS_EQUAL = 'LESS_EQUAL',
-    BETWEEN = 'BETWEEN',
-    IN = 'IN'
+  CONTAIN = 'CONTAIN',
+  START_WITH = 'START_WITH',
+  END_WITH = 'END_WITH',
+  EQUAL = 'EQUAL',
+  GREATER_EQUAL = 'GREATER_EQUAL',
+  LESS_EQUAL = 'LESS_EQUAL',
+  BETWEEN = 'BETWEEN',
+  IN = 'IN',
 }
 export type ShiftStatus = 'DRAFT' | 'PUBLISHED' | 'CONFLICTED';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type ShiftRequestType = 'EXCHANGE' | 'LEAVE' | 'UNAVAILABILITY' | 'SHIFT_REQUEST_ACCEPTED' | 'SHIFT_REQUEST_DECLINED';
+export type ShiftRequestType =
+  | 'EXCHANGE'
+  | 'LEAVE'
+  | 'UNAVAILABILITY'
+  | 'SHIFT_REQUEST_ACCEPTED'
+  | 'SHIFT_REQUEST_DECLINED';
 
 // Base Interfaces
 export interface BaseEntity {

@@ -1,56 +1,75 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Plus, Star, Tag, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import type { MenuItem } from "@/lib/types"
-import { useCart } from "@/contexts/cart-context"
-import { quickNotes } from "@/lib/restaurant-data"
+import { Plus, Star, Tag, Clock } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useCart } from '@/contexts/cart-context';
+import { quickNotes } from '@/lib/restaurant-data';
+import type { MenuItem } from '@/lib/types';
 
 interface MenuItemCardMobileProps {
-  item: MenuItem
-  viewMode: "list" | "grid"
+  item: MenuItem;
+  viewMode: 'list' | 'grid';
 }
 
-export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [notes, setNotes] = useState("")
-  const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([])
-  const { dispatch } = useCart()
+export function MenuItemCardMobile({
+  item,
+  viewMode,
+}: MenuItemCardMobileProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
+  const { dispatch } = useCart();
 
   const handleAddToCart = () => {
-    const allNotes = [notes, ...selectedQuickNotes].filter(Boolean).join(", ")
+    const allNotes = [notes, ...selectedQuickNotes].filter(Boolean).join(', ');
     dispatch({
-      type: "ADD_ITEM",
+      type: 'ADD_ITEM',
       payload: {
         menuItem: item,
         notes: allNotes || undefined,
         customizations: selectedQuickNotes,
       },
-    })
-    setIsOpen(false)
-    setNotes("")
-    setSelectedQuickNotes([])
-  }
+    });
+    setIsOpen(false);
+    setNotes('');
+    setSelectedQuickNotes([]);
+  };
 
   const toggleQuickNote = (note: string) => {
-    setSelectedQuickNotes((prev) => (prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]))
-  }
+    setSelectedQuickNotes((prev) =>
+      prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]
+    );
+  };
 
-  const displayPrice = item.isPromotion && item.originalPrice ? item.price : item.price
-  const originalPrice = item.isPromotion && item.originalPrice ? item.originalPrice : null
+  const displayPrice =
+    item.isPromotion && item.originalPrice ? item.price : item.price;
+  const originalPrice =
+    item.isPromotion && item.originalPrice ? item.originalPrice : null;
 
-  if (viewMode === "list") {
+  if (viewMode === 'list') {
     return (
       <div className="mobile-menu-card mb-3">
         <div className="relative w-24 h-24 flex-shrink-0">
-          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+          <Image
+            src={item.image || '/placeholder.svg'}
+            alt={item.name}
+            fill
+            className="object-cover"
+          />
           {/* Badges */}
           <div className="absolute -top-1 -right-1 flex flex-col gap-1">
             {item.isBestSeller && (
@@ -69,17 +88,25 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
         <div className="flex-1 p-3 min-w-0">
           <div className="flex justify-between items-start mb-1">
             <Link href={`/menu/${item.id}`} className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm leading-tight truncate">{item.name}</h3>
+              <h3 className="font-semibold text-sm leading-tight truncate">
+                {item.name}
+              </h3>
             </Link>
             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-              <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
+              <span className="text-sm font-bold text-primary">
+                ${displayPrice.toFixed(2)}
+              </span>
               {originalPrice && (
-                <span className="text-xs text-muted-foreground line-through">${originalPrice.toFixed(2)}</span>
+                <span className="text-xs text-muted-foreground line-through">
+                  ${originalPrice.toFixed(2)}
+                </span>
               )}
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+            {item.description}
+          </p>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -123,7 +150,11 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
                       {quickNotes.slice(0, 8).map((note) => (
                         <Button
                           key={note}
-                          variant={selectedQuickNotes.includes(note) ? "default" : "outline"}
+                          variant={
+                            selectedQuickNotes.includes(note)
+                              ? 'default'
+                              : 'outline'
+                          }
                           size="sm"
                           onClick={() => toggleQuickNote(note)}
                         >
@@ -134,7 +165,9 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
                   </div>
 
                   <div className="flex justify-between items-center pt-4 border-t">
-                    <span className="font-semibold">Total: ${displayPrice.toFixed(2)}</span>
+                    <span className="font-semibold">
+                      Total: ${displayPrice.toFixed(2)}
+                    </span>
                     <Button onClick={handleAddToCart}>Add to Cart</Button>
                   </div>
                 </div>
@@ -143,14 +176,19 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Grid view (horizontal scroll cards)
   return (
     <div className="mobile-menu-horizontal">
       <div className="relative h-32">
-        <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+        <Image
+          src={item.image || '/placeholder.svg'}
+          alt={item.name}
+          fill
+          className="object-cover"
+        />
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {item.isBestSeller && (
@@ -162,7 +200,10 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
           {item.isPromotion && (
             <Badge variant="destructive" className="text-xs">
               <Tag className="h-3 w-3 mr-1" />
-              {item.promotionType === "percentage" ? `${item.promotionValue}%` : `$${item.promotionValue}`} OFF
+              {item.promotionType === 'percentage'
+                ? `${item.promotionValue}%`
+                : `$${item.promotionValue}`}{' '}
+              OFF
             </Badge>
           )}
         </div>
@@ -170,9 +211,13 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
 
       <div className="p-3">
         <Link href={`/menu/${item.id}`}>
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1">{item.name}</h3>
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1">
+            {item.name}
+          </h3>
         </Link>
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+          {item.description}
+        </p>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
           <div className="flex items-center gap-1">
@@ -187,9 +232,13 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
+            <span className="text-sm font-bold text-primary">
+              ${displayPrice.toFixed(2)}
+            </span>
             {originalPrice && (
-              <span className="text-xs text-muted-foreground line-through">${originalPrice.toFixed(2)}</span>
+              <span className="text-xs text-muted-foreground line-through">
+                ${originalPrice.toFixed(2)}
+              </span>
             )}
           </div>
 
@@ -222,7 +271,11 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
                     {quickNotes.slice(0, 8).map((note) => (
                       <Button
                         key={note}
-                        variant={selectedQuickNotes.includes(note) ? "default" : "outline"}
+                        variant={
+                          selectedQuickNotes.includes(note)
+                            ? 'default'
+                            : 'outline'
+                        }
                         size="sm"
                         onClick={() => toggleQuickNote(note)}
                       >
@@ -233,7 +286,9 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
                 </div>
 
                 <div className="flex justify-between items-center pt-4 border-t">
-                  <span className="font-semibold">Total: ${displayPrice.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    Total: ${displayPrice.toFixed(2)}
+                  </span>
                   <Button onClick={handleAddToCart}>Add to Cart</Button>
                 </div>
               </div>
@@ -242,5 +297,5 @@ export function MenuItemCardMobile({ item, viewMode }: MenuItemCardMobileProps) 
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,51 +1,68 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Image from "next/image"
-import { Minus, Plus, Trash2, MapPin, Clock, Home } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useCart } from "@/contexts/cart-context"
-import type { OrderData } from "@/lib/types"
+import { Minus, Plus, Trash2, MapPin, Clock, Home, Link } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 
-const branches = ["Downtown Location", "Mall Branch", "Airport Terminal", "Suburban Plaza"]
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useCart } from '@/contexts/cart-context';
+import type { OrderData } from '@/lib/types';
+
+const branches = [
+  'Downtown Location',
+  'Mall Branch',
+  'Airport Terminal',
+  'Suburban Plaza',
+];
 
 export default function CartPage() {
-  const { state, dispatch } = useCart()
+  const { state, dispatch } = useCart();
   const [orderData, setOrderData] = useState<OrderData>({
-    type: "dine-in",
-    notes: "",
-  })
+    type: 'dine-in',
+    notes: '',
+  });
 
-  const totalPrice = state.items.reduce((sum, item) => sum + item.menuItem.price * item.quantity, 0)
+  const totalPrice = state.items.reduce(
+    (sum, item) => sum + item.menuItem.price * item.quantity,
+    0
+  );
 
   const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } })
-  }
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+  };
 
   const removeItem = (id: string) => {
-    dispatch({ type: "REMOVE_ITEM", payload: id })
-  }
+    dispatch({ type: 'REMOVE_ITEM', payload: id });
+  };
 
-  const handleOrderTypeChange = (type: "dine-in" | "takeaway" | "delivery") => {
-    setOrderData((prev) => ({ ...prev, type }))
-  }
+  const handleOrderTypeChange = (type: 'dine-in' | 'takeaway' | 'delivery') => {
+    setOrderData((prev) => ({ ...prev, type }));
+  };
 
   if (state.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
-        <p className="text-muted-foreground mb-8">Add some delicious items from our menu!</p>
+        <p className="text-muted-foreground mb-8">
+          Add some delicious items from our menu!
+        </p>
         <Button asChild>
-          <a href="/menu">Browse Menu</a>
+          <Link href="/menu">Browse Menu</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -60,7 +77,7 @@ export default function CartPage() {
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   <Image
-                    src={item.menuItem.image || "/placeholder.svg"}
+                    src={item.menuItem.image || '/placeholder.svg'}
                     alt={item.menuItem.name}
                     width={80}
                     height={80}
@@ -69,23 +86,47 @@ export default function CartPage() {
 
                   <div className="flex-1">
                     <h3 className="font-semibold">{item.menuItem.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{item.menuItem.description}</p>
-                    {item.notes && <p className="text-xs text-primary mb-2">Note: {item.notes}</p>}
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {item.menuItem.description}
+                    </p>
+                    {item.notes && (
+                      <p className="text-xs text-primary mb-2">
+                        Note: {item.notes}
+                      </p>
+                    )}
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                        >
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="w-8 text-center">{item.quantity}</span>
-                        <Button variant="outline" size="sm" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                        >
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
-                        <Button variant="outline" size="sm" onClick={() => removeItem(item.id)}>
+                        <span className="font-semibold">
+                          ${(item.menuItem.price * item.quantity).toFixed(2)}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeItem(item.id)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -104,7 +145,10 @@ export default function CartPage() {
               <CardTitle>Order Type</CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={orderData.type} onValueChange={(value) => handleOrderTypeChange(value as any)}>
+              <RadioGroup
+                value={orderData.type}
+                onValueChange={(value) => handleOrderTypeChange(value as any)}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="dine-in" id="dine-in" />
                   <Label htmlFor="dine-in" className="flex items-center gap-2">
@@ -129,36 +173,52 @@ export default function CartPage() {
               </RadioGroup>
 
               {/* Conditional Fields */}
-              {orderData.type === "dine-in" && (
+              {orderData.type === 'dine-in' && (
                 <div className="mt-4">
                   <Label htmlFor="table">Table Number</Label>
                   <Input
                     id="table"
                     placeholder="Enter table number"
-                    value={orderData.tableNumber || ""}
-                    onChange={(e) => setOrderData((prev) => ({ ...prev, tableNumber: e.target.value }))}
+                    value={orderData.tableNumber || ''}
+                    onChange={(e) =>
+                      setOrderData((prev) => ({
+                        ...prev,
+                        tableNumber: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               )}
 
-              {orderData.type === "delivery" && (
+              {orderData.type === 'delivery' && (
                 <div className="mt-4">
                   <Label htmlFor="address">Delivery Address</Label>
                   <Textarea
                     id="address"
                     placeholder="Enter your full address"
-                    value={orderData.address || ""}
-                    onChange={(e) => setOrderData((prev) => ({ ...prev, address: e.target.value }))}
+                    value={orderData.address || ''}
+                    onChange={(e) =>
+                      setOrderData((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               )}
 
-              {(orderData.type === "takeaway" || orderData.type === "delivery") && (
+              {(orderData.type === 'takeaway' ||
+                orderData.type === 'delivery') && (
                 <div className="mt-4">
                   <Label htmlFor="branch">Branch</Label>
                   <Select
-                    value={orderData.branch || ""}
-                    onValueChange={(value) => setOrderData((prev) => ({ ...prev, branch: value }))}
+                    value={orderData.branch || ''}
+                    onValueChange={(value) =>
+                      setOrderData((prev) => ({
+                        ...prev,
+                        branch: value,
+                      }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select branch" />
@@ -179,8 +239,13 @@ export default function CartPage() {
                 <Textarea
                   id="notes"
                   placeholder="Any special requests..."
-                  value={orderData.notes || ""}
-                  onChange={(e) => setOrderData((prev) => ({ ...prev, notes: e.target.value }))}
+                  value={orderData.notes || ''}
+                  onChange={(e) =>
+                    setOrderData((prev) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </CardContent>
@@ -201,7 +266,7 @@ export default function CartPage() {
                   <span>Tax</span>
                   <span>${(totalPrice * 0.1).toFixed(2)}</span>
                 </div>
-                {orderData.type === "delivery" && (
+                {orderData.type === 'delivery' && (
                   <div className="flex justify-between">
                     <span>Delivery Fee</span>
                     <span>$3.99</span>
@@ -210,7 +275,13 @@ export default function CartPage() {
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>${(totalPrice * 1.1 + (orderData.type === "delivery" ? 3.99 : 0)).toFixed(2)}</span>
+                    <span>
+                      $
+                      {(
+                        totalPrice * 1.1 +
+                        (orderData.type === 'delivery' ? 3.99 : 0)
+                      ).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -223,5 +294,5 @@ export default function CartPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

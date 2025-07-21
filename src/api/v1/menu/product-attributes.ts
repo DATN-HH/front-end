@@ -1,5 +1,6 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
 
 // API Response wrapper interface
 interface ApiResponse<T> {
@@ -175,13 +176,21 @@ export const createProductAttribute = async (
   return response.data.data;
 };
 
-export const getAllProductAttributes = async (): Promise<ProductAttributeResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductAttributeResponse[]>>('/api/menu/product-attributes');
+export const getAllProductAttributes = async (): Promise<
+  ProductAttributeResponse[]
+> => {
+  const response = await apiClient.get<ApiResponse<ProductAttributeResponse[]>>(
+    '/api/menu/product-attributes'
+  );
   return response.data.data;
 };
 
-export const getProductAttribute = async (id: number): Promise<ProductAttributeResponse> => {
-  const response = await apiClient.get<ApiResponse<ProductAttributeResponse>>(`/api/menu/product-attributes/${id}`);
+export const getProductAttribute = async (
+  id: number
+): Promise<ProductAttributeResponse> => {
+  const response = await apiClient.get<ApiResponse<ProductAttributeResponse>>(
+    `/api/menu/product-attributes/${id}`
+  );
   return response.data.data;
 };
 
@@ -197,7 +206,9 @@ export const updateProductAttribute = async (
 };
 
 export const deleteProductAttribute = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/product-attributes/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/product-attributes/${id}`
+  );
   return response.data.data;
 };
 
@@ -205,17 +216,18 @@ export const deleteProductAttribute = async (id: number): Promise<string> => {
 export const createAttributeValue = async (
   data: ProductAttributeValueCreateRequest
 ): Promise<ProductAttributeValueResponse> => {
-  const response = await apiClient.post<ApiResponse<ProductAttributeValueResponse>>(
-    '/api/menu/product-attributes/values',
-    data
-  );
+  const response = await apiClient.post<
+    ApiResponse<ProductAttributeValueResponse>
+  >('/api/menu/product-attributes/values', data);
   return response.data.data;
 };
 
-export const getAttributeValues = async (attributeId: number): Promise<ProductAttributeValueResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductAttributeValueResponse[]>>(
-    `/api/menu/product-attributes/${attributeId}/values`
-  );
+export const getAttributeValues = async (
+  attributeId: number
+): Promise<ProductAttributeValueResponse[]> => {
+  const response = await apiClient.get<
+    ApiResponse<ProductAttributeValueResponse[]>
+  >(`/api/menu/product-attributes/${attributeId}/values`);
   return response.data.data;
 };
 
@@ -223,15 +235,16 @@ export const updateAttributeValue = async (
   id: number,
   data: ProductAttributeValueCreateRequest
 ): Promise<ProductAttributeValueResponse> => {
-  const response = await apiClient.put<ApiResponse<ProductAttributeValueResponse>>(
-    `/api/menu/product-attributes/values/${id}`,
-    data
-  );
+  const response = await apiClient.put<
+    ApiResponse<ProductAttributeValueResponse>
+  >(`/api/menu/product-attributes/values/${id}`, data);
   return response.data.data;
 };
 
 export const deleteAttributeValue = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/product-attributes/values/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/product-attributes/values/${id}`
+  );
   return response.data.data;
 };
 
@@ -246,7 +259,9 @@ export const assignAttributesToProduct = async (
   return response.data.data;
 };
 
-export const getProductVariants = async (productId: number): Promise<ProductVariantResponse[]> => {
+export const getProductVariants = async (
+  productId: number
+): Promise<ProductVariantResponse[]> => {
   const response = await apiClient.get<ApiResponse<ProductVariantResponse[]>>(
     `/api/menu/product-attributes/products/${productId}/variants`
   );
@@ -263,7 +278,9 @@ export const createProductVariant = async (
   return response.data.data;
 };
 
-export const getProductVariant = async (id: number): Promise<ProductVariantResponse> => {
+export const getProductVariant = async (
+  id: number
+): Promise<ProductVariantResponse> => {
   const response = await apiClient.get<ApiResponse<ProductVariantResponse>>(
     `/api/menu/product-attributes/variants/${id}`
   );
@@ -281,18 +298,28 @@ export const updateProductVariant = async (
   return response.data.data;
 };
 
-export const archiveProductVariant = async (id: number): Promise<ProductVariantResponse> => {
-  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(`/api/menu/product-attributes/variants/${id}/archive`);
+export const archiveProductVariant = async (
+  id: number
+): Promise<ProductVariantResponse> => {
+  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(
+    `/api/menu/product-attributes/variants/${id}/archive`
+  );
   return response.data.data;
 };
 
-export const unarchiveProductVariant = async (id: number): Promise<ProductVariantResponse> => {
-  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(`/api/menu/product-attributes/variants/${id}/unarchive`);
+export const unarchiveProductVariant = async (
+  id: number
+): Promise<ProductVariantResponse> => {
+  const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(
+    `/api/menu/product-attributes/variants/${id}/unarchive`
+  );
   return response.data.data;
 };
 
 export const deleteProductVariant = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/product-attributes/variants/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/product-attributes/variants/${id}`
+  );
   return response.data.data;
 };
 
@@ -310,10 +337,9 @@ export const updateVariantPricing = async (
 export const updateAttributeValuePriceExtras = async (
   data: AttributeValuePriceExtraRequest
 ): Promise<ProductAttributeValueResponse[]> => {
-  const response = await apiClient.put<ApiResponse<ProductAttributeValueResponse[]>>(
-    '/api/menu/product-attributes/values/price-extras',
-    data
-  );
+  const response = await apiClient.put<
+    ApiResponse<ProductAttributeValueResponse[]>
+  >('/api/menu/product-attributes/values/price-extras', data);
   return response.data.data;
 };
 
@@ -328,7 +354,9 @@ export const updateProductPosConfig = async (
   return response.data.data;
 };
 
-export const getProductsForPosCategory = async (posCategoryId: number): Promise<ProductResponse[]> => {
+export const getProductsForPosCategory = async (
+  posCategoryId: number
+): Promise<ProductResponse[]> => {
   const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
     `/api/menu/product-attributes/pos-categories/${posCategoryId}/products`
   );
@@ -343,7 +371,9 @@ export const getAvailablePosProducts = async (): Promise<ProductResponse[]> => {
 };
 
 // Assign attributes to product using PUT /api/menu/product-attributes/assign
-export const removeAttributesFromProduct = async (productId: number): Promise<string> => {
+export const removeAttributesFromProduct = async (
+  productId: number
+): Promise<string> => {
   const response = await apiClient.delete<ApiResponse<string>>(
     `/api/menu/product-attributes/products/${productId}/attributes`
   );
@@ -370,10 +400,15 @@ export const useProductAttribute = (id: number) => {
 
 export const useCreateProductAttribute = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ data, saveAndNew = false }: { data: ProductAttributeCreateRequest; saveAndNew?: boolean }) =>
-      createProductAttribute(data, saveAndNew),
+    mutationFn: ({
+      data,
+      saveAndNew = false,
+    }: {
+      data: ProductAttributeCreateRequest;
+      saveAndNew?: boolean;
+    }) => createProductAttribute(data, saveAndNew),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
     },
@@ -382,20 +417,27 @@ export const useCreateProductAttribute = () => {
 
 export const useUpdateProductAttribute = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProductAttributeCreateRequest }) =>
-      updateProductAttribute(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: ProductAttributeCreateRequest;
+    }) => updateProductAttribute(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['product-attributes', id] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-attributes', id],
+      });
     },
   });
 };
 
 export const useDeleteProductAttribute = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteProductAttribute,
     onSuccess: () => {
@@ -415,11 +457,13 @@ export const useAttributeValues = (attributeId: number) => {
 
 export const useCreateAttributeValue = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createAttributeValue,
     onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ['product-attributes', data.attributeId, 'values'] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-attributes', data.attributeId, 'values'],
+      });
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
     },
   });
@@ -427,12 +471,19 @@ export const useCreateAttributeValue = () => {
 
 export const useUpdateAttributeValue = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProductAttributeValueCreateRequest }) =>
-      updateAttributeValue(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: ProductAttributeValueCreateRequest;
+    }) => updateAttributeValue(id, data),
     onSuccess: (_, { data }) => {
-      queryClient.invalidateQueries({ queryKey: ['product-attributes', data.attributeId, 'values'] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-attributes', data.attributeId, 'values'],
+      });
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
     },
   });
@@ -440,15 +491,16 @@ export const useUpdateAttributeValue = () => {
 
 export const useDeleteAttributeValue = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteAttributeValue,
     onSuccess: () => {
       // Invalidate all product attributes and their values
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
       // Invalidate all attribute values queries
-      queryClient.invalidateQueries({ queryKey: ['product-attributes'], predicate: (query) => 
-        query.queryKey.includes('values')
+      queryClient.invalidateQueries({
+        queryKey: ['product-attributes'],
+        predicate: (query) => query.queryKey.includes('values'),
       });
     },
   });
@@ -473,14 +525,18 @@ export const useProductVariant = (id: number) => {
 
 export const useAssignAttributesToProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: assignAttributesToProduct,
     onSuccess: (_, variables) => {
       // Invalidate product variants for the specific product
-      queryClient.invalidateQueries({ queryKey: ['product-variants', variables.productId] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', variables.productId],
+      });
       // Invalidate product detail
-      queryClient.invalidateQueries({ queryKey: ['products', variables.productId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', variables.productId, 'detail'],
+      });
       // Invalidate all products list
       queryClient.invalidateQueries({ queryKey: ['products'] });
       // Invalidate product attributes (in case counts changed)
@@ -491,65 +547,88 @@ export const useAssignAttributesToProduct = () => {
 
 export const useCreateProductVariant = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createProductVariant,
     onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ['product-variants', data.productId] });
-      queryClient.invalidateQueries({ queryKey: ['products', data.productId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', data.productId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['products', data.productId, 'detail'],
+      });
     },
   });
 };
 
 export const useUpdateProductVariant = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProductVariantPricingRequest }) =>
-      updateProductVariant(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: ProductVariantPricingRequest;
+    }) => updateProductVariant(id, data),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
-      queryClient.invalidateQueries({ queryKey: ['product-variants', 'single'] });
-      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', result.productTemplateId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', 'single'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['products', result.productTemplateId, 'detail'],
+      });
     },
   });
 };
 
 export const useArchiveProductVariant = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: archiveProductVariant,
     onSuccess: (result) => {
       // Invalidate product variants for the specific product
-      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', result.productTemplateId],
+      });
       // Invalidate all product variants
       queryClient.invalidateQueries({ queryKey: ['product-variants'] });
       // Invalidate product detail
-      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', result.productTemplateId, 'detail'],
+      });
     },
   });
 };
 
 export const useUnarchiveProductVariant = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: unarchiveProductVariant,
     onSuccess: (result) => {
       // Invalidate product variants for the specific product
-      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', result.productTemplateId],
+      });
       // Invalidate all product variants
       queryClient.invalidateQueries({ queryKey: ['product-variants'] });
       // Invalidate product detail
-      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', result.productTemplateId, 'detail'],
+      });
     },
   });
 };
 
 export const useDeleteProductVariant = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteProductVariant,
     onSuccess: () => {
@@ -565,16 +644,22 @@ export const useDeleteProductVariant = () => {
 
 export const useUpdateVariantPricing = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateVariantPricing,
     onSuccess: (result) => {
       // Invalidate product variants for the specific product
-      queryClient.invalidateQueries({ queryKey: ['product-variants', result.productTemplateId] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', result.productTemplateId],
+      });
       // Invalidate single variant queries
-      queryClient.invalidateQueries({ queryKey: ['product-variants', 'single'] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', 'single'],
+      });
       // Invalidate product detail
-      queryClient.invalidateQueries({ queryKey: ['products', result.productTemplateId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', result.productTemplateId, 'detail'],
+      });
       // Invalidate products list
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
@@ -584,7 +669,7 @@ export const useUpdateVariantPricing = () => {
 // Price Extras and POS Config Hooks
 export const useUpdateAttributeValuePriceExtras = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateAttributeValuePriceExtras,
     onSuccess: () => {
@@ -595,11 +680,13 @@ export const useUpdateAttributeValuePriceExtras = () => {
 
 export const useUpdateProductPosConfig = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateProductPosConfig,
     onSuccess: (_, data) => {
-      queryClient.invalidateQueries({ queryKey: ['products', data.productId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', data.productId, 'detail'],
+      });
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
@@ -622,18 +709,22 @@ export const useAvailablePosProducts = () => {
 
 export const useRemoveAttributesFromProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: removeAttributesFromProduct,
     onSuccess: (_, productId) => {
       // Invalidate product variants for the specific product
-      queryClient.invalidateQueries({ queryKey: ['product-variants', productId] });
+      queryClient.invalidateQueries({
+        queryKey: ['product-variants', productId],
+      });
       // Invalidate product detail
-      queryClient.invalidateQueries({ queryKey: ['products', productId, 'detail'] });
+      queryClient.invalidateQueries({
+        queryKey: ['products', productId, 'detail'],
+      });
       // Invalidate products list
       queryClient.invalidateQueries({ queryKey: ['products'] });
       // Invalidate product attributes (counts may have changed)
       queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
     },
   });
-}; 
+};

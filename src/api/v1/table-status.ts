@@ -1,18 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/api-client';
+
+import { apiClient } from '@/services/api-client';
+
+import { TableShape } from './tables';
 
 // Enums
 export enum TableStatus {
-  AVAILABLE = "AVAILABLE",
-  OCCUPIED = "OCCUPIED", 
-  NEEDS_CLEANING = "NEEDS_CLEANING"
-}
-
-export enum TableShape {
-  ROUND = "ROUND",
-  SQUARE = "SQUARE",
-  RECTANGLE = "RECTANGLE", 
-  OVAL = "OVAL"
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+  NEEDS_CLEANING = 'NEEDS_CLEANING',
 }
 
 export interface FloorTablesRequest {
@@ -29,10 +25,10 @@ export interface AvailableTable {
   tableType: string;
   currentStatus: TableStatus;
   statusMessage: string;
-  xRatio: number;                  // 0.0 - 1.0 for positioning
-  yRatio: number;                  // 0.0 - 1.0 for positioning
-  widthRatio: number;              // 0.0 - 1.0 for sizing
-  heightRatio: number;             // 0.0 - 1.0 for sizing
+  xRatio: number; // 0.0 - 1.0 for positioning
+  yRatio: number; // 0.0 - 1.0 for positioning
+  widthRatio: number; // 0.0 - 1.0 for sizing
+  heightRatio: number; // 0.0 - 1.0 for sizing
   estimatedAvailableTime?: string; // ISO datetime string
 }
 
@@ -63,23 +59,27 @@ export interface ApiResponse<T> {
 
 // API Functions
 export const tableStatusService = {
-//   // Get single table status
-//   async getTableStatus(request: TableStatusRequest): Promise<ApiResponse<TableStatusResponse>> {
-//     try {
-//       const response = await apiClient.post('/table-status/table', request);
-//       return response.data;
-//     } catch (error: any) {
-//       throw new Error(error.response?.data?.message || 'Failed to fetch table status');
-//     }
-//   },
+  //   // Get single table status
+  //   async getTableStatus(request: TableStatusRequest): Promise<ApiResponse<TableStatusResponse>> {
+  //     try {
+  //       const response = await apiClient.post('/table-status/table', request);
+  //       return response.data;
+  //     } catch (error: any) {
+  //       throw new Error(error.response?.data?.message || 'Failed to fetch table status');
+  //     }
+  //   },
 
   // Get floor tables status
-  async getFloorTablesStatus(request: FloorTablesRequest): Promise<ApiResponse<FloorTablesResponse>> {
+  async getFloorTablesStatus(
+    request: FloorTablesRequest
+  ): Promise<ApiResponse<FloorTablesResponse>> {
     try {
       const response = await apiClient.post('/table-status/floor', request);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch floor tables status');
+      throw new Error(
+        error.response?.data?.message || 'Failed to fetch floor tables status'
+      );
     }
   },
 
@@ -95,16 +95,22 @@ export const tableStatusService = {
   //   }
   // },
 
-  async getFloorTablesStatusGet(floorId: number, dateTime: string, duration: number): Promise<ApiResponse<FloorTablesResponse>> {
+  async getFloorTablesStatusGet(
+    floorId: number,
+    dateTime: string,
+    duration: number
+  ): Promise<ApiResponse<FloorTablesResponse>> {
     try {
       const response = await apiClient.get(`/table-status/floor/${floorId}`, {
-        params: { dateTime, duration }
+        params: { dateTime, duration },
       });
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch floor tables status');
+      throw new Error(
+        error.response?.data?.message || 'Failed to fetch floor tables status'
+      );
     }
-  }
+  },
 };
 
 // // React Query Hooks
@@ -119,10 +125,20 @@ export const tableStatusService = {
 //   });
 // }
 
-export function useFloorTablesStatus(floorId: number, dateTime: string, duration: number, enabled: boolean = true) {
+export function useFloorTablesStatus(
+  floorId: number,
+  dateTime: string,
+  duration: number,
+  enabled: boolean = true
+) {
   return useQuery({
     queryKey: ['floor-tables-status', floorId, dateTime, duration],
-    queryFn: () => tableStatusService.getFloorTablesStatus({ floorId, dateTime, duration }),
+    queryFn: () =>
+      tableStatusService.getFloorTablesStatus({
+        floorId,
+        dateTime,
+        duration,
+      }),
     enabled: enabled && !!floorId && !!dateTime && !!duration,
     staleTime: 5000, // 5 seconds - data is fresh for 5 seconds
     refetchInterval: 5000, // Refetch every 5 seconds
@@ -163,4 +179,4 @@ export const getStatusLabel = (status: TableStatus): string => {
     default:
       return 'Unknown';
   }
-}; 
+};

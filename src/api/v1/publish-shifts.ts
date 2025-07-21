@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { apiClient } from '@/services/api-client';
 
 // Enums
@@ -9,13 +10,13 @@ export enum ShiftStatus {
   CONFLICTED = 'CONFLICTED',
   REQUEST_CHANGE = 'REQUEST_CHANGE',
   APPROVED_LEAVE_VALID = 'APPROVED_LEAVE_VALID',
-  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED'
+  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED',
 }
 
 export enum RequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  REJECTED = 'REJECTED',
 }
 
 export enum NotificationType {
@@ -28,7 +29,7 @@ export enum NotificationType {
   SWAP_REQUEST = 'SWAP_REQUEST',
   EMERGENCY_SHIFT = 'EMERGENCY_SHIFT',
   SCHEDULE_PUBLISHED = 'SCHEDULE_PUBLISHED',
-  GENERAL = 'GENERAL'
+  GENERAL = 'GENERAL',
 }
 
 // Interfaces
@@ -99,23 +100,32 @@ export interface StaffShiftFeedback {
 }
 
 // API Functions
-export const publishShifts = async (data: PublishShiftsRequest): Promise<PublishShiftsResponse> => {
+const publishShifts = async (
+  data: PublishShiftsRequest
+): Promise<PublishShiftsResponse> => {
   const response = await apiClient.post('/publish-shifts', data);
   return response.data.payload;
 };
 
-export const respondToShift = async (data: StaffResponseRequest): Promise<StaffShiftFeedback> => {
+const respondToShift = async (
+  data: StaffResponseRequest
+): Promise<StaffShiftFeedback> => {
   const response = await apiClient.post('/publish-shifts/respond', data);
   return response.data.payload;
 };
 
-export const getMyPendingShifts = async (): Promise<StaffShiftFeedback[]> => {
+const getMyPendingShifts = async (): Promise<StaffShiftFeedback[]> => {
   const response = await apiClient.get('/publish-shifts/my-pending-shifts');
   return response.data.payload;
 };
 
-export const replaceStaff = async (feedbackId: number, replacementStaffId: number): Promise<string> => {
-  const response = await apiClient.post(`/publish-shifts/replace-staff/${feedbackId}/${replacementStaffId}`);
+const replaceStaff = async (
+  feedbackId: number,
+  replacementStaffId: number
+): Promise<string> => {
+  const response = await apiClient.post(
+    `/publish-shifts/replace-staff/${feedbackId}/${replacementStaffId}`
+  );
   return response.data.payload;
 };
 
@@ -155,8 +165,13 @@ export const useMyPendingShifts = () => {
 export const useReplaceStaff = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ feedbackId, replacementStaffId }: { feedbackId: number; replacementStaffId: number }) =>
-      replaceStaff(feedbackId, replacementStaffId),
+    mutationFn: ({
+      feedbackId,
+      replacementStaffId,
+    }: {
+      feedbackId: number;
+      replacementStaffId: number;
+    }) => replaceStaff(feedbackId, replacementStaffId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rejected-feedbacks'] });
       queryClient.invalidateQueries({ queryKey: ['pending-feedbacks'] });

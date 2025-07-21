@@ -1,5 +1,6 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
 
 // API Response wrapper interface
 interface ApiResponse<T> {
@@ -35,7 +36,8 @@ export interface ComboAttributeAssignmentRequest {
   textValue?: string;
 }
 
-export interface ComboAttributeAssignmentUpdateRequest extends ComboAttributeAssignmentRequest {
+export interface ComboAttributeAssignmentUpdateRequest
+  extends ComboAttributeAssignmentRequest {
   id?: number;
   markedForDeletion?: boolean;
 }
@@ -157,18 +159,18 @@ export interface FoodComboResponse {
   status: Status;
   createdAt: string;
   updatedAt: string;
-  
+
   // Category information
   categoryId?: number;
   categoryName?: string;
   posCategoryId?: number;
   posCategoryName?: string;
-  
+
   // Combo composition
   comboItems: ComboItemResponse[];
   attributeLines: ComboAttributeLineResponse[];
   variants: ComboVariantResponse[];
-  
+
   // Computed fields
   itemsCount: number;
   variantsCount: number;
@@ -193,13 +195,17 @@ export const createFoodCombo = async (
 
 // Get all Food Combos
 export const getAllFoodCombos = async (): Promise<FoodComboResponse[]> => {
-  const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>('/api/menu/food-combos');
+  const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
+    '/api/menu/food-combos'
+  );
   return response.data.data;
 };
 
 // Get single Food Combo
 export const getFoodCombo = async (id: number): Promise<FoodComboResponse> => {
-  const response = await apiClient.get<ApiResponse<FoodComboResponse>>(`/api/menu/food-combos/${id}`);
+  const response = await apiClient.get<ApiResponse<FoodComboResponse>>(
+    `/api/menu/food-combos/${id}`
+  );
   return response.data.data;
 };
 
@@ -217,7 +223,9 @@ export const updateFoodCombo = async (
 
 // Delete Food Combo
 export const deleteFoodCombo = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/food-combos/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/food-combos/${id}`
+  );
   return response.data.data;
 };
 
@@ -257,7 +265,9 @@ export const updateComboItemQuantity = async (
 };
 
 // Search Food Combos
-export const searchFoodCombos = async (searchTerm: string): Promise<FoodComboResponse[]> => {
+export const searchFoodCombos = async (
+  searchTerm: string
+): Promise<FoodComboResponse[]> => {
   const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
     `/api/menu/food-combos/search?q=${encodeURIComponent(searchTerm)}`
   );
@@ -265,7 +275,9 @@ export const searchFoodCombos = async (searchTerm: string): Promise<FoodComboRes
 };
 
 // Get Food Combos by Category
-export const getFoodCombosByCategory = async (categoryId: number): Promise<FoodComboResponse[]> => {
+export const getFoodCombosByCategory = async (
+  categoryId: number
+): Promise<FoodComboResponse[]> => {
   const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
     `/api/menu/food-combos/category/${categoryId}`
   );
@@ -273,7 +285,9 @@ export const getFoodCombosByCategory = async (categoryId: number): Promise<FoodC
 };
 
 // Get Food Combos by POS Category
-export const getFoodCombosByPosCategory = async (posCategoryId: number): Promise<FoodComboResponse[]> => {
+export const getFoodCombosByPosCategory = async (
+  posCategoryId: number
+): Promise<FoodComboResponse[]> => {
   const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
     `/api/menu/food-combos/pos-category/${posCategoryId}`
   );
@@ -308,10 +322,15 @@ export const useFoodCombo = (id: number) => {
 
 export const useCreateFoodCombo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ data, saveAndNew = false }: { data: FoodComboCreateRequest; saveAndNew?: boolean }) =>
-      createFoodCombo(data, saveAndNew),
+    mutationFn: ({
+      data,
+      saveAndNew = false,
+    }: {
+      data: FoodComboCreateRequest;
+      saveAndNew?: boolean;
+    }) => createFoodCombo(data, saveAndNew),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['food-combos'] });
       queryClient.invalidateQueries({ queryKey: ['products'] }); // Combos might affect product listings
@@ -321,7 +340,7 @@ export const useCreateFoodCombo = () => {
 
 export const useUpdateFoodCombo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: FoodComboUpdateRequest }) =>
       updateFoodCombo(id, data),
@@ -334,7 +353,7 @@ export const useUpdateFoodCombo = () => {
 
 export const useDeleteFoodCombo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteFoodCombo,
     onSuccess: () => {
@@ -346,39 +365,64 @@ export const useDeleteFoodCombo = () => {
 // Combo Product Management Hooks
 export const useAddProductToCombo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ comboId, productId, quantity }: { comboId: number; productId: number; quantity?: number }) =>
-      addProductToCombo(comboId, productId, quantity),
+    mutationFn: ({
+      comboId,
+      productId,
+      quantity,
+    }: {
+      comboId: number;
+      productId: number;
+      quantity?: number;
+    }) => addProductToCombo(comboId, productId, quantity),
     onSuccess: (_, { comboId }) => {
       queryClient.invalidateQueries({ queryKey: ['food-combos'] });
-      queryClient.invalidateQueries({ queryKey: ['food-combos', comboId] });
+      queryClient.invalidateQueries({
+        queryKey: ['food-combos', comboId],
+      });
     },
   });
 };
 
 export const useRemoveProductFromCombo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ comboId, productId }: { comboId: number; productId: number }) =>
-      removeProductFromCombo(comboId, productId),
+    mutationFn: ({
+      comboId,
+      productId,
+    }: {
+      comboId: number;
+      productId: number;
+    }) => removeProductFromCombo(comboId, productId),
     onSuccess: (_, { comboId }) => {
       queryClient.invalidateQueries({ queryKey: ['food-combos'] });
-      queryClient.invalidateQueries({ queryKey: ['food-combos', comboId] });
+      queryClient.invalidateQueries({
+        queryKey: ['food-combos', comboId],
+      });
     },
   });
 };
 
 export const useUpdateComboItemQuantity = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ comboId, productId, quantity }: { comboId: number; productId: number; quantity: number }) =>
-      updateComboItemQuantity(comboId, productId, quantity),
+    mutationFn: ({
+      comboId,
+      productId,
+      quantity,
+    }: {
+      comboId: number;
+      productId: number;
+      quantity: number;
+    }) => updateComboItemQuantity(comboId, productId, quantity),
     onSuccess: (_, { comboId }) => {
       queryClient.invalidateQueries({ queryKey: ['food-combos'] });
-      queryClient.invalidateQueries({ queryKey: ['food-combos', comboId] });
+      queryClient.invalidateQueries({
+        queryKey: ['food-combos', comboId],
+      });
     },
   });
 };

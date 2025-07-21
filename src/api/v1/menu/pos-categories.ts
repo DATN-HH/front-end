@@ -1,5 +1,6 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
 
 // API Response wrapper interface
 interface ApiResponse<T> {
@@ -47,20 +48,20 @@ export interface PosCategoryResponse {
   status: Status;
   createdAt: string;
   updatedAt: string;
-  
+
   // Parent information
   parentId?: number;
   parentName?: string;
-  
+
   // Hierarchy information
   level: number;
   isRoot: boolean;
   hasChildren: boolean;
   hasProducts: boolean;
-  
+
   // Children categories (for tree structure)
   children?: PosCategoryResponse[];
-  
+
   // Counts for smart buttons
   childrenCount: number;
   productsCount: number;
@@ -83,19 +84,27 @@ export const createPosCategory = async (
 
 // Get all POS categories (flat list)
 export const getAllPosCategories = async (): Promise<PosCategoryResponse[]> => {
-  const response = await apiClient.get<ApiResponse<PosCategoryResponse[]>>('/api/menu/pos-categories');
+  const response = await apiClient.get<ApiResponse<PosCategoryResponse[]>>(
+    '/api/menu/pos-categories'
+  );
   return response.data.data;
 };
 
 // Get POS category tree structure
 export const getPosCategoryTree = async (): Promise<PosCategoryResponse[]> => {
-  const response = await apiClient.get<ApiResponse<PosCategoryResponse[]>>('/api/menu/pos-categories/tree');
+  const response = await apiClient.get<ApiResponse<PosCategoryResponse[]>>(
+    '/api/menu/pos-categories/tree'
+  );
   return response.data.data;
 };
 
 // Get single POS category
-export const getPosCategory = async (id: number): Promise<PosCategoryResponse> => {
-  const response = await apiClient.get<ApiResponse<PosCategoryResponse>>(`/api/menu/pos-categories/${id}`);
+export const getPosCategory = async (
+  id: number
+): Promise<PosCategoryResponse> => {
+  const response = await apiClient.get<ApiResponse<PosCategoryResponse>>(
+    `/api/menu/pos-categories/${id}`
+  );
   return response.data.data;
 };
 
@@ -113,7 +122,9 @@ export const updatePosCategory = async (
 
 // Delete POS category
 export const deletePosCategory = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/pos-categories/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/pos-categories/${id}`
+  );
   return response.data.data;
 };
 
@@ -166,10 +177,15 @@ export const usePosCategory = (id: number) => {
 
 export const useCreatePosCategory = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ data, saveAndNew = false }: { data: PosCategoryCreateRequest; saveAndNew?: boolean }) =>
-      createPosCategory(data, saveAndNew),
+    mutationFn: ({
+      data,
+      saveAndNew = false,
+    }: {
+      data: PosCategoryCreateRequest;
+      saveAndNew?: boolean;
+    }) => createPosCategory(data, saveAndNew),
     onSuccess: () => {
       // Invalidate all POS category queries
       queryClient.invalidateQueries({ queryKey: ['pos-categories'] });
@@ -179,10 +195,15 @@ export const useCreatePosCategory = () => {
 
 export const useUpdatePosCategory = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: PosCategoryUpdateRequest }) =>
-      updatePosCategory(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: PosCategoryUpdateRequest;
+    }) => updatePosCategory(id, data),
     onSuccess: (_, { id }) => {
       // Invalidate all POS category queries
       queryClient.invalidateQueries({ queryKey: ['pos-categories'] });
@@ -193,7 +214,7 @@ export const useUpdatePosCategory = () => {
 
 export const useDeletePosCategory = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deletePosCategory,
     onSuccess: () => {
@@ -205,7 +226,7 @@ export const useDeletePosCategory = () => {
 
 export const useUpdateCategorySequences = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateCategorySequences,
     onSuccess: () => {
@@ -217,7 +238,7 @@ export const useUpdateCategorySequences = () => {
 
 export const useMoveCategorySequence = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, direction }: { id: number; direction: 'up' | 'down' }) =>
       moveCategorySequence(id, direction),

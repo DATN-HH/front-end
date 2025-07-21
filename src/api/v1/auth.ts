@@ -1,5 +1,7 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
 import { BaseResponse } from '.';
 
 // Types
@@ -51,7 +53,17 @@ export interface UserRoleResponseDto {
 
 export interface RoleResponseDto {
   id: number;
-  name: 'MANAGER' | 'WAITER' | 'HOST' | 'KITCHEN' | 'CASHIER' | 'ACCOUNTANT' | 'EMPLOYEE' | 'CUSTOMER' | 'SUPPORT' | 'SYSTEM_ADMIN';
+  name:
+    | 'MANAGER'
+    | 'WAITER'
+    | 'HOST'
+    | 'KITCHEN'
+    | 'CASHIER'
+    | 'ACCOUNTANT'
+    | 'EMPLOYEE'
+    | 'CUSTOMER'
+    | 'SUPPORT'
+    | 'SYSTEM_ADMIN';
   description: string;
   hexColor: string;
   rolePermissions: RolePermissionResponseDto[];
@@ -126,18 +138,28 @@ export interface BranchRespondDto {
 }
 
 // API calls
-export const signIn = async (data: SignInRequest): Promise<BaseResponse<SignInResponse>> => {
-  const response = await apiClient.post<BaseResponse<SignInResponse>>('/user/sign-in', data);
+const signIn = async (
+  data: SignInRequest
+): Promise<BaseResponse<SignInResponse>> => {
+  const response = await apiClient.post<BaseResponse<SignInResponse>>(
+    '/user/sign-in',
+    data
+  );
   return response.data;
 };
 
-export const signOut = async (): Promise<SignOutResponse> => {
+const signOut = async (): Promise<SignOutResponse> => {
   const response = await apiClient.post<SignOutResponse>('/user/sign-out');
   return response.data;
 };
 
-export const verifyToken = async (data: VerifyTokenRequest): Promise<SignInResponse> => {
-  const response = await apiClient.post<BaseResponse<SignInResponse>>('/user/verify-token', data);
+const verifyToken = async (
+  data: VerifyTokenRequest
+): Promise<SignInResponse> => {
+  const response = await apiClient.post<BaseResponse<SignInResponse>>(
+    '/user/verify-token',
+    data
+  );
   return response.data.payload;
 };
 
@@ -158,4 +180,4 @@ export const useVerifyToken = () => {
   return useMutation({
     mutationFn: verifyToken,
   });
-}; 
+};

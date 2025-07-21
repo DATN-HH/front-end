@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -50,12 +50,12 @@ AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 const AvatarInitials = ({ name }: { name: string }) => {
   const initials = name
     .split(' ')
-    .map(n => n[0])
+    .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 
-  return <span className="text-sm font-medium">{initials}</span>
-}
+  return <span className="text-sm font-medium">{initials}</span>;
+};
 
 export { Avatar, AvatarImage, AvatarFallback, AvatarInitials };

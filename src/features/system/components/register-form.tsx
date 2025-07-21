@@ -1,12 +1,14 @@
 'use client';
 
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { FaGoogle, FaFacebook } from 'react-icons/fa';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import {
   Select,
   SelectContent,
@@ -14,10 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useMutation } from '@tanstack/react-query';
-import { createUser } from '@/features/system/api/api-auth';
-import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/auth-context';
+import { createUser } from '@/features/system/api/api-auth';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');

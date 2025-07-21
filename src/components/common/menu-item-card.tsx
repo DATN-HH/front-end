@@ -1,55 +1,66 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Image from "next/image"
-import { Plus, Star, Tag } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import type { MenuItem } from "@/lib/types"
-import { useCart } from "@/contexts/cart-context"
-import { quickNotes } from "@/lib/menu-data"
+import { Plus, Star, Tag } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useCart } from '@/contexts/cart-context';
+import { quickNotes } from '@/lib/menu-data';
+import type { MenuItem } from '@/lib/types';
 
 interface MenuItemCardProps {
-  item: MenuItem
+  item: MenuItem;
 }
 
 export function MenuItemCard({ item }: MenuItemCardProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [notes, setNotes] = useState("")
-  const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([])
-  const { dispatch } = useCart()
+  const [isOpen, setIsOpen] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
+  const { dispatch } = useCart();
 
   const handleAddToCart = () => {
-    const allNotes = [notes, ...selectedQuickNotes].filter(Boolean).join(", ")
+    const allNotes = [notes, ...selectedQuickNotes].filter(Boolean).join(', ');
     dispatch({
-      type: "ADD_ITEM",
+      type: 'ADD_ITEM',
       payload: {
         menuItem: item,
         notes: allNotes || undefined,
         customizations: selectedQuickNotes,
       },
-    })
-    setIsOpen(false)
-    setNotes("")
-    setSelectedQuickNotes([])
-  }
+    });
+    setIsOpen(false);
+    setNotes('');
+    setSelectedQuickNotes([]);
+  };
 
   const toggleQuickNote = (note: string) => {
-    setSelectedQuickNotes((prev) => (prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]))
-  }
+    setSelectedQuickNotes((prev) =>
+      prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]
+    );
+  };
 
-  const displayPrice = item.isPromotion && item.originalPrice ? item.price : item.price
-  const originalPrice = item.isPromotion && item.originalPrice ? item.originalPrice : null
+  const displayPrice =
+    item.isPromotion && item.originalPrice ? item.price : item.price;
+  const originalPrice =
+    item.isPromotion && item.originalPrice ? item.originalPrice : null;
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <Image
-          src={item.image || "/placeholder.svg"}
+          src={item.image || '/placeholder.svg'}
           alt={item.name}
           width={300}
           height={200}
@@ -67,7 +78,9 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
           {item.isPromotion && (
             <Badge variant="destructive">
               <Tag className="h-3 w-3 mr-1" />
-              {item.promotionType === "percentage" ? `${item.promotionValue}% OFF` : `$${item.promotionValue} OFF`}
+              {item.promotionType === 'percentage'
+                ? `${item.promotionValue}% OFF`
+                : `$${item.promotionValue} OFF`}
             </Badge>
           )}
           {item.isCombo && <Badge variant="secondary">Combo Deal</Badge>}
@@ -76,7 +89,9 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
 
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
-        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{item.description}</p>
+        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+          {item.description}
+        </p>
 
         {item.isCombo && item.comboItems && (
           <div className="mb-3">
@@ -85,7 +100,7 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
               {item.comboItems.map((comboItem, index) => (
                 <span key={index}>
                   {comboItem.quantity}x {comboItem.name}
-                  {index < item.comboItems!.length - 1 && ", "}
+                  {index < item.comboItems!.length - 1 && ', '}
                 </span>
               ))}
             </div>
@@ -94,9 +109,13 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-primary">${displayPrice.toFixed(2)}</span>
+            <span className="text-lg font-bold text-primary">
+              ${displayPrice.toFixed(2)}
+            </span>
             {originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">${originalPrice.toFixed(2)}</span>
+              <span className="text-sm text-muted-foreground line-through">
+                ${originalPrice.toFixed(2)}
+              </span>
             )}
           </div>
 
@@ -130,7 +149,11 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
                     {quickNotes.map((note) => (
                       <Button
                         key={note}
-                        variant={selectedQuickNotes.includes(note) ? "default" : "outline"}
+                        variant={
+                          selectedQuickNotes.includes(note)
+                            ? 'default'
+                            : 'outline'
+                        }
                         size="sm"
                         onClick={() => toggleQuickNote(note)}
                       >
@@ -141,7 +164,9 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
                 </div>
 
                 <div className="flex justify-between items-center pt-4 border-t">
-                  <span className="font-semibold">Total: ${displayPrice.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    Total: ${displayPrice.toFixed(2)}
+                  </span>
                   <Button onClick={handleAddToCart}>Add to Cart</Button>
                 </div>
               </div>
@@ -150,5 +175,5 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

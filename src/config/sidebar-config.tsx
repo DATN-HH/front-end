@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   CalendarRange,
 } from 'lucide-react';
+
 import { Role, employeeRole } from '@/lib/rbac';
 
 interface ModuleItem {
@@ -145,7 +146,7 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
           label: 'Table Reservation',
           icon: <Table className="h-4 w-4" />,
           roles: [Role.SUPPORT],
-        }
+        },
       ],
     },
     {

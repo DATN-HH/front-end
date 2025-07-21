@@ -1,7 +1,7 @@
 export interface SearchRoute {
-  label: string
-  path: string
-  description?: string
+  label: string;
+  path: string;
+  description?: string;
 }
 
 export const searchRoutes: SearchRoute[] = [
@@ -35,4 +35,4 @@ export const searchRoutes: SearchRoute[] = [
     path: '/settings',
     description: 'Cài đặt hệ thống',
   },
-] 
+];

@@ -1,7 +1,10 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BaseResponse, BaseEntity } from '.';
+
+import { apiClient } from '@/services/api-client';
+
 import { ScheduleLockStatus } from './branch-schedule-config';
+
+import { BaseResponse, BaseEntity } from '.';
 
 // Schedule Lock Interfaces
 export interface ScheduleLockRequest {
@@ -32,39 +35,72 @@ export interface ScheduleLockResponse extends BaseEntity {
 }
 
 // API calls
-export const lockSchedule = async (data: ScheduleLockRequest): Promise<ScheduleLockResponse> => {
-  const response = await apiClient.post<BaseResponse<ScheduleLockResponse>>('/schedule-locks/lock', data);
+const lockSchedule = async (
+  data: ScheduleLockRequest
+): Promise<ScheduleLockResponse> => {
+  const response = await apiClient.post<BaseResponse<ScheduleLockResponse>>(
+    '/schedule-locks/lock',
+    data
+  );
   return response.data.payload;
 };
 
-export const unlockSchedule = async (lockId: number, data: ScheduleUnlockRequest): Promise<ScheduleLockResponse> => {
-  const response = await apiClient.put<BaseResponse<ScheduleLockResponse>>(`/schedule-locks/${lockId}/unlock`, data);
+const unlockSchedule = async (
+  lockId: number,
+  data: ScheduleUnlockRequest
+): Promise<ScheduleLockResponse> => {
+  const response = await apiClient.put<BaseResponse<ScheduleLockResponse>>(
+    `/schedule-locks/${lockId}/unlock`,
+    data
+  );
   return response.data.payload;
 };
 
-export const checkScheduleLock = async (branchId: number, date: string): Promise<boolean> => {
-  const response = await apiClient.get<BaseResponse<boolean>>(`/schedule-locks/branch/${branchId}/check`, {
-    params: { date }
+const checkScheduleLock = async (
+  branchId: number,
+  date: string
+): Promise<boolean> => {
+  const response = await apiClient.get<BaseResponse<boolean>>(
+    `/schedule-locks/branch/${branchId}/check`,
+    {
+      params: { date },
+    }
+  );
+  return response.data.payload;
+};
+
+const getActiveScheduleLock = async (
+  branchId: number,
+  date: string
+): Promise<ScheduleLockResponse | null> => {
+  const response = await apiClient.get<
+    BaseResponse<ScheduleLockResponse | null>
+  >(`/schedule-locks/branch/${branchId}/active`, {
+    params: { date },
   });
   return response.data.payload;
 };
 
-export const getActiveScheduleLock = async (branchId: number, date: string): Promise<ScheduleLockResponse | null> => {
-  const response = await apiClient.get<BaseResponse<ScheduleLockResponse | null>>(`/schedule-locks/branch/${branchId}/active`, {
-    params: { date }
-  });
+const getBranchScheduleLocks = async (
+  branchId: number
+): Promise<ScheduleLockResponse[]> => {
+  const response = await apiClient.get<BaseResponse<ScheduleLockResponse[]>>(
+    `/schedule-locks/branch/${branchId}`
+  );
   return response.data.payload;
 };
 
-export const getBranchScheduleLocks = async (branchId: number): Promise<ScheduleLockResponse[]> => {
-  const response = await apiClient.get<BaseResponse<ScheduleLockResponse[]>>(`/schedule-locks/branch/${branchId}`);
-  return response.data.payload;
-};
-
-export const getScheduleLocksInRange = async (branchId: number, startDate: string, endDate: string): Promise<ScheduleLockResponse[]> => {
-  const response = await apiClient.get<BaseResponse<ScheduleLockResponse[]>>(`/schedule-locks/branch/${branchId}/range`, {
-    params: { startDate, endDate }
-  });
+const getScheduleLocksInRange = async (
+  branchId: number,
+  startDate: string,
+  endDate: string
+): Promise<ScheduleLockResponse[]> => {
+  const response = await apiClient.get<BaseResponse<ScheduleLockResponse[]>>(
+    `/schedule-locks/branch/${branchId}/range`,
+    {
+      params: { startDate, endDate },
+    }
+  );
   return response.data.payload;
 };
 
@@ -74,8 +110,12 @@ export const useLockSchedule = () => {
   return useMutation({
     mutationFn: lockSchedule,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['schedule-locks', data.branchId] });
-      queryClient.invalidateQueries({ queryKey: ['schedule-lock-check'] });
+      queryClient.invalidateQueries({
+        queryKey: ['schedule-locks', data.branchId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['schedule-lock-check'],
+      });
     },
   });
 };
@@ -83,11 +123,20 @@ export const useLockSchedule = () => {
 export const useUnlockSchedule = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ lockId, data }: { lockId: number; data: ScheduleUnlockRequest }) => 
-      unlockSchedule(lockId, data),
+    mutationFn: ({
+      lockId,
+      data,
+    }: {
+      lockId: number;
+      data: ScheduleUnlockRequest;
+    }) => unlockSchedule(lockId, data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['schedule-locks', data.branchId] });
-      queryClient.invalidateQueries({ queryKey: ['schedule-lock-check'] });
+      queryClient.invalidateQueries({
+        queryKey: ['schedule-locks', data.branchId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['schedule-lock-check'],
+      });
     },
   });
 };
@@ -116,10 +165,14 @@ export const useBranchScheduleLocks = (branchId: number) => {
   });
 };
 
-export const useScheduleLocksInRange = (branchId: number, startDate: string, endDate: string) => {
+export const useScheduleLocksInRange = (
+  branchId: number,
+  startDate: string,
+  endDate: string
+) => {
   return useQuery({
     queryKey: ['schedule-locks-range', branchId, startDate, endDate],
     queryFn: () => getScheduleLocksInRange(branchId, startDate, endDate),
     enabled: !!branchId && !!startDate && !!endDate,
   });
-}; 
+};

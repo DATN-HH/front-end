@@ -1,5 +1,7 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import {
   createContext,
   useContext,
@@ -8,11 +10,16 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import { useRouter } from 'next/navigation';
+
+import {
+  useSignIn,
+  useSignOut,
+  useVerifyToken,
+  UserDtoResponse,
+  RoleResponseDto,
+} from '@/api/v1/auth';
 import { Role, Permission } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
-import { useSignIn, useSignOut, useVerifyToken, UserDtoResponse, RoleResponseDto } from '@/api/v1/auth';
-import { useQueryClient } from '@tanstack/react-query';
 
 export function getDefaultRedirectByRole(role: RoleResponseDto): string {
   switch (role.name) {
@@ -51,10 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    error: toastError,
-    success,
-  } = useCustomToast();
+  const { error: toastError, success } = useCustomToast();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -65,7 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function fetchData() {
       // Development mode bypass - auto login with admin role
-      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      if (
+        process.env.NODE_ENV === 'development' &&
+        typeof window !== 'undefined'
+      ) {
         const devBypass = localStorage.getItem('dev_bypass_auth');
         if (devBypass === 'true') {
           // Mock admin user for development
@@ -78,26 +85,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             gender: 'MALE',
             phoneNumber: '+1234567890',
             isFullRole: true,
-            userRoles: [{
-              id: 1,
-              userId: 1,
-              roleId: 1,
-              role: {
+            userRoles: [
+              {
                 id: 1,
-                name: 'SYSTEM_ADMIN',
-                description: 'System Administrator',
-                hexColor: '#FF0000',
-                rolePermissions: [],
-                roleScreens: [],
-                createdAt: new Date().toISOString(),
-                createdBy: 1,
-                updatedAt: new Date().toISOString(),
-                updatedBy: 1,
-                status: 'ACTIVE',
-                createdUsername: 'system',
-                updatedUsername: 'system'
-              }
-            }],
+                userId: 1,
+                roleId: 1,
+                role: {
+                  id: 1,
+                  name: 'SYSTEM_ADMIN',
+                  description: 'System Administrator',
+                  hexColor: '#FF0000',
+                  rolePermissions: [],
+                  roleScreens: [],
+                  createdAt: new Date().toISOString(),
+                  createdBy: 1,
+                  updatedAt: new Date().toISOString(),
+                  updatedBy: 1,
+                  status: 'ACTIVE',
+                  createdUsername: 'system',
+                  updatedUsername: 'system',
+                },
+              },
+            ],
             branch: {
               id: 1,
               name: 'Main Branch',
@@ -110,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               updatedBy: 1,
               status: 'ACTIVE',
               createdUsername: 'system',
-              updatedUsername: 'system'
+              updatedUsername: 'system',
             },
             displayName: 'Development Admin',
             createdAt: new Date().toISOString(),
@@ -119,11 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             updatedBy: 1,
             status: 'ACTIVE',
             createdUsername: 'system',
-            updatedUsername: 'system'
+            updatedUsername: 'system',
           };
 
           setUser(mockAdminUser);
-          setToken('dev-token-' + Date.now());
+          setToken(`dev-token-${Date.now()}`);
           setIsLoading(false);
           return;
         }
@@ -134,7 +143,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken) {
         setToken(storedToken);
         try {
-          const response = await verifyTokenMutation.mutateAsync({ token: storedToken });
+          const response = await verifyTokenMutation.mutateAsync({
+            token: storedToken,
+          });
           setUser(response.account);
           success('Success', 'Token verified successfully');
         } catch (error: any) {
@@ -187,8 +198,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push(redirectUrl);
             // } else if (data.account.isFullRole) {
             //   router.push('/app');
-          } else if (data.account.userRoles && data.account.userRoles.length > 0) {
-            const targetUrl = getDefaultRedirectByRole(data.account.userRoles[0].role);
+          } else if (
+            data.account.userRoles &&
+            data.account.userRoles.length > 0
+          ) {
+            const targetUrl = getDefaultRedirectByRole(
+              data.account.userRoles[0].role
+            );
             router.push(targetUrl);
           } else {
             router.push('/');
@@ -196,7 +212,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error: any) {
         console.error('Login failed:', error);
-        toastError('Error', error?.response?.data?.message || error.message || 'Login failed');
+        toastError(
+          'Error',
+          error?.response?.data?.message || error.message || 'Login failed'
+        );
       } finally {
         setIsLoading(false);
       }
@@ -226,7 +245,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAuthenticated = useCallback(() => {
-    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const storedToken =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return !!token && !!storedToken;
   }, [token]);
 
@@ -236,12 +256,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       //   return true;
       // }
 
-      if (!user || !user.userRoles) {
+      if (!user?.userRoles) {
         return false;
       }
 
       if (Array.isArray(role)) {
-        return role.some((r) => user.userRoles.some((ur) => ur.role.name === r));
+        return role.some((r) =>
+          user.userRoles.some((ur) => ur.role.name === r)
+        );
       }
       return user.userRoles.some((ur) => ur.role.name === role);
     },

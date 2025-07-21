@@ -1,6 +1,7 @@
-import Image from "next/image"
-import { Card, CardContent } from "@/components/ui/card"
-import { Star, Users, Award, Heart } from "lucide-react"
+import { Star, Users, Award, Heart } from 'lucide-react';
+import Image from 'next/image';
+
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function AboutPage() {
   return (
@@ -16,7 +17,9 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">About Menu+</h1>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto">Crafting exceptional dining experiences since 2010</p>
+          <p className="text-lg md:text-xl max-w-2xl mx-auto">
+            Crafting exceptional dining experiences since 2010
+          </p>
         </div>
       </section>
 
@@ -27,17 +30,21 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-bold mb-6">Our Story</h2>
               <p className="text-muted-foreground mb-4">
-                Menu+ began as a small family restaurant with a simple mission: to serve delicious, high-quality food in
-                a warm and welcoming environment. What started as a dream has grown into a beloved dining destination.
+                Menu+ began as a small family restaurant with a simple mission:
+                to serve delicious, high-quality food in a warm and welcoming
+                environment. What started as a dream has grown into a beloved
+                dining destination.
               </p>
               <p className="text-muted-foreground mb-4">
-                Our commitment to using fresh, locally-sourced ingredients and traditional cooking methods has remained
-                unchanged. Every dish is prepared with passion and attention to detail, ensuring that each meal is a
-                memorable experience.
+                Our commitment to using fresh, locally-sourced ingredients and
+                traditional cooking methods has remained unchanged. Every dish
+                is prepared with passion and attention to detail, ensuring that
+                each meal is a memorable experience.
               </p>
               <p className="text-muted-foreground">
-                Today, we're proud to serve thousands of satisfied customers across multiple locations, while
-                maintaining the same family values and dedication to excellence that started it all.
+                Today, we're proud to serve thousands of satisfied customers
+                across multiple locations, while maintaining the same family
+                values and dedication to excellence that started it all.
               </p>
             </div>
             <div className="relative h-96">
@@ -64,7 +71,8 @@ export default function AboutPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Quality</h3>
                 <p className="text-muted-foreground">
-                  We never compromise on the quality of our ingredients or preparation
+                  We never compromise on the quality of our ingredients or
+                  preparation
                 </p>
               </CardContent>
             </Card>
@@ -76,7 +84,8 @@ export default function AboutPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Community</h3>
                 <p className="text-muted-foreground">
-                  Building lasting relationships with our customers and local community
+                  Building lasting relationships with our customers and local
+                  community
                 </p>
               </CardContent>
             </Card>
@@ -87,7 +96,9 @@ export default function AboutPage() {
                   <Award className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Excellence</h3>
-                <p className="text-muted-foreground">Striving for excellence in every aspect of our service</p>
+                <p className="text-muted-foreground">
+                  Striving for excellence in every aspect of our service
+                </p>
               </CardContent>
             </Card>
 
@@ -97,7 +108,9 @@ export default function AboutPage() {
                   <Heart className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Passion</h3>
-                <p className="text-muted-foreground">Every dish is prepared with love and dedication to our craft</p>
+                <p className="text-muted-foreground">
+                  Every dish is prepared with love and dedication to our craft
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -107,12 +120,29 @@ export default function AboutPage() {
       {/* Team */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Meet Our Team
+          </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { name: "Chef Marco Rodriguez", role: "Head Chef", image: "https://www.howcast.com/.image/t_share/MTU5NzA0NjU0NzYzNzI5OTQw/zb-how-to-hire-a-restaurant-chef-promo-image.jpg" },
-              { name: "Sarah Johnson", role: "Restaurant Manager", image: "https://www.servicethatsells.com/upload_path/2017/10/10-17-17-New-Restaurant-Managers-Large.jpg" },
-              { name: "David Chen", role: "Sous Chef", image: "https://macaonews.org/wp-content/uploads/2022/03/Minimised_Chef_Sam_Sham-138-copy.jpg" },
+              {
+                name: 'Chef Marco Rodriguez',
+                role: 'Head Chef',
+                image:
+                  'https://www.howcast.com/.image/t_share/MTU5NzA0NjU0NzYzNzI5OTQw/zb-how-to-hire-a-restaurant-chef-promo-image.jpg',
+              },
+              {
+                name: 'Sarah Johnson',
+                role: 'Restaurant Manager',
+                image:
+                  'https://www.servicethatsells.com/upload_path/2017/10/10-17-17-New-Restaurant-Managers-Large.jpg',
+              },
+              {
+                name: 'David Chen',
+                role: 'Sous Chef',
+                image:
+                  'https://macaonews.org/wp-content/uploads/2022/03/Minimised_Chef_Sam_Sham-138-copy.jpg',
+              },
             ].map((member, index) => (
               <Card key={index}>
                 <div className="relative h-64">
@@ -133,5 +163,5 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

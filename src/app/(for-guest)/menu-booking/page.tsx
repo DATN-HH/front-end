@@ -1,60 +1,72 @@
-"use client"
+'use client';
 
-import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
-import { Clock, MapPin, Home, CheckCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { OrderData } from "@/lib/types"
+import { Clock, MapPin, Home, CheckCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 
-const branches = ["Downtown Location", "Mall Branch", "Airport Terminal", "Suburban Plaza"]
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import type { OrderData } from '@/lib/types';
+
+const branches = [
+  'Downtown Location',
+  'Mall Branch',
+  'Airport Terminal',
+  'Suburban Plaza',
+];
 
 function MenuBookingContent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
   // Get query parameters
-  const bookingtableId = searchParams.get('bookingtableId')
-  const branchId = searchParams.get('branchId')
-  const time = searchParams.get('time')
-  const duration = searchParams.get('duration')
+  const bookingtableId = searchParams.get('bookingtableId');
+  const branchId = searchParams.get('branchId');
+  const time = searchParams.get('time');
+  const duration = searchParams.get('duration');
 
   const [orderData, setOrderData] = useState<OrderData>({
-    type: "dine-in",
-    notes: "",
-    scheduledTime: "",
-  })
+    type: 'dine-in',
+    notes: '',
+    scheduledTime: '',
+  });
 
   // Pre-fill data when coming from table booking
   useEffect(() => {
     if (time) {
       // Convert ISO string to local datetime format for input
-      const date = new Date(time)
-      const localDateTime = date.toISOString().slice(0, 16)
-      setOrderData(prev => ({
+      const date = new Date(time);
+      const localDateTime = date.toISOString().slice(0, 16);
+      setOrderData((prev) => ({
         ...prev,
         scheduledTime: localDateTime,
         // Pre-set to dine-in since it's from table booking
-        type: "dine-in"
-      }))
+        type: 'dine-in',
+      }));
     }
-  }, [time])
+  }, [time]);
 
   const formatBookingTime = (timeString: string) => {
-    const date = new Date(timeString)
+    const date = new Date(timeString);
     return date.toLocaleString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    })
-  }
+      year: 'numeric',
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -71,10 +83,14 @@ function MenuBookingContent() {
             <AlertDescription className="text-green-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-semibold">Table Booking Confirmed!</span>
+                  <span className="font-semibold">
+                    Table Booking Confirmed!
+                  </span>
                   <p className="text-sm mt-1">
-                    Booking ID: #{bookingtableId} • {time && formatBookingTime(time)}
-                    {duration && ` • ${duration} hour${parseInt(duration) > 1 ? 's' : ''}`}
+                    Booking ID: #{bookingtableId} •{' '}
+                    {time && formatBookingTime(time)}
+                    {duration &&
+                      ` • ${duration} hour${parseInt(duration) > 1 ? 's' : ''}`}
                   </p>
                 </div>
               </div>
@@ -94,7 +110,12 @@ function MenuBookingContent() {
               <Label className="text-base font-medium">Order Type</Label>
               <RadioGroup
                 value={orderData.type}
-                onValueChange={(value) => setOrderData((prev) => ({ ...prev, type: value as any }))}
+                onValueChange={(value) =>
+                  setOrderData((prev) => ({
+                    ...prev,
+                    type: value as any,
+                  }))
+                }
                 className="mt-2"
               >
                 <div className="flex items-center space-x-2">
@@ -125,8 +146,13 @@ function MenuBookingContent() {
             <div>
               <Label htmlFor="branch">Branch</Label>
               <Select
-                value={orderData.branch || ""}
-                onValueChange={(value) => setOrderData((prev) => ({ ...prev, branch: value }))}
+                value={orderData.branch || ''}
+                onValueChange={(value) =>
+                  setOrderData((prev) => ({
+                    ...prev,
+                    branch: value,
+                  }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
@@ -142,14 +168,19 @@ function MenuBookingContent() {
             </div>
 
             {/* Delivery Address */}
-            {orderData.type === "delivery" && (
+            {orderData.type === 'delivery' && (
               <div>
                 <Label htmlFor="address">Delivery Address</Label>
                 <Textarea
                   id="address"
                   placeholder="Enter your full delivery address"
-                  value={orderData.address || ""}
-                  onChange={(e) => setOrderData((prev) => ({ ...prev, address: e.target.value }))}
+                  value={orderData.address || ''}
+                  onChange={(e) =>
+                    setOrderData((prev) => ({
+                      ...prev,
+                      address: e.target.value,
+                    }))
+                  }
                 />
               </div>
             )}
@@ -161,11 +192,13 @@ function MenuBookingContent() {
                 <Input
                   id="date"
                   type="date"
-                  value={orderData.scheduledTime?.split("T")[0] || ""}
+                  value={orderData.scheduledTime?.split('T')[0] || ''}
                   onChange={(e) =>
                     setOrderData((prev) => ({
                       ...prev,
-                      scheduledTime: e.target.value + "T" + (prev.scheduledTime?.split("T")[1] || "12:00"),
+                      scheduledTime: `${e.target.value}T${
+                        prev.scheduledTime?.split('T')[1] || '12:00'
+                      }`,
                     }))
                   }
                 />
@@ -175,11 +208,13 @@ function MenuBookingContent() {
                 <Input
                   id="time"
                   type="time"
-                  value={orderData.scheduledTime?.split("T")[1] || ""}
+                  value={orderData.scheduledTime?.split('T')[1] || ''}
                   onChange={(e) =>
                     setOrderData((prev) => ({
                       ...prev,
-                      scheduledTime: (prev.scheduledTime?.split("T")[0] || "") + "T" + e.target.value,
+                      scheduledTime: `${
+                        prev.scheduledTime?.split('T')[0] || ''
+                      }T${e.target.value}`,
                     }))
                   }
                 />
@@ -192,8 +227,13 @@ function MenuBookingContent() {
               <Textarea
                 id="notes"
                 placeholder="Any special requests, dietary requirements, or preparation notes..."
-                value={orderData.notes || ""}
-                onChange={(e) => setOrderData((prev) => ({ ...prev, notes: e.target.value }))}
+                value={orderData.notes || ''}
+                onChange={(e) =>
+                  setOrderData((prev) => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -202,12 +242,16 @@ function MenuBookingContent() {
               <Button
                 className="flex-1"
                 size="lg"
-                onClick={() => (window.location.href = "/menu")}
+                onClick={() => (window.location.href = '/menu')}
                 disabled={!orderData.branch || !orderData.scheduledTime}
               >
                 Continue to Menu
               </Button>
-              <Button variant="outline" size="lg" onClick={() => (window.location.href = "/table-booking")}>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => (window.location.href = '/table-booking')}
+              >
                 Book Table Instead
               </Button>
             </div>
@@ -215,7 +259,7 @@ function MenuBookingContent() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 function MenuBookingPageFallback() {
@@ -240,7 +284,7 @@ function MenuBookingPageFallback() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 export default function MenuBookingPage() {
@@ -248,5 +292,5 @@ export default function MenuBookingPage() {
     <Suspense fallback={<MenuBookingPageFallback />}>
       <MenuBookingContent />
     </Suspense>
-  )
+  );
 }

@@ -1,5 +1,7 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
 import { BaseResponse, LocalTime, RoleName, Status } from '.';
 
 // Types
@@ -40,22 +42,29 @@ export interface ShiftRequestDto {
 }
 
 // API calls
-export const getShifts = async (branchId: number): Promise<ShiftResponseDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftResponseDto[]>>(`/shifts?branchId=${branchId}`);
+const getShifts = async (branchId: number): Promise<ShiftResponseDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftResponseDto[]>>(
+    `/shifts?branchId=${branchId}`
+  );
   return response.data.payload;
 };
 
-export const createShift = async (data: ShiftRequestDto): Promise<ShiftResponseDto> => {
+const createShift = async (
+  data: ShiftRequestDto
+): Promise<ShiftResponseDto> => {
   const response = await apiClient.post<ShiftResponseDto>('/shifts', data);
   return response.data;
 };
 
-export const updateShift = async (id: number, data: ShiftRequestDto): Promise<ShiftResponseDto> => {
+const updateShift = async (
+  id: number,
+  data: ShiftRequestDto
+): Promise<ShiftResponseDto> => {
   const response = await apiClient.put<ShiftResponseDto>(`/shifts/${id}`, data);
   return response.data;
 };
 
-export const deleteShift = async (id: number): Promise<string> => {
+const deleteShift = async (id: number): Promise<string> => {
   const response = await apiClient.delete<string>(`/shifts/${id}`);
   return response.data;
 };
@@ -77,7 +86,8 @@ export const useCreateShift = () => {
 
 export const useUpdateShift = () => {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ShiftRequestDto }) => updateShift(id, data),
+    mutationFn: ({ id, data }: { id: number; data: ShiftRequestDto }) =>
+      updateShift(id, data),
   });
 };
 
@@ -85,4 +95,4 @@ export const useDeleteShift = () => {
   return useMutation({
     mutationFn: deleteShift,
   });
-}; 
+};

@@ -1,57 +1,69 @@
 'use client';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Edit, Settings } from "lucide-react"
-import { ProductEditModal, PosCategoryEditModal, AttributeEditModal } from "@/components/modals"
-import { PageTitle } from "@/components/layouts/app-section/page-title"
+import { Edit, Settings } from 'lucide-react';
+import { useState } from 'react';
+
+import { PageTitle } from '@/components/layouts/app-section/page-title';
+import {
+  ProductEditModal,
+  PosCategoryEditModal,
+  AttributeEditModal,
+} from '@/components/modals';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 // Sample data for demonstration
 const sampleProduct = {
   id: 1,
-  name: "Beef Pho",
-  type: "Consumable",
+  name: 'Beef Pho',
+  type: 'Consumable',
   price: 50000,
   cost: 30000,
-  internalReference: "PHO001",
-  category: "food",
-  posCategory: "main",
+  internalReference: 'PHO001',
+  category: 'food',
+  posCategory: 'main',
   canBeSold: true,
   canBePurchased: false,
   availableInPos: true,
-  description: "Traditional Vietnamese beef noodle soup with rich broth and tender beef slices",
-}
+  description:
+    'Traditional Vietnamese beef noodle soup with rich broth and tender beef slices',
+};
 
 const sampleCategory = {
   id: 1,
-  name: "Main Course",
+  name: 'Main Course',
   parentCategory: null,
   sequence: 1,
   productCount: 15,
-}
+};
 
 const sampleAttribute = {
   id: 1,
-  name: "Size",
-  displayType: "Radio",
-  creationMode: "Instantly",
+  name: 'Size',
+  displayType: 'Radio',
+  creationMode: 'Instantly',
   valueCount: 3,
-  values: ["Small", "Medium", "Large"],
-}
+  values: ['Small', 'Medium', 'Large'],
+};
 
 export default function EditModalsDemo() {
-  const [showProductEdit, setShowProductEdit] = useState(false)
-  const [showCategoryEdit, setShowCategoryEdit] = useState(false)
-  const [showAttributeEdit, setShowAttributeEdit] = useState(false)
+  const [showProductEdit, setShowProductEdit] = useState(false);
+  const [showCategoryEdit, setShowCategoryEdit] = useState(false);
+  const [showAttributeEdit, setShowAttributeEdit] = useState(false);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
-  }
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(amount);
+  };
 
   return (
     <div className="space-y-6">
@@ -85,24 +97,40 @@ export default function EditModalsDemo() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-sm font-medium text-gray-500">Price</label>
-                <p className="text-sm font-medium">{formatCurrency(sampleProduct.price)}</p>
+                <label className="text-sm font-medium text-gray-500">
+                  Price
+                </label>
+                <p className="text-sm font-medium">
+                  {formatCurrency(sampleProduct.price)}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Cost</label>
-                <p className="text-sm font-medium">{formatCurrency(sampleProduct.cost)}</p>
+                <label className="text-sm font-medium text-gray-500">
+                  Cost
+                </label>
+                <p className="text-sm font-medium">
+                  {formatCurrency(sampleProduct.cost)}
+                </p>
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Reference</label>
+              <label className="text-sm font-medium text-gray-500">
+                Reference
+              </label>
               <p className="text-sm">{sampleProduct.internalReference}</p>
             </div>
             <div className="flex gap-2">
-              <Badge variant={sampleProduct.canBeSold ? "default" : "secondary"}>
-                {sampleProduct.canBeSold ? "Can Sell" : "Cannot Sell"}
+              <Badge
+                variant={sampleProduct.canBeSold ? 'default' : 'secondary'}
+              >
+                {sampleProduct.canBeSold ? 'Can Sell' : 'Cannot Sell'}
               </Badge>
-              <Badge variant={sampleProduct.availableInPos ? "default" : "secondary"}>
-                {sampleProduct.availableInPos ? "POS Available" : "POS Unavailable"}
+              <Badge
+                variant={sampleProduct.availableInPos ? 'default' : 'secondary'}
+              >
+                {sampleProduct.availableInPos
+                  ? 'POS Available'
+                  : 'POS Unavailable'}
               </Badge>
             </div>
           </CardContent>
@@ -126,16 +154,26 @@ export default function EditModalsDemo() {
               <p className="text-sm font-medium">{sampleCategory.name}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Parent Category</label>
-              <p className="text-sm">{sampleCategory.parentCategory || "None (Root)"}</p>
+              <label className="text-sm font-medium text-gray-500">
+                Parent Category
+              </label>
+              <p className="text-sm">
+                {sampleCategory.parentCategory || 'None (Root)'}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Sequence</label>
+              <label className="text-sm font-medium text-gray-500">
+                Sequence
+              </label>
               <p className="text-sm">{sampleCategory.sequence}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Product Count</label>
-              <Badge variant="outline">{sampleCategory.productCount} products</Badge>
+              <label className="text-sm font-medium text-gray-500">
+                Product Count
+              </label>
+              <Badge variant="outline">
+                {sampleCategory.productCount} products
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -158,15 +196,21 @@ export default function EditModalsDemo() {
               <p className="text-sm font-medium">{sampleAttribute.name}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Display Type</label>
+              <label className="text-sm font-medium text-gray-500">
+                Display Type
+              </label>
               <Badge variant="outline">{sampleAttribute.displayType}</Badge>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Creation Mode</label>
+              <label className="text-sm font-medium text-gray-500">
+                Creation Mode
+              </label>
               <p className="text-sm">{sampleAttribute.creationMode}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Values</label>
+              <label className="text-sm font-medium text-gray-500">
+                Values
+              </label>
               <div className="flex flex-wrap gap-1 mt-1">
                 {sampleAttribute.values.map((value, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
@@ -183,13 +227,17 @@ export default function EditModalsDemo() {
       <Card>
         <CardHeader>
           <CardTitle>How to Use Edit Modals</CardTitle>
-          <CardDescription>Instructions for implementing edit modals in your components</CardDescription>
+          <CardDescription>
+            Instructions for implementing edit modals in your components
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <h4 className="font-medium mb-2">1. Import the Edit Modals</h4>
             <code className="text-sm bg-gray-100 p-2 rounded block">
-              {`import { ProductEditModal, PosCategoryEditModal, AttributeEditModal } from "@/components/modals"`}
+              {
+                'import { ProductEditModal, PosCategoryEditModal, AttributeEditModal } from "@/components/modals"'
+              }
             </code>
           </div>
           <div>
@@ -238,5 +286,5 @@ const [selectedItem, setSelectedItem] = useState(null)`}
         attribute={sampleAttribute}
       />
     </div>
-  )
-} 
+  );
+}

@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { apiClient } from '@/services/api-client';
+
 import { NotificationType } from './publish-shifts';
 
 // Re-export NotificationType for convenience
@@ -17,22 +19,22 @@ export interface Notification {
 }
 
 // API Functions
-export const getMyNotifications = async (): Promise<Notification[]> => {
+const getMyNotifications = async (): Promise<Notification[]> => {
   const response = await apiClient.get('/notifications/my-notifications');
   return response.data.payload;
 };
 
-export const getUnreadCount = async (): Promise<number> => {
+const getUnreadCount = async (): Promise<number> => {
   const response = await apiClient.get('/notifications/unread-count');
   return response.data.payload;
 };
 
-export const markNotificationAsRead = async (id: number): Promise<string> => {
+const markNotificationAsRead = async (id: number): Promise<string> => {
   const response = await apiClient.put(`/notifications/${id}/mark-read`);
   return response.data.payload;
 };
 
-export const markAllNotificationsAsRead = async (): Promise<string> => {
+const markAllNotificationsAsRead = async (): Promise<string> => {
   const response = await apiClient.put('/notifications/mark-all-read');
   return response.data.payload;
 };
@@ -59,7 +61,9 @@ export const useMarkNotificationAsRead = () => {
     mutationFn: markNotificationAsRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unread-notifications'] });
+      queryClient.invalidateQueries({
+        queryKey: ['unread-notifications'],
+      });
       queryClient.invalidateQueries({ queryKey: ['unread-count'] });
     },
   });
@@ -71,8 +75,10 @@ export const useMarkAllNotificationsAsRead = () => {
     mutationFn: markAllNotificationsAsRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unread-notifications'] });
+      queryClient.invalidateQueries({
+        queryKey: ['unread-notifications'],
+      });
       queryClient.invalidateQueries({ queryKey: ['unread-count'] });
     },
   });
-}; 
+};
