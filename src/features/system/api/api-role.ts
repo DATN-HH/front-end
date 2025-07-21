@@ -5,61 +5,61 @@ import { BaseListResponse, RoleResponse } from '@/lib/response-object';
 import apiClient from '@/services/api-client';
 
 export async function getRoles(
-  query: BaseListRequest = {}
+    query: BaseListRequest = {}
 ): Promise<BaseListResponse<RoleResponse>> {
-  const response = await apiClient.get('/role', {
-    params: query,
-    paramsSerializer: (params) =>
-      qs.stringify(params, {
-        encode: true,
-        arrayFormat: 'indices',
-      }),
-  });
+    const response = await apiClient.get('/role', {
+        params: query,
+        paramsSerializer: (params) =>
+            qs.stringify(params, {
+                encode: true,
+                arrayFormat: 'indices',
+            }),
+    });
 
-  const payload = response.data.payload;
-  return {
-    page: payload.page,
-    size: payload.size,
-    total: payload.total,
-    data: payload.data.map((role: RoleResponse) => ({
-      id: role.id,
-      name: role.name,
-      description: role.description,
-      hexColor: role.hexColor,
-      status: role.status,
-    })),
-  };
+    const payload = response.data.payload;
+    return {
+        page: payload.page,
+        size: payload.size,
+        total: payload.total,
+        data: payload.data.map((role: RoleResponse) => ({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            hexColor: role.hexColor,
+            status: role.status,
+        })),
+    };
 }
 
 export async function updateRole(
-  id: number,
-  roleUpdateRequest: RoleRequest
+    id: number,
+    roleUpdateRequest: RoleRequest
 ): Promise<RoleResponse> {
-  const response = await apiClient.put(`/role/${id}`, roleUpdateRequest);
-  const data = response.data.payload;
-  return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    hexColor: data.hexColor,
-    status: data.status,
-  };
+    const response = await apiClient.put(`/role/${id}`, roleUpdateRequest);
+    const data = response.data.payload;
+    return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        hexColor: data.hexColor,
+        status: data.status,
+    };
 }
 
 export async function createRole(
-  roleCreateRequest: RoleRequest
+    roleCreateRequest: RoleRequest
 ): Promise<RoleResponse> {
-  const response = await apiClient.post('/role', roleCreateRequest);
-  const data = response.data.payload;
-  return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    hexColor: data.hexColor,
-    status: data.status,
-  };
+    const response = await apiClient.post('/role', roleCreateRequest);
+    const data = response.data.payload;
+    return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        hexColor: data.hexColor,
+        status: data.status,
+    };
 }
 
 export async function deleteRole(id: number): Promise<void> {
-  await apiClient.delete(`/role/${id}`);
+    await apiClient.delete(`/role/${id}`);
 }

@@ -8,19 +8,19 @@ import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/contexts/cart-context';
 
 export default function MainSiteLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <Providers>
-      <CartProvider>
-        <Navigation />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
-        <FloatingCartButton />
-      </CartProvider>
-      <Toaster />
-    </Providers>
-  );
+    return (
+        <Providers>
+            <CartProvider>
+                <Navigation />
+                <main className="min-h-screen">{children}</main>
+                <Footer />
+                <FloatingCartButton />
+            </CartProvider>
+            <Toaster />
+        </Providers>
+    );
 }
