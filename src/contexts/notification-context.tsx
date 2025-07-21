@@ -5,57 +5,56 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useUnreadCount } from '@/api/v1/notifications';
 
 interface NotificationContextType {
-    unreadCount: number;
-    refreshUnreadCount: () => void;
+  unreadCount: number;
+  refreshUnreadCount: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
-    undefined
+  undefined
 );
 
 export function NotificationProvider({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const { data: unreadCount = 0, refetch } = useUnreadCount();
-    const [refreshInterval, setRefreshInterval] =
-        useState<NodeJS.Timeout | null>(null);
+  const { data: unreadCount = 0, refetch } = useUnreadCount();
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
-    // Auto-refresh unread count every 30 seconds
-    useEffect(() => {
-        const interval = setInterval(() => {
-            refetch();
-        }, 30000); // 30 seconds
+  // Auto-refresh unread count every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 30000); // 30 seconds
 
-        setRefreshInterval(interval);
+    setRefreshInterval(interval);
 
-        return () => {
-            if (interval) {
-                clearInterval(interval);
-            }
-        };
-    }, [refetch]);
-
-    const refreshUnreadCount = () => {
-        refetch();
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
     };
+  }, [refetch]);
 
-    return (
-        <NotificationContext.Provider
-            value={{ unreadCount, refreshUnreadCount }}
-        >
-            {children}
-        </NotificationContext.Provider>
-    );
+  const refreshUnreadCount = () => {
+    refetch();
+  };
+
+  return (
+    <NotificationContext.Provider value={{ unreadCount, refreshUnreadCount }}>
+      {children}
+    </NotificationContext.Provider>
+  );
 }
 
 export function useNotificationContext() {
-    const context = useContext(NotificationContext);
-    if (context === undefined) {
-        throw new Error(
-            'useNotificationContext must be used within a NotificationProvider'
-        );
-    }
-    return context;
+  const context = useContext(NotificationContext);
+  if (context === undefined) {
+    throw new Error(
+      'useNotificationContext must be used within a NotificationProvider'
+    );
+  }
+  return context;
 }
