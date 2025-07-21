@@ -58,4 +58,4 @@ export const employeeRole = [
   Role.EMPLOYEE,
   Role.SUPPORT,
   Role.SYSTEM_ADMIN,
-]
+];

@@ -7,9 +7,12 @@ export default function PrivacyPolicyPage() {
         <p className="text-muted-foreground mb-8">Last updated: January 2024</p>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-serif font-semibold mb-4">Information We Collect</h2>
+          <h2 className="text-2xl font-serif font-semibold mb-4">
+            Information We Collect
+          </h2>
           <p className="mb-4">
-            At Menu+ Fine Dining, we collect information you provide directly to us, such as when you:
+            At Menu+ Fine Dining, we collect information you provide directly to
+            us, such as when you:
           </p>
           <ul className="list-disc pl-6 mb-4">
             <li>Make a reservation or place an order</li>
@@ -21,7 +24,9 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-serif font-semibold mb-4">How We Use Your Information</h2>
+          <h2 className="text-2xl font-serif font-semibold mb-4">
+            How We Use Your Information
+          </h2>
           <p className="mb-4">We use the information we collect to:</p>
           <ul className="list-disc pl-6 mb-4">
             <li>Process your reservations and orders</li>
@@ -33,21 +38,24 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-serif font-semibold mb-4">Information Sharing</h2>
+          <h2 className="text-2xl font-serif font-semibold mb-4">
+            Information Sharing
+          </h2>
           <p className="mb-4">
-            We do not sell, trade, or otherwise transfer your personal information to third parties without your
-            consent, except as described in this policy.
+            We do not sell, trade, or otherwise transfer your personal
+            information to third parties without your consent, except as
+            described in this policy.
           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-serif font-semibold mb-4">Contact Us</h2>
           <p>
-            If you have any questions about this Privacy Policy, please contact us at privacy@menuplus.com or call +1
-            (800) MENU-PLUS.
+            If you have any questions about this Privacy Policy, please contact
+            us at privacy@menuplus.com or call +1 (800) MENU-PLUS.
           </p>
         </section>
       </div>
     </div>
-  )
+  );
 }

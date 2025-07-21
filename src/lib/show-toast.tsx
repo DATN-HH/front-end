@@ -14,7 +14,7 @@ export const useCustomToast = () => {
     // Hiển thị toast thông thường
     default: (title: string, message: string) =>
       toast({
-        title: title,
+        title,
         description: message,
       }),
 
@@ -22,7 +22,7 @@ export const useCustomToast = () => {
     error: (title: string, message: string) =>
       toast({
         variant: 'destructive',
-        title: title,
+        title,
         description: message,
       }),
 
@@ -30,7 +30,7 @@ export const useCustomToast = () => {
     success: (title: string, message: string) =>
       toast({
         className: 'bg-green-500 text-white border-green-600',
-        title: title,
+        title,
         description: message,
       }),
 
@@ -38,7 +38,7 @@ export const useCustomToast = () => {
     info: (title: string, message: string) =>
       toast({
         className: 'bg-blue-500 text-white border-blue-600',
-        title: title,
+        title,
         description: message,
       }),
 
@@ -46,7 +46,7 @@ export const useCustomToast = () => {
     warning: (title: string, message: string) =>
       toast({
         className: 'bg-yellow-500 text-white border-yellow-600',
-        title: title,
+        title,
         description: message,
       }),
 

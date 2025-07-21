@@ -1,5 +1,8 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
+import { BaseResponse } from '.';
 
 // Types
 export interface ShiftLeaveRequest {
@@ -78,78 +81,129 @@ export interface ApproveRejectRequest {
   managerNote: string;
 }
 
-export interface BaseResponse<T> {
-  success: boolean;
-  code: number;
-  message: string;
-  payload: T;
-}
-
 // API calls
-export const createShiftLeaveRequest = async (data: ShiftLeaveRequest): Promise<ShiftLeaveRequestDto> => {
-  const response = await apiClient.post<BaseResponse<ShiftLeaveRequestDto>>('/shift-leave-management/requests', data);
+const createShiftLeaveRequest = async (
+  data: ShiftLeaveRequest
+): Promise<ShiftLeaveRequestDto> => {
+  const response = await apiClient.post<BaseResponse<ShiftLeaveRequestDto>>(
+    '/shift-leave-management/requests',
+    data
+  );
   return response.data.payload;
 };
 
-export const getMyShiftLeaveRequests = async (year?: number): Promise<ShiftLeaveRequestDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>('/shift-leave-management/my-requests', {
-    params: { year }
-  });
+const getMyShiftLeaveRequests = async (
+  year?: number
+): Promise<ShiftLeaveRequestDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>(
+    '/shift-leave-management/my-requests',
+    {
+      params: { year },
+    }
+  );
   return response.data.payload;
 };
 
-export const cancelShiftLeaveRequest = async (requestId: number): Promise<null> => {
-  const response = await apiClient.delete<BaseResponse<null>>(`/shift-leave-management/requests/${requestId}`);
+const cancelShiftLeaveRequest = async (requestId: number): Promise<null> => {
+  const response = await apiClient.delete<BaseResponse<null>>(
+    `/shift-leave-management/requests/${requestId}`
+  );
   return response.data.payload;
 };
 
-export const getMyShiftLeaveBalance = async (year?: number): Promise<ShiftLeaveBalanceDto> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto>>('/shift-leave-management/my-balance', {
-    params: { year }
-  });
+const getMyShiftLeaveBalance = async (
+  year?: number
+): Promise<ShiftLeaveBalanceDto> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto>>(
+    '/shift-leave-management/my-balance',
+    {
+      params: { year },
+    }
+  );
   return response.data.payload;
 };
 
-export const getPendingShiftLeaveRequests = async (branchId: number): Promise<ShiftLeaveRequestDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>('/shift-leave-management/pending-requests', {
-    params: { branchId }
-  });
+const getPendingShiftLeaveRequests = async (
+  branchId: number
+): Promise<ShiftLeaveRequestDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>(
+    '/shift-leave-management/pending-requests',
+    {
+      params: { branchId },
+    }
+  );
   return response.data.payload;
 };
 
-export const approveRejectShiftLeaveRequest = async (requestId: number, data: ApproveRejectRequest): Promise<ShiftLeaveRequestDto> => {
-  const response = await apiClient.put<BaseResponse<ShiftLeaveRequestDto>>(`/shift-leave-management/requests/${requestId}/approve-reject`, data);
+const approveRejectShiftLeaveRequest = async (
+  requestId: number,
+  data: ApproveRejectRequest
+): Promise<ShiftLeaveRequestDto> => {
+  const response = await apiClient.put<BaseResponse<ShiftLeaveRequestDto>>(
+    `/shift-leave-management/requests/${requestId}/approve-reject`,
+    data
+  );
   return response.data.payload;
 };
 
-export const getAllShiftLeaveRequests = async (branchId: number, year?: number): Promise<ShiftLeaveRequestDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>('/shift-leave-management/all-requests', {
-    params: { branchId, year }
-  });
+const getAllShiftLeaveRequests = async (
+  branchId: number,
+  year?: number
+): Promise<ShiftLeaveRequestDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveRequestDto[]>>(
+    '/shift-leave-management/all-requests',
+    {
+      params: { branchId, year },
+    }
+  );
   return response.data.payload;
 };
 
-export const addShiftLeaveForEmployee = async (data: ShiftLeaveRequestForEmployee): Promise<ShiftLeaveRequestDto> => {
-  const response = await apiClient.post<BaseResponse<ShiftLeaveRequestDto>>('/shift-leave-management/requests/add-for-employee', data);
+const addShiftLeaveForEmployee = async (
+  data: ShiftLeaveRequestForEmployee
+): Promise<ShiftLeaveRequestDto> => {
+  const response = await apiClient.post<BaseResponse<ShiftLeaveRequestDto>>(
+    '/shift-leave-management/requests/add-for-employee',
+    data
+  );
   return response.data.payload;
 };
 
-export const updateShiftLeaveBalance = async (userId: number, data: UpdateShiftLeaveBalanceRequest): Promise<ShiftLeaveBalanceDto> => {
-  const response = await apiClient.put<BaseResponse<ShiftLeaveBalanceDto>>(`/shift-leave-management/balance/${userId}`, data);
+const updateShiftLeaveBalance = async (
+  userId: number,
+  data: UpdateShiftLeaveBalanceRequest
+): Promise<ShiftLeaveBalanceDto> => {
+  const response = await apiClient.put<BaseResponse<ShiftLeaveBalanceDto>>(
+    `/shift-leave-management/balance/${userId}`,
+    data
+  );
   return response.data.payload;
 };
 
-export const getBranchShiftLeaveBalances = async (branchId: number, year?: number): Promise<ShiftLeaveBalanceDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto[]>>('/shift-leave-management/branch-balances', {
-    params: { branchId, year }
-  });
+const getBranchShiftLeaveBalances = async (
+  branchId: number,
+  year?: number
+): Promise<ShiftLeaveBalanceDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto[]>>(
+    '/shift-leave-management/branch-balances',
+    {
+      params: { branchId, year },
+    }
+  );
   return response.data.payload;
 };
 
-export const getLowBalanceEmployees = async (branchId: number, year?: number, threshold?: number): Promise<ShiftLeaveBalanceDto[]> => {
-  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto[]>>('/shift-leave-management/low-balance-employees', {
-    params: { branchId, year, threshold }
-  });
+const getLowBalanceEmployees = async (
+  branchId: number,
+  year?: number,
+  threshold?: number
+): Promise<ShiftLeaveBalanceDto[]> => {
+  const response = await apiClient.get<BaseResponse<ShiftLeaveBalanceDto[]>>(
+    '/shift-leave-management/low-balance-employees',
+    {
+      params: { branchId, year, threshold },
+    }
+  );
   return response.data.payload;
 };
 
@@ -190,8 +244,13 @@ export const usePendingShiftLeaveRequests = (branchId: number) => {
 
 export const useApproveRejectShiftLeaveRequest = () => {
   return useMutation({
-    mutationFn: ({ requestId, data }: { requestId: number; data: ApproveRejectRequest }) => 
-      approveRejectShiftLeaveRequest(requestId, data),
+    mutationFn: ({
+      requestId,
+      data,
+    }: {
+      requestId: number;
+      data: ApproveRejectRequest;
+    }) => approveRejectShiftLeaveRequest(requestId, data),
   });
 };
 
@@ -211,12 +270,20 @@ export const useAddShiftLeaveForEmployee = () => {
 
 export const useUpdateShiftLeaveBalance = () => {
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: number; data: UpdateShiftLeaveBalanceRequest }) => 
-      updateShiftLeaveBalance(userId, data),
+    mutationFn: ({
+      userId,
+      data,
+    }: {
+      userId: number;
+      data: UpdateShiftLeaveBalanceRequest;
+    }) => updateShiftLeaveBalance(userId, data),
   });
 };
 
-export const useBranchShiftLeaveBalances = (branchId: number, year?: number) => {
+export const useBranchShiftLeaveBalances = (
+  branchId: number,
+  year?: number
+) => {
   return useQuery({
     queryKey: ['branch-shift-leave-balances', branchId, year],
     queryFn: () => getBranchShiftLeaveBalances(branchId, year),
@@ -224,10 +291,14 @@ export const useBranchShiftLeaveBalances = (branchId: number, year?: number) => 
   });
 };
 
-export const useLowBalanceEmployees = (branchId: number, year?: number, threshold?: number) => {
+export const useLowBalanceEmployees = (
+  branchId: number,
+  year?: number,
+  threshold?: number
+) => {
   return useQuery({
     queryKey: ['low-balance-employees', branchId, year, threshold],
     queryFn: () => getLowBalanceEmployees(branchId, year, threshold),
     enabled: !!branchId,
   });
-}; 
+};

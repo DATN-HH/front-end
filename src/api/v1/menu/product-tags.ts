@@ -1,5 +1,6 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
 
 // ========== Type Definitions ==========
 
@@ -73,19 +74,27 @@ interface ApiListData {
 
 // Get all tags using /api/menu/tags
 export const getAllTags = async (): Promise<ProductTagResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>('/api/menu/tags');
+  const response =
+    await apiClient.get<ApiResponse<ProductTagResponse[]>>('/api/menu/tags');
   return response.data.data;
 };
 
 // Create tag using /api/menu/tags
-export const createTag = async (data: ProductTagCreateRequest): Promise<ProductTagResponse> => {
-  const response = await apiClient.post<ApiResponse<ProductTagResponse>>('/api/menu/tags', data);
+export const createTag = async (
+  data: ProductTagCreateRequest
+): Promise<ProductTagResponse> => {
+  const response = await apiClient.post<ApiResponse<ProductTagResponse>>(
+    '/api/menu/tags',
+    data
+  );
   return response.data.data;
 };
 
 // Get single tag using /api/menu/tags/{id}
 export const getTag = async (id: number): Promise<ProductTagResponse> => {
-  const response = await apiClient.get<ApiResponse<ProductTagResponse>>(`/api/menu/tags/${id}`);
+  const response = await apiClient.get<ApiResponse<ProductTagResponse>>(
+    `/api/menu/tags/${id}`
+  );
   return response.data.data;
 };
 
@@ -94,34 +103,47 @@ export const updateTag = async (
   id: number,
   data: ProductTagUpdateRequest
 ): Promise<ProductTagResponse> => {
-  const response = await apiClient.put<ApiResponse<ProductTagResponse>>(`/api/menu/tags/${id}`, data);
+  const response = await apiClient.put<ApiResponse<ProductTagResponse>>(
+    `/api/menu/tags/${id}`,
+    data
+  );
   return response.data.data;
 };
 
 // Delete tag using /api/menu/tags/{id}
 export const deleteTag = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<ApiResponse<string>>(`/api/menu/tags/${id}`);
+  const response = await apiClient.delete<ApiResponse<string>>(
+    `/api/menu/tags/${id}`
+  );
   return response.data.data;
 };
 
 // Search tags by name using /api/menu/tags/search
-export const searchTags = async (name: string): Promise<ProductTagResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(`/api/menu/tags/search?name=${encodeURIComponent(name)}`);
+export const searchTags = async (
+  name: string
+): Promise<ProductTagResponse[]> => {
+  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
+    `/api/menu/tags/search?name=${encodeURIComponent(name)}`
+  );
   return response.data.data;
 };
 
 // Get paginated tag list using /api/menu/tags/list
-export const getTagList = async (params: ProductTagListParams = {}): Promise<ProductTagListResponse> => {
+export const getTagList = async (
+  params: ProductTagListParams = {}
+): Promise<ProductTagListResponse> => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, String(value));
     }
   });
 
-  const response = await apiClient.get<ApiResponse<ApiListData>>(`/api/menu/tags/list?${searchParams.toString()}`);
-  
+  const response = await apiClient.get<ApiResponse<ApiListData>>(
+    `/api/menu/tags/list?${searchParams.toString()}`
+  );
+
   // Transform the API response to match our expected interface
   const apiData = response.data.data;
   return {
@@ -134,20 +156,33 @@ export const getTagList = async (params: ProductTagListParams = {}): Promise<Pro
 };
 
 // Assign tags to product using /api/menu/tags/assign
-export const assignTagsToProduct = async (data: ProductTagAssignRequest): Promise<string> => {
-  const response = await apiClient.post<ApiResponse<string>>('/api/menu/tags/assign', data);
+export const assignTagsToProduct = async (
+  data: ProductTagAssignRequest
+): Promise<string> => {
+  const response = await apiClient.post<ApiResponse<string>>(
+    '/api/menu/tags/assign',
+    data
+  );
   return response.data.data;
 };
 
 // Get tags by product using /api/menu/tags/product/{productId}
-export const getTagsByProduct = async (productId: number): Promise<ProductTagResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(`/api/menu/tags/product/${productId}`);
+export const getTagsByProduct = async (
+  productId: number
+): Promise<ProductTagResponse[]> => {
+  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
+    `/api/menu/tags/product/${productId}`
+  );
   return response.data.data;
 };
 
 // Get popular tags using /api/menu/tags/popular
-export const getPopularTags = async (limit: number = 10): Promise<ProductTagResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(`/api/menu/tags/popular?limit=${limit}`);
+export const getPopularTags = async (
+  limit: number = 10
+): Promise<ProductTagResponse[]> => {
+  const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
+    `/api/menu/tags/popular?limit=${limit}`
+  );
   return response.data.data;
 };
 
@@ -202,7 +237,7 @@ export const usePopularTags = (limit: number = 10) => {
 // Mutation hooks
 export const useCreateTag = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createTag,
     onSuccess: () => {
@@ -214,7 +249,7 @@ export const useCreateTag = () => {
 
 export const useUpdateTag = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: ProductTagUpdateRequest }) =>
       updateTag(id, data),
@@ -229,7 +264,7 @@ export const useUpdateTag = () => {
 
 export const useDeleteTag = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteTag,
     onSuccess: () => {
@@ -241,12 +276,14 @@ export const useDeleteTag = () => {
 
 export const useAssignTagsToProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: assignTagsToProduct,
     onSuccess: (_, { productId }) => {
       // Invalidate tags for the specific product
-      queryClient.invalidateQueries({ queryKey: ['tags', 'product', productId] });
+      queryClient.invalidateQueries({
+        queryKey: ['tags', 'product', productId],
+      });
       // Invalidate products queries (tag assignments may have changed)
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },

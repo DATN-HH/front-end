@@ -1,9 +1,10 @@
-import { MapPin, Phone, Clock, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { MapPin, Phone, Clock, Mail } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function ContactPage() {
   return (
@@ -11,7 +12,8 @@ export default function ContactPage() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          We'd love to hear from you. Send us a message and we'll respond as
+          soon as possible.
         </p>
       </div>
 
@@ -68,16 +70,36 @@ export default function ContactPage() {
             <h3 className="text-xl font-bold mb-4">Our Locations</h3>
             <div className="space-y-4">
               {[
-                { name: "Downtown Location", address: "123 Main St, Downtown", phone: "(555) 123-4567" },
-                { name: "Mall Branch", address: "456 Shopping Center, Mall District", phone: "(555) 234-5678" },
-                { name: "Airport Terminal", address: "789 Airport Blvd, Terminal 2", phone: "(555) 345-6789" },
-                { name: "Suburban Plaza", address: "321 Suburb Ave, Residential Area", phone: "(555) 456-7890" },
+                {
+                  name: 'Downtown Location',
+                  address: '123 Main St, Downtown',
+                  phone: '(555) 123-4567',
+                },
+                {
+                  name: 'Mall Branch',
+                  address: '456 Shopping Center, Mall District',
+                  phone: '(555) 234-5678',
+                },
+                {
+                  name: 'Airport Terminal',
+                  address: '789 Airport Blvd, Terminal 2',
+                  phone: '(555) 345-6789',
+                },
+                {
+                  name: 'Suburban Plaza',
+                  address: '321 Suburb Ave, Residential Area',
+                  phone: '(555) 456-7890',
+                },
               ].map((location, index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
                     <h4 className="font-semibold">{location.name}</h4>
-                    <p className="text-sm text-muted-foreground">{location.address}</p>
-                    <p className="text-sm text-muted-foreground">{location.phone}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {location.address}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {location.phone}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -120,7 +142,11 @@ export default function ContactPage() {
 
               <div>
                 <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="Tell us more about your inquiry..." rows={5} />
+                <Textarea
+                  id="message"
+                  placeholder="Tell us more about your inquiry..."
+                  rows={5}
+                />
               </div>
 
               <Button type="submit" className="w-full">
@@ -131,5 +157,5 @@ export default function ContactPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

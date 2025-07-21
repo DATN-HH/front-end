@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/api-client';
+
+import { apiClient } from '@/services/api-client';
 
 // Enums
 export enum StaffShiftStatus {
@@ -9,14 +10,14 @@ export enum StaffShiftStatus {
   CONFLICTED = 'CONFLICTED',
   REQUEST_CHANGE = 'REQUEST_CHANGE',
   APPROVED_LEAVE_VALID = 'APPROVED_LEAVE_VALID',
-  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED'
+  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED',
 }
 
 export enum LeaveRequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Interfaces
@@ -100,18 +101,34 @@ export interface ScheduleOverviewDto {
 }
 
 // API Functions
-const getDailyOverview = async (branchId: number, date: string): Promise<ScheduleOverviewDto> => {
-  const response = await apiClient.get(`/schedule/overview/daily?branchId=${branchId}&date=${date}`);
+const getDailyOverview = async (
+  branchId: number,
+  date: string
+): Promise<ScheduleOverviewDto> => {
+  const response = await apiClient.get(
+    `/schedule/overview/daily?branchId=${branchId}&date=${date}`
+  );
   return response.data.payload || response.data;
 };
 
-const getWeeklyOverview = async (branchId: number, startOfWeek: string): Promise<ScheduleOverviewDto> => {
-  const response = await apiClient.get(`/schedule/overview/weekly?branchId=${branchId}&startOfWeek=${startOfWeek}`);
+const getWeeklyOverview = async (
+  branchId: number,
+  startOfWeek: string
+): Promise<ScheduleOverviewDto> => {
+  const response = await apiClient.get(
+    `/schedule/overview/weekly?branchId=${branchId}&startOfWeek=${startOfWeek}`
+  );
   return response.data.payload || response.data;
 };
 
-const getMonthlyOverview = async (branchId: number, year: number, month: number): Promise<ScheduleOverviewDto> => {
-  const response = await apiClient.get(`/schedule/overview/monthly?branchId=${branchId}&year=${year}&month=${month}`);
+const getMonthlyOverview = async (
+  branchId: number,
+  year: number,
+  month: number
+): Promise<ScheduleOverviewDto> => {
+  const response = await apiClient.get(
+    `/schedule/overview/monthly?branchId=${branchId}&year=${year}&month=${month}`
+  );
   return response.data.payload || response.data;
 };
 
@@ -132,7 +149,11 @@ export const useWeeklyOverview = (branchId: number, startOfWeek: string) => {
   });
 };
 
-export const useMonthlyOverview = (branchId: number, year: number, month: number) => {
+export const useMonthlyOverview = (
+  branchId: number,
+  year: number,
+  month: number
+) => {
   return useQuery({
     queryKey: ['scheduleOverview', 'monthly', branchId, year, month],
     queryFn: () => getMonthlyOverview(branchId, year, month),
@@ -141,48 +162,77 @@ export const useMonthlyOverview = (branchId: number, year: number, month: number
 };
 
 // Utility functions
-export const getStaffShiftStatusColor = (status: StaffShiftStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
+export const getStaffShiftStatusColor = (
+  status: StaffShiftStatus
+): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
-    case StaffShiftStatus.PUBLISHED: return 'default';
-    case StaffShiftStatus.PENDING: return 'secondary';
-    case StaffShiftStatus.CONFLICTED: return 'destructive';
-    case StaffShiftStatus.REQUEST_CHANGE: return 'outline';
-    case StaffShiftStatus.APPROVED_LEAVE_VALID: return 'default';
-    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED: return 'destructive';
-    default: return 'outline';
+    case StaffShiftStatus.PUBLISHED:
+      return 'default';
+    case StaffShiftStatus.PENDING:
+      return 'secondary';
+    case StaffShiftStatus.CONFLICTED:
+      return 'destructive';
+    case StaffShiftStatus.REQUEST_CHANGE:
+      return 'outline';
+    case StaffShiftStatus.APPROVED_LEAVE_VALID:
+      return 'default';
+    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED:
+      return 'destructive';
+    default:
+      return 'outline';
   }
 };
 
 export const getStaffShiftStatusLabel = (status: StaffShiftStatus): string => {
   switch (status) {
-    case StaffShiftStatus.DRAFT: return 'Nháp';
-    case StaffShiftStatus.PENDING: return 'Chờ xử lý';
-    case StaffShiftStatus.PUBLISHED: return 'Đã công bố';
-    case StaffShiftStatus.CONFLICTED: return 'Xung đột';
-    case StaffShiftStatus.REQUEST_CHANGE: return 'Yêu cầu thay đổi';
-    case StaffShiftStatus.APPROVED_LEAVE_VALID: return 'Nghỉ phép được chấp nhận';
-    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED: return 'Nghỉ phép vượt quá';
-    default: return status;
+    case StaffShiftStatus.DRAFT:
+      return 'Nháp';
+    case StaffShiftStatus.PENDING:
+      return 'Chờ xử lý';
+    case StaffShiftStatus.PUBLISHED:
+      return 'Đã công bố';
+    case StaffShiftStatus.CONFLICTED:
+      return 'Xung đột';
+    case StaffShiftStatus.REQUEST_CHANGE:
+      return 'Yêu cầu thay đổi';
+    case StaffShiftStatus.APPROVED_LEAVE_VALID:
+      return 'Nghỉ phép được chấp nhận';
+    case StaffShiftStatus.APPROVED_LEAVE_EXCEEDED:
+      return 'Nghỉ phép vượt quá';
+    default:
+      return status;
   }
 };
 
-export const getLeaveStatusColor = (status: LeaveRequestStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
+export const getLeaveStatusColor = (
+  status: LeaveRequestStatus
+): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
-    case LeaveRequestStatus.APPROVED: return 'default';
-    case LeaveRequestStatus.PENDING: return 'secondary';
-    case LeaveRequestStatus.REJECTED: return 'destructive';
-    case LeaveRequestStatus.CANCELLED: return 'outline';
-    default: return 'outline';
+    case LeaveRequestStatus.APPROVED:
+      return 'default';
+    case LeaveRequestStatus.PENDING:
+      return 'secondary';
+    case LeaveRequestStatus.REJECTED:
+      return 'destructive';
+    case LeaveRequestStatus.CANCELLED:
+      return 'outline';
+    default:
+      return 'outline';
   }
 };
 
 export const getLeaveStatusLabel = (status: LeaveRequestStatus): string => {
   switch (status) {
-    case LeaveRequestStatus.PENDING: return 'Chờ duyệt';
-    case LeaveRequestStatus.APPROVED: return 'Đã duyệt';
-    case LeaveRequestStatus.REJECTED: return 'Từ chối';
-    case LeaveRequestStatus.CANCELLED: return 'Đã hủy';
-    default: return status;
+    case LeaveRequestStatus.PENDING:
+      return 'Chờ duyệt';
+    case LeaveRequestStatus.APPROVED:
+      return 'Đã duyệt';
+    case LeaveRequestStatus.REJECTED:
+      return 'Từ chối';
+    case LeaveRequestStatus.CANCELLED:
+      return 'Đã hủy';
+    default:
+      return status;
   }
 };
 
@@ -203,6 +253,6 @@ export const getCurrentMonth = (): { year: number; month: number } => {
   const now = new Date();
   return {
     year: now.getFullYear(),
-    month: now.getMonth() + 1
+    month: now.getMonth() + 1,
   };
 };

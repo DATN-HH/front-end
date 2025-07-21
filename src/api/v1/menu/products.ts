@@ -1,5 +1,6 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
 
 // API Response wrapper interface
 interface ApiResponse<T> {
@@ -250,7 +251,8 @@ export interface ProductGroupedParams {
 
 // Get all products using /api/menu/products
 export const getAllProducts = async (): Promise<ProductResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductResponse[]>>('/api/menu/products');
+  const response =
+    await apiClient.get<ApiResponse<ProductResponse[]>>('/api/menu/products');
   return response.data.data;
 };
 
@@ -268,13 +270,19 @@ export const createProduct = async (
 
 // Get single product using /api/menu/products/{id}
 export const getProduct = async (id: number): Promise<ProductResponse> => {
-  const response = await apiClient.get<ApiResponse<ProductResponse>>(`/api/menu/products/${id}`);
+  const response = await apiClient.get<ApiResponse<ProductResponse>>(
+    `/api/menu/products/${id}`
+  );
   return response.data.data;
 };
 
 // Get product detail using /api/menu/products/{id}/detail
-export const getProductDetail = async (id: number): Promise<ProductDetailResponse> => {
-  const response = await apiClient.get<ApiResponse<ProductDetailResponse>>(`/api/menu/products/${id}/detail`);
+export const getProductDetail = async (
+  id: number
+): Promise<ProductDetailResponse> => {
+  const response = await apiClient.get<ApiResponse<ProductDetailResponse>>(
+    `/api/menu/products/${id}/detail`
+  );
   return response.data.data;
 };
 
@@ -283,24 +291,37 @@ export const updateProduct = async (
   id: number,
   data: ProductUpdateRequest
 ): Promise<ProductDetailResponse> => {
-  const response = await apiClient.put<ApiResponse<ProductDetailResponse>>(`/api/menu/products/${id}`, data);
+  const response = await apiClient.put<ApiResponse<ProductDetailResponse>>(
+    `/api/menu/products/${id}`,
+    data
+  );
   return response.data.data;
 };
 
 // Get products by category using /api/menu/products/category/{categoryId}
-export const getProductsByCategory = async (categoryId: number): Promise<ProductResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductResponse[]>>(`/api/menu/products/category/${categoryId}`);
+export const getProductsByCategory = async (
+  categoryId: number
+): Promise<ProductResponse[]> => {
+  const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
+    `/api/menu/products/category/${categoryId}`
+  );
   return response.data.data;
 };
 
 // Search products using /api/menu/products/search
-export const searchProducts = async (name: string): Promise<ProductResponse[]> => {
-  const response = await apiClient.get<ApiResponse<ProductResponse[]>>(`/api/menu/products/search?name=${encodeURIComponent(name)}`);
+export const searchProducts = async (
+  name: string
+): Promise<ProductResponse[]> => {
+  const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
+    `/api/menu/products/search?name=${encodeURIComponent(name)}`
+  );
   return response.data.data;
 };
 
 // Get paginated product list using /api/menu/products/list
-export const getProductList = async (params: ProductListParams = {}): Promise<{
+export const getProductList = async (
+  params: ProductListParams = {}
+): Promise<{
   content: ProductListResponse[];
   totalElements: number;
   totalPages: number;
@@ -308,15 +329,17 @@ export const getProductList = async (params: ProductListParams = {}): Promise<{
   number: number;
 }> => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, String(value));
     }
   });
 
-  const response = await apiClient.get<ApiResponse<ApiListData<ProductListResponse>>>(`/api/menu/products/list?${searchParams.toString()}`);
-  
+  const response = await apiClient.get<
+    ApiResponse<ApiListData<ProductListResponse>>
+  >(`/api/menu/products/list?${searchParams.toString()}`);
+
   // Transform the API response to match our expected interface
   const apiData = response.data.data;
   return {
@@ -329,40 +352,58 @@ export const getProductList = async (params: ProductListParams = {}): Promise<{
 };
 
 // Get grouped product list using /api/menu/products/list/grouped
-export const getGroupedProductList = async (params: ProductGroupedParams = {}): Promise<ProductGroupedResponse[]> => {
+export const getGroupedProductList = async (
+  params: ProductGroupedParams = {}
+): Promise<ProductGroupedResponse[]> => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, String(value));
     }
   });
 
-  const response = await apiClient.get<ApiResponse<ProductGroupedResponse[]>>(`/api/menu/products/list/grouped?${searchParams.toString()}`);
+  const response = await apiClient.get<ApiResponse<ProductGroupedResponse[]>>(
+    `/api/menu/products/list/grouped?${searchParams.toString()}`
+  );
   return response.data.data;
 };
 
 // Archive multiple products using /api/menu/products/archive
-export const archiveProducts = async (data: ProductArchiveRequest): Promise<string> => {
-  const response = await apiClient.post<ApiResponse<string>>('/api/menu/products/archive', data);
+export const archiveProducts = async (
+  data: ProductArchiveRequest
+): Promise<string> => {
+  const response = await apiClient.post<ApiResponse<string>>(
+    '/api/menu/products/archive',
+    data
+  );
   return response.data.data;
 };
 
 // Unarchive multiple products using /api/menu/products/unarchive
-export const unarchiveProducts = async (data: ProductArchiveRequest): Promise<string> => {
-  const response = await apiClient.post<ApiResponse<string>>('/api/menu/products/unarchive', data);
+export const unarchiveProducts = async (
+  data: ProductArchiveRequest
+): Promise<string> => {
+  const response = await apiClient.post<ApiResponse<string>>(
+    '/api/menu/products/unarchive',
+    data
+  );
   return response.data.data;
 };
 
 // Archive single product using /api/menu/products/{id}/archive
 export const archiveProduct = async (id: number): Promise<string> => {
-  const response = await apiClient.post<ApiResponse<string>>(`/api/menu/products/${id}/archive`);
+  const response = await apiClient.post<ApiResponse<string>>(
+    `/api/menu/products/${id}/archive`
+  );
   return response.data.data;
 };
 
 // Unarchive single product using /api/menu/products/{id}/unarchive
 export const unarchiveProduct = async (id: number): Promise<string> => {
-  const response = await apiClient.post<ApiResponse<string>>(`/api/menu/products/${id}/unarchive`);
+  const response = await apiClient.post<ApiResponse<string>>(
+    `/api/menu/products/${id}/unarchive`
+  );
   return response.data.data;
 };
 
@@ -425,10 +466,15 @@ export const useGroupedProductList = (params: ProductGroupedParams = {}) => {
 // Mutation hooks
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ data, saveAndNew = false }: { data: ProductCreateRequest; saveAndNew?: boolean }) =>
-      createProduct(data, saveAndNew),
+    mutationFn: ({
+      data,
+      saveAndNew = false,
+    }: {
+      data: ProductCreateRequest;
+      saveAndNew?: boolean;
+    }) => createProduct(data, saveAndNew),
     onSuccess: (_, { data }) => {
       // Invalidate all products queries
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -436,8 +482,12 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       // If product was assigned to a specific category, invalidate that category's products
       if (data.categoryId) {
-        queryClient.invalidateQueries({ queryKey: ['categories', data.categoryId, 'products'] });
-        queryClient.invalidateQueries({ queryKey: ['categories', data.categoryId, 'product-count'] });
+        queryClient.invalidateQueries({
+          queryKey: ['categories', data.categoryId, 'products'],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['categories', data.categoryId, 'product-count'],
+        });
       }
     },
   });
@@ -445,7 +495,7 @@ export const useCreateProduct = () => {
 
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: ProductUpdateRequest }) =>
       updateProduct(id, data),
@@ -458,8 +508,12 @@ export const useUpdateProduct = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       // If product was assigned to a specific category, invalidate that category's products
       if (data.categoryId) {
-        queryClient.invalidateQueries({ queryKey: ['categories', data.categoryId, 'products'] });
-        queryClient.invalidateQueries({ queryKey: ['categories', data.categoryId, 'product-count'] });
+        queryClient.invalidateQueries({
+          queryKey: ['categories', data.categoryId, 'products'],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['categories', data.categoryId, 'product-count'],
+        });
       }
     },
   });
@@ -467,7 +521,7 @@ export const useUpdateProduct = () => {
 
 export const useArchiveProducts = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: archiveProducts,
     onSuccess: () => {
@@ -478,7 +532,7 @@ export const useArchiveProducts = () => {
 
 export const useUnarchiveProducts = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: unarchiveProducts,
     onSuccess: () => {
@@ -489,7 +543,7 @@ export const useUnarchiveProducts = () => {
 
 export const useArchiveProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: archiveProduct,
     onSuccess: () => {
@@ -503,7 +557,7 @@ export const useArchiveProduct = () => {
 
 export const useUnarchiveProduct = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: unarchiveProduct,
     onSuccess: () => {
@@ -513,4 +567,4 @@ export const useUnarchiveProduct = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
-}; 
+};

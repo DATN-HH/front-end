@@ -1,17 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { apiClient } from '../../services/api-client';
+
+import { apiClient } from '@/services/api-client';
+
 import { TableTypeResponse } from './table-types';
 
+import { BaseResponse } from '.';
+
 // Enums
+
 export enum TableShape {
   SQUARE = 'SQUARE',
   ROUND = 'ROUND',
   RECTANGLE = 'RECTANGLE',
-  OVAL = 'OVAL'
+  OVAL = 'OVAL',
 }
 
 // Legacy enum for backward compatibility
+
 export enum TableType {
   STANDARD = 'STANDARD',
   VIP = 'VIP',
@@ -22,7 +28,7 @@ export enum TableType {
   BUSINESS = 'BUSINESS',
   SMOKING = 'SMOKING',
   NON_SMOKING = 'NON_SMOKING',
-  WHEELCHAIR_ACCESSIBLE = 'WHEELCHAIR_ACCESSIBLE'
+  WHEELCHAIR_ACCESSIBLE = 'WHEELCHAIR_ACCESSIBLE',
 }
 
 // Updated Interfaces
@@ -101,64 +107,81 @@ export interface FloorTablesResponse {
       updatedBy: number;
       createdUsername: string;
       updatedUsername: string;
-      manager: any;
+      manager?: {
+        id: number;
+        fullName: string;
+        email: string;
+      };
     };
   };
   tables: TableResponse[];
 }
 
-export interface BaseResponse<T> {
-  success: boolean;
-  code: number;
-  message: string;
-  payload: T | null;
-}
-
 // API Functions
-export const createTable = async (data: TableCreateRequest): Promise<TableResponse> => {
-  const response = await apiClient.post<BaseResponse<TableResponse>>('/tables', data);
+const createTable = async (
+  data: TableCreateRequest
+): Promise<TableResponse> => {
+  const response = await apiClient.post<BaseResponse<TableResponse>>(
+    '/tables',
+    data
+  );
   return response.data.payload!;
 };
 
-export const updateTable = async (id: number, data: TableUpdateRequest): Promise<TableResponse> => {
-  const response = await apiClient.put<BaseResponse<TableResponse>>(`/tables/${id}`, data);
+const updateTable = async (
+  id: number,
+  data: TableUpdateRequest
+): Promise<TableResponse> => {
+  const response = await apiClient.put<BaseResponse<TableResponse>>(
+    `/tables/${id}`,
+    data
+  );
   return response.data.payload!;
 };
 
-export const getTablesByFloor = async (floorId: number): Promise<FloorTablesResponse> => {
-  const response = await apiClient.get<BaseResponse<FloorTablesResponse>>(`/tables/floors/${floorId}`);
+const getTablesByFloor = async (
+  floorId: number
+): Promise<FloorTablesResponse> => {
+  const response = await apiClient.get<BaseResponse<FloorTablesResponse>>(
+    `/tables/floors/${floorId}`
+  );
   const data = response.data.payload!;
-  
+
   // Normalize table data
   return {
     ...data,
-    tables: data.tables.map(normalizeTableData)
+    tables: data.tables.map(normalizeTableData),
   };
 };
 
-export const deleteTable = async (id: number): Promise<void> => {
+const deleteTable = async (id: number): Promise<void> => {
   await apiClient.delete(`/tables/${id}`);
 };
 
 // React Query Hooks
 export const useCreateTable = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createTable,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['tables', 'floor', data.floor?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['tables', 'floor', data.floor?.id],
+      });
     },
   });
 };
 
 export const useUpdateTable = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: TableUpdateRequest }) => updateTable(id, data),
+    mutationFn: ({ id, data }: { id: number; data: TableUpdateRequest }) =>
+      updateTable(id, data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['tables', 'floor', data.floor?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['tables', 'floor', data.floor?.id],
+      });
     },
   });
 };
@@ -173,7 +196,7 @@ export const useTablesByFloor = (floorId: number) => {
 
 export const useDeleteTable = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteTable,
     onSuccess: () => {
@@ -183,11 +206,13 @@ export const useDeleteTable = () => {
 };
 
 // Updated utility functions to work with TableTypeResponse object
-export const getTableColor = (tableType: TableTypeResponse | TableType): string => {
+export const getTableColor = (
+  tableType: TableTypeResponse | TableType
+): string => {
   if (typeof tableType === 'object' && tableType.color) {
     return tableType.color;
   }
-  
+
   // Legacy fallback for old enum values
   switch (tableType) {
     case TableType.VIP:
@@ -213,11 +238,13 @@ export const getTableColor = (tableType: TableTypeResponse | TableType): string 
   }
 };
 
-export const getTableTypeLabel = (tableType: TableTypeResponse | TableType): string => {
+export const getTableTypeLabel = (
+  tableType: TableTypeResponse | TableType
+): string => {
   if (typeof tableType === 'object' && tableType.tableType) {
     return tableType.tableType;
   }
-  
+
   // Legacy fallback for old enum values
   switch (tableType) {
     case TableType.STANDARD:
@@ -245,11 +272,13 @@ export const getTableTypeLabel = (tableType: TableTypeResponse | TableType): str
   }
 };
 
-export const getTableIcon = (tableType: TableTypeResponse | TableType): string => {
+export const getTableIcon = (
+  tableType: TableTypeResponse | TableType
+): string => {
   if (typeof tableType === 'object' && tableType.icon) {
     return tableType.icon;
   }
-  
+
   // Legacy fallback for old enum values
   switch (tableType) {
     case TableType.VIP:
@@ -316,30 +345,52 @@ export const useDebounce = <T>(value: T, delay: number): T => {
   return debouncedValue;
 };
 
-export const validateTableData = (tableData: Partial<TableCreateRequest | TableUpdateRequest>) => {
+export const validateTableData = (
+  tableData: Partial<TableCreateRequest | TableUpdateRequest>
+) => {
   const errors: Record<string, string> = {};
 
   if (!tableData.tableName?.trim()) {
     errors.tableName = 'Table name is required';
   }
 
-  if (!tableData.capacity || tableData.capacity < 1 || tableData.capacity > 50) {
+  if (
+    !tableData.capacity ||
+    tableData.capacity < 1 ||
+    tableData.capacity > 50
+  ) {
     errors.capacity = 'Capacity must be between 1 and 50 people';
   }
 
-  if (tableData.xRatio === undefined || tableData.xRatio < 0 || tableData.xRatio > 1) {
+  if (
+    tableData.xRatio === undefined ||
+    tableData.xRatio < 0 ||
+    tableData.xRatio > 1
+  ) {
     errors.xRatio = 'X position must be between 0.0 and 1.0';
   }
 
-  if (tableData.yRatio === undefined || tableData.yRatio < 0 || tableData.yRatio > 1) {
+  if (
+    tableData.yRatio === undefined ||
+    tableData.yRatio < 0 ||
+    tableData.yRatio > 1
+  ) {
     errors.yRatio = 'Y position must be between 0.0 and 1.0';
   }
 
-  if (tableData.widthRatio === undefined || tableData.widthRatio < 0.01 || tableData.widthRatio > 1) {
+  if (
+    tableData.widthRatio === undefined ||
+    tableData.widthRatio < 0.01 ||
+    tableData.widthRatio > 1
+  ) {
     errors.widthRatio = 'Width must be between 0.01 and 1.0';
   }
 
-  if (tableData.heightRatio === undefined || tableData.heightRatio < 0.01 || tableData.heightRatio > 1) {
+  if (
+    tableData.heightRatio === undefined ||
+    tableData.heightRatio < 0.01 ||
+    tableData.heightRatio > 1
+  ) {
     errors.heightRatio = 'Height must be between 0.01 and 1.0';
   }
 
@@ -353,6 +404,6 @@ export const validateTableData = (tableData: Partial<TableCreateRequest | TableU
 
   return {
     isValid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
-}; 
+};

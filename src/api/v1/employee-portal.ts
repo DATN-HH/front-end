@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../services/api-client';
+
+import { apiClient } from '@/services/api-client';
 
 // Enums
 export enum LeaveType {
@@ -8,14 +9,14 @@ export enum LeaveType {
   EMERGENCY = 'EMERGENCY',
   MATERNITY = 'MATERNITY',
   PERSONAL = 'PERSONAL',
-  UNPAID = 'UNPAID'
+  UNPAID = 'UNPAID',
 }
 
 export enum LeaveStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export enum ShiftStatus {
@@ -25,7 +26,7 @@ export enum ShiftStatus {
   CONFLICTED = 'CONFLICTED',
   REQUEST_CHANGE = 'REQUEST_CHANGE',
   APPROVED_LEAVE_VALID = 'APPROVED_LEAVE_VALID',
-  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED'
+  APPROVED_LEAVE_EXCEEDED = 'APPROVED_LEAVE_EXCEEDED',
 }
 
 // Interfaces
@@ -101,28 +102,44 @@ export interface ShiftRegistrationRequest {
 }
 
 // API Functions
-const getWeeklySchedule = async (startDate: string, endDate: string): Promise<WeeklyScheduleItem[]> => {
-  const response = await apiClient.get(`/employee-portal/schedule?startDate=${startDate}&endDate=${endDate}`);
+const getWeeklySchedule = async (
+  startDate: string,
+  endDate: string
+): Promise<WeeklyScheduleItem[]> => {
+  const response = await apiClient.get(
+    `/employee-portal/schedule?startDate=${startDate}&endDate=${endDate}`
+  );
   return response.data.payload;
 };
 
 const getWorkingHours = async (days: number): Promise<WorkingHours> => {
-  const response = await apiClient.get(`/employee-portal/working-hours/${days}`);
+  const response = await apiClient.get(
+    `/employee-portal/working-hours/${days}`
+  );
   return response.data.payload;
 };
 
 const getMyLeaveRequests = async (year?: number): Promise<LeaveRequest[]> => {
-  const response = await apiClient.get(`/employee-portal/leave-requests${year ? `?year=${year}` : ''}`);
+  const response = await apiClient.get(
+    `/employee-portal/leave-requests${year ? `?year=${year}` : ''}`
+  );
   return response.data.payload;
 };
 
-const submitLeaveRequest = async (data: SubmitLeaveRequestDto): Promise<LeaveRequest> => {
-  const response = await apiClient.post('/employee-portal/leave-requests', data);
+const submitLeaveRequest = async (
+  data: SubmitLeaveRequestDto
+): Promise<LeaveRequest> => {
+  const response = await apiClient.post(
+    '/employee-portal/leave-requests',
+    data
+  );
   return response.data.payload;
 };
 
 const cancelLeaveRequest = async (id: number): Promise<string> => {
-  const response = await apiClient.put(`/employee-portal/leave-requests/${id}/cancel`);
+  const response = await apiClient.put(
+    `/employee-portal/leave-requests/${id}/cancel`
+  );
   return response.data.payload;
 };
 
@@ -131,8 +148,13 @@ const getAvailableShifts = async (): Promise<AvailableShift[]> => {
   return response.data.payload;
 };
 
-const registerForShift = async (data: ShiftRegistrationRequest): Promise<string> => {
-  const response = await apiClient.post('/employee-portal/shift-registration', data);
+const registerForShift = async (
+  data: ShiftRegistrationRequest
+): Promise<string> => {
+  const response = await apiClient.post(
+    '/employee-portal/shift-registration',
+    data
+  );
   return response.data.payload;
 };
 
@@ -162,7 +184,7 @@ export const useMyLeaveRequests = (year?: number) => {
 
 export const useSubmitLeaveRequest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: submitLeaveRequest,
     onSuccess: () => {
@@ -174,7 +196,7 @@ export const useSubmitLeaveRequest = () => {
 
 export const useCancelLeaveRequest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: cancelLeaveRequest,
     onSuccess: () => {
@@ -193,7 +215,7 @@ export const useAvailableShifts = () => {
 
 export const useRegisterForShift = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: registerForShift,
     onSuccess: () => {
@@ -201,4 +223,4 @@ export const useRegisterForShift = () => {
       queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
     },
   });
-}; 
+};

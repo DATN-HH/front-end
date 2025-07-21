@@ -1,5 +1,7 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
 import { BaseResponse } from '.';
 
 // Types
@@ -18,18 +20,30 @@ export interface CheckoutResponseData {
 }
 
 // API calls
-export const createPaymentLinkForOrder = async (orderId: number): Promise<CheckoutResponseData> => {
-  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(`/payment/create-payment-link-for-order/${orderId}`);
+const createPaymentLinkForOrder = async (
+  orderId: number
+): Promise<CheckoutResponseData> => {
+  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(
+    `/payment/create-payment-link-for-order/${orderId}`
+  );
   return response.data.payload;
 };
 
-export const createPaymentLinkForBookingTable = async (bookingTableId: number): Promise<CheckoutResponseData> => {
-  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(`/payment/create-payment-link-for-booking-table/${bookingTableId}`);
+const createPaymentLinkForBookingTable = async (
+  bookingTableId: number
+): Promise<CheckoutResponseData> => {
+  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(
+    `/payment/create-payment-link-for-booking-table/${bookingTableId}`
+  );
   return response.data.payload;
 };
 
-export const createPaymentLinkForPreOrder = async (preOrderId: number): Promise<CheckoutResponseData> => {
-  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(`/payment/create-payment-link-for-pre-order/${preOrderId}`);
+const createPaymentLinkForPreOrder = async (
+  preOrderId: number
+): Promise<CheckoutResponseData> => {
+  const response = await apiClient.post<BaseResponse<CheckoutResponseData>>(
+    `/payment/create-payment-link-for-pre-order/${preOrderId}`
+  );
   return response.data.payload;
 };
 
@@ -50,4 +64,4 @@ export const useCreatePaymentLinkForPreOrder = () => {
   return useMutation({
     mutationFn: createPaymentLinkForPreOrder,
   });
-}; 
+};

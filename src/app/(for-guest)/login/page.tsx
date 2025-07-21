@@ -1,6 +1,7 @@
-import { LoginForm } from '@/features/system/components/login-form';
-import { Logo } from '@/components/common/logo';
 import Link from 'next/link';
+
+import { Logo } from '@/components/common/logo';
+import { LoginForm } from '@/features/system/components/login-form';
 
 export default function LoginPage() {
   return (

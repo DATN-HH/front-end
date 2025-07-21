@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
 import React, { useEffect } from 'react';
+
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
   const { logout } = useAuth();

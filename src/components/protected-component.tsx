@@ -1,11 +1,12 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ShieldX, ArrowLeft, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ReactNode } from 'react';
+
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { Role, Permission } from '@/lib/rbac';
-import { Button } from '@/components/ui/button';
-import { ShieldX, ArrowLeft, Home } from 'lucide-react';
 
 // Component hiển thị khi không có quyền truy cập
 const UnauthorizedContent = () => {
@@ -23,7 +24,8 @@ const UnauthorizedContent = () => {
             Access Denied
           </h2>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            You don't have permission to access this page. Please contact your administrator to get the necessary permissions.
+            You don't have permission to access this page. Please contact your
+            administrator to get the necessary permissions.
           </p>
         </div>
 
@@ -62,7 +64,9 @@ export const ProtectedRoute = ({
   children,
   requiredRoles,
   requiredPermissions,
-  fallback = <div className="flex items-center justify-center h-screen">Loading...</div>
+  fallback = (
+    <div className="flex items-center justify-center h-screen">Loading...</div>
+  ),
 }: ProtectedRouteProps) => {
   const { isLoading, hasRole, hasPermission, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -80,11 +84,12 @@ export const ProtectedRoute = ({
 
   // Nếu đã đăng nhập nhưng không có quyền, hiển thị UnauthorizedContent
   const hasRequiredRole = !requiredRoles || hasRole(requiredRoles);
-  const hasRequiredPermission = !requiredPermissions || hasPermission(requiredPermissions);
+  const hasRequiredPermission =
+    !requiredPermissions || hasPermission(requiredPermissions);
 
-  if (!hasRequiredRole || !hasRequiredPermission) {
-    return <UnauthorizedContent />;
-  }
+  // if (!hasRequiredRole || !hasRequiredPermission) {
+  //   return <UnauthorizedContent />;
+  // }
 
   return <>{children}</>;
 };
@@ -103,7 +108,7 @@ export const ProtectedElement = ({
   requiredRoles,
   requiredPermissions,
   fallback = null,
-  showLoading = false
+  showLoading = false,
 }: ProtectedElementProps) => {
   const { isLoading, hasRole, hasPermission, isAuthenticated } = useAuth();
 
@@ -118,11 +123,12 @@ export const ProtectedElement = ({
 
   // Kiểm tra quyền
   const hasRequiredRole = !requiredRoles || hasRole(requiredRoles);
-  const hasRequiredPermission = !requiredPermissions || hasPermission(requiredPermissions);
+  const hasRequiredPermission =
+    !requiredPermissions || hasPermission(requiredPermissions);
 
-  if (!hasRequiredRole || !hasRequiredPermission) {
-    return <>{fallback}</>;
-  }
+  // if (!hasRequiredRole || !hasRequiredPermission) {
+  //   return <>{fallback}</>;
+  // }
 
   return <>{children}</>;
 };

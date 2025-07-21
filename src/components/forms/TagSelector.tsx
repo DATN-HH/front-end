@@ -1,13 +1,28 @@
 'use client';
 
+import { ChevronsUpDown, Tag, X, Plus } from 'lucide-react';
 import { useState } from 'react';
+
+import {
+  useAllTags,
+  useSearchTags,
+  ProductTagResponse,
+} from '@/api/v1/menu/product-tags';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAllTags, useSearchTags, ProductTagResponse } from '@/api/v1/menu/product-tags';
-import { ChevronsUpDown, Tag, X, Plus } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 interface TagSelectorProps {
@@ -18,28 +33,28 @@ interface TagSelectorProps {
   className?: string;
 }
 
-export function TagSelector({ 
-  selectedTags, 
-  onTagsChange, 
-  placeholder = "Select tags...", 
+export function TagSelector({
+  selectedTags,
+  onTagsChange,
+  placeholder = 'Select tags...',
   disabled = false,
-  className 
+  className,
 }: TagSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  
+
   // Get all tags for initial load
   const { data: allTags = [] } = useAllTags();
-  
+
   // Search tags when user types
   const { data: searchResults = [] } = useSearchTags(searchValue);
-  
+
   // Use search results if searching, otherwise use all tags
   const availableTags = searchValue ? searchResults : allTags;
-  
+
   // Filter out already selected tags
   const unselectedTags = availableTags.filter(
-    tag => !selectedTags.some(selected => selected.id === tag.id)
+    (tag) => !selectedTags.some((selected) => selected.id === tag.id)
   );
 
   const handleTagSelect = (tag: ProductTagResponse) => {
@@ -49,14 +64,14 @@ export function TagSelector({
   };
 
   const handleTagRemove = (tagId: number) => {
-    const newTags = selectedTags.filter(tag => tag.id !== tagId);
+    const newTags = selectedTags.filter((tag) => tag.id !== tagId);
     onTagsChange(newTags);
   };
 
   const getTagDisplay = (tag: ProductTagResponse) => (
     <div className="flex items-center space-x-2">
       {tag.color && (
-        <div 
+        <div
           className="w-3 h-3 rounded"
           style={{ backgroundColor: tag.color }}
         />
@@ -66,7 +81,7 @@ export function TagSelector({
   );
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn('space-y-3', className)}>
       <Label className="flex items-center space-x-2">
         <Tag className="h-4 w-4" />
         <span>Tags</span>
@@ -86,7 +101,7 @@ export function TagSelector({
               }}
             >
               {tag.color && (
-                <div 
+                <div
                   className="w-2 h-2 rounded"
                   style={{ backgroundColor: tag.color }}
                 />
@@ -126,8 +141,8 @@ export function TagSelector({
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
             <Command>
-              <CommandInput 
-                placeholder="Search tags..." 
+              <CommandInput
+                placeholder="Search tags..."
                 value={searchValue}
                 onValueChange={setSearchValue}
               />
@@ -153,9 +168,7 @@ export function TagSelector({
 
       {/* Empty State */}
       {selectedTags.length === 0 && disabled && (
-        <div className="text-sm text-gray-500 italic">
-          No tags assigned
-        </div>
+        <div className="text-sm text-gray-500 italic">No tags assigned</div>
       )}
     </div>
   );

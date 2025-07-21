@@ -1,5 +1,7 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
 import { BaseResponse } from '.';
 
 // Original Shift Assignment Interfaces (keeping for backward compatibility)
@@ -96,8 +98,13 @@ export interface CompleteScheduleResponse {
 }
 
 // New Complete Schedule API call
-export const getCompleteScheduleSuggestions = async (data: CompleteScheduleRequest): Promise<CompleteScheduleResponse> => {
-  const response = await apiClient.post<BaseResponse<CompleteScheduleResponse>>('/shift-assignments/suggest', data);
+export const getCompleteScheduleSuggestions = async (
+  data: CompleteScheduleRequest
+): Promise<CompleteScheduleResponse> => {
+  const response = await apiClient.post<BaseResponse<CompleteScheduleResponse>>(
+    '/shift-assignments/suggest',
+    data
+  );
   return response.data.payload;
 };
 
@@ -160,8 +167,13 @@ export interface BulkStaffShiftResponse {
 }
 
 // Bulk Staff Shift Creation API call
-export const bulkCreateStaffShifts = async (data: BulkStaffShiftRequest): Promise<BulkStaffShiftResponse> => {
-  const response = await apiClient.post<BaseResponse<BulkStaffShiftResponse>>('/staff-shifts/bulk-enhanced', data);
+const bulkCreateStaffShifts = async (
+  data: BulkStaffShiftRequest
+): Promise<BulkStaffShiftResponse> => {
+  const response = await apiClient.post<BaseResponse<BulkStaffShiftResponse>>(
+    '/staff-shifts/bulk-enhanced',
+    data
+  );
   return response.data.payload;
 };
 
@@ -170,4 +182,4 @@ export const useBulkCreateStaffShifts = () => {
   return useMutation({
     mutationFn: bulkCreateStaffShifts,
   });
-}; 
+};

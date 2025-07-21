@@ -1,14 +1,25 @@
 'use client';
 
+import { Loader2, Tag, Palette } from 'lucide-react';
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+import {
+  useCreateTag,
+  ProductTagCreateRequest,
+} from '@/api/v1/menu/product-tags';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useCreateTag, ProductTagCreateRequest } from '@/api/v1/menu/product-tags';
-import { Loader2, Tag, Palette } from 'lucide-react';
 
 interface TagCreateModalProps {
   open: boolean;
@@ -16,9 +27,21 @@ interface TagCreateModalProps {
 }
 
 const DEFAULT_COLORS = [
-  '#4CAF50', '#2E7D32', '#FF9800', '#F44336', '#2196F3',
-  '#9C27B0', '#FF5722', '#8BC34A', '#FFEB3B', '#00BCD4',
-  '#795548', '#607D8B', '#E91E63', '#3F51B5', '#009688'
+  '#4CAF50',
+  '#2E7D32',
+  '#FF9800',
+  '#F44336',
+  '#2196F3',
+  '#9C27B0',
+  '#FF5722',
+  '#8BC34A',
+  '#FFEB3B',
+  '#00BCD4',
+  '#795548',
+  '#607D8B',
+  '#E91E63',
+  '#3F51B5',
+  '#009688',
 ];
 
 export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
@@ -36,10 +59,10 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Tag name is required';
     }
@@ -73,18 +96,23 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to create tag. Please try again.',
+        description:
+          error.response?.data?.message ||
+          'Failed to create tag. Please try again.',
         variant: 'destructive',
       });
     }
   };
 
-  const handleInputChange = (field: keyof ProductTagCreateRequest, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+  const handleInputChange = (
+    field: keyof ProductTagCreateRequest,
+    value: string
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -128,17 +156,21 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
                 <Palette className="h-4 w-4" />
                 <span>Color (Optional)</span>
               </Label>
-              
+
               {/* Predefined Colors */}
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">Choose a predefined color:</p>
+                <p className="text-sm text-gray-600">
+                  Choose a predefined color:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {DEFAULT_COLORS.map((color) => (
                     <button
                       key={color}
                       type="button"
                       className={`w-8 h-8 rounded border-2 hover:scale-110 transition-transform ${
-                        formData.color === color ? 'border-gray-800' : 'border-gray-300'
+                        formData.color === color
+                          ? 'border-gray-800'
+                          : 'border-gray-300'
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => handleColorSelect(color)}
@@ -150,7 +182,9 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
 
               {/* Custom Color Input */}
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">Or enter a custom hex color:</p>
+                <p className="text-sm text-gray-600">
+                  Or enter a custom hex color:
+                </p>
                 <div className="flex items-center space-x-2">
                   <Input
                     placeholder="#FF5733"
@@ -159,9 +193,11 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
                     className={`w-32 ${errors.color ? 'border-red-500' : ''}`}
                   />
                   {formData.color && (
-                    <div 
+                    <div
                       className="w-8 h-8 rounded border border-gray-300"
-                      style={{ backgroundColor: formData.color }}
+                      style={{
+                        backgroundColor: formData.color,
+                      }}
                     />
                   )}
                 </div>
@@ -178,7 +214,9 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
                 id="description"
                 placeholder="Enter tag description..."
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('description', e.target.value)
+                }
                 rows={3}
               />
             </div>
@@ -193,10 +231,7 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={createTagMutation.isPending}
-            >
+            <Button type="submit" disabled={createTagMutation.isPending}>
               {createTagMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}

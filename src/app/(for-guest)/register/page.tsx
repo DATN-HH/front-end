@@ -1,6 +1,7 @@
-import { RegisterForm } from '@/features/system/components/register-form';
-import { Logo } from '@/components/common/logo';
 import Link from 'next/link';
+
+import { Logo } from '@/components/common/logo';
+import { RegisterForm } from '@/features/system/components/register-form';
 
 export default function RegisterPage() {
   return (

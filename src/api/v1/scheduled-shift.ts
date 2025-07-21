@@ -1,5 +1,7 @@
-import { apiClient } from '@/services/api-client';
 import { useMutation, useQuery } from '@tanstack/react-query';
+
+import { apiClient } from '@/services/api-client';
+
 import { LocalTime, BaseResponse, ShiftRequirementDto } from '.';
 
 // Types
@@ -34,23 +36,37 @@ export interface ScheduledShiftGroupedResponseDto {
 }
 
 // API calls
-export const createScheduledShift = async (data: ScheduledShiftRequestDto): Promise<ScheduledShiftResponseDto> => {
-  const response = await apiClient.post<BaseResponse<ScheduledShiftResponseDto>>('/scheduled-shifts', data);
+const createScheduledShift = async (
+  data: ScheduledShiftRequestDto
+): Promise<ScheduledShiftResponseDto> => {
+  const response = await apiClient.post<
+    BaseResponse<ScheduledShiftResponseDto>
+  >('/scheduled-shifts', data);
   return response.data.payload;
 };
 
-export const getScheduledShifts = async (params: ScheduledShiftListRequest): Promise<ScheduledShiftResponseDto[]> => {
-  const response = await apiClient.get<BaseResponse<ScheduledShiftResponseDto[]>>('/scheduled-shifts', { params });
+const getScheduledShifts = async (
+  params: ScheduledShiftListRequest
+): Promise<ScheduledShiftResponseDto[]> => {
+  const response = await apiClient.get<
+    BaseResponse<ScheduledShiftResponseDto[]>
+  >('/scheduled-shifts', { params });
   return response.data.payload;
 };
 
-export const getScheduledShiftsGrouped = async (params: ScheduledShiftListRequest): Promise<ScheduledShiftGroupedResponseDto[]> => {
-  const response = await apiClient.get<BaseResponse<ScheduledShiftGroupedResponseDto[]>>('/scheduled-shifts/grouped', { params });
+const getScheduledShiftsGrouped = async (
+  params: ScheduledShiftListRequest
+): Promise<ScheduledShiftGroupedResponseDto[]> => {
+  const response = await apiClient.get<
+    BaseResponse<ScheduledShiftGroupedResponseDto[]>
+  >('/scheduled-shifts/grouped', { params });
   return response.data.payload;
 };
 
-export const deleteScheduledShift = async (id: number): Promise<string> => {
-  const response = await apiClient.delete<BaseResponse<string>>(`/scheduled-shifts/${id}`);
+const deleteScheduledShift = async (id: number): Promise<string> => {
+  const response = await apiClient.delete<BaseResponse<string>>(
+    `/scheduled-shifts/${id}`
+  );
   return response.data.payload;
 };
 
@@ -69,7 +85,9 @@ export const useScheduledShifts = (params: ScheduledShiftListRequest) => {
   });
 };
 
-export const useScheduledShiftsGrouped = (params: ScheduledShiftListRequest) => {
+export const useScheduledShiftsGrouped = (
+  params: ScheduledShiftListRequest
+) => {
   return useQuery({
     queryKey: ['scheduled-shifts', 'grouped', params],
     queryFn: () => getScheduledShiftsGrouped(params),
@@ -99,8 +117,13 @@ export interface CopyWeekResponseDto {
 }
 
 // Copy Week API call
-export const copyScheduledShiftsWeek = async (data: CopyWeekRequestDto): Promise<CopyWeekResponseDto> => {
-  const response = await apiClient.post<BaseResponse<CopyWeekResponseDto>>('/scheduled-shifts/copy-week', data);
+export const copyScheduledShiftsWeek = async (
+  data: CopyWeekRequestDto
+): Promise<CopyWeekResponseDto> => {
+  const response = await apiClient.post<BaseResponse<CopyWeekResponseDto>>(
+    '/scheduled-shifts/copy-week',
+    data
+  );
   return response.data.payload;
 };
 
