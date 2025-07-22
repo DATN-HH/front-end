@@ -8,77 +8,77 @@ import { NotificationType } from './publish-shifts';
 export { NotificationType } from './publish-shifts';
 
 export interface Notification {
-  id: number;
-  userId: number;
-  title: string;
-  content: string;
-  type: NotificationType;
-  relatedId?: number;
-  isRead: boolean;
-  createdAt: string;
+    id: number;
+    userId: number;
+    title: string;
+    content: string;
+    type: NotificationType;
+    relatedId?: number;
+    isRead: boolean;
+    createdAt: string;
 }
 
 // API Functions
 const getMyNotifications = async (): Promise<Notification[]> => {
-  const response = await apiClient.get('/notifications/my-notifications');
-  return response.data.payload;
+    const response = await apiClient.get('/notifications/my-notifications');
+    return response.data.payload;
 };
 
 const getUnreadCount = async (): Promise<number> => {
-  const response = await apiClient.get('/notifications/unread-count');
-  return response.data.payload;
+    const response = await apiClient.get('/notifications/unread-count');
+    return response.data.payload;
 };
 
 const markNotificationAsRead = async (id: number): Promise<string> => {
-  const response = await apiClient.put(`/notifications/${id}/mark-read`);
-  return response.data.payload;
+    const response = await apiClient.put(`/notifications/${id}/mark-read`);
+    return response.data.payload;
 };
 
 const markAllNotificationsAsRead = async (): Promise<string> => {
-  const response = await apiClient.put('/notifications/mark-all-read');
-  return response.data.payload;
+    const response = await apiClient.put('/notifications/mark-all-read');
+    return response.data.payload;
 };
 
 // React Query Hooks
 export const useMyNotifications = () => {
-  return useQuery({
-    queryKey: ['my-notifications'],
-    queryFn: getMyNotifications,
-  });
+    return useQuery({
+        queryKey: ['my-notifications'],
+        queryFn: getMyNotifications,
+    });
 };
 
 export const useUnreadCount = () => {
-  return useQuery({
-    queryKey: ['unread-count'],
-    queryFn: getUnreadCount,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
+    return useQuery({
+        queryKey: ['unread-count'],
+        queryFn: getUnreadCount,
+        refetchInterval: 30000, // Refetch every 30 seconds
+    });
 };
 
 export const useMarkNotificationAsRead = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: markNotificationAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
-      queryClient.invalidateQueries({
-        queryKey: ['unread-notifications'],
-      });
-      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
-    },
-  });
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: markNotificationAsRead,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
+            queryClient.invalidateQueries({
+                queryKey: ['unread-notifications'],
+            });
+            queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+        },
+    });
 };
 
 export const useMarkAllNotificationsAsRead = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: markAllNotificationsAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
-      queryClient.invalidateQueries({
-        queryKey: ['unread-notifications'],
-      });
-      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
-    },
-  });
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: markAllNotificationsAsRead,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-notifications'] });
+            queryClient.invalidateQueries({
+                queryKey: ['unread-notifications'],
+            });
+            queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+        },
+    });
 };
