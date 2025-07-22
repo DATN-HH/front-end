@@ -7,231 +7,249 @@ import { TableResponse } from '@/api/v1/tables';
 import { TableElement } from '@/features/booking/components/floor-management/[floorId]/TableElement';
 
 interface FloorCanvasProps {
-  floor: {
-    id: number;
-    name: string;
-    imageUrl: string;
-    order: number;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  tables: TableResponse[];
-  selectedTables: TableResponse[];
-  onTableSelect: (tables: TableResponse[]) => void;
-  selectableTables?: number[]; // Array of table IDs that can be selected
+    floor: {
+        id: number;
+        name: string;
+        imageUrl: string;
+        order: number;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+    };
+    tables: TableResponse[];
+    selectedTables: TableResponse[];
+    onTableSelect: (tables: TableResponse[]) => void;
+    selectableTables?: number[]; // Array of table IDs that can be selected
 }
 
 export function MultiSelectFloorCanvas({
-  floor,
-  tables,
-  selectedTables,
-  onTableSelect,
-  selectableTables,
+    floor,
+    tables,
+    selectedTables,
+    onTableSelect,
+    selectableTables,
 }: FloorCanvasProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
-  const [imageSize, setImageSize] = useState({
-    width: 800,
-    height: 600,
-    offsetX: 0,
-    offsetY: 0,
-  });
+    const canvasRef = useRef<HTMLDivElement>(null);
+    const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+    const [imageSize, setImageSize] = useState({
+        width: 800,
+        height: 600,
+        offsetX: 0,
+        offsetY: 0,
+    });
 
-  // Calculate image size and offset for bg-contain
-  const calculateImageSize = (
-    containerWidth: number,
-    containerHeight: number,
-    imageWidth: number,
-    imageHeight: number
-  ) => {
-    const containerAspect = containerWidth / containerHeight;
-    const imageAspect = imageWidth / imageHeight;
+    // Calculate image size and offset for bg-contain
+    const calculateImageSize = (
+        containerWidth: number,
+        containerHeight: number,
+        imageWidth: number,
+        imageHeight: number
+    ) => {
+        const containerAspect = containerWidth / containerHeight;
+        const imageAspect = imageWidth / imageHeight;
 
-    let scaledWidth, scaledHeight, offsetX, offsetY;
+        let scaledWidth, scaledHeight, offsetX, offsetY;
 
-    if (imageAspect > containerAspect) {
-      // Image is wider than container - fit to width
-      scaledWidth = containerWidth;
-      scaledHeight = containerWidth / imageAspect;
-      offsetX = 0;
-      offsetY = (containerHeight - scaledHeight) / 2;
-    } else {
-      // Image is taller than container - fit to height
-      scaledWidth = containerHeight * imageAspect;
-      scaledHeight = containerHeight;
-      offsetX = (containerWidth - scaledWidth) / 2;
-      offsetY = 0;
-    }
-
-    return {
-      width: scaledWidth,
-      height: scaledHeight,
-      offsetX,
-      offsetY,
-    };
-  };
-
-  // Update canvas size and calculate image size
-  useEffect(() => {
-    const updateSize = () => {
-      if (canvasRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        setCanvasSize({
-          width: rect.width,
-          height: rect.height,
-        });
-
-        // Load image to get natural dimensions
-        if (floor.imageUrl) {
-          const img = new Image();
-          img.onload = () => {
-            const calculatedSize = calculateImageSize(
-              rect.width,
-              rect.height,
-              img.naturalWidth,
-              img.naturalHeight
-            );
-            setImageSize(calculatedSize);
-          };
-          img.src = floor.imageUrl;
+        if (imageAspect > containerAspect) {
+            // Image is wider than container - fit to width
+            scaledWidth = containerWidth;
+            scaledHeight = containerWidth / imageAspect;
+            offsetX = 0;
+            offsetY = (containerHeight - scaledHeight) / 2;
         } else {
-          // No image - use full canvas size
-          setImageSize({
-            width: rect.width,
-            height: rect.height,
-            offsetX: 0,
-            offsetY: 0,
-          });
+            // Image is taller than container - fit to height
+            scaledWidth = containerHeight * imageAspect;
+            scaledHeight = containerHeight;
+            offsetX = (containerWidth - scaledWidth) / 2;
+            offsetY = 0;
         }
-      }
+
+        return {
+            width: scaledWidth,
+            height: scaledHeight,
+            offsetX,
+            offsetY,
+        };
     };
 
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, [floor.imageUrl]);
+    // Update canvas size and calculate image size
+    useEffect(() => {
+        const updateSize = () => {
+            if (canvasRef.current) {
+                const rect = canvasRef.current.getBoundingClientRect();
+                setCanvasSize({
+                    width: rect.width,
+                    height: rect.height,
+                });
 
-  // Convert ratio to pixels for position (based on actual image size)
-  const ratioToPixelsPosition = (
-    ratio: number,
-    dimension: 'width' | 'height'
-  ) => {
-    const size = dimension === 'width' ? imageSize.width : imageSize.height;
-    const offset =
-      dimension === 'width' ? imageSize.offsetX : imageSize.offsetY;
-    return Math.round(ratio * size + offset);
-  };
+                // Load image to get natural dimensions
+                if (floor.imageUrl) {
+                    const img = new Image();
+                    img.onload = () => {
+                        const calculatedSize = calculateImageSize(
+                            rect.width,
+                            rect.height,
+                            img.naturalWidth,
+                            img.naturalHeight
+                        );
+                        setImageSize(calculatedSize);
+                    };
+                    img.src = floor.imageUrl;
+                } else {
+                    // No image - use full canvas size
+                    setImageSize({
+                        width: rect.width,
+                        height: rect.height,
+                        offsetX: 0,
+                        offsetY: 0,
+                    });
+                }
+            }
+        };
 
-  // Convert ratio to pixels for size (based on actual image size)
-  const ratioToPixelsSize = (ratio: number, dimension: 'width' | 'height') => {
-    const size = dimension === 'width' ? imageSize.width : imageSize.height;
-    return Math.round(ratio * size);
-  };
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, [floor.imageUrl]);
 
-  const handleTableClick = (table: TableResponse, event: React.MouseEvent) => {
-    event.stopPropagation();
+    // Convert ratio to pixels for position (based on actual image size)
+    const ratioToPixelsPosition = (
+        ratio: number,
+        dimension: 'width' | 'height'
+    ) => {
+        const size = dimension === 'width' ? imageSize.width : imageSize.height;
+        const offset =
+            dimension === 'width' ? imageSize.offsetX : imageSize.offsetY;
+        return Math.round(ratio * size + offset);
+    };
 
-    // Check if table is selectable
-    if (selectableTables && !selectableTables.includes(table.id)) {
-      return; // Don't allow selection of unavailable tables
-    }
+    // Convert ratio to pixels for size (based on actual image size)
+    const ratioToPixelsSize = (
+        ratio: number,
+        dimension: 'width' | 'height'
+    ) => {
+        const size = dimension === 'width' ? imageSize.width : imageSize.height;
+        return Math.round(ratio * size);
+    };
 
-    const isSelected = selectedTables.some((t) => t.id === table.id);
+    const handleTableClick = (
+        table: TableResponse,
+        event: React.MouseEvent
+    ) => {
+        event.stopPropagation();
 
-    // Default multi-select mode - toggle table selection
-    if (isSelected) {
-      // Remove from selection
-      onTableSelect(selectedTables.filter((t) => t.id !== table.id));
-    } else {
-      // Add to selection
-      onTableSelect([...selectedTables, table]);
-    }
-  };
+        // Check if table is selectable
+        if (selectableTables && !selectableTables.includes(table.id)) {
+            return; // Don't allow selection of unavailable tables
+        }
 
-  const handleCanvasClick = () => {
-    // Clear all selections when clicking on empty canvas
-    onTableSelect([]);
-  };
+        const isSelected = selectedTables.some((t) => t.id === table.id);
 
-  return (
-    <div className="relative w-full h-full bg-white border rounded-lg overflow-hidden">
-      {/* Background Image */}
-      {floor.imageUrl && (
-        <div
-          className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-60"
-          style={{ backgroundImage: `url(${floor.imageUrl})` }}
-        />
-      )}
+        // Default multi-select mode - toggle table selection
+        if (isSelected) {
+            // Remove from selection
+            onTableSelect(selectedTables.filter((t) => t.id !== table.id));
+        } else {
+            // Add to selection
+            onTableSelect([...selectedTables, table]);
+        }
+    };
 
-      {/* Canvas */}
-      <div
-        ref={canvasRef}
-        className="relative w-full h-full cursor-pointer"
-        onClick={handleCanvasClick}
-        style={{ minHeight: '600px' }}
-      >
-        {/* Tables */}
-        {Array.isArray(tables) &&
-          tables.map((table) => {
-            const xRatio = table.xRatio ?? table.xratio ?? 0.5;
-            const yRatio = table.yRatio ?? table.yratio ?? 0.5;
-            const x = ratioToPixelsPosition(xRatio, 'width');
-            const y = ratioToPixelsPosition(yRatio, 'height');
-            const width = ratioToPixelsSize(table.widthRatio, 'width');
-            const height = ratioToPixelsSize(table.heightRatio, 'height');
+    const handleCanvasClick = () => {
+        // Clear all selections when clicking on empty canvas
+        onTableSelect([]);
+    };
 
-            const isSelected = selectedTables.some((t) => t.id === table.id);
-            const isSelectable = selectableTables
-              ? selectableTables.includes(table.id)
-              : true;
+    return (
+        <div className="relative w-full h-full bg-white border rounded-lg overflow-hidden">
+            {/* Background Image */}
+            {floor.imageUrl && (
+                <div
+                    className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-60"
+                    style={{ backgroundImage: `url(${floor.imageUrl})` }}
+                />
+            )}
 
-            return (
-              <Rnd
-                key={table.id}
-                size={{ width, height }}
-                position={{ x, y }}
-                disableDragging={true}
-                enableResizing={false}
-                bounds="parent"
-                className={`
+            {/* Canvas */}
+            <div
+                ref={canvasRef}
+                className="relative w-full h-full cursor-pointer"
+                onClick={handleCanvasClick}
+                style={{ minHeight: '600px' }}
+            >
+                {/* Tables */}
+                {Array.isArray(tables) &&
+                    tables.map((table) => {
+                        const xRatio = table.xRatio ?? table.xratio ?? 0.5;
+                        const yRatio = table.yRatio ?? table.yratio ?? 0.5;
+                        const x = ratioToPixelsPosition(xRatio, 'width');
+                        const y = ratioToPixelsPosition(yRatio, 'height');
+                        const width = ratioToPixelsSize(
+                            table.widthRatio,
+                            'width'
+                        );
+                        const height = ratioToPixelsSize(
+                            table.heightRatio,
+                            'height'
+                        );
+
+                        const isSelected = selectedTables.some(
+                            (t) => t.id === table.id
+                        );
+                        const isSelectable = selectableTables
+                            ? selectableTables.includes(table.id)
+                            : true;
+
+                        return (
+                            <Rnd
+                                key={table.id}
+                                size={{ width, height }}
+                                position={{ x, y }}
+                                disableDragging={true}
+                                enableResizing={false}
+                                bounds="parent"
+                                className={`
                                     ${isSelected ? 'ring-2 ring-blue-500' : ''}
                                     z-10 cursor-pointer
                                 `}
-              >
-                <TableElement
-                  table={table}
-                  isSelected={isSelected}
-                  onClick={(e) => handleTableClick(table, e)}
-                  isDragging={false}
-                  unable={!isSelectable}
-                />
-              </Rnd>
-            );
-          })}
+                            >
+                                <TableElement
+                                    table={table}
+                                    isSelected={isSelected}
+                                    onClick={(e) => handleTableClick(table, e)}
+                                    isDragging={false}
+                                    unable={!isSelectable}
+                                />
+                            </Rnd>
+                        );
+                    })}
 
-        {/* Show message when no tables available */}
-        {(!Array.isArray(tables) || tables.length === 0) && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <p className="text-lg font-medium">No tables available</p>
-              <p className="text-sm">Please select a different floor or time</p>
+                {/* Show message when no tables available */}
+                {(!Array.isArray(tables) || tables.length === 0) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center text-muted-foreground">
+                            <p className="text-lg font-medium">
+                                No tables available
+                            </p>
+                            <p className="text-sm">
+                                Please select a different floor or time
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Selection info - only show when table is selected */}
-      {selectedTables.length > 0 && (
-        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded max-w-48">
-          {selectedTables.length} table
-          {selectedTables.length > 1 ? 's' : ''} selected
-          <br />
-          <span className="opacity-75">
-            Click tables to add/remove from selection
-          </span>
+            {/* Selection info - only show when table is selected */}
+            {selectedTables.length > 0 && (
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded max-w-48">
+                    {selectedTables.length} table
+                    {selectedTables.length > 1 ? 's' : ''} selected
+                    <br />
+                    <span className="opacity-75">
+                        Click tables to add/remove from selection
+                    </span>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
