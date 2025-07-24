@@ -2,6 +2,7 @@
 import { ArrowLeft, Edit, Trash2, Tags, Package, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 
 import {
     usePosCategory,
@@ -22,11 +23,12 @@ import { useToast } from '@/hooks/use-toast';
 export default function PosCategoryDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
+    const resolvedParams = use(params);
     const { toast } = useToast();
     const router = useRouter();
-    const categoryId = Number(params.id);
+    const categoryId = Number(resolvedParams.id);
 
     // API hooks
     const { data: category, isLoading, error } = usePosCategory(categoryId);
@@ -257,12 +259,12 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.active
+                                            (category as any).active
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.active ? 'Yes' : 'No'}
+                                        {(category as any).active ? 'Yes' : 'No'}
                                     </Badge>
                                 </div>
                                 <div>
@@ -277,12 +279,12 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.productCount > 0
+                                            (category as any).productCount > 0
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.productCount > 0
+                                        {(category as any).productCount > 0
                                             ? 'Yes'
                                             : 'No'}
                                     </Badge>
@@ -293,12 +295,12 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.subcategories.length > 0
+                                            (category as any).subcategories?.length > 0
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.subcategories.length > 0
+                                        {(category as any).subcategories?.length > 0
                                             ? 'Yes'
                                             : 'No'}
                                     </Badge>
@@ -318,7 +320,7 @@ export default function PosCategoryDetailPage({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {category.products.map((product) => (
+                                {((category as any).products || []).map((product: any) => (
                                     <div
                                         key={product.id}
                                         className="flex items-center justify-between p-4 border rounded-lg"
@@ -382,7 +384,7 @@ export default function PosCategoryDetailPage({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {category.subcategories.map((subcategory) => (
+                                {((category as any).subcategories || []).map((subcategory: any) => (
                                     <div
                                         key={subcategory.id}
                                         className="flex items-center justify-between p-4 border rounded-lg"
@@ -402,7 +404,7 @@ export default function PosCategoryDetailPage({
                                         <div className="flex items-center space-x-4">
                                             <div className="text-right">
                                                 <p className="font-medium">
-                                                    {subcategory.productCount}{' '}
+                                                    {(subcategory as any).productCount}{' '}
                                                     products
                                                 </p>
                                             </div>

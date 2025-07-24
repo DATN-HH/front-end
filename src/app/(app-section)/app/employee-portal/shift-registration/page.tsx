@@ -42,7 +42,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { employeeRole } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function ShiftRegistration() {
+function ShiftRegistration() {
     const { user } = useAuth();
     const { success, error } = useCustomToast();
     const branchId = user?.branch?.id;

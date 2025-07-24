@@ -241,8 +241,10 @@ export default function PosCategoriesPage() {
                 <PageTitle
                     icon={Layers}
                     title="POS Categories"
-                    description="Manage product categories displayed on Point of Sale"
                 />
+                <p className="text-muted-foreground -mt-2 mb-6">
+                    Manage product categories displayed on Point of Sale
+                </p>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <Loader2 className="h-8 w-8 animate-spin" />
                     <span className="ml-2">Loading categories...</span>

@@ -70,8 +70,10 @@ export default function EditModalsDemo() {
             <PageTitle
                 icon={Settings}
                 title="Edit Modals Demo"
-                description="Demonstration of edit modal components for products, categories, and attributes"
             />
+            <p className="text-muted-foreground -mt-2 mb-6">
+                Demonstration of edit modal components for products, categories, and attributes
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Product Card */}
@@ -332,7 +334,7 @@ const [selectedItem, setSelectedItem] = useState(null)`}
             <PosCategoryEditModal
                 open={showCategoryEdit}
                 onOpenChange={setShowCategoryEdit}
-                category={sampleCategory}
+                category={sampleCategory as any}
             />
             <AttributeEditModal
                 open={showAttributeEdit}

@@ -3,7 +3,7 @@
 import { ArrowLeft, Plus, Star, Clock, ChefHat, Leaf } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, use } from 'react';
 
 import { MenuItemCardMobile } from '@/components/common/menu-item-card-mobile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,17 +24,18 @@ import { useCart } from '@/contexts/cart-context';
 import { menuItems, reviews, quickNotes } from '@/lib/restaurant-data';
 
 interface MenuItemDetailProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export default function MenuItemDetail({ params }: MenuItemDetailProps) {
+    const resolvedParams = use(params);
     const [selectedImage, setSelectedImage] = useState(0);
     const [isAddToCartOpen, setIsAddToCartOpen] = useState(false);
     const [notes, setNotes] = useState('');
     const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
     const { dispatch } = useCart();
 
-    const item = menuItems.find((item) => item.id === params.id);
+    const item = menuItems.find((item) => item.id === resolvedParams.id);
 
     if (!item) {
         return (

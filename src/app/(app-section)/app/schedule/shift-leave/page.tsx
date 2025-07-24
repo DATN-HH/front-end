@@ -54,7 +54,7 @@ import { UpdateLeaveBalanceModal } from '@/features/scheduling/components/shift-
 import { Role } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function ShiftLeaveManagement() {
+function ShiftLeaveManagement() {
     const { user } = useAuth();
     const { success, error } = useCustomToast();
     const queryClient = useQueryClient();

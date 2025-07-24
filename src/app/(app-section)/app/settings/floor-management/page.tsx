@@ -25,7 +25,7 @@ import { ImageViewDialog } from '@/features/booking/components/floor-management/
 import { Role } from '@/lib/rbac';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function FloorManagementPage() {
+function FloorManagementPage() {
     const { user } = useAuth();
     const { success, error } = useCustomToast();
 
