@@ -7,7 +7,7 @@ import { use } from 'react';
 import {
     usePosCategory,
     useDeletePosCategory,
-} from '@/api/v1/menu/pos-categories';
+} from '@/api/v1/menu/categories';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

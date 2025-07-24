@@ -8,7 +8,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { useUploadImage } from '@/api/v1/images';
-import { useAllCategories } from '@/api/v1/menu/categories';
+import { useCategoryHierarchy } from '@/api/v1/menu/categories';
+import { CategorySelector } from '@/components/category/CategorySelector';
 import {
     useAssignTagsToProduct,
     ProductTagResponse,
@@ -93,7 +94,7 @@ export function ProductCreateModal({
     const createProductMutation = useCreateProduct();
     const uploadImageMutation = useUploadImage();
     const assignTagsMutation = useAssignTagsToProduct();
-    const { data: categories } = useAllCategories();
+    const { data: categories = [] } = useCategoryHierarchy();
 
     const form = useForm<ProductFormData>({
         resolver: zodResolver(productSchema),
@@ -404,38 +405,14 @@ export function ProductCreateModal({
                                                     <FormLabel>
                                                         Category
                                                     </FormLabel>
-                                                    <Select
-                                                        onValueChange={(
-                                                            value
-                                                        ) =>
-                                                            field.onChange(
-                                                                Number(value)
-                                                            )
-                                                        }
-                                                        value={field.value?.toString()}
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Select category (will use 'Other' if not selected)" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {categories?.map(
-                                                                (category) => (
-                                                                    <SelectItem
-                                                                        key={
-                                                                            category.id
-                                                                        }
-                                                                        value={category.id.toString()}
-                                                                    >
-                                                                        {
-                                                                            category.name
-                                                                        }
-                                                                    </SelectItem>
-                                                                )
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
+                                                    <FormControl>
+                                                        <CategorySelector
+                                                            categories={categories}
+                                                            value={field.value}
+                                                            onValueChange={field.onChange}
+                                                            placeholder="Select category (will use 'Other' if not selected)"
+                                                        />
+                                                    </FormControl>
                                                     <FormDescription>
                                                         If no category is
                                                         selected, the product

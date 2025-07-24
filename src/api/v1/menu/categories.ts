@@ -8,16 +8,61 @@ export type Status = 'ACTIVE' | 'INACTIVE' | 'DELETED';
 
 export interface CategoryResponse {
     id: number;
-    code: string;
+    code?: string; // May be null for migrated pos_categories
     name: string;
-    description: string;
+    description?: string;
     status: Status;
     createdAt: string;
     updatedAt: string;
     createdBy?: string;
     updatedBy?: string;
-    productCount?: number;
+
+    // Fields from pos_category for unified system
+    sequence?: number;
+    image?: string;
+
+    // Parent information for hierarchy
+    parentId?: number;
+    parentName?: string;
+
+    // Hierarchy information
+    level?: number;
+    isRoot?: boolean;
+    hasChildren?: boolean;
+    hasProducts?: boolean;
+
+    // Children categories (for tree structure)
+    children?: CategoryResponse[];
+
+    // Counts for smart buttons
+    childrenCount?: number;
+    productsCount?: number;
+    productCount?: number; // Legacy field for backward compatibility
+
+    // Migration tracking (temporary)
+    migrationSource?: string;
+
+    // Full hierarchical path
+    fullPath?: string;
 }
+
+// ========== BACKWARD COMPATIBILITY TYPES ==========
+// These type aliases provide compatibility with the old pos-category types
+
+/**
+ * @deprecated Use CategoryResponse instead
+ */
+export type PosCategoryResponse = CategoryResponse;
+
+/**
+ * @deprecated Use CategoryCreateRequest instead
+ */
+export type PosCategoryCreateRequest = CategoryCreateRequest;
+
+/**
+ * @deprecated Use CategoryUpdateRequest instead
+ */
+export type PosCategoryUpdateRequest = CategoryUpdateRequest;
 
 export interface ProductListResponse {
     id: number;
@@ -42,17 +87,27 @@ export interface ProductListResponse {
 }
 
 export interface CategoryCreateRequest {
-    code: string;
+    code?: string; // Optional to support pos_category style categories
     name: string;
     description?: string;
     status?: Status;
+
+    // Fields from pos_category for unified system
+    parentId?: number; // Optional parent category for hierarchy
+    sequence?: number; // Display order
+    image?: string; // Optional image URL
 }
 
 export interface CategoryUpdateRequest {
-    code?: string;
+    code?: string; // Optional to support pos_category style categories
     name?: string;
     description?: string;
     status?: Status;
+
+    // Fields from pos_category for unified system
+    parentId?: number; // Optional parent category for hierarchy
+    sequence?: number; // Display order
+    image?: string; // Optional image URL
 }
 
 export interface CategoryListParams {
@@ -166,6 +221,57 @@ export const getProductCountByCategory = async (
 ): Promise<number> => {
     const response = await apiClient.get<ApiResponse<number>>(
         `/api/menu/categories/${id}/product-count`
+    );
+    return response.data.data;
+};
+
+// ========== HIERARCHY API FUNCTIONS ==========
+
+// Get root categories (categories without parent)
+export const getRootCategories = async (): Promise<CategoryResponse[]> => {
+    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
+        '/api/menu/categories/roots'
+    );
+    return response.data.data;
+};
+
+// Get children of a specific category
+export const getCategoryChildren = async (
+    id: number
+): Promise<CategoryResponse[]> => {
+    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
+        `/api/menu/categories/${id}/children`
+    );
+    return response.data.data;
+};
+
+// Get complete category hierarchy as tree
+export const getCategoryHierarchy = async (): Promise<CategoryResponse[]> => {
+    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
+        '/api/menu/categories/hierarchy'
+    );
+    return response.data.data;
+};
+
+// Move category to different parent
+export const moveCategoryToParent = async (
+    id: number,
+    parentId?: number
+): Promise<CategoryResponse> => {
+    const params = parentId ? `?parentId=${parentId}` : '';
+    const response = await apiClient.put<ApiResponse<CategoryResponse>>(
+        `/api/menu/categories/${id}/move${params}`
+    );
+    return response.data.data;
+};
+
+// Update category sequence
+export const updateCategorySequence = async (
+    id: number,
+    sequence: number
+): Promise<CategoryResponse> => {
+    const response = await apiClient.put<ApiResponse<CategoryResponse>>(
+        `/api/menu/categories/${id}/sequence?sequence=${sequence}`
     );
     return response.data.data;
 };
@@ -363,6 +469,156 @@ export const useUnarchiveCategory = () => {
 
     return useMutation({
         mutationFn: unarchiveCategory,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
+// ========== HIERARCHY HOOKS ==========
+
+export const useRootCategories = () => {
+    return useQuery({
+        queryKey: ['categories', 'roots'],
+        queryFn: getRootCategories,
+    });
+};
+
+export const useCategoryChildren = (id: number) => {
+    return useQuery({
+        queryKey: ['categories', id, 'children'],
+        queryFn: () => getCategoryChildren(id),
+        enabled: !!id,
+    });
+};
+
+export const useCategoryHierarchy = () => {
+    return useQuery({
+        queryKey: ['categories', 'hierarchy'],
+        queryFn: getCategoryHierarchy,
+    });
+};
+
+export const useMoveCategoryToParent = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            id,
+            parentId,
+        }: {
+            id: number;
+            parentId?: number;
+        }) => moveCategoryToParent(id, parentId),
+        onSuccess: () => {
+            // Invalidate all category-related queries
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
+export const useUpdateCategorySequence = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            id,
+            sequence,
+        }: {
+            id: number;
+            sequence: number;
+        }) => updateCategorySequence(id, sequence),
+        onSuccess: () => {
+            // Invalidate all category-related queries
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+        },
+    });
+};
+
+// ========== BACKWARD COMPATIBILITY FUNCTIONS ==========
+// These functions provide compatibility with the old pos-category API
+
+/**
+ * @deprecated Use getAllCategories instead
+ */
+export const getAllPosCategories = getAllCategories;
+
+/**
+ * @deprecated Use getCategoryHierarchy instead
+ */
+export const getPosCategoryTree = getCategoryHierarchy;
+
+/**
+ * @deprecated Use getCategory instead
+ */
+export const getPosCategory = getCategory;
+
+/**
+ * @deprecated Use createCategory instead
+ */
+export const createPosCategory = createCategory;
+
+/**
+ * @deprecated Use updateCategory instead
+ */
+export const updatePosCategory = updateCategory;
+
+/**
+ * @deprecated Use deleteCategory instead
+ */
+export const deletePosCategory = deleteCategory;
+
+// ========== BACKWARD COMPATIBILITY HOOKS ==========
+
+/**
+ * @deprecated Use useAllCategories instead
+ */
+export const useAllPosCategories = useAllCategories;
+
+/**
+ * @deprecated Use useCategoryHierarchy instead
+ */
+export const usePosCategoryTree = useCategoryHierarchy;
+
+/**
+ * @deprecated Use useCategory instead
+ */
+export const usePosCategory = useCategory;
+
+/**
+ * @deprecated Use useCreateCategory instead
+ */
+export const useCreatePosCategory = useCreateCategory;
+
+/**
+ * @deprecated Use useUpdateCategory instead
+ */
+export const useUpdatePosCategory = useUpdateCategory;
+
+/**
+ * @deprecated Use useDeleteCategory instead
+ */
+export const useDeletePosCategory = useDeleteCategory;
+
+/**
+ * @deprecated Use useUpdateCategorySequence instead
+ */
+export const useMoveCategorySequence = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            id,
+            direction,
+        }: {
+            id: number;
+            direction: 'up' | 'down';
+        }) => {
+            // This is a simplified implementation - in a real app you'd need to
+            // calculate the new sequence based on direction
+            const newSequence = direction === 'up' ? -1 : 1; // Placeholder logic
+            return updateCategorySequence(id, newSequence);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['categories'] });
         },

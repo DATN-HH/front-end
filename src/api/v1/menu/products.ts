@@ -124,8 +124,10 @@ export interface SalesInfo {
 
 export interface PosInfo {
     availableInPos?: boolean;
-    posCategoryId?: number;
-    posCategoryName?: string;
+    posCategoryId?: number; // @deprecated Use categoryId instead
+    posCategoryName?: string; // @deprecated Use categoryName instead
+    categoryId?: number; // Unified category system
+    categoryName?: string; // Unified category system
     posSequence?: number;
     toWeigh?: boolean;
 }

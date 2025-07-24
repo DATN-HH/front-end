@@ -9,7 +9,7 @@ import {
     useUpdatePosCategory,
     PosCategoryResponse,
     PosCategoryUpdateRequest,
-} from '@/api/v1/menu/pos-categories';
+} from '@/api/v1/menu/categories';
 import { Button } from '@/components/ui/button';
 import {
     Card,
