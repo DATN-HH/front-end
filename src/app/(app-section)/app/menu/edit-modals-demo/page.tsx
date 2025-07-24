@@ -67,12 +67,10 @@ export default function EditModalsDemo() {
 
     return (
         <div className="space-y-6">
-            <PageTitle
-                icon={Settings}
-                title="Edit Modals Demo"
-            />
+            <PageTitle icon={Settings} title="Edit Modals Demo" />
             <p className="text-muted-foreground -mt-2 mb-6">
-                Demonstration of edit modal components for products, categories, and attributes
+                Demonstration of edit modal components for products, categories,
+                and attributes
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

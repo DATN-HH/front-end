@@ -8,14 +8,62 @@ export interface CurrencyConfig {
 }
 
 export const SUPPORTED_CURRENCIES: Record<string, CurrencyConfig> = {
-    USD: { code: 'USD', symbol: '$', decimalPlaces: 2, displayName: 'US Dollar', locale: 'en-US' },
-    VND: { code: 'VND', symbol: '₫', decimalPlaces: 0, displayName: 'Vietnamese Dong', locale: 'vi-VN' },
-    EUR: { code: 'EUR', symbol: '€', decimalPlaces: 2, displayName: 'Euro', locale: 'de-DE' },
-    GBP: { code: 'GBP', symbol: '£', decimalPlaces: 2, displayName: 'British Pound Sterling', locale: 'en-GB' },
-    JPY: { code: 'JPY', symbol: '¥', decimalPlaces: 0, displayName: 'Japanese Yen', locale: 'ja-JP' },
-    CNY: { code: 'CNY', symbol: '¥', decimalPlaces: 2, displayName: 'Chinese Yuan', locale: 'zh-CN' },
-    SGD: { code: 'SGD', symbol: 'S$', decimalPlaces: 2, displayName: 'Singapore Dollar', locale: 'en-SG' },
-    THB: { code: 'THB', symbol: '฿', decimalPlaces: 2, displayName: 'Thai Baht', locale: 'th-TH' },
+    USD: {
+        code: 'USD',
+        symbol: '$',
+        decimalPlaces: 2,
+        displayName: 'US Dollar',
+        locale: 'en-US',
+    },
+    VND: {
+        code: 'VND',
+        symbol: '₫',
+        decimalPlaces: 0,
+        displayName: 'Vietnamese Dong',
+        locale: 'vi-VN',
+    },
+    EUR: {
+        code: 'EUR',
+        symbol: '€',
+        decimalPlaces: 2,
+        displayName: 'Euro',
+        locale: 'de-DE',
+    },
+    GBP: {
+        code: 'GBP',
+        symbol: '£',
+        decimalPlaces: 2,
+        displayName: 'British Pound Sterling',
+        locale: 'en-GB',
+    },
+    JPY: {
+        code: 'JPY',
+        symbol: '¥',
+        decimalPlaces: 0,
+        displayName: 'Japanese Yen',
+        locale: 'ja-JP',
+    },
+    CNY: {
+        code: 'CNY',
+        symbol: '¥',
+        decimalPlaces: 2,
+        displayName: 'Chinese Yuan',
+        locale: 'zh-CN',
+    },
+    SGD: {
+        code: 'SGD',
+        symbol: 'S$',
+        decimalPlaces: 2,
+        displayName: 'Singapore Dollar',
+        locale: 'en-SG',
+    },
+    THB: {
+        code: 'THB',
+        symbol: '฿',
+        decimalPlaces: 2,
+        displayName: 'Thai Baht',
+        locale: 'th-TH',
+    },
 };
 
 // Legacy function for backward compatibility
@@ -103,7 +151,10 @@ export const formatMoneyNumber = (
 };
 
 // Parse money string back to number
-export const parseMoney = (value: string, currencyCode: string = 'USD'): number | undefined => {
+export const parseMoney = (
+    value: string,
+    currencyCode: string = 'USD'
+): number | undefined => {
     if (!value || value.trim() === '') return undefined;
 
     const config = SUPPORTED_CURRENCIES[currencyCode.toUpperCase()];
@@ -132,7 +183,10 @@ export const validateMoneyValue = (
 
     const config = SUPPORTED_CURRENCIES[currencyCode.toUpperCase()];
     if (!config) {
-        return { isValid: false, error: `Unsupported currency: ${currencyCode}` };
+        return {
+            isValid: false,
+            error: `Unsupported currency: ${currencyCode}`,
+        };
     }
 
     // Check decimal places
@@ -140,7 +194,7 @@ export const validateMoneyValue = (
     if (decimalPlaces > config.decimalPlaces) {
         return {
             isValid: false,
-            error: `Too many decimal places for ${config.code}. Maximum: ${config.decimalPlaces}`
+            error: `Too many decimal places for ${config.code}. Maximum: ${config.decimalPlaces}`,
         };
     }
 
@@ -164,7 +218,9 @@ export const getCurrencySymbol = (currencyCode: string): string => {
 // Get currency display text for UI
 export const getCurrencyDisplayText = (currencyCode: string): string => {
     const config = SUPPORTED_CURRENCIES[currencyCode.toUpperCase()];
-    return config ? `${config.code} (${config.symbol}) - ${config.displayName}` : currencyCode;
+    return config
+        ? `${config.code} (${config.symbol}) - ${config.displayName}`
+        : currencyCode;
 };
 
 // Get all supported currency codes

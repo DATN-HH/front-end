@@ -163,7 +163,6 @@ export default function FoodComboDetailPage() {
                         </Button>
                     </Link>
                 }
-
             />
 
             {/* Action Buttons */}

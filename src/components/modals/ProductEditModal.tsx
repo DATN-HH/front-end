@@ -9,13 +9,13 @@ import * as z from 'zod';
 
 import { useUploadImage } from '@/api/v1/images';
 import { useCategoryHierarchy } from '@/api/v1/menu/categories';
-import { CategorySelector } from '@/components/category/CategorySelector';
 import {
     useUpdateProduct,
     useProductDetail,
     ProductUpdateRequest,
     ProductType,
 } from '@/api/v1/menu/products';
+import { CategorySelector } from '@/components/category/CategorySelector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -428,8 +428,18 @@ export function ProductEditModal({
                                                 <FormControl>
                                                     <CategorySelector
                                                         categories={categories}
-                                                        value={field.value === 0 ? undefined : field.value}
-                                                        onValueChange={(value) => field.onChange(value || 0)}
+                                                        value={
+                                                            field.value === 0
+                                                                ? undefined
+                                                                : field.value
+                                                        }
+                                                        onValueChange={(
+                                                            value
+                                                        ) =>
+                                                            field.onChange(
+                                                                value || 0
+                                                            )
+                                                        }
                                                         placeholder="Select category"
                                                     />
                                                 </FormControl>

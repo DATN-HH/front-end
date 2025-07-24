@@ -503,13 +503,8 @@ export const useMoveCategoryToParent = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({
-            id,
-            parentId,
-        }: {
-            id: number;
-            parentId?: number;
-        }) => moveCategoryToParent(id, parentId),
+        mutationFn: ({ id, parentId }: { id: number; parentId?: number }) =>
+            moveCategoryToParent(id, parentId),
         onSuccess: () => {
             // Invalidate all category-related queries
             queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -521,13 +516,8 @@ export const useUpdateCategorySequence = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({
-            id,
-            sequence,
-        }: {
-            id: number;
-            sequence: number;
-        }) => updateCategorySequence(id, sequence),
+        mutationFn: ({ id, sequence }: { id: number; sequence: number }) =>
+            updateCategorySequence(id, sequence),
         onSuccess: () => {
             // Invalidate all category-related queries
             queryClient.invalidateQueries({ queryKey: ['categories'] });

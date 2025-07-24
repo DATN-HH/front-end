@@ -9,7 +9,6 @@ import * as z from 'zod';
 
 import { useUploadImage } from '@/api/v1/images';
 import { useCategoryHierarchy } from '@/api/v1/menu/categories';
-import { CategorySelector } from '@/components/category/CategorySelector';
 import {
     useAssignTagsToProduct,
     ProductTagResponse,
@@ -19,6 +18,7 @@ import {
     ProductCreateRequest,
     ProductType,
 } from '@/api/v1/menu/products';
+import { CategorySelector } from '@/components/category/CategorySelector';
 import { TagSelector } from '@/components/forms/TagSelector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -407,9 +407,13 @@ export function ProductCreateModal({
                                                     </FormLabel>
                                                     <FormControl>
                                                         <CategorySelector
-                                                            categories={categories}
+                                                            categories={
+                                                                categories
+                                                            }
                                                             value={field.value}
-                                                            onValueChange={field.onChange}
+                                                            onValueChange={
+                                                                field.onChange
+                                                            }
                                                             placeholder="Select category (will use 'Other' if not selected)"
                                                         />
                                                     </FormControl>

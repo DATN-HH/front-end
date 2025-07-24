@@ -43,8 +43,14 @@ const categorySchema = z.object({
     code: z
         .string()
         .optional()
-        .refine((val) => !val || val.length >= 2, 'Code must be at least 2 characters')
-        .refine((val) => !val || val.length <= 20, 'Code must be at most 20 characters')
+        .refine(
+            (val) => !val || val.length >= 2,
+            'Code must be at least 2 characters'
+        )
+        .refine(
+            (val) => !val || val.length <= 20,
+            'Code must be at most 20 characters'
+        )
         .refine(
             (val) => !val || /^[A-Z0-9_]+$/.test(val),
             'Code must contain only uppercase letters, numbers, and underscores'
@@ -276,16 +282,23 @@ export function CategoryCreateModal({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">No Parent (Root Category)</SelectItem>
+                                            <SelectItem value="">
+                                                No Parent (Root Category)
+                                            </SelectItem>
                                             {allCategories
-                                                .filter(cat => cat.id !== parentCategory?.id) // Prevent self-selection
+                                                .filter(
+                                                    (cat) =>
+                                                        cat.id !==
+                                                        parentCategory?.id
+                                                ) // Prevent self-selection
                                                 .map((category) => (
                                                     <SelectItem
                                                         key={category.id}
                                                         value={category.id.toString()}
                                                     >
                                                         {category.name}
-                                                        {category.code && ` (${category.code})`}
+                                                        {category.code &&
+                                                            ` (${category.code})`}
                                                     </SelectItem>
                                                 ))}
                                         </SelectContent>

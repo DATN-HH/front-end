@@ -206,7 +206,9 @@ export default function AttributeDetailPage() {
             accessorKey: 'usageCount',
             header: 'Usage Count',
             cell: ({ row }) => (
-                <Badge variant="outline">{(row.original as any).usageCount || 0}</Badge>
+                <Badge variant="outline">
+                    {(row.original as any).usageCount || 0}
+                </Badge>
             ),
         },
         {

@@ -4,6 +4,7 @@ import { Package, Tags, Utensils, Printer } from 'lucide-react';
 import Link from 'next/link';
 
 import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { MigrationSummaryCard } from '@/components/migration/MigrationSummaryCard';
 import {
     Card,
     CardContent,
@@ -11,7 +12,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { MigrationSummaryCard } from '@/components/migration/MigrationSummaryCard';
 
 export default function MenuModulePage() {
     return (
