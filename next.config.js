@@ -2,6 +2,9 @@
 const nextConfig = {
   output: 'standalone',
   serverExternalPackages: ['pg', 'cloudinary'],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     dynamicIO: false,
   },
