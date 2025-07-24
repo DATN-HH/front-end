@@ -420,6 +420,8 @@ export function WaitlistTable({
                     setPageSize(newPageSize);
                 }}
                 onSearchChange={setKeyword}
+                onSortingChange={() => {}}
+                onFilterChange={() => {}}
                 loading={isLoading}
                 enableSearch={true}
                 enablePagination={true}

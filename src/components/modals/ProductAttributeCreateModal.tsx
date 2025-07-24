@@ -444,7 +444,7 @@ export function ProductAttributeCreateModal({
                                             </div>
                                         )}
 
-                                        {displayType === 'TEXTBOX' && (
+                                        {(displayType as string) === 'TEXTBOX' && (
                                             <div>
                                                 <label className="text-sm font-medium">
                                                     Default Text Value

@@ -3,8 +3,9 @@
 import { ArrowLeft, Plus, Star, Clock, ChefHat, Leaf } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, use } from 'react';
+import { useState, use, useMemo } from 'react';
 
+import { useProductDetail } from '@/api/v1/menu/products';
 import { MenuItemCardMobile } from '@/components/common/menu-item-card-mobile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,38 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useCart } from '@/contexts/cart-context';
-import { menuItems, reviews, quickNotes } from '@/lib/restaurant-data';
+
+// Quick notes for menu items
+const quickNotes = [
+    'No onions',
+    'Extra spicy',
+    'On the side',
+    'Well done',
+    'Medium rare',
+    'No cheese',
+    'Extra sauce',
+    'Gluten free',
+    'Vegetarian',
+    'Less salt',
+];
+
+// Mock reviews data (could be moved to a reviews API later)
+const reviews = [
+    {
+        id: '1',
+        user: { name: 'John Doe', avatar: '/placeholder.svg?height=40&width=40' },
+        rating: 5,
+        comment: 'Absolutely delicious! Will definitely order again.',
+        date: '2024-01-15',
+    },
+    {
+        id: '2',
+        user: { name: 'Jane Smith', avatar: '/placeholder.svg?height=40&width=40' },
+        rating: 4,
+        comment: 'Great taste and presentation. Highly recommended.',
+        date: '2024-01-10',
+    },
+];
 
 interface MenuItemDetailProps {
     params: Promise<{ id: string }>;
@@ -35,9 +67,57 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
     const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
     const { dispatch } = useCart();
 
-    const item = menuItems.find((item) => item.id === resolvedParams.id);
+    // Fetch product details from API
+    const productId = parseInt(resolvedParams.id);
+    const { data: productData, isLoading, error } = useProductDetail(productId);
 
-    if (!item) {
+    // Convert API data to MenuItem format
+    const item = useMemo(() => {
+        if (!productData) return null;
+
+        return {
+            id: productData.id.toString(),
+            name: productData.name,
+            description: productData.description || '',
+            detailedDescription: productData.description || '',
+            price: productData.price || 0,
+            originalPrice: undefined,
+            image: productData.image || '/placeholder.svg?height=400&width=600',
+            images: productData.image ? [productData.image] : ['/placeholder.svg?height=400&width=600'],
+            category: productData.category?.name || 'Uncategorized',
+            isPromotion: false,
+            promotionType: undefined,
+            promotionValue: undefined,
+            isBestSeller: false,
+            isCombo: false,
+            comboItems: [],
+            ingredients: [],
+            allergens: [],
+            nutritionalInfo: undefined,
+            preparationTime: productData.estimateTime || 15,
+            spiceLevel: undefined,
+            isVegetarian: false,
+            isVegan: false,
+            isGlutenFree: false,
+            rating: 4.5, // Default rating
+            reviewCount: reviews.length,
+            chef: undefined,
+            restaurantId: 'default',
+        };
+    }, [productData]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading menu item...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !item) {
         return (
             <div className="container mx-auto px-4 py-16 text-center">
                 <h1 className="text-3xl font-bold mb-4">Item Not Found</h1>
@@ -51,13 +131,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
         );
     }
 
-    const relatedItems = menuItems
-        .filter(
-            (relatedItem) =>
-                relatedItem.category === item.category &&
-                relatedItem.id !== item.id
-        )
-        .slice(0, 4);
+    // Related items would require fetching products by category
+    // For now, we'll show an empty array
+    const relatedItems: any[] = [];
 
     const itemReviews = reviews.filter((review) => Math.random() > 0.5); // Simulate item-specific reviews
 
@@ -86,9 +162,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
         );
     };
 
-    const displayPrice =
-        item.isPromotion && item.originalPrice ? item.price : item.price;
-    const originalPrice =
+    const displayPrice: number = item.price;
+    const originalPrice: number | null =
         item.isPromotion && item.originalPrice ? item.originalPrice : null;
 
     return (
@@ -199,7 +274,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                     </span>
                                     {originalPrice && (
                                         <span className="text-xl text-muted-foreground line-through">
-                                            ${originalPrice.toFixed(2)}
+                                            ${(originalPrice as number).toFixed(2)}
                                         </span>
                                     )}
                                 </div>
@@ -225,8 +300,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
-                                        {item.comboItems.map(
-                                            (comboItem, index) => (
+                                        {item.comboItems && item.comboItems.length > 0 && item.comboItems.map(
+                                            (comboItem: { name: string; quantity: number; id: string }, index: number) => (
                                                 <div
                                                     key={index}
                                                     className="flex justify-between items-center"
@@ -381,7 +456,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {item.nutritionalInfo.calories}
+                                                {(item.nutritionalInfo as any)?.calories || 0}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Calories
@@ -389,7 +464,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {item.nutritionalInfo.protein}g
+                                                {(item.nutritionalInfo as any)?.protein || 0}g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Protein
@@ -397,7 +472,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {item.nutritionalInfo.carbs}g
+                                                {(item.nutritionalInfo as any)?.carbs || 0}g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Carbs
@@ -405,7 +480,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {item.nutritionalInfo.fat}g
+                                                {(item.nutritionalInfo as any)?.fat || 0}g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Fat
@@ -432,12 +507,12 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                                 <Avatar>
                                                     <AvatarImage
                                                         src={
-                                                            review.userAvatar ||
+                                                            review.user.avatar ||
                                                             '/placeholder.svg'
                                                         }
                                                     />
                                                     <AvatarFallback>
-                                                        {review.userName.charAt(
+                                                        {review.user.name.charAt(
                                                             0
                                                         )}
                                                     </AvatarFallback>
@@ -445,7 +520,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <span className="font-semibold">
-                                                            {review.userName}
+                                                            {review.user.name}
                                                         </span>
                                                         <div className="flex items-center gap-1">
                                                             {[...Array(5)].map(
@@ -474,8 +549,7 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                                             variant="ghost"
                                                             size="sm"
                                                         >
-                                                            👍 Helpful (
-                                                            {review.helpful})
+                                                            👍 Helpful (0)
                                                         </Button>
                                                     </div>
                                                 </div>

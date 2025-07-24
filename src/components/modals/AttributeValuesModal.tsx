@@ -46,7 +46,6 @@ const valueFormSchema = z.object({
         .max(50, 'Name must be less than 50 characters'),
     colorCode: z.string().optional(),
     sequence: z.number().min(0, 'Sequence must be non-negative'),
-    priceExtra: z.number().optional(),
     description: z.string().optional(),
 });
 
@@ -84,7 +83,6 @@ export function AttributeValuesModal({
             name: '',
             colorCode: '',
             sequence: 0,
-            priceExtra: 0,
             description: '',
         },
     });
@@ -96,7 +94,6 @@ export function AttributeValuesModal({
                 name: data.name,
                 colorCode: data.colorCode || undefined,
                 sequence: data.sequence || 0,
-                priceExtra: data.priceExtra || undefined,
                 description: data.description || undefined,
                 attributeId,
             };
@@ -137,7 +134,6 @@ export function AttributeValuesModal({
             name: value.name,
             colorCode: value.colorCode || '',
             sequence: value.sequence || 0,
-            priceExtra: value.priceExtra || 0,
             description: value.description || '',
         });
         setShowCreateForm(false);
@@ -278,16 +274,6 @@ export function AttributeValuesModal({
                                                 </div>
 
                                                 <div className="flex items-center space-x-2">
-                                                    {value.priceExtra &&
-                                                        value.priceExtra >
-                                                            0 && (
-                                                            <Badge variant="outline">
-                                                                <DollarSign className="h-3 w-3 mr-1" />
-                                                                {formatCurrency(
-                                                                    value.priceExtra
-                                                                )}
-                                                            </Badge>
-                                                        )}
                                                     <Badge variant="outline">
                                                         Seq:{' '}
                                                         {value.sequence || 0}
@@ -420,33 +406,7 @@ export function AttributeValuesModal({
                                             />
                                         )}
 
-                                        <FormField
-                                            control={form.control}
-                                            name="priceExtra"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>
-                                                        Price Extra (VND)
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            type="number"
-                                                            placeholder="0"
-                                                            {...field}
-                                                            onChange={(e) =>
-                                                                field.onChange(
-                                                                    Number(
-                                                                        e.target
-                                                                            .value
-                                                                    ) || 0
-                                                                )
-                                                            }
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+
 
                                         <FormField
                                             control={form.control}

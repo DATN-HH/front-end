@@ -1,4 +1,4 @@
-import { UserResponseDto } from '@/api/v1/users';
+import { UserDtoResponse } from '@/api/v1/auth';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,7 +12,7 @@ import {
 interface DeleteEmployeeModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    employee: UserResponseDto | null;
+    employee: UserDtoResponse | null;
     onConfirm: () => void;
     isLoading: boolean;
 }

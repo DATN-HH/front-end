@@ -103,6 +103,7 @@ export interface OrderData {
     type: 'dine-in' | 'takeaway' | 'delivery';
     tableNumber?: string;
     address?: string;
+    branch?: string;
     restaurantId?: string;
     notes?: string;
     scheduledTime?: string;

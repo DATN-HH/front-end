@@ -214,10 +214,12 @@ export default function UnifiedCategoriesPage() {
 
     return (
         <div className="space-y-6">
-            <PageTitle
-                title="Categories"
-                description="Manage your product categories with hierarchy support"
-            />
+            <div className="space-y-2">
+                <PageTitle title="Categories" />
+                <p className="text-muted-foreground">
+                    Manage your product categories with hierarchy support
+                </p>
+            </div>
 
             {/* Migration Status Banner */}
             {migrationStats.migratedCategories > 0 && (

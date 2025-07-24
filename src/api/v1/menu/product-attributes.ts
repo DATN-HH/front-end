@@ -580,7 +580,7 @@ export const useUpdateProductVariant = () => {
             data,
         }: {
             id: number;
-            data: ProductVariantPricingRequest;
+            data: ProductVariantUpdateRequest;
         }) => updateProductVariant(id, data),
         onSuccess: (result) => {
             queryClient.invalidateQueries({

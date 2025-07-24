@@ -91,7 +91,7 @@ export function QrScanner({ onScan, onError, isActive = true, className }: QrSca
 
       // Start decoding
       codeReader.current.decodeFromVideoDevice(
-        selectedDeviceId || undefined,
+        selectedDeviceId || null,
         videoRef.current,
         (result, error) => {
           if (result) {
