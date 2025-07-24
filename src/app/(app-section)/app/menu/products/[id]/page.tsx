@@ -1,6 +1,7 @@
 'use client';
 import { ArrowLeft, Edit, Archive, ImageIcon, Package } from 'lucide-react';
 import Link from 'next/link';
+import { use } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,8 +57,9 @@ const product = {
 export default function ProductDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
+    const resolvedParams = use(params);
     const { toast } = useToast();
 
     const handleArchive = () => {

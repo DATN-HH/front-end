@@ -20,7 +20,7 @@ import { EditTableTypeDialog } from '@/features/booking/components/table-type/Ed
 import { getIconByName } from '@/lib/icon-utils';
 import { Role } from '@/lib/rbac';
 
-export function TableTypes() {
+function TableTypes() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

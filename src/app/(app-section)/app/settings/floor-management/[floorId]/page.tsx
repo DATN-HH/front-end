@@ -26,7 +26,7 @@ import { useCustomToast } from '@/lib/show-toast';
 
 // Import components
 
-export function FloorDetailPage() {
+function FloorDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { success, error } = useCustomToast();

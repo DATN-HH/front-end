@@ -110,6 +110,7 @@ export default function AttributesPage() {
             SELECT: 'bg-green-100 text-green-800',
             COLOR: 'bg-purple-100 text-purple-800',
             CHECKBOX: 'bg-orange-100 text-orange-800',
+            TEXTBOX: 'bg-gray-100 text-gray-800',
         };
 
         return (

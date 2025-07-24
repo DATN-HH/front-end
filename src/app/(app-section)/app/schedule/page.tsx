@@ -47,7 +47,7 @@ import { Role } from '@/lib/rbac';
 
 type ViewType = 'daily' | 'weekly' | 'monthly';
 
-export function ScheduleOverview() {
+function ScheduleOverview() {
     const [activeTab, setActiveTab] = useState<ViewType>('daily');
     const [selectedDate, setSelectedDate] = useState<string>(
         formatDate(new Date())

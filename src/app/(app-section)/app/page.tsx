@@ -304,7 +304,7 @@ function SimpleLineChart({
     );
 }
 
-export function RestaurantDashboard() {
+function RestaurantDashboard() {
     const totalRevenue = revenueData.reduce((sum, day) => sum + day.revenue, 0);
     const totalOrders = revenueData.reduce((sum, day) => sum + day.orders, 0);
     const avgOrderValue = totalRevenue / totalOrders;

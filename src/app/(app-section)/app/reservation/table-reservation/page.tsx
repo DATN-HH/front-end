@@ -46,7 +46,7 @@ interface BookingData {
     paymentType?: 'cash' | 'banking';
 }
 
-export function TableReservation() {
+function TableReservation() {
     const { user } = useAuth();
 
     // State management

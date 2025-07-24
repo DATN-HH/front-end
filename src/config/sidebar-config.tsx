@@ -103,13 +103,8 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                     icon: <ShoppingCart className="h-4 w-4" />,
                 },
                 {
-                    href: '/app/menu/categories',
+                    href: '/app/menu/categories/unified',
                     label: 'Categories',
-                    icon: <Tags className="h-4 w-4" />,
-                },
-                {
-                    href: '/app/menu/pos-categories',
-                    label: 'POS Categories',
                     icon: <Tags className="h-4 w-4" />,
                 },
                 {

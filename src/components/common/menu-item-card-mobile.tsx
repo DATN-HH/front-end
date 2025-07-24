@@ -17,8 +17,21 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCart } from '@/contexts/cart-context';
-import { quickNotes } from '@/lib/restaurant-data';
 import type { MenuItem } from '@/lib/types';
+
+// Quick notes for menu items
+const quickNotes = [
+    'No onions',
+    'Extra spicy',
+    'On the side',
+    'Well done',
+    'Medium rare',
+    'No cheese',
+    'Extra sauce',
+    'Gluten free',
+    'Vegetarian',
+    'Less salt',
+];
 
 interface MenuItemCardMobileProps {
     item: MenuItem;

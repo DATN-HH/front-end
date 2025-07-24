@@ -78,6 +78,7 @@ export default function AttributeDetailPage() {
             SELECT: 'bg-green-100 text-green-800',
             COLOR: 'bg-purple-100 text-purple-800',
             CHECKBOX: 'bg-orange-100 text-orange-800',
+            TEXTBOX: 'bg-gray-100 text-gray-800',
         };
 
         return (
@@ -193,7 +194,7 @@ export default function AttributeDetailPage() {
             accessorKey: 'priceExtra',
             header: 'Price Extra',
             cell: ({ row }) => {
-                const priceExtra = row.original.priceExtra;
+                const priceExtra = (row.original as any).priceExtra;
                 if (!priceExtra || priceExtra === 0) return '-';
                 return new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
@@ -205,7 +206,9 @@ export default function AttributeDetailPage() {
             accessorKey: 'usageCount',
             header: 'Usage Count',
             cell: ({ row }) => (
-                <Badge variant="outline">{row.original.usageCount || 0}</Badge>
+                <Badge variant="outline">
+                    {(row.original as any).usageCount || 0}
+                </Badge>
             ),
         },
         {
