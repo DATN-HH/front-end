@@ -2,11 +2,9 @@
 import { ArrowLeft, Edit, Trash2, Tags, Package, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 
-import {
-    usePosCategory,
-    useDeletePosCategory,
-} from '@/api/v1/menu/pos-categories';
+import { usePosCategory, useDeletePosCategory } from '@/api/v1/menu/categories';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,11 +20,12 @@ import { useToast } from '@/hooks/use-toast';
 export default function PosCategoryDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
+    const resolvedParams = use(params);
     const { toast } = useToast();
     const router = useRouter();
-    const categoryId = Number(params.id);
+    const categoryId = Number(resolvedParams.id);
 
     // API hooks
     const { data: category, isLoading, error } = usePosCategory(categoryId);
@@ -257,12 +256,14 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.active
+                                            (category as any).active
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.active ? 'Yes' : 'No'}
+                                        {(category as any).active
+                                            ? 'Yes'
+                                            : 'No'}
                                     </Badge>
                                 </div>
                                 <div>
@@ -277,12 +278,12 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.productCount > 0
+                                            (category as any).productCount > 0
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.productCount > 0
+                                        {(category as any).productCount > 0
                                             ? 'Yes'
                                             : 'No'}
                                     </Badge>
@@ -293,12 +294,14 @@ export default function PosCategoryDetailPage({
                                     </label>
                                     <Badge
                                         variant={
-                                            category.subcategories.length > 0
+                                            (category as any).subcategories
+                                                ?.length > 0
                                                 ? 'default'
                                                 : 'secondary'
                                         }
                                     >
-                                        {category.subcategories.length > 0
+                                        {(category as any).subcategories
+                                            ?.length > 0
                                             ? 'Yes'
                                             : 'No'}
                                     </Badge>
@@ -318,55 +321,57 @@ export default function PosCategoryDetailPage({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {category.products.map((product) => (
-                                    <div
-                                        key={product.id}
-                                        className="flex items-center justify-between p-4 border rounded-lg"
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <Package className="h-8 w-8 text-gray-400" />
-                                            <div>
-                                                <h4 className="font-medium">
-                                                    {product.name}
-                                                </h4>
-                                                <p className="text-sm text-gray-500">
-                                                    Product ID: {product.id}
-                                                </p>
+                                {((category as any).products || []).map(
+                                    (product: any) => (
+                                        <div
+                                            key={product.id}
+                                            className="flex items-center justify-between p-4 border rounded-lg"
+                                        >
+                                            <div className="flex items-center space-x-4">
+                                                <Package className="h-8 w-8 text-gray-400" />
+                                                <div>
+                                                    <h4 className="font-medium">
+                                                        {product.name}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-500">
+                                                        Product ID: {product.id}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-4">
+                                                <div className="text-right">
+                                                    <p className="font-medium">
+                                                        {formatCurrency(
+                                                            product.price
+                                                        )}
+                                                    </p>
+                                                    <Badge
+                                                        variant={
+                                                            product.active
+                                                                ? 'default'
+                                                                : 'secondary'
+                                                        }
+                                                        className="text-xs"
+                                                    >
+                                                        {product.active
+                                                            ? 'Active'
+                                                            : 'Inactive'}
+                                                    </Badge>
+                                                </div>
+                                                <Link
+                                                    href={`/app/menu/products/${product.id}/detail`}
+                                                >
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        View
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-right">
-                                                <p className="font-medium">
-                                                    {formatCurrency(
-                                                        product.price
-                                                    )}
-                                                </p>
-                                                <Badge
-                                                    variant={
-                                                        product.active
-                                                            ? 'default'
-                                                            : 'secondary'
-                                                    }
-                                                    className="text-xs"
-                                                >
-                                                    {product.active
-                                                        ? 'Active'
-                                                        : 'Inactive'}
-                                                </Badge>
-                                            </div>
-                                            <Link
-                                                href={`/app/menu/products/${product.id}/detail`}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                >
-                                                    View
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -382,43 +387,48 @@ export default function PosCategoryDetailPage({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {category.subcategories.map((subcategory) => (
-                                    <div
-                                        key={subcategory.id}
-                                        className="flex items-center justify-between p-4 border rounded-lg"
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <Tags className="h-8 w-8 text-gray-400" />
-                                            <div>
-                                                <h4 className="font-medium">
-                                                    {subcategory.name}
-                                                </h4>
-                                                <p className="text-sm text-gray-500">
-                                                    Sequence:{' '}
-                                                    {subcategory.sequence}
-                                                </p>
+                                {((category as any).subcategories || []).map(
+                                    (subcategory: any) => (
+                                        <div
+                                            key={subcategory.id}
+                                            className="flex items-center justify-between p-4 border rounded-lg"
+                                        >
+                                            <div className="flex items-center space-x-4">
+                                                <Tags className="h-8 w-8 text-gray-400" />
+                                                <div>
+                                                    <h4 className="font-medium">
+                                                        {subcategory.name}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-500">
+                                                        Sequence:{' '}
+                                                        {subcategory.sequence}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-right">
-                                                <p className="font-medium">
-                                                    {subcategory.productCount}{' '}
-                                                    products
-                                                </p>
-                                            </div>
-                                            <Link
-                                                href={`/app/menu/pos-categories/${subcategory.id}/detail`}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
+                                            <div className="flex items-center space-x-4">
+                                                <div className="text-right">
+                                                    <p className="font-medium">
+                                                        {
+                                                            (subcategory as any)
+                                                                .productCount
+                                                        }{' '}
+                                                        products
+                                                    </p>
+                                                </div>
+                                                <Link
+                                                    href={`/app/menu/pos-categories/${subcategory.id}/detail`}
                                                 >
-                                                    View
-                                                </Button>
-                                            </Link>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        View
+                                                    </Button>
+                                                </Link>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                )}
                             </div>
                         </CardContent>
                     </Card>

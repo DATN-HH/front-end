@@ -24,7 +24,7 @@ import { Role } from '@/lib/rbac';
 import { SearchCondition } from '@/lib/response-object';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function WorkingShift() {
+function WorkingShift() {
     const { user } = useAuth();
 
     // State management

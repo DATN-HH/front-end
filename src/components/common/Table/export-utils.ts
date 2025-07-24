@@ -9,12 +9,14 @@ interface CellValue {
 
 // Helper to extract plain values from cell renders
 const extractValue = <T>(data: T, column: ColumnDef<T, any>): string => {
-    if (column.accessorFn) {
+    // Check if column has accessorFn (for computed values)
+    if ('accessorFn' in column && typeof column.accessorFn === 'function') {
         const value = column.accessorFn(data, 0);
         return value !== null && value !== undefined ? String(value) : '';
     }
 
-    if (column.accessorKey && typeof column.accessorKey === 'string') {
+    // Check if column has accessorKey (for direct property access)
+    if ('accessorKey' in column && typeof column.accessorKey === 'string') {
         const value = (data as Record<string, any>)[column.accessorKey];
         return value !== null && value !== undefined ? String(value) : '';
     }

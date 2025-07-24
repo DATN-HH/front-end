@@ -2,21 +2,21 @@ import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Edit, Trash, CheckCircle } from 'lucide-react';
 
-import { UserResponseDto } from '@/api/v1/users';
+import { UserDtoResponse } from '@/api/v1/auth';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
 interface EmployeeTableColumnsProps {
-    onEdit: (employee: UserResponseDto) => void;
-    onDelete: (employee: UserResponseDto) => void;
-    onManageUnavailability?: (employee: UserResponseDto) => void;
+    onEdit: (employee: UserDtoResponse) => void;
+    onDelete: (employee: UserDtoResponse) => void;
+    onManageUnavailability?: (employee: UserDtoResponse) => void;
 }
 
 export const EmployeeTableColumns = ({
     onEdit,
     onDelete,
     onManageUnavailability,
-}: EmployeeTableColumnsProps): ColumnDef<UserResponseDto>[] => [
+}: EmployeeTableColumnsProps): ColumnDef<UserDtoResponse>[] => [
     {
         accessorKey: 'fullName',
         header: 'Employee',

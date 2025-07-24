@@ -1,8 +1,10 @@
 'use client';
 
 import { Search, Grid, List } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
+import { useAllCategories } from '@/api/v1/menu/categories';
+import { useAllProducts } from '@/api/v1/menu/products';
 import { MenuItemCard } from '@/components/common/menu-item-card';
 import { MenuItemCardMobile } from '@/components/common/menu-item-card-mobile';
 import { Button } from '@/components/ui/button';
@@ -14,7 +16,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { menuItems, categories } from '@/lib/restaurant-data';
 
 export default function MenuPage() {
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -23,6 +24,53 @@ export default function MenuPage() {
         'list'
     );
     const [sortBy, setSortBy] = useState('name');
+
+    // Fetch real data from API
+    const { data: categoriesData, isLoading: categoriesLoading } =
+        useAllCategories();
+    const { data: productsData, isLoading: productsLoading } = useAllProducts();
+
+    // Process the data for the UI
+    const categories = useMemo(() => {
+        if (!categoriesData) return ['All'];
+        return ['All', ...categoriesData.map((cat) => cat.name)];
+    }, [categoriesData]);
+
+    const menuItems = useMemo(() => {
+        if (!productsData) return [];
+
+        return productsData.map((product) => ({
+            id: product.id.toString(),
+            name: product.name,
+            description: product.description || '',
+            detailedDescription: product.description || '',
+            price: product.price || 0,
+            originalPrice: undefined,
+            image: product.image || '/placeholder.svg?height=200&width=300',
+            images: product.image
+                ? [product.image]
+                : ['/placeholder.svg?height=200&width=300'],
+            category: product.category?.name || 'Uncategorized',
+            isPromotion: false,
+            promotionType: undefined,
+            promotionValue: undefined,
+            isBestSeller: false,
+            isCombo: false,
+            comboItems: [],
+            ingredients: [],
+            allergens: [],
+            nutritionalInfo: undefined,
+            preparationTime: product.estimateTime || 15,
+            spiceLevel: undefined,
+            isVegetarian: false,
+            isVegan: false,
+            isGlutenFree: false,
+            rating: 4.5, // Default rating
+            reviewCount: 0,
+            chef: undefined,
+            restaurantId: 'default',
+        }));
+    }, [productsData]);
 
     const filteredItems = menuItems.filter((item) => {
         const matchesCategory =
@@ -51,6 +99,18 @@ export default function MenuPage() {
     const promotionItems = menuItems.filter((item) => item.isPromotion);
     const bestSellerItems = menuItems.filter((item) => item.isBestSeller);
     const comboItems = menuItems.filter((item) => item.isCombo);
+
+    // Show loading state
+    if (categoriesLoading || productsLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading menu...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">

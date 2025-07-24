@@ -352,11 +352,23 @@ export const updateProductPosConfig = async (
     return response.data.data;
 };
 
+/**
+ * @deprecated Use getProductsForCategory instead
+ */
 export const getProductsForPosCategory = async (
     posCategoryId: number
 ): Promise<ProductResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
-        `/api/menu/product-attributes/pos-categories/${posCategoryId}/products`
+        `/api/menu/product-attributes/categories/${posCategoryId}/products`
+    );
+    return response.data.data;
+};
+
+export const getProductsForCategory = async (
+    categoryId: number
+): Promise<ProductResponse[]> => {
+    const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
+        `/api/menu/product-attributes/categories/${categoryId}/products`
     );
     return response.data.data;
 };
@@ -568,7 +580,7 @@ export const useUpdateProductVariant = () => {
             data,
         }: {
             id: number;
-            data: ProductVariantPricingRequest;
+            data: ProductVariantUpdateRequest;
         }) => updateProductVariant(id, data),
         onSuccess: (result) => {
             queryClient.invalidateQueries({
@@ -690,11 +702,22 @@ export const useUpdateProductPosConfig = () => {
     });
 };
 
+/**
+ * @deprecated Use useProductsForCategory instead
+ */
 export const useProductsForPosCategory = (posCategoryId: number) => {
     return useQuery({
-        queryKey: ['pos-categories', posCategoryId, 'products'],
+        queryKey: ['categories', posCategoryId, 'products'],
         queryFn: () => getProductsForPosCategory(posCategoryId),
         enabled: !!posCategoryId,
+    });
+};
+
+export const useProductsForCategory = (categoryId: number) => {
+    return useQuery({
+        queryKey: ['categories', categoryId, 'products'],
+        queryFn: () => getProductsForCategory(categoryId),
+        enabled: !!categoryId,
     });
 };
 

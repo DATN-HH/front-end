@@ -37,7 +37,7 @@ import { PendingShiftsModal } from '@/features/employee-portal/components/Pendin
 import { WeeklyScheduleCalendar } from '@/features/employee-portal/components/WeeklyScheduleCalendar';
 import { employeeRole } from '@/lib/rbac';
 
-export function EmployeePortal() {
+function EmployeePortal() {
     const { user } = useAuth();
     const currentYear = new Date().getFullYear();
     const [isPendingShiftsModalOpen, setIsPendingShiftsModalOpen] =

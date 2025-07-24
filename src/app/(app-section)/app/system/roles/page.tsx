@@ -27,7 +27,7 @@ import { Role } from '@/lib/rbac';
 import { SearchCondition } from '@/lib/response-object';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function JobRoles() {
+function JobRoles() {
     // State management
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(20);

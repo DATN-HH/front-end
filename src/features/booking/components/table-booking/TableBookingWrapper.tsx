@@ -74,13 +74,20 @@ export default function TableBookingWrapper({
     const [duration, setDuration] = useState<number>(2);
 
     // Booking form data
-    const [bookingData, setBookingData] = useState({
+    const [bookingData, setBookingData] = useState<{
+        guests: number;
+        notes: string;
+        customerName: string;
+        customerPhone: string;
+        customerEmail: string;
+        paymentType?: 'cash' | 'banking';
+    }>({
         guests: 1,
         notes: '',
         customerName: '',
         customerPhone: '',
         customerEmail: '',
-        paymentType: mode === 'admin' ? ('cash' as const) : undefined,
+        paymentType: mode === 'admin' ? 'cash' : undefined,
     });
 
     // Guest booking states

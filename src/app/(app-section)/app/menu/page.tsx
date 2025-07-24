@@ -4,6 +4,7 @@ import { Package, Tags, Utensils, Printer } from 'lucide-react';
 import Link from 'next/link';
 
 import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { MigrationSummaryCard } from '@/components/migration/MigrationSummaryCard';
 import {
     Card,
     CardContent,
@@ -16,6 +17,9 @@ export default function MenuModulePage() {
     return (
         <div className="space-y-6">
             <PageTitle icon={Utensils} title="Menu Management" />
+
+            {/* Migration Summary */}
+            <MigrationSummaryCard />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
@@ -76,7 +80,7 @@ export default function MenuModulePage() {
                     </Card>
                 </Link>
 
-                <Link href="/app/menu/categories">
+                <Link href="/app/menu/categories/unified">
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardHeader className="text-center">
                             <Tags className="h-8 w-8 mx-auto text-green-500" />
@@ -84,7 +88,7 @@ export default function MenuModulePage() {
                                 Categories
                             </CardTitle>
                             <CardDescription>
-                                Manage product categories
+                                Manage product categories with hierarchy support
                             </CardDescription>
                         </CardHeader>
                     </Card>

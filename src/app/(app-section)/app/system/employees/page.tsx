@@ -27,7 +27,7 @@ import { Role } from '@/lib/rbac';
 import { SearchCondition } from '@/lib/response-object';
 import { useCustomToast } from '@/lib/show-toast';
 
-export function Employees() {
+function Employees() {
     const { user } = useAuth();
 
     // State management
