@@ -39,7 +39,6 @@ interface Product {
     type: string;
     price: number;
     cost: number;
-    internalReference: string;
     category: string;
     posCategory: string;
     canBeSold: boolean;
@@ -65,7 +64,6 @@ export function ProductEditModal({
         type: '',
         salesPrice: '',
         cost: '',
-        internalReference: '',
         category: '',
         posCategory: '',
         canBeSold: true,
@@ -82,7 +80,6 @@ export function ProductEditModal({
                 type: product.type || '',
                 salesPrice: product.price?.toString() || '',
                 cost: product.cost?.toString() || '',
-                internalReference: product.internalReference || '',
                 category: product.category || '',
                 posCategory: product.posCategory || '',
                 canBeSold: product.canBeSold ?? true,
@@ -121,7 +118,6 @@ export function ProductEditModal({
                 type: product.type || '',
                 salesPrice: product.price?.toString() || '',
                 cost: product.cost?.toString() || '',
-                internalReference: product.internalReference || '',
                 category: product.category || '',
                 posCategory: product.posCategory || '',
                 canBeSold: product.canBeSold ?? true,
@@ -234,23 +230,7 @@ export function ProductEditModal({
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="internalReference">
-                                        Internal Reference
-                                    </Label>
-                                    <Input
-                                        id="internalReference"
-                                        value={formData.internalReference}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                internalReference:
-                                                    e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter internal reference"
-                                    />
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="category">
                                         Internal Category

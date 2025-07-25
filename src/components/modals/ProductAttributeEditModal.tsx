@@ -11,6 +11,7 @@ import {
     ProductAttributeCreateRequest,
 } from '@/api/v1/menu/product-attributes';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -58,6 +59,7 @@ const formSchema = z.object({
         }
     ),
     description: z.string().optional(),
+    isMoneyAttribute: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -85,6 +87,7 @@ export function ProductAttributeEditModal({
             displayType: 'SELECT',
             variantCreationMode: 'DYNAMICALLY',
             description: '',
+            isMoneyAttribute: false,
         },
     });
 
@@ -96,6 +99,7 @@ export function ProductAttributeEditModal({
                 displayType: attribute.displayType,
                 variantCreationMode: attribute.variantCreationMode,
                 description: attribute.description || '',
+                isMoneyAttribute: attribute.isMoneyAttribute || false,
             });
         }
     }, [attribute, form]);
@@ -107,6 +111,7 @@ export function ProductAttributeEditModal({
                 displayType: data.displayType,
                 variantCreationMode: data.variantCreationMode,
                 description: data.description || undefined,
+                isMoneyAttribute: data.displayType === 'TEXTBOX' ? data.isMoneyAttribute : undefined,
             };
 
             await updateAttributeMutation.mutateAsync({
@@ -133,6 +138,8 @@ export function ProductAttributeEditModal({
         onOpenChange(false);
         form.reset();
     };
+
+    const displayType = form.watch('displayType');
 
     if (isLoading) {
         return (
@@ -294,6 +301,33 @@ export function ProductAttributeEditModal({
                                 </FormItem>
                             )}
                         />
+
+                        {/* Money Attribute Option - Only show for TEXTBOX */}
+                        {displayType === 'TEXTBOX' && (
+                            <FormField
+                                control={form.control}
+                                name="isMoneyAttribute"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel className="text-sm font-medium">
+                                                Money Attribute
+                                            </FormLabel>
+                                            <FormDescription className="text-xs text-muted-foreground">
+                                                Check this if this attribute represents a monetary value (e.g., price, cost, fee).
+                                                This will enable currency formatting and validation.
+                                            </FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
                         <DialogFooter>
                             <Button

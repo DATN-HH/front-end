@@ -26,20 +26,19 @@ export default function MenuPage() {
     const [sortBy, setSortBy] = useState('name');
 
     // Fetch real data from API
-    const { data: categoriesData, isLoading: categoriesLoading } =
-        useAllCategories();
+    const { data: categoriesData, isLoading: categoriesLoading } = useAllCategories();
     const { data: productsData, isLoading: productsLoading } = useAllProducts();
 
     // Process the data for the UI
     const categories = useMemo(() => {
         if (!categoriesData) return ['All'];
-        return ['All', ...categoriesData.map((cat) => cat.name)];
+        return ['All', ...categoriesData.map(cat => cat.name)];
     }, [categoriesData]);
 
     const menuItems = useMemo(() => {
         if (!productsData) return [];
 
-        return productsData.map((product) => ({
+        return productsData.map(product => ({
             id: product.id.toString(),
             name: product.name,
             description: product.description || '',
@@ -47,9 +46,7 @@ export default function MenuPage() {
             price: product.price || 0,
             originalPrice: undefined,
             image: product.image || '/placeholder.svg?height=200&width=300',
-            images: product.image
-                ? [product.image]
-                : ['/placeholder.svg?height=200&width=300'],
+            images: product.image ? [product.image] : ['/placeholder.svg?height=200&width=300'],
             category: product.category?.name || 'Uncategorized',
             isPromotion: false,
             promotionType: undefined,

@@ -27,7 +27,6 @@ import { CategoryHierarchyTree } from '@/components/category/CategoryHierarchyTr
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { CategoryCreateModal } from '@/components/modals/CategoryCreateModal';
 import { CategoryEditModal } from '@/components/modals/CategoryEditModal';
-import { MigrationStatusBanner } from '@/components/migration/MigrationStatusBanner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -114,7 +113,7 @@ export default function UnifiedCategoriesPage() {
         const matchesMigration =
             filters.migrationSource === 'all' ||
             (filters.migrationSource === 'original'
-                ? !category.migrationSource
+                ? !category.migrationSource || category.migrationSource === null
                 : filters.migrationSource === 'migrated'
                   ? category.migrationSource === 'POS_CATEGORY'
                   : true);
@@ -207,19 +206,7 @@ export default function UnifiedCategoriesPage() {
     );
   }
 
-  // Calculate migration stats
-  const migrationStats = useMemo(() => {
-    const migratedCategories = allCategories.filter(
-      (cat) => cat.migrationSource === 'POS_CATEGORY'
-    ).length;
 
-    return {
-      totalCategories: allCategories.length,
-      migratedCategories,
-      totalProducts: 0, // Would need to fetch from products API
-      productsWithMigratedCategories: 0, // Would need to fetch from products API
-    };
-  }, [allCategories]);
 
   return (
     <div className="space-y-6">
@@ -230,10 +217,7 @@ export default function UnifiedCategoriesPage() {
         </p>
       </div>
 
-      {/* Migration Status Banner */}
-      {migrationStats.migratedCategories > 0 && (
-        <MigrationStatusBanner migrationStats={migrationStats} />
-      )}
+
 
       {/* Header Actions */}
       <div className="flex items-center justify-between">
