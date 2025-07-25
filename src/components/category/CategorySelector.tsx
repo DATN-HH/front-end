@@ -45,13 +45,7 @@ interface CategoryItemProps {
     searchTerm: string;
 }
 
-function CategoryItem({
-    category,
-    level,
-    selectedValue,
-    onSelect,
-    searchTerm,
-}: CategoryItemProps) {
+function CategoryItem({ category, level, selectedValue, onSelect, searchTerm }: CategoryItemProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const hasChildren = category.children && category.children.length > 0;
     const indentLevel = level * 16; // 16px per level
@@ -63,9 +57,7 @@ function CategoryItem({
         const lowerTerm = term.toLowerCase();
         const nameMatch = cat.name.toLowerCase().includes(lowerTerm);
         const codeMatch = cat.code?.toLowerCase().includes(lowerTerm);
-        const childMatch = cat.children?.some((child) =>
-            matchesSearch(child, term)
-        );
+        const childMatch = cat.children?.some(child => matchesSearch(child, term));
         return nameMatch || !!codeMatch || !!childMatch;
     };
 
@@ -79,8 +71,8 @@ function CategoryItem({
                 value={category.id.toString()}
                 onSelect={() => onSelect(category.id)}
                 className={cn(
-                    'flex items-center justify-between cursor-pointer',
-                    isSelected && 'bg-accent'
+                    "flex items-center justify-between cursor-pointer",
+                    isSelected && "bg-accent"
                 )}
                 style={{ paddingLeft: `${indentLevel + 8}px` }}
             >
@@ -124,7 +116,7 @@ function CategoryItem({
                     {/* Category Info */}
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
                         <span className="truncate">{category.name}</span>
-
+                        
                         {/* Badges */}
                         <div className="flex items-center space-x-1">
                             {category.code && (
@@ -141,7 +133,9 @@ function CategoryItem({
                     </div>
 
                     {/* Selection Indicator */}
-                    {isSelected && <Check className="h-4 w-4 text-primary" />}
+                    {isSelected && (
+                        <Check className="h-4 w-4 text-primary" />
+                    )}
                 </div>
             </CommandItem>
 
@@ -168,7 +162,7 @@ export function CategorySelector({
     categories,
     value,
     onValueChange,
-    placeholder = 'Select category...',
+    placeholder = "Select category...",
     className,
     disabled = false,
 }: CategorySelectorProps) {
@@ -176,10 +170,7 @@ export function CategorySelector({
     const [searchTerm, setSearchTerm] = useState('');
 
     // Find selected category for display
-    const findCategoryById = (
-        cats: CategoryResponse[],
-        id: number
-    ): CategoryResponse | null => {
+    const findCategoryById = (cats: CategoryResponse[], id: number): CategoryResponse | null => {
         for (const cat of cats) {
             if (cat.id === id) return cat;
             if (cat.children) {
@@ -193,9 +184,7 @@ export function CategorySelector({
     const selectedCategory = value ? findCategoryById(categories, value) : null;
 
     // Flatten categories for the "No Parent" option
-    const flattenCategories = (
-        cats: CategoryResponse[]
-    ): CategoryResponse[] => {
+    const flattenCategories = (cats: CategoryResponse[]): CategoryResponse[] => {
         const result: CategoryResponse[] = [];
         for (const cat of cats) {
             result.push(cat);
@@ -215,32 +204,26 @@ export function CategorySelector({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className={cn('w-full justify-between', className)}
+                    className={cn("w-full justify-between", className)}
                     disabled={disabled}
                 >
                     <div className="flex items-center space-x-2">
                         {selectedCategory ? (
                             <>
-                                {selectedCategory.children &&
-                                selectedCategory.children.length > 0 ? (
+                                {selectedCategory.children && selectedCategory.children.length > 0 ? (
                                     <FolderOpen className="h-4 w-4 text-blue-500" />
                                 ) : (
                                     <Package className="h-4 w-4 text-gray-500" />
                                 )}
                                 <span>{selectedCategory.name}</span>
                                 {selectedCategory.code && (
-                                    <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                    >
+                                    <Badge variant="outline" className="text-xs">
                                         {selectedCategory.code}
                                     </Badge>
                                 )}
                             </>
                         ) : (
-                            <span className="text-muted-foreground">
-                                {placeholder}
-                            </span>
+                            <span className="text-muted-foreground">{placeholder}</span>
                         )}
                     </div>
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -264,19 +247,15 @@ export function CategorySelector({
                                     setOpen(false);
                                 }}
                                 className={cn(
-                                    'flex items-center justify-between cursor-pointer',
-                                    !value && 'bg-accent'
+                                    "flex items-center justify-between cursor-pointer",
+                                    !value && "bg-accent"
                                 )}
                             >
                                 <div className="flex items-center space-x-2">
                                     <Package className="h-4 w-4 text-gray-400" />
-                                    <span className="text-muted-foreground">
-                                        No Category
-                                    </span>
+                                    <span className="text-muted-foreground">No Category</span>
                                 </div>
-                                {!value && (
-                                    <Check className="h-4 w-4 text-primary" />
-                                )}
+                                {!value && <Check className="h-4 w-4 text-primary" />}
                             </CommandItem>
 
                             {/* Hierarchical Categories */}
