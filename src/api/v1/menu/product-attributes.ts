@@ -21,6 +21,7 @@ export interface ProductAttributeCreateRequest {
     displayType: DisplayType;
     variantCreationMode: VariantCreationMode;
     description?: string;
+    isMoneyAttribute?: boolean;
 }
 
 export interface ProductAttributeResponse {

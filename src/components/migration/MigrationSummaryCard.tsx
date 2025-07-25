@@ -36,10 +36,9 @@ export function MigrationSummaryCard({
         productsWithMigratedCategories: 45,
     };
 
-    const migrationProgress =
-        stats.totalCategories > 0
-            ? (stats.migratedCategories / stats.totalCategories) * 100
-            : 0;
+    const migrationProgress = stats.totalCategories > 0 
+        ? (stats.migratedCategories / stats.totalCategories) * 100 
+        : 0;
 
     const isComplete = stats.migratedCategories > 0;
 
@@ -70,9 +69,7 @@ export function MigrationSummaryCard({
                 {/* Progress Bar */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span className="text-green-700">
-                            Migration Progress
-                        </span>
+                        <span className="text-green-700">Migration Progress</span>
                         <span className="font-medium text-green-900">
                             {Math.round(migrationProgress)}%
                         </span>
@@ -93,7 +90,7 @@ export function MigrationSummaryCard({
                             Categories Migrated
                         </div>
                     </div>
-
+                    
                     <div className="text-center p-3 bg-white rounded-lg border border-green-200">
                         <div className="flex items-center justify-center mb-2">
                             <Package className="h-5 w-5 text-green-600" />

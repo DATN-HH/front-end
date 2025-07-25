@@ -68,6 +68,7 @@ const formSchema = z.object({
         }
     ),
     description: z.string().optional(),
+    isMoneyAttribute: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -107,6 +108,7 @@ export function ProductAttributeCreateModal({
             displayType: 'SELECT',
             variantCreationMode: 'DYNAMICALLY',
             description: '',
+            isMoneyAttribute: false,
         },
     });
 
@@ -157,6 +159,7 @@ export function ProductAttributeCreateModal({
                 displayType: data.displayType,
                 variantCreationMode: data.variantCreationMode,
                 description: data.description || undefined,
+                isMoneyAttribute: data.displayType === 'TEXTBOX' ? data.isMoneyAttribute : undefined,
             };
 
             const createdAttribute = await createAttributeMutation.mutateAsync({
@@ -371,6 +374,33 @@ export function ProductAttributeCreateModal({
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Money Attribute Option - Only show for TEXTBOX */}
+                                {displayType === 'TEXTBOX' && (
+                                    <FormField
+                                        control={form.control}
+                                        name="isMoneyAttribute"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <div className="space-y-1 leading-none">
+                                                    <FormLabel className="text-sm font-medium">
+                                                        Money Attribute
+                                                    </FormLabel>
+                                                    <FormDescription className="text-xs text-muted-foreground">
+                                                        Check this if this attribute represents a monetary value (e.g., price, cost, fee).
+                                                        This will enable currency formatting and validation.
+                                                    </FormDescription>
+                                                </div>
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
                             </CardContent>
                         </Card>
 

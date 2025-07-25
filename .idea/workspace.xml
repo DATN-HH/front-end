@@ -4,7 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e1b7ce8b-4e15-473b-8839-7cc4647ebcc8" name="Changes" comment="" />
+    <list default="true" id="e1b7ce8b-4e15-473b-8839-7cc4647ebcc8" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/v1/menu/categories.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/menu/categories.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/v1/menu/product-attributes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/v1/menu/product-attributes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(app-section)/app/menu/categories/unified/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(app-section)/app/menu/categories/unified/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(app-section)/app/menu/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(app-section)/app/menu/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(app-section)/app/menu/pos-categories/[id]/detail/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(app-section)/app/menu/pos-categories/[id]/detail/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(app-section)/app/menu/product-attributes/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(app-section)/app/menu/products/[id]/detail/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(app-section)/app/menu/products/[id]/detail/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(for-guest)/menu/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(for-guest)/menu/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/(for-guest)/menu/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/(for-guest)/menu/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/category/CategoryHierarchyTree.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/category/CategoryHierarchyTree.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/category/CategorySelector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/category/CategorySelector.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/migration/MigrationStatusBanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/migration/MigrationStatusBanner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/migration/MigrationSummaryCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/migration/MigrationSummaryCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/AttributeValuesModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/AttributeValuesModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/CategoryCreateModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/CategoryCreateModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/ProductAttributeCreateModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/ProductAttributeCreateModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/ProductAttributeEditModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/ProductAttributeEditModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/ProductCreateModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/ProductCreateModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/ProductEditModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/ProductEditModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/product-edit-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/product-edit-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/modals/product-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/modals/product-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/sidebar-config.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/sidebar-config.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,7 +63,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "pos",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -91,6 +115,7 @@
       <workItem from="1752324349142" duration="1200000" />
       <workItem from="1752663209461" duration="1200000" />
       <workItem from="1752915556480" duration="3789000" />
+      <workItem from="1753362804913" duration="593000" />
     </task>
     <servers />
   </component>

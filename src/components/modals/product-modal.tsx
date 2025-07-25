@@ -45,7 +45,6 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
         type: '',
         salesPrice: '',
         cost: '',
-        internalReference: '',
         category: '',
         posCategory: '',
         canBeSold: true,
@@ -77,7 +76,6 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
             type: '',
             salesPrice: '',
             cost: '',
-            internalReference: '',
             category: '',
             posCategory: '',
             canBeSold: true,
@@ -111,7 +109,6 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
             type: '',
             salesPrice: '',
             cost: '',
-            internalReference: '',
             category: '',
             posCategory: '',
             canBeSold: true,
@@ -222,23 +219,7 @@ export function ProductModal({ open, onOpenChange }: ProductModalProps) {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="internalReference">
-                                        Internal Reference
-                                    </Label>
-                                    <Input
-                                        id="internalReference"
-                                        value={formData.internalReference}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                internalReference:
-                                                    e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter internal reference"
-                                    />
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="category">
                                         Internal Category

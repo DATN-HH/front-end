@@ -64,10 +64,6 @@ const productSchema = z.object({
         .min(0, 'Estimate time must be positive')
         .optional(),
     groupName: z.string().max(100, 'Group name too long').optional(),
-    internalReference: z
-        .string()
-        .max(50, 'Internal reference too long')
-        .optional(),
     canBeSold: z.boolean().optional(),
     canBePurchased: z.boolean().optional(),
     categoryId: z.number().min(1, 'Please select a category').optional(),
@@ -108,7 +104,6 @@ export function ProductEditModal({
             description: '',
             estimateTime: 0,
             groupName: '',
-            internalReference: '',
             canBeSold: true,
             canBePurchased: false,
             categoryId: 0,
@@ -128,7 +123,6 @@ export function ProductEditModal({
                 description: productDetail.description || '',
                 estimateTime: productDetail.estimateTime || 0,
                 groupName: productDetail.groupName || '',
-                internalReference: productDetail.internalReference || '',
                 canBeSold: productDetail.canBeSold ?? true,
                 canBePurchased: productDetail.canBePurchased ?? false,
                 categoryId: productDetail.category?.id || 0,
@@ -236,7 +230,6 @@ export function ProductEditModal({
                 image: data.image || undefined,
                 description: data.description || undefined,
                 groupName: data.groupName || undefined,
-                internalReference: data.internalReference || undefined,
                 price: data.price === 0 ? undefined : data.price,
                 cost: data.cost === 0 ? undefined : data.cost,
                 estimateTime:
@@ -448,24 +441,6 @@ export function ProductEditModal({
                                         )}
                                     />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="internalReference"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Internal Reference
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="e.g., PHO001"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
 
                                     <FormField
                                         control={form.control}

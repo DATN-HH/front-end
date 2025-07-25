@@ -61,10 +61,6 @@ const productSchema = z.object({
     groupName: z.string().max(100, 'Group name too long').optional(),
     description: z.string().max(1000, 'Description too long').optional(),
     image: z.string().optional(),
-    internalReference: z
-        .string()
-        .max(50, 'Internal reference too long')
-        .optional(),
     canBeSold: z.boolean().optional(),
     canBePurchased: z.boolean().optional(),
 });
@@ -105,7 +101,6 @@ export function ProductCreateModal({
             groupName: '',
             description: '',
             image: '',
-            internalReference: '',
             canBeSold: true,
             canBePurchased: false,
         },
@@ -196,7 +191,6 @@ export function ProductCreateModal({
                 image: imageUrl || undefined,
                 description: data.description || undefined,
                 groupName: data.groupName || undefined,
-                internalReference: data.internalReference || undefined,
                 categoryId: data.categoryId,
                 canBeSold: data.canBeSold,
                 canBePurchased: data.canBePurchased,
@@ -229,7 +223,6 @@ export function ProductCreateModal({
                     groupName: data.groupName || '',
                     description: '',
                     image: '',
-                    internalReference: '',
                     canBeSold: data.canBeSold,
                     canBePurchased: data.canBePurchased,
                 });
@@ -428,28 +421,7 @@ export function ProductCreateModal({
                                             )}
                                         />
 
-                                        <FormField
-                                            control={form.control}
-                                            name="internalReference"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>
-                                                        Internal Reference
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Auto-generated if left empty"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                    <FormDescription>
-                                                        Leave empty for
-                                                        auto-generation
-                                                    </FormDescription>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+
                                     </div>
                                 </div>
 

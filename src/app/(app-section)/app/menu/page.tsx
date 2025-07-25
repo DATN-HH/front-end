@@ -4,7 +4,6 @@ import { Package, Tags, Utensils, Printer } from 'lucide-react';
 import Link from 'next/link';
 
 import { PageTitle } from '@/components/layouts/app-section/page-title';
-import { MigrationSummaryCard } from '@/components/migration/MigrationSummaryCard';
 import {
     Card,
     CardContent,
@@ -17,9 +16,6 @@ export default function MenuModulePage() {
     return (
         <div className="space-y-6">
             <PageTitle icon={Utensils} title="Menu Management" />
-
-            {/* Migration Summary */}
-            <MigrationSummaryCard />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
