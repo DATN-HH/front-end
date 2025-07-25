@@ -37,6 +37,8 @@ import {
     useDeleteProductVariant,
     useArchiveProductVariant,
     useUnarchiveProductVariant,
+    useSetDefaultMoneyAttribute,
+    useDefaultMoneyAttribute,
     ProductVariantResponse,
     ProductVariantCreateRequest,
     ProductVariantUpdateRequest,
@@ -161,6 +163,10 @@ export default function ProductDetailPage() {
     const { data: attributes = [] } = useAllProductAttributes();
     const { data: variants = [], isLoading: variantsLoading } =
         useProductVariants(Number(productId));
+
+    // Money attribute hooks
+    const setDefaultMoneyAttributeMutation = useSetDefaultMoneyAttribute();
+    const { data: defaultMoneyAttribute } = useDefaultMoneyAttribute(Number(productId));
 
     // Debug: Log variants data
     const assignAttributesMutation = useAssignAttributesToProduct();
@@ -329,7 +335,13 @@ export default function ProductDetailPage() {
                 name: attrValue.attributeName,
                 value: attrValue.name,
                 textValue: attrValue.textValue,
+                attributeId: attrValue.attributeId, // Add attributeId for default price functionality
             }));
+    };
+
+    // Helper function to check if a money attribute is the default
+    const isDefaultMoneyAttribute = (attributeId: number) => {
+        return defaultMoneyAttribute?.attributeId === attributeId;
     };
 
     // Variant management functions
@@ -382,22 +394,23 @@ export default function ProductDetailPage() {
         setShowEditVariantModal(true);
     };
 
-    // Handle setting money attribute value as default price
-    const handleSetAsDefaultPrice = async (variantId: number, moneyValue: number) => {
+    // Handle setting money attribute as default price for the product
+    const handleSetAsDefaultPrice = async (attributeId: number, attributeName: string, priceValue?: number) => {
         try {
-            await updateVariantPricingMutation.mutateAsync({
-                variantId,
-                price: moneyValue,
+            await setDefaultMoneyAttributeMutation.mutateAsync({
+                productId: Number(productId),
+                attributeId,
+                priceValue,
             });
 
             toast({
-                title: 'Price Updated',
-                description: `Successfully set ${formatCurrency(moneyValue)} as the default price.`,
+                title: 'Default Price Set',
+                description: `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${formatCurrency(priceValue)}` : ''}.`,
             });
         } catch (error) {
             toast({
                 title: 'Error',
-                description: 'Failed to update variant price. Please try again.',
+                description: 'Failed to set default price attribute. Please try again.',
                 variant: 'destructive',
             });
         }
@@ -1487,14 +1500,23 @@ export default function ProductDetailPage() {
                                                                                             key={
                                                                                                 index
                                                                                             }
-                                                                                            className="flex justify-between items-center p-2 bg-white rounded border"
+                                                                                            className={`flex justify-between items-center p-2 rounded border ${
+                                                                                                isDefaultMoneyAttribute(attr.attributeId)
+                                                                                                    ? 'bg-green-100 border-green-300'
+                                                                                                    : 'bg-white border-gray-200'
+                                                                                            }`}
                                                                                         >
                                                                                             <div className="flex flex-col">
-                                                                                                <span className="font-medium text-green-700 text-sm">
-                                                                                                    {
-                                                                                                        attr.name
-                                                                                                    }
-                                                                                                </span>
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <span className="font-medium text-green-700 text-sm">
+                                                                                                        {attr.name}
+                                                                                                    </span>
+                                                                                                    {isDefaultMoneyAttribute(attr.attributeId) && (
+                                                                                                        <Badge variant="default" className="text-xs bg-green-600">
+                                                                                                            Default
+                                                                                                        </Badge>
+                                                                                                    )}
+                                                                                                </div>
                                                                                                 <span className="text-green-900 font-semibold">
                                                                                                     {attr.textValue
                                                                                                         ? formatCurrency(
@@ -1510,15 +1532,16 @@ export default function ProductDetailPage() {
                                                                                                 variant="outline"
                                                                                                 onClick={() =>
                                                                                                     handleSetAsDefaultPrice(
-                                                                                                        variant.id,
-                                                                                                        Number(attr.textValue || 0)
+                                                                                                        attr.attributeId,
+                                                                                                        attr.name,
+                                                                                                        attr.textValue ? Number(attr.textValue) : undefined
                                                                                                     )
                                                                                                 }
                                                                                                 className="text-green-600 hover:text-green-700 border-green-300"
-                                                                                                disabled={updateVariantPricingMutation.isPending}
+                                                                                                disabled={setDefaultMoneyAttributeMutation.isPending || isDefaultMoneyAttribute(attr.attributeId)}
                                                                                             >
                                                                                                 <DollarSign className="h-3 w-3 mr-1" />
-                                                                                                Set as Default Price
+                                                                                                {isDefaultMoneyAttribute(attr.attributeId) ? 'Default Price' : 'Set as Default Price'}
                                                                                             </Button>
                                                                                         </div>
                                                                                     )
@@ -1723,12 +1746,23 @@ export default function ProductDetailPage() {
                                                                             {moneyAttributes.map((attr, index) => (
                                                                                 <div
                                                                                     key={index}
-                                                                                    className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-200"
+                                                                                    className={`flex items-center justify-between p-2 rounded border ${
+                                                                                        isDefaultMoneyAttribute(attr.attributeId)
+                                                                                            ? 'bg-green-100 border-green-300'
+                                                                                            : 'bg-green-50 border-green-200'
+                                                                                    }`}
                                                                                 >
                                                                                     <div className="flex flex-col">
-                                                                                        <span className="text-xs font-medium text-green-700">
-                                                                                            {attr.name}
-                                                                                        </span>
+                                                                                        <div className="flex items-center gap-1">
+                                                                                            <span className="text-xs font-medium text-green-700">
+                                                                                                {attr.name}
+                                                                                            </span>
+                                                                                            {isDefaultMoneyAttribute(attr.attributeId) && (
+                                                                                                <Badge variant="default" className="text-xs bg-green-600 px-1 py-0">
+                                                                                                    Default
+                                                                                                </Badge>
+                                                                                            )}
+                                                                                        </div>
                                                                                         <span className="text-sm font-semibold text-green-900">
                                                                                             {attr.textValue
                                                                                                 ? formatCurrency(Number(attr.textValue))
@@ -1740,15 +1774,16 @@ export default function ProductDetailPage() {
                                                                                         variant="outline"
                                                                                         onClick={() =>
                                                                                             handleSetAsDefaultPrice(
-                                                                                                variant.id,
-                                                                                                Number(attr.textValue || 0)
+                                                                                                attr.attributeId,
+                                                                                                attr.name,
+                                                                                                attr.textValue ? Number(attr.textValue) : undefined
                                                                                             )
                                                                                         }
                                                                                         className="text-green-600 hover:text-green-700 border-green-300 text-xs px-2 py-1"
-                                                                                        disabled={updateVariantPricingMutation.isPending}
+                                                                                        disabled={setDefaultMoneyAttributeMutation.isPending || isDefaultMoneyAttribute(attr.attributeId)}
                                                                                     >
                                                                                         <DollarSign className="h-3 w-3 mr-1" />
-                                                                                        Set Default
+                                                                                        {isDefaultMoneyAttribute(attr.attributeId) ? 'Default' : 'Set Default'}
                                                                                     </Button>
                                                                                 </div>
                                                                             ))}
