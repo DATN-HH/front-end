@@ -17,6 +17,8 @@ import {
     Settings,
     Loader2,
     ChevronDown,
+    Grid3X3,
+    List,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -35,6 +37,8 @@ import {
     useDeleteProductVariant,
     useArchiveProductVariant,
     useUnarchiveProductVariant,
+    useSetDefaultMoneyAttribute,
+    useDefaultMoneyAttribute,
     ProductVariantResponse,
     ProductVariantCreateRequest,
     ProductVariantUpdateRequest,
@@ -85,6 +89,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 
 // Form schemas
@@ -138,6 +150,9 @@ export default function ProductDetailPage() {
         'all' | 'active' | 'inactive'
     >('all');
 
+    // Variant view mode state
+    const [variantViewMode, setVariantViewMode] = useState<'card' | 'table'>('card');
+
     const {
         data: product,
         isLoading,
@@ -148,6 +163,10 @@ export default function ProductDetailPage() {
     const { data: attributes = [] } = useAllProductAttributes();
     const { data: variants = [], isLoading: variantsLoading } =
         useProductVariants(Number(productId));
+
+    // Money attribute hooks
+    const setDefaultMoneyAttributeMutation = useSetDefaultMoneyAttribute();
+    const { data: defaultMoneyAttribute } = useDefaultMoneyAttribute(Number(productId));
 
     // Debug: Log variants data
     const assignAttributesMutation = useAssignAttributesToProduct();
@@ -316,7 +335,13 @@ export default function ProductDetailPage() {
                 name: attrValue.attributeName,
                 value: attrValue.name,
                 textValue: attrValue.textValue,
+                attributeId: attrValue.attributeId, // Add attributeId for default price functionality
             }));
+    };
+
+    // Helper function to check if a money attribute is the default
+    const isDefaultMoneyAttribute = (attributeId: number) => {
+        return defaultMoneyAttribute?.attributeId === attributeId;
     };
 
     // Variant management functions
@@ -367,6 +392,28 @@ export default function ProductDetailPage() {
             isActive: variant.isActive || true,
         });
         setShowEditVariantModal(true);
+    };
+
+    // Handle setting money attribute as default price for the product
+    const handleSetAsDefaultPrice = async (attributeId: number, attributeName: string, priceValue?: number) => {
+        try {
+            await setDefaultMoneyAttributeMutation.mutateAsync({
+                productId: Number(productId),
+                attributeId,
+                priceValue,
+            });
+
+            toast({
+                title: 'Default Price Set',
+                description: `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${formatCurrency(priceValue)}` : ''}.`,
+            });
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to set default price attribute. Please try again.',
+                variant: 'destructive',
+            });
+        }
     };
 
     const onUpdateVariant = async (data: EditVariantFormData) => {
@@ -1240,14 +1287,37 @@ export default function ProductDetailPage() {
                                 <h3 className="text-lg font-medium">
                                     Product Variants
                                 </h3>
-                                <Button
-                                    onClick={() =>
-                                        setActiveVariantTab('assign')
-                                    }
-                                >
-                                    <Package className="h-4 w-4 mr-2" />
-                                    Create Variants
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    {/* View Mode Toggle */}
+                                    <div className="flex items-center border rounded-md">
+                                        <Button
+                                            variant={variantViewMode === 'card' ? 'default' : 'ghost'}
+                                            size="sm"
+                                            onClick={() => setVariantViewMode('card')}
+                                            className="rounded-r-none"
+                                        >
+                                            <Grid3X3 className="h-4 w-4 mr-1" />
+                                            Card
+                                        </Button>
+                                        <Button
+                                            variant={variantViewMode === 'table' ? 'default' : 'ghost'}
+                                            size="sm"
+                                            onClick={() => setVariantViewMode('table')}
+                                            className="rounded-l-none"
+                                        >
+                                            <List className="h-4 w-4 mr-1" />
+                                            Table
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        onClick={() =>
+                                            setActiveVariantTab('assign')
+                                        }
+                                    >
+                                        <Package className="h-4 w-4 mr-2" />
+                                        Create Variants
+                                    </Button>
+                                </div>
                             </div>
 
                             {variantsLoading ? (
@@ -1349,231 +1419,465 @@ export default function ProductDetailPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-4">
-                                        {filteredVariants.map((variant) => {
-                                            const moneyAttributes =
-                                                getMoneyAttributes(variant);
-                                            const isArchived =
-                                                variant.status === 'INACTIVE';
+                                    {/* Conditional rendering based on view mode */}
+                                    {variantViewMode === 'card' ? (
+                                        /* Card View */
+                                        <div className="grid gap-4">
+                                            {filteredVariants.map((variant) => {
+                                                const moneyAttributes =
+                                                    getMoneyAttributes(variant);
+                                                const isArchived =
+                                                    variant.status === 'INACTIVE';
 
-                                            return (
-                                                <Card
-                                                    key={variant.id}
-                                                    className={
-                                                        isArchived
-                                                            ? 'opacity-60 border-dashed'
-                                                            : ''
-                                                    }
-                                                >
-                                                    <CardContent className="p-4">
-                                                        <div className="flex items-start justify-between">
-                                                            <div className="space-y-3 flex-1">
-                                                                {/* Variant Name and Status */}
-                                                                <div className="flex items-center space-x-2">
-                                                                    <h4 className="font-semibold text-lg">
-                                                                        {
-                                                                            variant.displayName
-                                                                        }
-                                                                    </h4>
-                                                                    <Badge
-                                                                        variant={
-                                                                            variant.status ===
-                                                                            'ACTIVE'
-                                                                                ? 'default'
-                                                                                : 'secondary'
-                                                                        }
-                                                                    >
-                                                                        {variant.status ===
-                                                                        'ACTIVE'
-                                                                            ? 'Active'
-                                                                            : 'Archived'}
-                                                                    </Badge>
-                                                                    {variant.isActive && (
+                                                return (
+                                                    <Card
+                                                        key={variant.id}
+                                                        className={
+                                                            isArchived
+                                                                ? 'opacity-60 border-dashed'
+                                                                : ''
+                                                        }
+                                                    >
+                                                        <CardContent className="p-4">
+                                                            <div className="flex items-start justify-between">
+                                                                <div className="space-y-3 flex-1">
+                                                                    {/* Variant Name and Status */}
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <h4 className="font-semibold text-lg">
+                                                                            {
+                                                                                variant.displayName
+                                                                            }
+                                                                        </h4>
                                                                         <Badge
-                                                                            variant="outline"
-                                                                            className="text-green-600"
+                                                                            variant={
+                                                                                variant.status ===
+                                                                                'ACTIVE'
+                                                                                    ? 'default'
+                                                                                    : 'secondary'
+                                                                            }
                                                                         >
-                                                                            Available
+                                                                            {variant.status ===
+                                                                            'ACTIVE'
+                                                                                ? 'Active'
+                                                                                : 'Archived'}
                                                                         </Badge>
+                                                                        {variant.isActive && (
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-green-600"
+                                                                            >
+                                                                                Available
+                                                                            </Badge>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Internal Reference */}
+                                                                    {variant.internalReference && (
+                                                                        <div className="text-sm text-muted-foreground">
+                                                                            Reference:{' '}
+                                                                            {
+                                                                                variant.internalReference
+                                                                            }
+                                                                        </div>
                                                                     )}
+
+                                                                    {/* Money Attributes - Prominently displayed with Set as Default Price buttons */}
+                                                                    {moneyAttributes.length >
+                                                                        0 && (
+                                                                        <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                                                                            <div className="text-sm font-medium text-green-800 mb-2">
+                                                                                <DollarSign className="h-4 w-4 inline mr-1" />
+                                                                                Money
+                                                                                Attributes
+                                                                            </div>
+                                                                            <div className="grid grid-cols-1 gap-3">
+                                                                                {moneyAttributes.map(
+                                                                                    (
+                                                                                        attr,
+                                                                                        index
+                                                                                    ) => (
+                                                                                        <div
+                                                                                            key={
+                                                                                                index
+                                                                                            }
+                                                                                            className={`flex justify-between items-center p-2 rounded border ${
+                                                                                                isDefaultMoneyAttribute(attr.attributeId)
+                                                                                                    ? 'bg-green-100 border-green-300'
+                                                                                                    : 'bg-white border-gray-200'
+                                                                                            }`}
+                                                                                        >
+                                                                                            <div className="flex flex-col">
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <span className="font-medium text-green-700 text-sm">
+                                                                                                        {attr.name}
+                                                                                                    </span>
+                                                                                                    {isDefaultMoneyAttribute(attr.attributeId) && (
+                                                                                                        <Badge variant="default" className="text-xs bg-green-600">
+                                                                                                            Default
+                                                                                                        </Badge>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                <span className="text-green-900 font-semibold">
+                                                                                                    {attr.textValue
+                                                                                                        ? formatCurrency(
+                                                                                                              Number(
+                                                                                                                  attr.textValue
+                                                                                                              )
+                                                                                                          )
+                                                                                                        : attr.value}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="outline"
+                                                                                                onClick={() =>
+                                                                                                    handleSetAsDefaultPrice(
+                                                                                                        attr.attributeId,
+                                                                                                        attr.name,
+                                                                                                        attr.textValue ? Number(attr.textValue) : undefined
+                                                                                                    )
+                                                                                                }
+                                                                                                className="text-green-600 hover:text-green-700 border-green-300"
+                                                                                                disabled={setDefaultMoneyAttributeMutation.isPending || isDefaultMoneyAttribute(attr.attributeId)}
+                                                                                            >
+                                                                                                <DollarSign className="h-3 w-3 mr-1" />
+                                                                                                {isDefaultMoneyAttribute(attr.attributeId) ? 'Default Price' : 'Set as Default Price'}
+                                                                                            </Button>
+                                                                                        </div>
+                                                                                    )
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Regular Attributes */}
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {variant.attributeValues
+                                                                            ?.filter(
+                                                                                (
+                                                                                    attrValue
+                                                                                ) => {
+                                                                                    const attribute =
+                                                                                        attributes.find(
+                                                                                            (
+                                                                                                attr
+                                                                                            ) =>
+                                                                                                attr.id ===
+                                                                                                attrValue.attributeId
+                                                                                        );
+                                                                                    return (
+                                                                                        attribute?.isMoneyAttribute !==
+                                                                                        true
+                                                                                    );
+                                                                                }
+                                                                            )
+                                                                            .map(
+                                                                                (
+                                                                                    attrValue
+                                                                                ) => (
+                                                                                    <Badge
+                                                                                        key={
+                                                                                            attrValue.id
+                                                                                        }
+                                                                                        variant="outline"
+                                                                                    >
+                                                                                        {
+                                                                                            attrValue.attributeName
+                                                                                        }
+                                                                                        :{' '}
+                                                                                        {attrValue.textValue ||
+                                                                                            attrValue.name}
+                                                                                    </Badge>
+                                                                                )
+                                                                            )}
+                                                                    </div>
+
+                                                                    {/* Pricing Information */}
+                                                                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                                                        <span>
+                                                                            Price:{' '}
+                                                                            {formatCurrency(
+                                                                                variant.effectivePrice
+                                                                            )}
+                                                                        </span>
+                                                                        <span>
+                                                                            Cost:{' '}
+                                                                            {formatCurrency(
+                                                                                variant.effectiveCost
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
 
-                                                                {/* Internal Reference */}
-                                                                {variant.internalReference && (
-                                                                    <div className="text-sm text-muted-foreground">
-                                                                        Reference:{' '}
-                                                                        {
-                                                                            variant.internalReference
+                                                                {/* Action Buttons */}
+                                                                <div className="flex items-center space-x-2 ml-4">
+                                                                    {variant.status ===
+                                                                    'ACTIVE' ? (
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                handleArchiveVariant(
+                                                                                    variant.id,
+                                                                                    variant.displayName
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                archiveVariantMutation.isPending
+                                                                            }
+                                                                            className="text-orange-600 hover:text-orange-700"
+                                                                        >
+                                                                            <Archive className="h-4 w-4 mr-1" />
+                                                                            Archive
+                                                                        </Button>
+                                                                    ) : (
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                handleUnarchiveVariant(
+                                                                                    variant.id,
+                                                                                    variant.displayName
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                unarchiveVariantMutation.isPending
+                                                                            }
+                                                                            className="text-blue-600 hover:text-blue-700"
+                                                                        >
+                                                                            <RotateCcw className="h-4 w-4 mr-1" />
+                                                                            Unarchive
+                                                                        </Button>
+                                                                    )}
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="text-red-500 hover:text-red-600"
+                                                                        onClick={() =>
+                                                                            handleDeleteVariant(
+                                                                                variant.id,
+                                                                                variant.displayName
+                                                                            )
                                                                         }
-                                                                    </div>
-                                                                )}
+                                                                        disabled={
+                                                                            deleteVariantMutation.isPending
+                                                                        }
+                                                                    >
+                                                                        <Tag className="h-4 w-4 mr-1" />
+                                                                        Delete
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        /* Table View */
+                                        <div className="border rounded-lg">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Variant Name</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>Money Attributes</TableHead>
+                                                        <TableHead>Regular Attributes</TableHead>
+                                                        <TableHead>Price</TableHead>
+                                                        <TableHead>Cost</TableHead>
+                                                        <TableHead>Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {filteredVariants.map((variant) => {
+                                                        const moneyAttributes =
+                                                            getMoneyAttributes(variant);
+                                                        const isArchived =
+                                                            variant.status === 'INACTIVE';
 
-                                                                {/* Money Attributes - Prominently displayed */}
-                                                                {moneyAttributes.length >
-                                                                    0 && (
-                                                                    <div className="bg-green-50 p-3 rounded-md border border-green-200">
-                                                                        <div className="text-sm font-medium text-green-800 mb-2">
-                                                                            <DollarSign className="h-4 w-4 inline mr-1" />
-                                                                            Money
-                                                                            Attributes
+                                                        return (
+                                                            <TableRow
+                                                                key={variant.id}
+                                                                className={
+                                                                    isArchived
+                                                                        ? 'opacity-60'
+                                                                        : ''
+                                                                }
+                                                            >
+                                                                <TableCell>
+                                                                    <div>
+                                                                        <div className="font-medium">
+                                                                            {variant.displayName}
                                                                         </div>
-                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                                            {moneyAttributes.map(
-                                                                                (
-                                                                                    attr,
-                                                                                    index
-                                                                                ) => (
-                                                                                    <div
-                                                                                        key={
-                                                                                            index
-                                                                                        }
-                                                                                        className="flex justify-between items-center text-sm"
-                                                                                    >
-                                                                                        <span className="font-medium text-green-700">
-                                                                                            {
-                                                                                                attr.name
-                                                                                            }
-                                                                                            :
-                                                                                        </span>
-                                                                                        <span className="text-green-900 font-semibold">
+                                                                        {variant.internalReference && (
+                                                                            <div className="text-sm text-muted-foreground">
+                                                                                Ref: {variant.internalReference}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <Badge
+                                                                            variant={
+                                                                                variant.status === 'ACTIVE'
+                                                                                    ? 'default'
+                                                                                    : 'secondary'
+                                                                            }
+                                                                            className="w-fit"
+                                                                        >
+                                                                            {variant.status === 'ACTIVE'
+                                                                                ? 'Active'
+                                                                                : 'Archived'}
+                                                                        </Badge>
+                                                                        {variant.isActive && (
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-green-600 w-fit"
+                                                                            >
+                                                                                Available
+                                                                            </Badge>
+                                                                        )}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {moneyAttributes.length > 0 ? (
+                                                                        <div className="space-y-2">
+                                                                            {moneyAttributes.map((attr, index) => (
+                                                                                <div
+                                                                                    key={index}
+                                                                                    className={`flex items-center justify-between p-2 rounded border ${
+                                                                                        isDefaultMoneyAttribute(attr.attributeId)
+                                                                                            ? 'bg-green-100 border-green-300'
+                                                                                            : 'bg-green-50 border-green-200'
+                                                                                    }`}
+                                                                                >
+                                                                                    <div className="flex flex-col">
+                                                                                        <div className="flex items-center gap-1">
+                                                                                            <span className="text-xs font-medium text-green-700">
+                                                                                                {attr.name}
+                                                                                            </span>
+                                                                                            {isDefaultMoneyAttribute(attr.attributeId) && (
+                                                                                                <Badge variant="default" className="text-xs bg-green-600 px-1 py-0">
+                                                                                                    Default
+                                                                                                </Badge>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <span className="text-sm font-semibold text-green-900">
                                                                                             {attr.textValue
-                                                                                                ? formatCurrency(
-                                                                                                      Number(
-                                                                                                          attr.textValue
-                                                                                                      )
-                                                                                                  )
+                                                                                                ? formatCurrency(Number(attr.textValue))
                                                                                                 : attr.value}
                                                                                         </span>
                                                                                     </div>
-                                                                                )
-                                                                            )}
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="outline"
+                                                                                        onClick={() =>
+                                                                                            handleSetAsDefaultPrice(
+                                                                                                attr.attributeId,
+                                                                                                attr.name,
+                                                                                                attr.textValue ? Number(attr.textValue) : undefined
+                                                                                            )
+                                                                                        }
+                                                                                        className="text-green-600 hover:text-green-700 border-green-300 text-xs px-2 py-1"
+                                                                                        disabled={setDefaultMoneyAttributeMutation.isPending || isDefaultMoneyAttribute(attr.attributeId)}
+                                                                                    >
+                                                                                        <DollarSign className="h-3 w-3 mr-1" />
+                                                                                        {isDefaultMoneyAttribute(attr.attributeId) ? 'Default' : 'Set Default'}
+                                                                                    </Button>
+                                                                                </div>
+                                                                            ))}
                                                                         </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Regular Attributes */}
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {variant.attributeValues
-                                                                        ?.filter(
-                                                                            (
-                                                                                attrValue
-                                                                            ) => {
-                                                                                const attribute =
-                                                                                    attributes.find(
-                                                                                        (
-                                                                                            attr
-                                                                                        ) =>
-                                                                                            attr.id ===
-                                                                                            attrValue.attributeId
-                                                                                    );
-                                                                                return (
-                                                                                    attribute?.isMoneyAttribute !==
-                                                                                    true
+                                                                    ) : (
+                                                                        <span className="text-muted-foreground">-</span>
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        {variant.attributeValues
+                                                                            ?.filter((attrValue) => {
+                                                                                const attribute = attributes.find(
+                                                                                    (attr) => attr.id === attrValue.attributeId
                                                                                 );
-                                                                            }
-                                                                        )
-                                                                        .map(
-                                                                            (
-                                                                                attrValue
-                                                                            ) => (
+                                                                                return attribute?.isMoneyAttribute !== true;
+                                                                            })
+                                                                            .map((attrValue) => (
                                                                                 <Badge
-                                                                                    key={
-                                                                                        attrValue.id
-                                                                                    }
+                                                                                    key={attrValue.id}
                                                                                     variant="outline"
+                                                                                    className="text-xs"
                                                                                 >
-                                                                                    {
-                                                                                        attrValue.attributeName
-                                                                                    }
-                                                                                    :{' '}
-                                                                                    {attrValue.textValue ||
-                                                                                        attrValue.name}
+                                                                                    {attrValue.attributeName}: {attrValue.textValue || attrValue.name}
                                                                                 </Badge>
-                                                                            )
-                                                                        )}
-                                                                </div>
-
-                                                                {/* Pricing Information */}
-                                                                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                                                    <span>
-                                                                        Price:{' '}
-                                                                        {formatCurrency(
-                                                                            variant.effectivePrice
-                                                                        )}
+                                                                            ))}
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <span className="font-medium">
+                                                                        {formatCurrency(variant.effectivePrice)}
                                                                     </span>
-                                                                    <span>
-                                                                        Cost:{' '}
-                                                                        {formatCurrency(
-                                                                            variant.effectiveCost
-                                                                        )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <span className="font-medium">
+                                                                        {formatCurrency(variant.effectiveCost)}
                                                                     </span>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Action Buttons */}
-                                                            <div className="flex items-center space-x-2 ml-4">
-                                                                {variant.status ===
-                                                                'ACTIVE' ? (
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() =>
-                                                                            handleArchiveVariant(
-                                                                                variant.id,
-                                                                                variant.displayName
-                                                                            )
-                                                                        }
-                                                                        disabled={
-                                                                            archiveVariantMutation.isPending
-                                                                        }
-                                                                        className="text-orange-600 hover:text-orange-700"
-                                                                    >
-                                                                        <Archive className="h-4 w-4 mr-1" />
-                                                                        Archive
-                                                                    </Button>
-                                                                ) : (
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() =>
-                                                                            handleUnarchiveVariant(
-                                                                                variant.id,
-                                                                                variant.displayName
-                                                                            )
-                                                                        }
-                                                                        disabled={
-                                                                            unarchiveVariantMutation.isPending
-                                                                        }
-                                                                        className="text-blue-600 hover:text-blue-700"
-                                                                    >
-                                                                        <RotateCcw className="h-4 w-4 mr-1" />
-                                                                        Unarchive
-                                                                    </Button>
-                                                                )}
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className="text-red-500 hover:text-red-600"
-                                                                    onClick={() =>
-                                                                        handleDeleteVariant(
-                                                                            variant.id,
-                                                                            variant.displayName
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        deleteVariantMutation.isPending
-                                                                    }
-                                                                >
-                                                                    <Tag className="h-4 w-4 mr-1" />
-                                                                    Delete
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            );
-                                        })}
-                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-1">
+                                                                        {variant.status === 'ACTIVE' ? (
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                onClick={() =>
+                                                                                    handleArchiveVariant(
+                                                                                        variant.id,
+                                                                                        variant.displayName
+                                                                                    )
+                                                                                }
+                                                                                disabled={archiveVariantMutation.isPending}
+                                                                                className="text-orange-600 hover:text-orange-700"
+                                                                            >
+                                                                                <Archive className="h-3 w-3" />
+                                                                            </Button>
+                                                                        ) : (
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                onClick={() =>
+                                                                                    handleUnarchiveVariant(
+                                                                                        variant.id,
+                                                                                        variant.displayName
+                                                                                    )
+                                                                                }
+                                                                                disabled={unarchiveVariantMutation.isPending}
+                                                                                className="text-blue-600 hover:text-blue-700"
+                                                                            >
+                                                                                <RotateCcw className="h-3 w-3" />
+                                                                            </Button>
+                                                                        )}
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            className="text-red-500 hover:text-red-600"
+                                                                            onClick={() =>
+                                                                                handleDeleteVariant(
+                                                                                    variant.id,
+                                                                                    variant.displayName
+                                                                                )
+                                                                            }
+                                                                            disabled={deleteVariantMutation.isPending}
+                                                                        >
+                                                                            <Tag className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    )}
 
                                     {filteredVariants.length === 0 &&
                                         variants.length > 0 && (

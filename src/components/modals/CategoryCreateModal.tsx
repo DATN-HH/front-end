@@ -118,7 +118,7 @@ export function CategoryCreateModal({
                 name: data.name,
                 description: data.description || undefined,
                 status: data.status,
-                parentId: data.parentId ? Number(data.parentId) : undefined,
+                parentId: data.parentId && data.parentId !== 'root' ? Number(data.parentId) : undefined,
                 sequence: data.sequence ? Number(data.sequence) : undefined,
                 image: data.image || undefined,
             };
@@ -282,7 +282,7 @@ export function CategoryCreateModal({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">
+                                            <SelectItem value="root">
                                                 No Parent (Root Category)
                                             </SelectItem>
                                             {allCategories

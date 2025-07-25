@@ -21,6 +21,7 @@ export interface ProductAttributeCreateRequest {
     displayType: DisplayType;
     variantCreationMode: VariantCreationMode;
     description?: string;
+    isMoneyAttribute?: boolean;
 }
 
 export interface ProductAttributeResponse {
@@ -162,6 +163,52 @@ export interface ProductResponse {
 }
 
 // ========== API Functions ==========
+
+// Money Attributes
+export const setDefaultMoneyAttribute = async (
+    productId: number,
+    attributeId: number,
+    priceValue?: number
+): Promise<string> => {
+    const params: any = {
+        productId,
+        attributeId,
+    };
+
+    if (priceValue !== undefined) {
+        params.priceValue = priceValue;
+    }
+
+    const response = await apiClient.post<ApiResponse<string>>(
+        '/api/menu/product-attributes/money/default',
+        null,
+        {
+            params,
+        }
+    );
+    return response.data.data;
+};
+
+export const getDefaultMoneyAttribute = async (
+    productId: number
+): Promise<any> => {
+    const response = await apiClient.get<ApiResponse<any>>(
+        '/api/menu/product-attributes/money/default',
+        {
+            params: {
+                productId,
+            },
+        }
+    );
+    return response.data.data;
+};
+
+export const getSupportedCurrencies = async (): Promise<string[]> => {
+    const response = await apiClient.get<ApiResponse<string[]>>(
+        '/api/menu/product-attributes/money/currencies'
+    );
+    return response.data.data;
+};
 
 // Product Attributes
 export const createProductAttribute = async (
@@ -725,6 +772,46 @@ export const useAvailablePosProducts = () => {
     return useQuery({
         queryKey: ['pos', 'available-products'],
         queryFn: getAvailablePosProducts,
+    });
+};
+
+// Money Attributes Hooks
+export const useSetDefaultMoneyAttribute = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ productId, attributeId, priceValue }: { productId: number; attributeId: number; priceValue?: number }) =>
+            setDefaultMoneyAttribute(productId, attributeId, priceValue),
+        onSuccess: (_, { productId }) => {
+            // Invalidate default money attribute queries
+            queryClient.invalidateQueries({
+                queryKey: ['money-attributes', 'default', productId],
+            });
+            // Invalidate product variants to refresh the UI
+            queryClient.invalidateQueries({
+                queryKey: ['product-variants', productId],
+            });
+            // Invalidate product detail
+            queryClient.invalidateQueries({
+                queryKey: ['products', productId, 'detail'],
+            });
+        },
+    });
+};
+
+export const useDefaultMoneyAttribute = (productId: number) => {
+    return useQuery({
+        queryKey: ['money-attributes', 'default', productId],
+        queryFn: () => getDefaultMoneyAttribute(productId),
+        enabled: !!productId,
+    });
+};
+
+export const useSupportedCurrencies = () => {
+    return useQuery({
+        queryKey: ['money-attributes', 'currencies'],
+        queryFn: getSupportedCurrencies,
+        staleTime: 1000 * 60 * 60, // Cache for 1 hour
     });
 };
 

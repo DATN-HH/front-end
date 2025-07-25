@@ -113,11 +113,6 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                     icon: <Settings className="h-4 w-4" />,
                 },
                 {
-                    href: '/app/menu/product-attributes',
-                    label: 'Product Attributes',
-                    icon: <Settings className="h-4 w-4" />,
-                },
-                {
                     href: '/app/menu/kitchen-printers',
                     label: 'Kitchen Printers',
                     icon: <Printer className="h-4 w-4" />,
