@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { apiClient } from '@/services/api-client';
 
 // ========== Type Definitions ==========
@@ -102,7 +103,7 @@ export const getProductVariants = async (
 ): Promise<MenuVariant[]> => {
     try {
         const response = await apiClient.get<MenuProductsResponse>(
-            `/api/menu/categories/7/products` // This will be updated when we have the correct endpoint
+            '/api/menu/categories/7/products' // This will be updated when we have the correct endpoint
         );
 
         if (response.data.success && response.data.data) {
@@ -209,7 +210,7 @@ export const getVariantPrice = (
     const totalAttribute = variant.attributeValues?.find(
         (attr) => attr.attributeName === 'Total'
     );
-    if (totalAttribute && totalAttribute.name) {
+    if (totalAttribute?.name) {
         const price = parseFloat(totalAttribute.name);
         if (!isNaN(price)) {
             return price;

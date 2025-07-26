@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Clock, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import {
     MenuProduct,
     MenuVariant,
     useMenuProductsByCategory,
     formatPriceRange,
-    formatVietnameseCurrency,
 } from '@/api/v1/menu/menu-products';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
 import { ProductVariantDialog } from './ProductVariantDialog';
 
 interface MenuCategorySectionProps {

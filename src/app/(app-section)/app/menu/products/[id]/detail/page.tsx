@@ -88,7 +88,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Table,
     TableBody,
@@ -97,6 +96,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 // Form schemas
@@ -1552,7 +1552,7 @@ export default function ProductDetailPage() {
                                                                                             <Button
                                                                                                 size="sm"
                                                                                                 variant="outline"
-                                                                                                onClick={() => 
+                                                                                                onClick={() =>
                                                                                                     handleSetAsDefaultPrice(
                                                                                                         variant.id.toString(),
                                                                                                         attr.attributeId,
@@ -1616,7 +1616,6 @@ export default function ProductDetailPage() {
                                                                                         {
                                                                                             attrValue.attributeName
                                                                                         }
-
                                                                                         :{' '}
                                                                                         {attrValue.textValue ||
                                                                                             attrValue.name}
@@ -2255,7 +2254,6 @@ export default function ProductDetailPage() {
                                                                                                     {
                                                                                                         value.textValue
                                                                                                     }
-
                                                                                                     "
                                                                                                 </div>
                                                                                             )}
@@ -2435,7 +2433,6 @@ export default function ProductDetailPage() {
                                                                                                 {
                                                                                                     value.textValue
                                                                                                 }
-
                                                                                                 "
                                                                                             </div>
                                                                                         )}

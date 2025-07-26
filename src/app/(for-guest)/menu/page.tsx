@@ -3,7 +3,7 @@
 import { Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import { useAllCategories, CategoryResponse } from '@/api/v1/menu/categories';
+import { useAllCategories } from '@/api/v1/menu/categories';
 import {
     MenuProduct,
     MenuVariant,
