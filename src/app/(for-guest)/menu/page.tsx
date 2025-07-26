@@ -1,12 +1,11 @@
 'use client';
 
-import { Search, Grid, List } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import { useAllCategories } from '@/api/v1/menu/categories';
-import { useAllProducts } from '@/api/v1/menu/products';
-import { MenuItemCard } from '@/components/common/menu-item-card';
-import { MenuItemCardMobile } from '@/components/common/menu-item-card-mobile';
+import { useAllCategories, CategoryResponse } from '@/api/v1/menu/categories';
+import { MenuProduct, MenuVariant, getVariantDisplayName } from '@/api/v1/menu/menu-products';
+import { MenuCategorySection } from '@/components/common/MenuCategorySection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,89 +15,45 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function MenuPage() {
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedCategory, setSelectedCategory] = useState<number | 'All'>('All');
     const [searchQuery, setSearchQuery] = useState('');
-    const [mobileViewMode, setMobileViewMode] = useState<'list' | 'grid'>(
-        'list'
-    );
-    const [sortBy, setSortBy] = useState('name');
 
-    // Fetch real data from API
+    // Toast for notifications
+    const { success, error } = useCustomToast();
+
+    // Fetch categories data
     const { data: categoriesData, isLoading: categoriesLoading } = useAllCategories();
-    const { data: productsData, isLoading: productsLoading } = useAllProducts();
 
-    // Process the data for the UI
+    // Process categories for UI
     const categories = useMemo(() => {
-        if (!categoriesData) return ['All'];
-        return ['All', ...categoriesData.map(cat => cat.name)];
+        if (!categoriesData) return [];
+        // Filter out categories without products (will be handled by lazy loading)
+        return categoriesData.filter(cat => cat.status === 'ACTIVE');
     }, [categoriesData]);
 
-    const menuItems = useMemo(() => {
-        if (!productsData) return [];
+    // Get filtered categories based on search
+    const filteredCategories = useMemo(() => {
+        if (!searchQuery) return categories;
+        return categories.filter(category =>
+            category.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [categories, searchQuery]);
 
-        return productsData.map(product => ({
-            id: product.id.toString(),
-            name: product.name,
-            description: product.description || '',
-            detailedDescription: product.description || '',
-            price: product.price || 0,
-            originalPrice: undefined,
-            image: product.image || '/placeholder.svg?height=200&width=300',
-            images: product.image ? [product.image] : ['/placeholder.svg?height=200&width=300'],
-            category: product.category?.name || 'Uncategorized',
-            isPromotion: false,
-            promotionType: undefined,
-            promotionValue: undefined,
-            isBestSeller: false,
-            isCombo: false,
-            comboItems: [],
-            ingredients: [],
-            allergens: [],
-            nutritionalInfo: undefined,
-            preparationTime: product.estimateTime || 15,
-            spiceLevel: undefined,
-            isVegetarian: false,
-            isVegan: false,
-            isGlutenFree: false,
-            rating: 4.5, // Default rating
-            reviewCount: 0,
-            chef: undefined,
-            restaurantId: 'default',
-        }));
-    }, [productsData]);
+    // Handle add to cart
+    const handleAddToCart = (product: MenuProduct, variant: MenuVariant | null, quantity: number, note?: string) => {
+        const itemName = variant ? `${product.name} (${getVariantDisplayName(variant)})` : product.name;
+        const noteText = note ? ` with note: "${note}"` : '';
+        success('Added to Cart', `${quantity}x ${itemName} added to cart${noteText}`);
 
-    const filteredItems = menuItems.filter((item) => {
-        const matchesCategory =
-            selectedCategory === 'All' || item.category === selectedCategory;
-        const matchesSearch =
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
-
-    const sortedItems = [...filteredItems].sort((a, b) => {
-        switch (sortBy) {
-            case 'price-low':
-                return a.price - b.price;
-            case 'price-high':
-                return b.price - a.price;
-            case 'rating':
-                return b.rating - a.rating;
-            case 'popular':
-                return b.reviewCount - a.reviewCount;
-            default:
-                return a.name.localeCompare(b.name);
-        }
-    });
-
-    const promotionItems = menuItems.filter((item) => item.isPromotion);
-    const bestSellerItems = menuItems.filter((item) => item.isBestSeller);
-    const comboItems = menuItems.filter((item) => item.isCombo);
+        // Here you would typically dispatch to a cart context or state management
+        console.log('Add to cart:', { product, variant, quantity, note });
+    };
 
     // Show loading state
-    if (categoriesLoading || productsLoading) {
+    if (categoriesLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -132,7 +87,7 @@ export default function MenuPage() {
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                             <Input
-                                placeholder="Search our menu..."
+                                placeholder="Search categories..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
@@ -141,255 +96,69 @@ export default function MenuPage() {
 
                         {/* Category Filter */}
                         <Select
-                            value={selectedCategory}
-                            onValueChange={setSelectedCategory}
+                            value={selectedCategory.toString()}
+                            onValueChange={(value) => setSelectedCategory(value === 'All' ? 'All' : parseInt(value))}
                         >
                             <SelectTrigger className="w-full lg:w-48">
                                 <SelectValue placeholder="Category" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="All">All Categories</SelectItem>
                                 {categories.map((category) => (
-                                    <SelectItem key={category} value={category}>
-                                        {category}
+                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                        {category.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-
-                        {/* Sort */}
-                        <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-full lg:w-48">
-                                <SelectValue placeholder="Sort by" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="name">Name A-Z</SelectItem>
-                                <SelectItem value="price-low">
-                                    Price: Low to High
-                                </SelectItem>
-                                <SelectItem value="price-high">
-                                    Price: High to Low
-                                </SelectItem>
-                                <SelectItem value="rating">
-                                    Highest Rated
-                                </SelectItem>
-                                <SelectItem value="popular">
-                                    Most Popular
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        {/* Mobile View Toggle */}
-                        <div className="flex lg:hidden gap-2">
-                            <Button
-                                variant={
-                                    mobileViewMode === 'list'
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setMobileViewMode('list')}
-                            >
-                                <List className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant={
-                                    mobileViewMode === 'grid'
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setMobileViewMode('grid')}
-                            >
-                                <Grid className="h-4 w-4" />
-                            </Button>
-                        </div>
                     </div>
                 </div>
 
-                {/* Special Sections */}
-                {selectedCategory === 'All' && (
-                    <>
-                        {/* Promotions */}
-                        {promotionItems.length > 0 && (
-                            <section className="mb-12">
-                                <h2 className="text-2xl font-serif font-bold mb-6 text-center">
-                                    🔥 Special Offers
-                                </h2>
-                                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                    {promotionItems.map((item) => (
-                                        <MenuItemCard
-                                            key={item.id}
-                                            item={item}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="md:hidden">
-                                    {mobileViewMode === 'list' ? (
-                                        <div className="space-y-3">
-                                            {promotionItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="list"
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-4 overflow-x-auto pb-4">
-                                            {promotionItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="grid"
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Best Sellers */}
-                        {bestSellerItems.length > 0 && (
-                            <section className="mb-12">
-                                <h2 className="text-2xl font-serif font-bold mb-6 text-center">
-                                    ⭐ Chef's Recommendations
-                                </h2>
-                                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                    {bestSellerItems.map((item) => (
-                                        <MenuItemCard
-                                            key={item.id}
-                                            item={item}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="md:hidden">
-                                    {mobileViewMode === 'list' ? (
-                                        <div className="space-y-3">
-                                            {bestSellerItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="list"
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-4 overflow-x-auto pb-4">
-                                            {bestSellerItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="grid"
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Combo Deals */}
-                        {comboItems.length > 0 && (
-                            <section className="mb-12">
-                                <h2 className="text-2xl font-serif font-bold mb-6 text-center">
-                                    🍽️ Curated Experiences
-                                </h2>
-                                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {comboItems.map((item) => (
-                                        <MenuItemCard
-                                            key={item.id}
-                                            item={item}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="md:hidden">
-                                    {mobileViewMode === 'list' ? (
-                                        <div className="space-y-3">
-                                            {comboItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="list"
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-4 overflow-x-auto pb-4">
-                                            {comboItems.map((item) => (
-                                                <MenuItemCardMobile
-                                                    key={item.id}
-                                                    item={item}
-                                                    viewMode="grid"
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-                        )}
-                    </>
-                )}
-
-                {/* All Items */}
-                <section>
-                    <h2 className="text-2xl font-serif font-bold mb-6 text-center">
-                        {selectedCategory === 'All'
-                            ? 'Complete Menu'
-                            : selectedCategory}
-                    </h2>
-                    {sortedItems.length > 0 ? (
-                        <>
-                            {/* Desktop View */}
-                            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {sortedItems.map((item) => (
-                                    <MenuItemCard key={item.id} item={item} />
-                                ))}
-                            </div>
-
-                            {/* Mobile View */}
-                            <div className="md:hidden">
-                                {mobileViewMode === 'list' ? (
-                                    <div className="space-y-3">
-                                        {sortedItems.map((item) => (
-                                            <MenuItemCardMobile
-                                                key={item.id}
-                                                item={item}
-                                                viewMode="list"
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex gap-4 overflow-x-auto pb-4">
-                                        {sortedItems.map((item) => (
-                                            <MenuItemCardMobile
-                                                key={item.id}
-                                                item={item}
-                                                viewMode="grid"
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </>
+                {/* Menu Categories with Lazy Loading */}
+                <div className="space-y-8 md:space-y-12">
+                    {selectedCategory === 'All' ? (
+                        // Show all categories
+                        filteredCategories.map((category) => (
+                            <MenuCategorySection
+                                key={category.id}
+                                categoryId={category.id}
+                                categoryName={category.name}
+                                onAddToCart={handleAddToCart}
+                            />
+                        ))
                     ) : (
-                        <div className="text-center py-12">
-                            <p className="text-muted-foreground">
-                                No items found matching your criteria.
-                            </p>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setSearchQuery('');
-                                    setSelectedCategory('All');
-                                }}
-                                className="mt-4"
-                            >
-                                Clear Filters
-                            </Button>
-                        </div>
+                        // Show specific category
+                        (() => {
+                            const category = categories.find(cat => cat.id === selectedCategory);
+                            return category ? (
+                                <MenuCategorySection
+                                    key={category.id}
+                                    categoryId={category.id}
+                                    categoryName={category.name}
+                                    onAddToCart={handleAddToCart}
+                                />
+                            ) : null;
+                        })()
                     )}
-                </section>
+                </div>
+
+                {/* No Results Message */}
+                {filteredCategories.length === 0 && searchQuery && (
+                    <div className="text-center py-12">
+                        <p className="text-muted-foreground mb-4">
+                            No categories found matching "{searchQuery}".
+                        </p>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setSearchQuery('');
+                                setSelectedCategory('All');
+                            }}
+                        >
+                            Clear Search
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );

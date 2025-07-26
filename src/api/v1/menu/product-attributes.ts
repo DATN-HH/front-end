@@ -166,12 +166,12 @@ export interface ProductResponse {
 
 // Money Attributes
 export const setDefaultMoneyAttribute = async (
-    productId: number,
+    productVariantId: number,
     attributeId: number,
     priceValue?: number
 ): Promise<string> => {
     const params: any = {
-        productId,
+        productVariantId,
         attributeId,
     };
 
@@ -780,20 +780,20 @@ export const useSetDefaultMoneyAttribute = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ productId, attributeId, priceValue }: { productId: number; attributeId: number; priceValue?: number }) =>
-            setDefaultMoneyAttribute(productId, attributeId, priceValue),
-        onSuccess: (_, { productId }) => {
+        mutationFn: ({ productVariantId, attributeId, priceValue }: { productVariantId: number; attributeId: number; priceValue?: number }) =>
+            setDefaultMoneyAttribute(productVariantId, attributeId, priceValue),
+        onSuccess: (_, { productVariantId }) => {
             // Invalidate default money attribute queries
             queryClient.invalidateQueries({
-                queryKey: ['money-attributes', 'default', productId],
+                queryKey: ['money-attributes', 'default', productVariantId],
             });
             // Invalidate product variants to refresh the UI
             queryClient.invalidateQueries({
-                queryKey: ['product-variants', productId],
+                queryKey: ['product-variants', productVariantId],
             });
             // Invalidate product detail
             queryClient.invalidateQueries({
-                queryKey: ['products', productId, 'detail'],
+                queryKey: ['products', productVariantId, 'detail'],
             });
         },
     });

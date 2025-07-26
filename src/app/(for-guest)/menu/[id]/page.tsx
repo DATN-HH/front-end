@@ -1,12 +1,17 @@
 'use client';
 
-import { ArrowLeft, Plus, Star, Clock, ChefHat, Leaf } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Star, Clock, ChefHat, Leaf } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, use, useMemo } from 'react';
 
 import { useProductDetail } from '@/api/v1/menu/products';
-import { MenuItemCardMobile } from '@/components/common/menu-item-card-mobile';
+import {
+    useProductVariants,
+    getVariantPrice,
+    getVariantDisplayName,
+    formatVietnameseCurrency
+} from '@/api/v1/menu/menu-products';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -65,11 +70,14 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
     const [isAddToCartOpen, setIsAddToCartOpen] = useState(false);
     const [notes, setNotes] = useState('');
     const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
+    const [selectedVariant, setSelectedVariant] = useState<any>(null);
+    const [quantity, setQuantity] = useState(1);
     const { dispatch } = useCart();
 
-    // Fetch product details from API
+    // Fetch product details and variants from API
     const productId = parseInt(resolvedParams.id);
     const { data: productData, isLoading, error } = useProductDetail(productId);
+    const { data: variants = [], isLoading: variantsLoading } = useProductVariants(productId);
 
     // Convert API data to MenuItem format
     const item = useMemo(() => {
@@ -106,6 +114,17 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
         };
     }, [productData]);
 
+    // Calculate current price based on selected variant
+    const currentPrice = useMemo(() => {
+        if (selectedVariant && productData) {
+            return getVariantPrice(selectedVariant, productData.price);
+        }
+        return productData?.price || 0;
+    }, [selectedVariant, productData]);
+
+    // Check if product has variants
+    const hasVariants = variants && variants.length > 0;
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -138,13 +157,29 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
     const itemReviews = reviews.filter((review) => Math.random() > 0.5); // Simulate item-specific reviews
 
     const handleAddToCart = () => {
+        // Validate variant selection if product has variants
+        if (hasVariants && !selectedVariant) {
+            alert('Please select a variant');
+            return;
+        }
+
         const allNotes = [notes, ...selectedQuickNotes]
             .filter(Boolean)
             .join(', ');
+
         dispatch({
             type: 'ADD_ITEM',
             payload: {
-                menuItem: item,
+                menuItem: {
+                    ...item,
+                    price: currentPrice,
+                    variant: selectedVariant ? {
+                        id: selectedVariant.id,
+                        name: getVariantDisplayName(selectedVariant),
+                        price: currentPrice
+                    } : undefined
+                },
+                quantity,
                 notes: allNotes || undefined,
                 customizations: selectedQuickNotes,
             },
@@ -152,6 +187,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
         setIsAddToCartOpen(false);
         setNotes('');
         setSelectedQuickNotes([]);
+        setQuantity(1);
+        setSelectedVariant(null);
     };
 
     const toggleQuickNote = (note: string) => {
@@ -162,9 +199,12 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
         );
     };
 
-    const displayPrice: number = item.price;
-    const originalPrice: number | null =
-        item.isPromotion && item.originalPrice ? item.originalPrice : null;
+    const handleQuantityChange = (delta: number) => {
+        const newQuantity = quantity + delta;
+        if (newQuantity >= 1) {
+            setQuantity(newQuantity);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -269,16 +309,53 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
 
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-3xl font-bold text-primary">
-                                        ${displayPrice.toFixed(2)}
+                                    <span className="text-3xl font-bold text-green-600">
+                                        {formatVietnameseCurrency(currentPrice)}
                                     </span>
-                                    {originalPrice && (
-                                        <span className="text-xl text-muted-foreground line-through">
-                                            ${(originalPrice as number).toFixed(2)}
-                                        </span>
-                                    )}
                                 </div>
                             </div>
+
+                            {/* Variants Selection */}
+                            {hasVariants && (
+                                <Card className="mb-6">
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">Choose your option</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-3">
+                                            {variants.map((variant) => (
+                                                <div
+                                                    key={variant.id}
+                                                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                                                        selectedVariant?.id === variant.id
+                                                            ? 'border-blue-500 bg-blue-50'
+                                                            : 'border-gray-200 hover:border-gray-300'
+                                                    }`}
+                                                    onClick={() => setSelectedVariant(variant)}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="flex-1">
+                                                            <p className="font-medium">
+                                                                {getVariantDisplayName(variant)}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="secondary">
+                                                                {formatVietnameseCurrency(getVariantPrice(variant, productData?.price || 0))}
+                                                            </Badge>
+                                                            {selectedVariant?.id === variant.id && (
+                                                                <Badge variant="default" className="text-xs">
+                                                                    Selected
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
 
                             {item.chef && (
                                 <div className="flex items-center gap-2 mb-4">
@@ -326,9 +403,13 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                             onOpenChange={setIsAddToCartOpen}
                         >
                             <DialogTrigger asChild>
-                                <Button size="lg" className="w-full">
+                                <Button
+                                    size="lg"
+                                    className="w-full"
+                                    disabled={hasVariants && !selectedVariant}
+                                >
                                     <Plus className="h-5 w-5 mr-2" />
-                                    Add to Cart - ${displayPrice.toFixed(2)}
+                                    Add to Cart - {formatVietnameseCurrency(currentPrice * quantity)}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
@@ -339,6 +420,46 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                 </DialogHeader>
 
                                 <div className="space-y-4">
+                                    {/* Selected Variant Display */}
+                                    {hasVariants && selectedVariant && (
+                                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <p className="font-medium text-sm">Selected Option:</p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {getVariantDisplayName(selectedVariant)}
+                                                    </p>
+                                                </div>
+                                                <Badge variant="secondary">
+                                                    {formatVietnameseCurrency(getVariantPrice(selectedVariant, productData?.price || 0))}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Quantity Selector */}
+                                    <div>
+                                        <Label>Quantity</Label>
+                                        <div className="flex items-center justify-center gap-4 mt-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleQuantityChange(-1)}
+                                                disabled={quantity <= 1}
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                            </Button>
+                                            <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleQuantityChange(1)}
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <Label htmlFor="notes">
                                             Special Instructions
@@ -379,10 +500,13 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                     </div>
 
                                     <div className="flex justify-between items-center pt-4 border-t">
-                                        <span className="font-semibold">
-                                            Total: ${displayPrice.toFixed(2)}
+                                        <span className="font-semibold text-lg">
+                                            Total: {formatVietnameseCurrency(currentPrice * quantity)}
                                         </span>
-                                        <Button onClick={handleAddToCart}>
+                                        <Button
+                                            onClick={handleAddToCart}
+                                            disabled={hasVariants && !selectedVariant}
+                                        >
                                             Add to Cart
                                         </Button>
                                     </div>

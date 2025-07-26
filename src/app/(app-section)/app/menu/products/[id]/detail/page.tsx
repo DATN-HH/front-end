@@ -383,24 +383,14 @@ export default function ProductDetailPage() {
         }
     };
 
-    const handleEditVariant = (variant: ProductVariantResponse) => {
-        setEditingVariantId(variant.id);
-        editVariantForm.reset({
-            price: Number(variant.price) || 0,
-            cost: Number(variant.cost) || 0,
-            internalReference: variant.internalReference || '',
-            isActive: variant.isActive || true,
-        });
-        setShowEditVariantModal(true);
-    };
-
     // Handle setting money attribute as default price for the product
-    const handleSetAsDefaultPrice = async (attributeId: number, attributeName: string, priceValue?: number) => {
+    const handleSetAsDefaultPrice = async (productVariantId: string, attributeId: number, attributeName: string, priceValue?: string) => {
+        console.log('priceValue', priceValue);
         try {
             await setDefaultMoneyAttributeMutation.mutateAsync({
-                productId: Number(productId),
+                productVariantId: Number(productVariantId),
                 attributeId,
-                priceValue,
+                priceValue: priceValue ? Number(priceValue) : undefined,
             });
 
             toast({
@@ -1532,9 +1522,10 @@ export default function ProductDetailPage() {
                                                                                                 variant="outline"
                                                                                                 onClick={() =>
                                                                                                     handleSetAsDefaultPrice(
+                                                                                                        variant.id,
                                                                                                         attr.attributeId,
                                                                                                         attr.name,
-                                                                                                        attr.textValue ? Number(attr.textValue) : undefined
+                                                                                                        attr.value
                                                                                                     )
                                                                                                 }
                                                                                                 className="text-green-600 hover:text-green-700 border-green-300"
@@ -1774,9 +1765,10 @@ export default function ProductDetailPage() {
                                                                                         variant="outline"
                                                                                         onClick={() =>
                                                                                             handleSetAsDefaultPrice(
+                                                                                                variant.id,
                                                                                                 attr.attributeId,
                                                                                                 attr.name,
-                                                                                                attr.textValue ? Number(attr.textValue) : undefined
+                                                                                                attr.textValue ? attr.textValue.toString() : undefined
                                                                                             )
                                                                                         }
                                                                                         className="text-green-600 hover:text-green-700 border-green-300 text-xs px-2 py-1"
