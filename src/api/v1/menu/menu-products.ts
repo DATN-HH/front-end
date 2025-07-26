@@ -128,7 +128,7 @@ export const useMenuProductsByCategory = (categoryId: number) => {
         queryFn: () => getMenuProductsByCategory(categoryId),
         enabled: !!categoryId,
         staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-        cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+        gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
         retry: (failureCount, error: any) => {
             // Don't retry on 404 errors
             if (error?.response?.status === 404) {
@@ -145,7 +145,7 @@ export const useProductVariants = (productId: number) => {
         queryFn: () => getProductVariants(productId),
         enabled: !!productId,
         staleTime: 5 * 60 * 1000,
-        cacheTime: 30 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
         retry: (failureCount, error: any) => {
             if (error?.response?.status === 404) {
                 return false;
@@ -179,7 +179,7 @@ export const useMenuProductsForCategories = (categoryIds: number[]) => {
         },
         enabled: categoryIds.length > 0,
         staleTime: 5 * 60 * 1000,
-        cacheTime: 30 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
     });
 };
 
