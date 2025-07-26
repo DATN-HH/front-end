@@ -1,16 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Clock, Minus, Plus, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+
 import {
     MenuProduct,
     MenuVariant,
@@ -18,8 +10,17 @@ import {
     getVariantPrice,
     getVariantDisplayName,
 } from '@/api/v1/menu/menu-products';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ProductVariantDialogProps {
     open: boolean;
