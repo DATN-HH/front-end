@@ -1616,6 +1616,7 @@ export default function ProductDetailPage() {
                                                                                         {
                                                                                             attrValue.attributeName
                                                                                         }
+
                                                                                         :{' '}
                                                                                         {attrValue.textValue ||
                                                                                             attrValue.name}
@@ -1921,6 +1922,7 @@ export default function ProductDetailPage() {
                                                                                             {
                                                                                                 attrValue.attributeName
                                                                                             }
+
                                                                                             :{' '}
                                                                                             {attrValue.textValue ||
                                                                                                 attrValue.name}
@@ -2254,6 +2256,7 @@ export default function ProductDetailPage() {
                                                                                                     {
                                                                                                         value.textValue
                                                                                                     }
+
                                                                                                     "
                                                                                                 </div>
                                                                                             )}
@@ -2433,6 +2436,7 @@ export default function ProductDetailPage() {
                                                                                                 {
                                                                                                     value.textValue
                                                                                                 }
+
                                                                                                 "
                                                                                             </div>
                                                                                         )}
