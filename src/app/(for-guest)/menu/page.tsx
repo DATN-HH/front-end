@@ -4,7 +4,11 @@ import { Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 import { useAllCategories, CategoryResponse } from '@/api/v1/menu/categories';
-import { MenuProduct, MenuVariant, getVariantDisplayName } from '@/api/v1/menu/menu-products';
+import {
+    MenuProduct,
+    MenuVariant,
+    getVariantDisplayName,
+} from '@/api/v1/menu/menu-products';
 import { MenuCategorySection } from '@/components/common/MenuCategorySection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,35 +22,48 @@ import {
 import { useCustomToast } from '@/lib/show-toast';
 
 export default function MenuPage() {
-    const [selectedCategory, setSelectedCategory] = useState<number | 'All'>('All');
+    const [selectedCategory, setSelectedCategory] = useState<number | 'All'>(
+        'All'
+    );
     const [searchQuery, setSearchQuery] = useState('');
 
     // Toast for notifications
     const { success, error } = useCustomToast();
 
     // Fetch categories data
-    const { data: categoriesData, isLoading: categoriesLoading } = useAllCategories();
+    const { data: categoriesData, isLoading: categoriesLoading } =
+        useAllCategories();
 
     // Process categories for UI
     const categories = useMemo(() => {
         if (!categoriesData) return [];
         // Filter out categories without products (will be handled by lazy loading)
-        return categoriesData.filter(cat => cat.status === 'ACTIVE');
+        return categoriesData.filter((cat) => cat.status === 'ACTIVE');
     }, [categoriesData]);
 
     // Get filtered categories based on search
     const filteredCategories = useMemo(() => {
         if (!searchQuery) return categories;
-        return categories.filter(category =>
+        return categories.filter((category) =>
             category.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [categories, searchQuery]);
 
     // Handle add to cart
-    const handleAddToCart = (product: MenuProduct, variant: MenuVariant | null, quantity: number, note?: string) => {
-        const itemName = variant ? `${product.name} (${getVariantDisplayName(variant)})` : product.name;
+    const handleAddToCart = (
+        product: MenuProduct,
+        variant: MenuVariant | null,
+        quantity: number,
+        note?: string
+    ) => {
+        const itemName = variant
+            ? `${product.name} (${getVariantDisplayName(variant)})`
+            : product.name;
         const noteText = note ? ` with note: "${note}"` : '';
-        success('Added to Cart', `${quantity}x ${itemName} added to cart${noteText}`);
+        success(
+            'Added to Cart',
+            `${quantity}x ${itemName} added to cart${noteText}`
+        );
 
         // Here you would typically dispatch to a cart context or state management
         console.log('Add to cart:', { product, variant, quantity, note });
@@ -97,15 +114,24 @@ export default function MenuPage() {
                         {/* Category Filter */}
                         <Select
                             value={selectedCategory.toString()}
-                            onValueChange={(value) => setSelectedCategory(value === 'All' ? 'All' : parseInt(value))}
+                            onValueChange={(value) =>
+                                setSelectedCategory(
+                                    value === 'All' ? 'All' : parseInt(value)
+                                )
+                            }
                         >
                             <SelectTrigger className="w-full lg:w-48">
                                 <SelectValue placeholder="Category" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="All">All Categories</SelectItem>
+                                <SelectItem value="All">
+                                    All Categories
+                                </SelectItem>
                                 {categories.map((category) => (
-                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                    <SelectItem
+                                        key={category.id}
+                                        value={category.id.toString()}
+                                    >
                                         {category.name}
                                     </SelectItem>
                                 ))}
@@ -116,30 +142,30 @@ export default function MenuPage() {
 
                 {/* Menu Categories with Lazy Loading */}
                 <div className="space-y-8 md:space-y-12">
-                    {selectedCategory === 'All' ? (
-                        // Show all categories
-                        filteredCategories.map((category) => (
-                            <MenuCategorySection
-                                key={category.id}
-                                categoryId={category.id}
-                                categoryName={category.name}
-                                onAddToCart={handleAddToCart}
-                            />
-                        ))
-                    ) : (
-                        // Show specific category
-                        (() => {
-                            const category = categories.find(cat => cat.id === selectedCategory);
-                            return category ? (
-                                <MenuCategorySection
-                                    key={category.id}
-                                    categoryId={category.id}
-                                    categoryName={category.name}
-                                    onAddToCart={handleAddToCart}
-                                />
-                            ) : null;
-                        })()
-                    )}
+                    {selectedCategory === 'All'
+                        ? // Show all categories
+                          filteredCategories.map((category) => (
+                              <MenuCategorySection
+                                  key={category.id}
+                                  categoryId={category.id}
+                                  categoryName={category.name}
+                                  onAddToCart={handleAddToCart}
+                              />
+                          ))
+                        : // Show specific category
+                          (() => {
+                              const category = categories.find(
+                                  (cat) => cat.id === selectedCategory
+                              );
+                              return category ? (
+                                  <MenuCategorySection
+                                      key={category.id}
+                                      categoryId={category.id}
+                                      categoryName={category.name}
+                                      onAddToCart={handleAddToCart}
+                                  />
+                              ) : null;
+                          })()}
                 </div>
 
                 {/* No Results Message */}

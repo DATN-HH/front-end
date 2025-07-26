@@ -159,7 +159,10 @@ export function ProductAttributeCreateModal({
                 displayType: data.displayType,
                 variantCreationMode: data.variantCreationMode,
                 description: data.description || undefined,
-                isMoneyAttribute: data.displayType === 'TEXTBOX' ? data.isMoneyAttribute : undefined,
+                isMoneyAttribute:
+                    data.displayType === 'TEXTBOX'
+                        ? data.isMoneyAttribute
+                        : undefined,
             };
 
             const createdAttribute = await createAttributeMutation.mutateAsync({
@@ -385,7 +388,9 @@ export function ProductAttributeCreateModal({
                                                 <FormControl>
                                                     <Checkbox
                                                         checked={field.value}
-                                                        onCheckedChange={field.onChange}
+                                                        onCheckedChange={
+                                                            field.onChange
+                                                        }
                                                     />
                                                 </FormControl>
                                                 <div className="space-y-1 leading-none">
@@ -393,8 +398,13 @@ export function ProductAttributeCreateModal({
                                                         Money Attribute
                                                     </FormLabel>
                                                     <FormDescription className="text-xs text-muted-foreground">
-                                                        Check this if this attribute represents a monetary value (e.g., price, cost, fee).
-                                                        This will enable currency formatting and validation.
+                                                        Check this if this
+                                                        attribute represents a
+                                                        monetary value (e.g.,
+                                                        price, cost, fee). This
+                                                        will enable currency
+                                                        formatting and
+                                                        validation.
                                                     </FormDescription>
                                                 </div>
                                             </FormItem>

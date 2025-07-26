@@ -39,7 +39,9 @@ export const usePosCategory = (id: number) => {
     return useQuery({
         queryKey: ['pos-categories', id],
         queryFn: async (): Promise<PosCategoryResponse> => {
-            const response = await apiClient.get(`/api/menu/pos-categories/${id}`);
+            const response = await apiClient.get(
+                `/api/menu/pos-categories/${id}`
+            );
             return response.data;
         },
         enabled: !!id,

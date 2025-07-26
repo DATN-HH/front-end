@@ -780,7 +780,15 @@ export const useSetDefaultMoneyAttribute = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ productVariantId, attributeId, priceValue }: { productVariantId: number; attributeId: number; priceValue?: number }) =>
+        mutationFn: ({
+            productVariantId,
+            attributeId,
+            priceValue,
+        }: {
+            productVariantId: number;
+            attributeId: number;
+            priceValue?: number;
+        }) =>
             setDefaultMoneyAttribute(productVariantId, attributeId, priceValue),
         onSuccess: (_, { productVariantId }) => {
             // Invalidate default money attribute queries

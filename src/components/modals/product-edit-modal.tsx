@@ -230,7 +230,6 @@ export function ProductEditModal({
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-
                                 <div className="space-y-2">
                                     <Label htmlFor="category">
                                         Internal Category
