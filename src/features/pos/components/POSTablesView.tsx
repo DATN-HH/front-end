@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Building2 } from 'lucide-react';
+import { Plus, Search, Building2, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 import { type FloorResponse } from '@/api/v1/floors';
 import { type BranchResponseDto } from '@/api/v1/branches';
@@ -35,6 +35,7 @@ export function POSTablesView({
     onBranchSelect
 }: POSTablesViewProps) {
     const [showQuickNav, setShowQuickNav] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Show branch selector if no branch is selected
     if (!selectedBranch && onBranchSelect) {
@@ -48,69 +49,107 @@ export function POSTablesView({
 
     return (
         <div className="flex h-full">
-            {/* Left Sidebar - Simplified */}
-            <div className="w-64 bg-gray-700 border-r border-gray-600 p-4 flex flex-col">
-                {/* Branch Selector */}
-                {selectedBranch && onBranchSelect && (
-                    <div className="mb-4">
-                        <BranchSelector
-                            onBranchSelect={onBranchSelect}
-                            selectedBranch={selectedBranch}
-                        />
-                    </div>
-                )}
-
-                {/* New Order Button */}
+            {/* Left Sidebar - Collapsible */}
+            <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-gray-700 border-r border-gray-600 transition-all duration-300 ease-in-out flex flex-col relative`}>
+                {/* Collapse Toggle Button */}
                 <Button
-                    className="w-full mb-4 h-12 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg flex items-center justify-center gap-2"
-                    onClick={onNewOrder}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute -right-3 top-4 z-10 bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white rounded-full w-6 h-6 p-0"
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 >
-                    <Plus className="w-4 h-4" />
-                    New Order
+                    {sidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
                 </Button>
 
-                {/* Quick Table Navigation */}
-                <Button
-                    variant="outline"
-                    className="w-full mb-4 h-10 bg-gray-600 border-gray-500 text-gray-200 hover:bg-gray-500 hover:text-white"
-                    onClick={() => setShowQuickNav(!showQuickNav)}
-                >
-                    <Search className="w-4 h-4 mr-2" />
-                    Quick Table Search
-                </Button>
+                <div className={`p-4 ${sidebarCollapsed ? 'px-2' : ''}`}>
+                    {/* Branch Selector */}
+                    {selectedBranch && onBranchSelect && !sidebarCollapsed && (
+                        <div className="mb-4">
+                            <BranchSelector
+                                onBranchSelect={onBranchSelect}
+                                selectedBranch={selectedBranch}
+                            />
+                        </div>
+                    )}
 
-                {showQuickNav && (
-                    <div className="mb-4">
-                        <QuickTableNavigation
-                            onTableNavigate={onTableSelect}
-                            onClose={() => setShowQuickNav(false)}
-                            selectedFloorId={selectedFloor?.id}
-                        />
-                    </div>
-                )}
-
-                {/* Floor Selector */}
-                <div className="mb-4">
-                    <h3 className="text-sm font-medium text-gray-300 mb-2">Floors</h3>
-                    <div className="space-y-1">
-                        {floors.map((floor) => (
-                            <Button
-                                key={floor.id}
-                                variant="ghost"
-                                className={`w-full justify-start px-3 py-2 text-sm font-medium ${
-                                    selectedFloor?.id === floor.id
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'text-gray-300 hover:bg-gray-600 hover:text-white'
-                                }`}
-                                onClick={() => onFloorChange(floor)}
+                    {/* Compact Branch Indicator for Collapsed Sidebar */}
+                    {selectedBranch && sidebarCollapsed && (
+                        <div className="mb-4 flex justify-center">
+                            <div
+                                className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                title={selectedBranch.name}
                             >
-                                <Building2 className="w-4 h-4 mr-2" />
-                                {floor.name}
-                            </Button>
-                        ))}
+                                {selectedBranch.name.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* New Order Button */}
+                    <Button
+                        className={`w-full mb-4 ${sidebarCollapsed ? 'h-10 px-2' : 'h-12'} bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg flex items-center justify-center gap-2`}
+                        onClick={onNewOrder}
+                        title={sidebarCollapsed ? "New Order" : ""}
+                    >
+                        <Plus className="w-4 h-4" />
+                        {!sidebarCollapsed && "New Order"}
+                    </Button>
+
+                    {/* Quick Table Navigation */}
+                    <Button
+                        variant="outline"
+                        className={`w-full mb-4 h-10 bg-gray-600 border-gray-500 text-gray-200 hover:bg-gray-500 hover:text-white ${sidebarCollapsed ? 'px-2' : ''}`}
+                        onClick={() => setShowQuickNav(!showQuickNav)}
+                        title={sidebarCollapsed ? "Quick Table Search" : ""}
+                    >
+                        <Search className="w-4 h-4 mr-2" />
+                        {!sidebarCollapsed && "Quick Table Search"}
+                    </Button>
+
+                    {showQuickNav && !sidebarCollapsed && (
+                        <div className="mb-4">
+                            <QuickTableNavigation
+                                onTableNavigate={onTableSelect}
+                                onClose={() => setShowQuickNav(false)}
+                                selectedFloorId={selectedFloor?.id}
+                            />
+                        </div>
+                    )}
+
+                    {/* Floor Selector */}
+                    <div className="mb-4">
+                        {!sidebarCollapsed && <h3 className="text-sm font-medium text-gray-300 mb-2">Floors</h3>}
+                        <div className="space-y-1">
+                            {floors.map((floor) => (
+                                <Button
+                                    key={floor.id}
+                                    variant="ghost"
+                                    className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-3'} py-2 text-sm font-medium ${
+                                        selectedFloor?.id === floor.id
+                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                            : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+                                    }`}
+                                    onClick={() => onFloorChange(floor)}
+                                    title={sidebarCollapsed ? floor.name : ""}
+                                >
+                                    <Building2 className="w-4 h-4 mr-2" />
+                                    {!sidebarCollapsed && floor.name}
+                                </Button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Floating Quick Navigation for Collapsed Sidebar */}
+            {showQuickNav && sidebarCollapsed && (
+                <div className="fixed top-20 left-20 z-50">
+                    <QuickTableNavigation
+                        onTableNavigate={onTableSelect}
+                        onClose={() => setShowQuickNav(false)}
+                        selectedFloorId={selectedFloor?.id}
+                    />
+                </div>
+            )}
 
             {/* Main Floor Plan Area */}
             <div className="flex-1 relative bg-gray-100">
