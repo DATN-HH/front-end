@@ -404,7 +404,7 @@ export default function ProductDetailPage() {
 
             toast({
                 title: 'Default Price Set',
-                description: `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${formatCurrency(priceValue)}` : ''}.`,
+                description: `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${priceValue}` : ''}.`,
             });
         } catch (error) {
             toast({
@@ -1552,9 +1552,9 @@ export default function ProductDetailPage() {
                                                                                             <Button
                                                                                                 size="sm"
                                                                                                 variant="outline"
-                                                                                                onClick={() =>
+                                                                                                onClick={() => 
                                                                                                     handleSetAsDefaultPrice(
-                                                                                                        variant.id,
+                                                                                                        variant.id.toString(),
                                                                                                         attr.attributeId,
                                                                                                         attr.name,
                                                                                                         attr.value
@@ -1854,7 +1854,7 @@ export default function ProductDetailPage() {
                                                                                                 variant="outline"
                                                                                                 onClick={() =>
                                                                                                     handleSetAsDefaultPrice(
-                                                                                                        variant.id,
+                                                                                                        variant.id.toString(),
                                                                                                         attr.attributeId,
                                                                                                         attr.name,
                                                                                                         attr.textValue
