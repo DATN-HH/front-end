@@ -423,6 +423,7 @@ function ShiftRegistration() {
                                                                                                 {
                                                                                                     req.count
                                                                                                 }
+
                                                                                                 )
                                                                                             </Badge>
                                                                                         )
