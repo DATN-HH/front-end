@@ -2,16 +2,22 @@
 
 import { useState, useEffect } from 'react';
 
-import { 
-    SUPPORTED_CURRENCIES, 
-    formatMoneyNumber, 
-    parseMoney, 
+import {
+    SUPPORTED_CURRENCIES,
+    formatMoneyNumber,
+    parseMoney,
     getCurrencyDisplayText,
-    validateMoneyValue 
+    validateMoneyValue,
 } from '@/utils/currency';
 
 import { Input } from './input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from './select';
 
 interface MoneyInputProps {
     value?: number;
@@ -62,11 +68,13 @@ export function MoneyInput({
 
         // Parse the value
         const parsedValue = parseMoney(inputValue, currentCurrency);
-        
+
         // Validate range
         if (parsedValue !== undefined) {
-            if ((min !== undefined && parsedValue < min) || 
-                (max !== undefined && parsedValue > max)) {
+            if (
+                (min !== undefined && parsedValue < min) ||
+                (max !== undefined && parsedValue > max)
+            ) {
                 return; // Don't update if out of range
             }
         }
@@ -89,7 +97,7 @@ export function MoneyInput({
 
     const handleBlur = () => {
         setIsFocused(false);
-        
+
         // Validate the final value
         if (value !== undefined) {
             const validation = validateMoneyValue(value, currentCurrency);
@@ -110,7 +118,9 @@ export function MoneyInput({
     };
 
     const currencyConfig = SUPPORTED_CURRENCIES[currentCurrency.toUpperCase()];
-    const currencySymbol = currencyConfig ? currencyConfig.symbol : currentCurrency;
+    const currencySymbol = currencyConfig
+        ? currencyConfig.symbol
+        : currentCurrency;
 
     return (
         <div className={`flex gap-2 ${className || ''}`}>
@@ -124,8 +134,12 @@ export function MoneyInput({
                     <SelectValue>
                         {showCurrencyLabel ? (
                             <span className="flex items-center gap-1">
-                                <span className="font-medium">{currencySymbol}</span>
-                                <span className="text-xs text-muted-foreground">{currentCurrency}</span>
+                                <span className="font-medium">
+                                    {currencySymbol}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                    {currentCurrency}
+                                </span>
                             </span>
                         ) : (
                             currencySymbol
@@ -137,8 +151,12 @@ export function MoneyInput({
                         <SelectItem key={currency.code} value={currency.code}>
                             <div className="flex items-center justify-between w-full">
                                 <span className="flex items-center gap-2">
-                                    <span className="font-medium">{currency.symbol}</span>
-                                    <span className="text-sm">{currency.code}</span>
+                                    <span className="font-medium">
+                                        {currency.symbol}
+                                    </span>
+                                    <span className="text-sm">
+                                        {currency.code}
+                                    </span>
                                 </span>
                                 <span className="text-xs text-muted-foreground ml-2">
                                     {currency.displayName}

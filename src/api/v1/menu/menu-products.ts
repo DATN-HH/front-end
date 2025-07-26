@@ -73,7 +73,9 @@ interface ApiResponse<T> {
 // ========== API Functions ==========
 
 // Get menu products by category
-export const getMenuProductsByCategory = async (categoryId: number): Promise<MenuProduct[]> => {
+export const getMenuProductsByCategory = async (
+    categoryId: number
+): Promise<MenuProduct[]> => {
     try {
         const response = await apiClient.get<MenuProductsResponse>(
             `/api/menu/categories/${categoryId}/products`
@@ -95,7 +97,9 @@ export const getMenuProductsByCategory = async (categoryId: number): Promise<Men
 };
 
 // Get product variants by product ID
-export const getProductVariants = async (productId: number): Promise<MenuVariant[]> => {
+export const getProductVariants = async (
+    productId: number
+): Promise<MenuVariant[]> => {
     try {
         const response = await apiClient.get<MenuProductsResponse>(
             `/api/menu/categories/7/products` // This will be updated when we have the correct endpoint
@@ -103,7 +107,7 @@ export const getProductVariants = async (productId: number): Promise<MenuVariant
 
         if (response.data.success && response.data.data) {
             // Find the product and return its variants
-            const product = response.data.data.find(p => p.id === productId);
+            const product = response.data.data.find((p) => p.id === productId);
             return product?.variants || [];
         } else {
             return [];
@@ -157,11 +161,11 @@ export const useMenuProductsForCategories = (categoryIds: number[]) => {
         queryKey: ['menu-products', 'categories', categoryIds.sort()],
         queryFn: async () => {
             const results = await Promise.allSettled(
-                categoryIds.map(id => getMenuProductsByCategory(id))
+                categoryIds.map((id) => getMenuProductsByCategory(id))
             );
-            
+
             const productsByCategory: Record<number, MenuProduct[]> = {};
-            
+
             results.forEach((result, index) => {
                 const categoryId = categoryIds[index];
                 if (result.status === 'fulfilled') {
@@ -170,7 +174,7 @@ export const useMenuProductsForCategories = (categoryIds: number[]) => {
                     productsByCategory[categoryId] = [];
                 }
             });
-            
+
             return productsByCategory;
         },
         enabled: categoryIds.length > 0,
@@ -189,17 +193,22 @@ export const getVariantDisplayName = (variant: MenuVariant): string => {
 
     // Filter out "Total" attribute and create a clean display name
     const displayAttributes = variant.attributeValues
-        .filter(attr => attr.attributeName !== "Total")
-        .map(attr => `${attr.attributeName}: ${attr.name}`)
-        .join(", ");
+        .filter((attr) => attr.attributeName !== 'Total')
+        .map((attr) => `${attr.attributeName}: ${attr.name}`)
+        .join(', ');
 
     return displayAttributes || variant.displayName || variant.name;
 };
 
 // Get variant price from attributeValues with attributeName "Total"
-export const getVariantPrice = (variant: MenuVariant, productPrice: number): number => {
+export const getVariantPrice = (
+    variant: MenuVariant,
+    productPrice: number
+): number => {
     // First try to get price from "Total" attribute
-    const totalAttribute = variant.attributeValues?.find(attr => attr.attributeName === "Total");
+    const totalAttribute = variant.attributeValues?.find(
+        (attr) => attr.attributeName === 'Total'
+    );
     if (totalAttribute && totalAttribute.name) {
         const price = parseFloat(totalAttribute.name);
         if (!isNaN(price)) {
@@ -217,23 +226,27 @@ export const getVariantPrice = (variant: MenuVariant, productPrice: number): num
 };
 
 // Calculate price range for products with variants
-export const calculatePriceRange = (product: MenuProduct): { min: number; max: number; hasRange: boolean } => {
+export const calculatePriceRange = (
+    product: MenuProduct
+): { min: number; max: number; hasRange: boolean } => {
     if (!product.variants || product.variants.length === 0) {
         return {
             min: product.price,
             max: product.price,
-            hasRange: false
+            hasRange: false,
         };
     }
 
-    const prices = product.variants.map(variant => getVariantPrice(variant, product.price));
+    const prices = product.variants.map((variant) =>
+        getVariantPrice(variant, product.price)
+    );
     const min = Math.min(...prices);
     const max = Math.max(...prices);
 
     return {
         min,
         max,
-        hasRange: min !== max
+        hasRange: min !== max,
     };
 };
 

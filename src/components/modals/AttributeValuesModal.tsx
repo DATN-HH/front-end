@@ -406,8 +406,6 @@ export function AttributeValuesModal({
                                             />
                                         )}
 
-
-
                                         <FormField
                                             control={form.control}
                                             name="description"

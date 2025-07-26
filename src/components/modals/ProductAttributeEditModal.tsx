@@ -111,7 +111,10 @@ export function ProductAttributeEditModal({
                 displayType: data.displayType,
                 variantCreationMode: data.variantCreationMode,
                 description: data.description || undefined,
-                isMoneyAttribute: data.displayType === 'TEXTBOX' ? data.isMoneyAttribute : undefined,
+                isMoneyAttribute:
+                    data.displayType === 'TEXTBOX'
+                        ? data.isMoneyAttribute
+                        : undefined,
             };
 
             await updateAttributeMutation.mutateAsync({
@@ -320,8 +323,11 @@ export function ProductAttributeEditModal({
                                                 Money Attribute
                                             </FormLabel>
                                             <FormDescription className="text-xs text-muted-foreground">
-                                                Check this if this attribute represents a monetary value (e.g., price, cost, fee).
-                                                This will enable currency formatting and validation.
+                                                Check this if this attribute
+                                                represents a monetary value
+                                                (e.g., price, cost, fee). This
+                                                will enable currency formatting
+                                                and validation.
                                             </FormDescription>
                                         </div>
                                     </FormItem>

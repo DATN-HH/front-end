@@ -420,8 +420,6 @@ export function ProductCreateModal({
                                                 </FormItem>
                                             )}
                                         />
-
-
                                     </div>
                                 </div>
 

@@ -44,7 +44,13 @@ interface CategoryNodeProps {
     onAddChild?: (parentCategory: CategoryResponse) => void;
 }
 
-function CategoryNode({ category, level, onEdit, onDelete, onAddChild }: CategoryNodeProps) {
+function CategoryNode({
+    category,
+    level,
+    onEdit,
+    onDelete,
+    onAddChild,
+}: CategoryNodeProps) {
     const [isExpanded, setIsExpanded] = useState(true);
     const hasChildren = category.children && category.children.length > 0;
     const indentLevel = level * 24; // 24px per level
@@ -96,27 +102,37 @@ function CategoryNode({ category, level, onEdit, onDelete, onAddChild }: Categor
                             <h3 className="font-medium text-gray-900 truncate">
                                 {category.name}
                             </h3>
-                            
+
                             {/* Badges */}
                             <div className="flex items-center space-x-1">
                                 {category.code && (
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                    >
                                         {category.code}
                                     </Badge>
                                 )}
-                                {category.migrationSource === 'POS_CATEGORY' && (
-                                    <Badge variant="secondary" className="text-xs">
+                                {category.migrationSource ===
+                                    'POS_CATEGORY' && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                    >
                                         Migrated
                                     </Badge>
                                 )}
                                 {level === 0 && (
-                                    <Badge variant="default" className="text-xs">
+                                    <Badge
+                                        variant="default"
+                                        className="text-xs"
+                                    >
                                         Root
                                     </Badge>
                                 )}
                             </div>
                         </div>
-                        
+
                         {category.description && (
                             <p className="text-sm text-gray-500 truncate mt-1">
                                 {category.description}
@@ -132,12 +148,13 @@ function CategoryNode({ category, level, onEdit, onDelete, onAddChild }: Categor
                                 {category.productsCount}
                             </span>
                         )}
-                        {category.childrenCount !== undefined && category.childrenCount > 0 && (
-                            <span className="flex items-center">
-                                <Folder className="h-4 w-4 mr-1" />
-                                {category.childrenCount}
-                            </span>
-                        )}
+                        {category.childrenCount !== undefined &&
+                            category.childrenCount > 0 && (
+                                <span className="flex items-center">
+                                    <Folder className="h-4 w-4 mr-1" />
+                                    {category.childrenCount}
+                                </span>
+                            )}
                         {category.sequence !== undefined && (
                             <span className="text-xs">
                                 #{category.sequence}
@@ -149,37 +166,45 @@ function CategoryNode({ category, level, onEdit, onDelete, onAddChild }: Categor
                 {/* Actions */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                        >
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        
+
                         {onEdit && (
                             <DropdownMenuItem onClick={() => onEdit(category)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
                             </DropdownMenuItem>
                         )}
-                        
+
                         <DropdownMenuItem asChild>
-                            <Link href={`/app/menu/categories/${category.id}/detail`}>
+                            <Link
+                                href={`/app/menu/categories/${category.id}/detail`}
+                            >
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                             </Link>
                         </DropdownMenuItem>
-                        
+
                         {onAddChild && (
-                            <DropdownMenuItem onClick={() => onAddChild(category)}>
+                            <DropdownMenuItem
+                                onClick={() => onAddChild(category)}
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Child Category
                             </DropdownMenuItem>
                         )}
-                        
+
                         <DropdownMenuSeparator />
-                        
+
                         {onDelete && (
                             <DropdownMenuItem
                                 onClick={() => onDelete(category)}
@@ -221,7 +246,7 @@ export function CategoryHierarchyTree({
 }: CategoryHierarchyTreeProps) {
     if (categories.length === 0) {
         return (
-            <div className={cn("text-center py-8", className)}>
+            <div className={cn('text-center py-8', className)}>
                 <FolderOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500">No categories found</p>
                 <p className="text-sm text-gray-400">
@@ -232,7 +257,7 @@ export function CategoryHierarchyTree({
     }
 
     return (
-        <div className={cn("border rounded-lg bg-white", className)}>
+        <div className={cn('border rounded-lg bg-white', className)}>
             <div className="divide-y divide-gray-100">
                 {categories.map((category) => (
                     <CategoryNode

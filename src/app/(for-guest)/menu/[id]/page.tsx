@@ -1,6 +1,14 @@
 'use client';
 
-import { ArrowLeft, Plus, Minus, Star, Clock, ChefHat, Leaf } from 'lucide-react';
+import {
+    ArrowLeft,
+    Plus,
+    Minus,
+    Star,
+    Clock,
+    ChefHat,
+    Leaf,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, use, useMemo } from 'react';
@@ -10,7 +18,7 @@ import {
     useProductVariants,
     getVariantPrice,
     getVariantDisplayName,
-    formatVietnameseCurrency
+    formatVietnameseCurrency,
 } from '@/api/v1/menu/menu-products';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -46,14 +54,20 @@ const quickNotes = [
 const reviews = [
     {
         id: '1',
-        user: { name: 'John Doe', avatar: '/placeholder.svg?height=40&width=40' },
+        user: {
+            name: 'John Doe',
+            avatar: '/placeholder.svg?height=40&width=40',
+        },
         rating: 5,
         comment: 'Absolutely delicious! Will definitely order again.',
         date: '2024-01-15',
     },
     {
         id: '2',
-        user: { name: 'Jane Smith', avatar: '/placeholder.svg?height=40&width=40' },
+        user: {
+            name: 'Jane Smith',
+            avatar: '/placeholder.svg?height=40&width=40',
+        },
         rating: 4,
         comment: 'Great taste and presentation. Highly recommended.',
         date: '2024-01-10',
@@ -77,7 +91,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
     // Fetch product details and variants from API
     const productId = parseInt(resolvedParams.id);
     const { data: productData, isLoading, error } = useProductDetail(productId);
-    const { data: variants = [], isLoading: variantsLoading } = useProductVariants(productId);
+    const { data: variants = [], isLoading: variantsLoading } =
+        useProductVariants(productId);
 
     // Convert API data to MenuItem format
     const item = useMemo(() => {
@@ -91,7 +106,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
             price: productData.price || 0,
             originalPrice: undefined,
             image: productData.image || '/placeholder.svg?height=400&width=600',
-            images: productData.image ? [productData.image] : ['/placeholder.svg?height=400&width=600'],
+            images: productData.image
+                ? [productData.image]
+                : ['/placeholder.svg?height=400&width=600'],
             category: productData.category?.name || 'Uncategorized',
             isPromotion: false,
             promotionType: undefined,
@@ -173,11 +190,13 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                 menuItem: {
                     ...item,
                     price: currentPrice,
-                    variant: selectedVariant ? {
-                        id: selectedVariant.id,
-                        name: getVariantDisplayName(selectedVariant),
-                        price: currentPrice
-                    } : undefined
+                    variant: selectedVariant
+                        ? {
+                              id: selectedVariant.id,
+                              name: getVariantDisplayName(selectedVariant),
+                              price: currentPrice,
+                          }
+                        : undefined,
                 },
                 quantity,
                 notes: allNotes || undefined,
@@ -319,7 +338,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                             {hasVariants && (
                                 <Card className="mb-6">
                                     <CardHeader>
-                                        <CardTitle className="text-lg">Choose your option</CardTitle>
+                                        <CardTitle className="text-lg">
+                                            Choose your option
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3">
@@ -327,24 +348,41 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                                 <div
                                                     key={variant.id}
                                                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                                        selectedVariant?.id === variant.id
+                                                        selectedVariant?.id ===
+                                                        variant.id
                                                             ? 'border-blue-500 bg-blue-50'
                                                             : 'border-gray-200 hover:border-gray-300'
                                                     }`}
-                                                    onClick={() => setSelectedVariant(variant)}
+                                                    onClick={() =>
+                                                        setSelectedVariant(
+                                                            variant
+                                                        )
+                                                    }
                                                 >
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex-1">
                                                             <p className="font-medium">
-                                                                {getVariantDisplayName(variant)}
+                                                                {getVariantDisplayName(
+                                                                    variant
+                                                                )}
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Badge variant="secondary">
-                                                                {formatVietnameseCurrency(getVariantPrice(variant, productData?.price || 0))}
+                                                                {formatVietnameseCurrency(
+                                                                    getVariantPrice(
+                                                                        variant,
+                                                                        productData?.price ||
+                                                                            0
+                                                                    )
+                                                                )}
                                                             </Badge>
-                                                            {selectedVariant?.id === variant.id && (
-                                                                <Badge variant="default" className="text-xs">
+                                                            {selectedVariant?.id ===
+                                                                variant.id && (
+                                                                <Badge
+                                                                    variant="default"
+                                                                    className="text-xs"
+                                                                >
                                                                     Selected
                                                                 </Badge>
                                                             )}
@@ -377,21 +415,31 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
-                                        {item.comboItems && item.comboItems.length > 0 && item.comboItems.map(
-                                            (comboItem: { name: string; quantity: number; id: string }, index: number) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex justify-between items-center"
-                                                >
-                                                    <span>
-                                                        {comboItem.name}
-                                                    </span>
-                                                    <Badge variant="outline">
-                                                        x{comboItem.quantity}
-                                                    </Badge>
-                                                </div>
-                                            )
-                                        )}
+                                        {item.comboItems &&
+                                            item.comboItems.length > 0 &&
+                                            item.comboItems.map(
+                                                (
+                                                    comboItem: {
+                                                        name: string;
+                                                        quantity: number;
+                                                        id: string;
+                                                    },
+                                                    index: number
+                                                ) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex justify-between items-center"
+                                                    >
+                                                        <span>
+                                                            {comboItem.name}
+                                                        </span>
+                                                        <Badge variant="outline">
+                                                            x
+                                                            {comboItem.quantity}
+                                                        </Badge>
+                                                    </div>
+                                                )
+                                            )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -409,7 +457,10 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                     disabled={hasVariants && !selectedVariant}
                                 >
                                     <Plus className="h-5 w-5 mr-2" />
-                                    Add to Cart - {formatVietnameseCurrency(currentPrice * quantity)}
+                                    Add to Cart -{' '}
+                                    {formatVietnameseCurrency(
+                                        currentPrice * quantity
+                                    )}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
@@ -425,13 +476,23 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                                             <div className="flex justify-between items-center">
                                                 <div>
-                                                    <p className="font-medium text-sm">Selected Option:</p>
+                                                    <p className="font-medium text-sm">
+                                                        Selected Option:
+                                                    </p>
                                                     <p className="text-sm text-gray-600">
-                                                        {getVariantDisplayName(selectedVariant)}
+                                                        {getVariantDisplayName(
+                                                            selectedVariant
+                                                        )}
                                                     </p>
                                                 </div>
                                                 <Badge variant="secondary">
-                                                    {formatVietnameseCurrency(getVariantPrice(selectedVariant, productData?.price || 0))}
+                                                    {formatVietnameseCurrency(
+                                                        getVariantPrice(
+                                                            selectedVariant,
+                                                            productData?.price ||
+                                                                0
+                                                        )
+                                                    )}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -444,16 +505,22 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleQuantityChange(-1)}
+                                                onClick={() =>
+                                                    handleQuantityChange(-1)
+                                                }
                                                 disabled={quantity <= 1}
                                             >
                                                 <Minus className="w-4 h-4" />
                                             </Button>
-                                            <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                                            <span className="text-lg font-medium w-8 text-center">
+                                                {quantity}
+                                            </span>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleQuantityChange(1)}
+                                                onClick={() =>
+                                                    handleQuantityChange(1)
+                                                }
                                             >
                                                 <Plus className="w-4 h-4" />
                                             </Button>
@@ -501,11 +568,16 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
 
                                     <div className="flex justify-between items-center pt-4 border-t">
                                         <span className="font-semibold text-lg">
-                                            Total: {formatVietnameseCurrency(currentPrice * quantity)}
+                                            Total:{' '}
+                                            {formatVietnameseCurrency(
+                                                currentPrice * quantity
+                                            )}
                                         </span>
                                         <Button
                                             onClick={handleAddToCart}
-                                            disabled={hasVariants && !selectedVariant}
+                                            disabled={
+                                                hasVariants && !selectedVariant
+                                            }
                                         >
                                             Add to Cart
                                         </Button>
@@ -580,7 +652,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {(item.nutritionalInfo as any)?.calories || 0}
+                                                {(item.nutritionalInfo as any)
+                                                    ?.calories || 0}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Calories
@@ -588,7 +661,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {(item.nutritionalInfo as any)?.protein || 0}g
+                                                {(item.nutritionalInfo as any)
+                                                    ?.protein || 0}
+                                                g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Protein
@@ -596,7 +671,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {(item.nutritionalInfo as any)?.carbs || 0}g
+                                                {(item.nutritionalInfo as any)
+                                                    ?.carbs || 0}
+                                                g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Carbs
@@ -604,7 +681,9 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                         </div>
                                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                                             <div className="text-2xl font-bold text-primary">
-                                                {(item.nutritionalInfo as any)?.fat || 0}g
+                                                {(item.nutritionalInfo as any)
+                                                    ?.fat || 0}
+                                                g
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 Fat
@@ -631,7 +710,8 @@ export default function MenuItemDetail({ params }: MenuItemDetailProps) {
                                                 <Avatar>
                                                     <AvatarImage
                                                         src={
-                                                            review.user.avatar ||
+                                                            review.user
+                                                                .avatar ||
                                                             '/placeholder.svg'
                                                         }
                                                     />
