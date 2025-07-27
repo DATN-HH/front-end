@@ -82,7 +82,9 @@ export function POSRegisterView({
             const kdsOrderRequest: KDSOrderCreateRequest = {
                 orderNumber: posOrder.orderNumber || `POS-${posOrder.id}`,
                 tableId: posOrder.tableId,
-                tableName: posOrder.tableId ? `T${posOrder.tableId}` : undefined,
+                tableName: posOrder.tableId
+                    ? `T${posOrder.tableId}`
+                    : undefined,
                 customerName: posOrder.customerName,
                 notes: posOrder.notes,
                 estimatedTime: 20, // Default 20 minutes
@@ -375,11 +377,18 @@ export function POSRegisterView({
                         <Button
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
                             onClick={handleSubmitOrder}
-                            disabled={orderItems.length === 0 || createOrderMutation.isPending || sendToKitchenMutation.isPending}
+                            disabled={
+                                orderItems.length === 0 ||
+                                createOrderMutation.isPending ||
+                                sendToKitchenMutation.isPending
+                            }
                         >
                             <div className="text-center">
                                 <div className="font-medium">
-                                    {createOrderMutation.isPending || sendToKitchenMutation.isPending ? 'Sending...' : 'Order'}
+                                    {createOrderMutation.isPending ||
+                                    sendToKitchenMutation.isPending
+                                        ? 'Sending...'
+                                        : 'Order'}
                                 </div>
                                 <div className="text-xs opacity-90">
                                     {orderType === 'dine-in' ? 'Food' : 'Items'}{' '}

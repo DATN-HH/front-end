@@ -7,7 +7,7 @@ import { BaseResponse } from '.';
 // Types
 export enum KDSOrderStatus {
     RECEIVED = 'RECEIVED',
-    PREPARING = 'PREPARING', 
+    PREPARING = 'PREPARING',
     READY = 'READY',
     COMPLETED = 'COMPLETED',
 }
@@ -134,9 +134,8 @@ const updateKDSOrderStatus = async (
 };
 
 const getKDSBranches = async (): Promise<KDSBranch[]> => {
-    const response = await apiClient.get<BaseResponse<KDSBranch[]>>(
-        '/api/kds/branches'
-    );
+    const response =
+        await apiClient.get<BaseResponse<KDSBranch[]>>('/api/kds/branches');
     return response.data.payload;
 };
 
@@ -147,7 +146,9 @@ const getKDSOrdersByBranch = async (branchId: number): Promise<KDSOrder[]> => {
     return response.data.payload;
 };
 
-const createKDSOrder = async (data: KDSOrderCreateRequest): Promise<KDSOrder> => {
+const createKDSOrder = async (
+    data: KDSOrderCreateRequest
+): Promise<KDSOrder> => {
     const response = await apiClient.post<BaseResponse<KDSOrder>>(
         '/api/kds/orders',
         data

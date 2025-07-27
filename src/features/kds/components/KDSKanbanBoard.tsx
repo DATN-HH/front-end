@@ -13,7 +13,7 @@ import {
     Timer,
     CheckCircle,
     AlertCircle,
-    Loader2
+    Loader2,
 } from 'lucide-react';
 import {
     useKDSOrdersByBranch,
@@ -22,10 +22,8 @@ import {
     KDSOrder,
     KDSOrderItem,
     KDSOrderStatus,
-    KDSItemStatus
+    KDSItemStatus,
 } from '@/api/v1/kds-orders';
-
-
 
 interface KDSKanbanBoardProps {
     branchId: number;
@@ -40,12 +38,12 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
     const updateItemStatusMutation = useUpdateKDSOrderItemStatus();
     const updateOrderStatusMutation = useUpdateKDSOrderStatus();
 
-
-
     const getElapsedTime = (orderTime: string): string => {
         const now = new Date();
         const orderDate = new Date(orderTime);
-        const diffMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+        const diffMinutes = Math.floor(
+            (now.getTime() - orderDate.getTime()) / (1000 * 60)
+        );
         return `${diffMinutes}'`;
     };
 
@@ -55,7 +53,10 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
         return 'bg-red-500';
     };
 
-    const handleOrderDrop = async (orderId: number, newStatus: KDSOrderStatus) => {
+    const handleOrderDrop = async (
+        orderId: number,
+        newStatus: KDSOrderStatus
+    ) => {
         try {
             await updateOrderStatusMutation.mutateAsync({
                 orderId,
@@ -68,21 +69,32 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
 
     const statusCounts = {
         all: orders?.length || 0,
-        toCook: orders?.filter(o => o.status === KDSOrderStatus.RECEIVED).length || 0,
-        ready: orders?.filter(o => o.status === KDSOrderStatus.READY).length || 0,
-        completed: orders?.filter(o => o.status === KDSOrderStatus.COMPLETED).length || 0,
+        toCook:
+            orders?.filter((o) => o.status === KDSOrderStatus.RECEIVED)
+                .length || 0,
+        ready:
+            orders?.filter((o) => o.status === KDSOrderStatus.READY).length ||
+            0,
+        completed:
+            orders?.filter((o) => o.status === KDSOrderStatus.COMPLETED)
+                .length || 0,
     };
 
-    const filteredOrders = selectedStatus === 'all'
-        ? orders || []
-        : orders?.filter(order => {
-            switch (selectedStatus) {
-                case 'toCook': return order.status === KDSOrderStatus.RECEIVED;
-                case 'ready': return order.status === KDSOrderStatus.READY;
-                case 'completed': return order.status === KDSOrderStatus.COMPLETED;
-                default: return true;
-            }
-        }) || [];
+    const filteredOrders =
+        selectedStatus === 'all'
+            ? orders || []
+            : orders?.filter((order) => {
+                  switch (selectedStatus) {
+                      case 'toCook':
+                          return order.status === KDSOrderStatus.RECEIVED;
+                      case 'ready':
+                          return order.status === KDSOrderStatus.READY;
+                      case 'completed':
+                          return order.status === KDSOrderStatus.COMPLETED;
+                      default:
+                          return true;
+                  }
+              }) || [];
 
     if (isLoading) {
         return (
@@ -99,8 +111,12 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-red-600 mb-4">Failed to load kitchen orders</p>
-                    <Button onClick={() => window.location.reload()}>Retry</Button>
+                    <p className="text-red-600 mb-4">
+                        Failed to load kitchen orders
+                    </p>
+                    <Button onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
                 </div>
             </div>
         );
@@ -113,44 +129,81 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Button variant="ghost" onClick={onBack} className="p-2">
+                            <Button
+                                variant="ghost"
+                                onClick={onBack}
+                                className="p-2"
+                            >
                                 <X className="h-5 w-5" />
                             </Button>
                             <div className="flex items-center gap-2">
                                 <ChefHat className="h-6 w-6 text-blue-600" />
-                                <h1 className="text-xl font-semibold">Kitchen Display System</h1>
+                                <h1 className="text-xl font-semibold">
+                                    Kitchen Display System
+                                </h1>
                             </div>
                         </div>
-                        
+
                         {/* Status Tabs */}
                         <div className="flex items-center gap-2">
                             <Button
-                                variant={selectedStatus === 'all' ? 'default' : 'ghost'}
+                                variant={
+                                    selectedStatus === 'all'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
                                 onClick={() => setSelectedStatus('all')}
                                 className="text-sm"
                             >
                                 All
                             </Button>
                             <Button
-                                variant={selectedStatus === 'toCook' ? 'default' : 'ghost'}
+                                variant={
+                                    selectedStatus === 'toCook'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
                                 onClick={() => setSelectedStatus('toCook')}
                                 className="text-sm"
                             >
-                                To cook <Badge variant="secondary" className="ml-1">{statusCounts.toCook}</Badge>
+                                To cook{' '}
+                                <Badge variant="secondary" className="ml-1">
+                                    {statusCounts.toCook}
+                                </Badge>
                             </Button>
                             <Button
-                                variant={selectedStatus === 'ready' ? 'default' : 'ghost'}
+                                variant={
+                                    selectedStatus === 'ready'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
                                 onClick={() => setSelectedStatus('ready')}
                                 className="text-sm"
                             >
-                                Ready <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-800">{statusCounts.ready}</Badge>
+                                Ready{' '}
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 bg-blue-100 text-blue-800"
+                                >
+                                    {statusCounts.ready}
+                                </Badge>
                             </Button>
                             <Button
-                                variant={selectedStatus === 'completed' ? 'default' : 'ghost'}
+                                variant={
+                                    selectedStatus === 'completed'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
                                 onClick={() => setSelectedStatus('completed')}
                                 className="text-sm"
                             >
-                                Completed <Badge variant="secondary" className="ml-1 bg-green-100 text-green-800">{statusCounts.completed}</Badge>
+                                Completed{' '}
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 bg-green-100 text-green-800"
+                                >
+                                    {statusCounts.completed}
+                                </Badge>
                             </Button>
                         </div>
 
@@ -174,7 +227,9 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
                     <KanbanColumn
                         title="To Cook"
                         status={KDSOrderStatus.RECEIVED}
-                        orders={filteredOrders.filter(o => o.status === KDSOrderStatus.RECEIVED)}
+                        orders={filteredOrders.filter(
+                            (o) => o.status === KDSOrderStatus.RECEIVED
+                        )}
                         onOrderDrop={handleOrderDrop}
                         getElapsedTime={getElapsedTime}
                         getStatusColor={getStatusColor}
@@ -184,7 +239,9 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
                     <KanbanColumn
                         title="Preparing"
                         status={KDSOrderStatus.PREPARING}
-                        orders={filteredOrders.filter(o => o.status === KDSOrderStatus.PREPARING)}
+                        orders={filteredOrders.filter(
+                            (o) => o.status === KDSOrderStatus.PREPARING
+                        )}
                         onOrderDrop={handleOrderDrop}
                         getElapsedTime={getElapsedTime}
                         getStatusColor={getStatusColor}
@@ -194,7 +251,9 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
                     <KanbanColumn
                         title="Ready"
                         status={KDSOrderStatus.READY}
-                        orders={filteredOrders.filter(o => o.status === KDSOrderStatus.READY)}
+                        orders={filteredOrders.filter(
+                            (o) => o.status === KDSOrderStatus.READY
+                        )}
                         onOrderDrop={handleOrderDrop}
                         getElapsedTime={getElapsedTime}
                         getStatusColor={getStatusColor}
@@ -204,7 +263,9 @@ export function KDSKanbanBoard({ branchId, onBack }: KDSKanbanBoardProps) {
                     <KanbanColumn
                         title="Completed"
                         status={KDSOrderStatus.COMPLETED}
-                        orders={filteredOrders.filter(o => o.status === KDSOrderStatus.COMPLETED)}
+                        orders={filteredOrders.filter(
+                            (o) => o.status === KDSOrderStatus.COMPLETED
+                        )}
                         onOrderDrop={handleOrderDrop}
                         getElapsedTime={getElapsedTime}
                         getStatusColor={getStatusColor}
@@ -225,7 +286,14 @@ interface KanbanColumnProps {
     getStatusColor: (minutes: number) => string;
 }
 
-function KanbanColumn({ title, status, orders, onOrderDrop, getElapsedTime, getStatusColor }: KanbanColumnProps) {
+function KanbanColumn({
+    title,
+    status,
+    orders,
+    onOrderDrop,
+    getElapsedTime,
+    getStatusColor,
+}: KanbanColumnProps) {
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
     };
@@ -240,11 +308,16 @@ function KanbanColumn({ title, status, orders, onOrderDrop, getElapsedTime, getS
 
     const getColumnColor = () => {
         switch (status) {
-            case KDSOrderStatus.RECEIVED: return 'border-orange-200 bg-orange-50';
-            case KDSOrderStatus.PREPARING: return 'border-blue-200 bg-blue-50';
-            case KDSOrderStatus.READY: return 'border-green-200 bg-green-50';
-            case KDSOrderStatus.COMPLETED: return 'border-gray-200 bg-gray-50';
-            default: return 'border-gray-200 bg-gray-50';
+            case KDSOrderStatus.RECEIVED:
+                return 'border-orange-200 bg-orange-50';
+            case KDSOrderStatus.PREPARING:
+                return 'border-blue-200 bg-blue-50';
+            case KDSOrderStatus.READY:
+                return 'border-green-200 bg-green-50';
+            case KDSOrderStatus.COMPLETED:
+                return 'border-gray-200 bg-gray-50';
+            default:
+                return 'border-gray-200 bg-gray-50';
         }
     };
 
@@ -297,10 +370,13 @@ function OrderCard({ order, getElapsedTime, getStatusColor }: OrderCardProps) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className="font-semibold text-lg">
-                            {order.tableName || `T${order.tableId}`} #{order.orderNumber}
+                            {order.tableName || `T${order.tableId}`} #
+                            {order.orderNumber}
                         </span>
                         <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">{order.staffName || 'Staff'}</span>
+                        <span className="text-sm text-gray-600">
+                            {order.staffName || 'Staff'}
+                        </span>
                     </div>
                     <Badge variant="secondary" className="text-xs">
                         {order.items.length}
@@ -314,7 +390,9 @@ function OrderCard({ order, getElapsedTime, getStatusColor }: OrderCardProps) {
                         <Clock className="h-3 w-3 mr-1" />
                         {getElapsedTime(order.orderTime)}
                     </Badge>
-                    <span className="text-xs text-gray-500 capitalize">{order.status.toLowerCase()}</span>
+                    <span className="text-xs text-gray-500 capitalize">
+                        {order.status.toLowerCase()}
+                    </span>
                 </div>
             </CardHeader>
 
@@ -323,19 +401,25 @@ function OrderCard({ order, getElapsedTime, getStatusColor }: OrderCardProps) {
                     {order.items.map((item) => (
                         <div key={item.id} className="text-sm">
                             <div className="flex items-start gap-2">
-                                <span className="font-medium text-gray-700">{item.quantity}x</span>
+                                <span className="font-medium text-gray-700">
+                                    {item.quantity}x
+                                </span>
                                 <div className="flex-1">
-                                    <div className="text-gray-900">{item.productName}</div>
+                                    <div className="text-gray-900">
+                                        {item.productName}
+                                    </div>
                                     {item.notes && (
                                         <div className="text-xs text-orange-600 mt-1">
                                             - Notes: {item.notes}
                                         </div>
                                     )}
-                                    {item.modifiers && item.modifiers.length > 0 && (
-                                        <div className="text-xs text-blue-600 mt-1">
-                                            - Modifiers: {item.modifiers.join(', ')}
-                                        </div>
-                                    )}
+                                    {item.modifiers &&
+                                        item.modifiers.length > 0 && (
+                                            <div className="text-xs text-blue-600 mt-1">
+                                                - Modifiers:{' '}
+                                                {item.modifiers.join(', ')}
+                                            </div>
+                                        )}
                                 </div>
                             </div>
                         </div>

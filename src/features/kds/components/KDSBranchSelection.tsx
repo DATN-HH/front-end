@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Users, Clock, ChefHat, Loader2 } from 'lucide-react';
 import { useKDSBranches } from '@/api/v1/kds-orders';
 
-
-
 interface KDSBranchSelectionProps {
     onBranchSelect: (branchId: number) => void;
 }
 
-export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) {
+export function KDSBranchSelection({
+    onBranchSelect,
+}: KDSBranchSelectionProps) {
     const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
 
     // Use real API call
@@ -45,7 +45,9 @@ export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) 
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-red-600 mb-4">Failed to load branches</p>
-                    <Button onClick={() => window.location.reload()}>Retry</Button>
+                    <Button onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
                 </div>
             </div>
         );
@@ -58,9 +60,13 @@ export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) 
                 <div className="text-center mb-8">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <ChefHat className="h-8 w-8 text-blue-600" />
-                        <h1 className="text-3xl font-bold text-gray-900">Kitchen Display System</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Kitchen Display System
+                        </h1>
                     </div>
-                    <p className="text-gray-600">Select a branch to access the kitchen display</p>
+                    <p className="text-gray-600">
+                        Select a branch to access the kitchen display
+                    </p>
                 </div>
 
                 {/* Branch Grid */}
@@ -77,16 +83,25 @@ export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) 
                                     ? 'opacity-60 cursor-not-allowed'
                                     : ''
                             }`}
-                            onClick={() => branch.status === 'online' && handleBranchSelect(branch.id)}
+                            onClick={() =>
+                                branch.status === 'online' &&
+                                handleBranchSelect(branch.id)
+                            }
                         >
                             <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-2">
                                         <Building2 className="h-5 w-5 text-blue-600" />
-                                        <CardTitle className="text-lg">{branch.name}</CardTitle>
+                                        <CardTitle className="text-lg">
+                                            {branch.name}
+                                        </CardTitle>
                                     </div>
                                     <Badge
-                                        variant={branch.status === 'online' ? 'default' : 'secondary'}
+                                        variant={
+                                            branch.status === 'online'
+                                                ? 'default'
+                                                : 'secondary'
+                                        }
                                         className={
                                             branch.status === 'online'
                                                 ? 'bg-green-100 text-green-800'
@@ -96,7 +111,9 @@ export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) 
                                         {branch.status}
                                     </Badge>
                                 </div>
-                                <p className="text-sm text-gray-600 mt-1">{branch.address}</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    {branch.address}
+                                </p>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-3">
@@ -106,13 +123,17 @@ export function KDSBranchSelection({ onBranchSelect }: KDSBranchSelectionProps) 
                                             <div className="text-lg font-bold text-orange-600">
                                                 {branch.pendingOrders}
                                             </div>
-                                            <div className="text-xs text-orange-700">To Cook</div>
+                                            <div className="text-xs text-orange-700">
+                                                To Cook
+                                            </div>
                                         </div>
                                         <div className="text-center p-2 bg-blue-50 rounded-lg">
                                             <div className="text-lg font-bold text-blue-600">
                                                 {branch.activeOrders}
                                             </div>
-                                            <div className="text-xs text-blue-700">Active</div>
+                                            <div className="text-xs text-blue-700">
+                                                Active
+                                            </div>
                                         </div>
                                     </div>
 

@@ -20,9 +20,9 @@ export function KDSPage() {
     }
 
     return (
-        <KDSKanbanBoard 
-            branchId={selectedBranch} 
-            onBack={handleBackToBranchSelection} 
+        <KDSKanbanBoard
+            branchId={selectedBranch}
+            onBack={handleBackToBranchSelection}
         />
     );
 }
