@@ -17,10 +17,12 @@ import { Card } from '@/components/ui/card';
 import {
     useCreatePOSOrder,
     useCreatePOSOrderPayment,
+    useSendOrderToKitchen,
     POSOrderCreateRequest,
     POSOrderPaymentRequest,
     POSPaymentMethod,
 } from '@/api/v1/pos-orders';
+import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
 
 // Import POS components
 import { POSProductGrid } from './POSProductGrid';
@@ -66,11 +68,46 @@ export function POSRegisterView({
     // API hooks
     const createOrderMutation = useCreatePOSOrder();
     const createPaymentMutation = useCreatePOSOrderPayment();
+    const sendToKitchenMutation = useSendOrderToKitchen();
+    const createKDSOrderMutation = useCreateKDSOrder();
 
     // Calculate order totals
     const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const tax = subtotal * 0.1; // 10% tax
     const total = subtotal + tax;
+
+    // Helper function to send order to KDS
+    const sendOrderToKDS = async (posOrder: any) => {
+        try {
+            const kdsOrderRequest: KDSOrderCreateRequest = {
+                orderNumber: posOrder.orderNumber || `POS-${posOrder.id}`,
+                tableId: posOrder.tableId,
+                tableName: posOrder.tableId ? `T${posOrder.tableId}` : undefined,
+                customerName: posOrder.customerName,
+                notes: posOrder.notes,
+                estimatedTime: 20, // Default 20 minutes
+                priority: 'normal',
+                staffName: 'POS Staff', // TODO: Get from current user
+                branchId: 1, // TODO: Get from current branch
+                items: posOrder.items.map((item: any, index: number) => ({
+                    id: `${posOrder.id}-${index + 1}`,
+                    productId: item.productId,
+                    productName: item.productName,
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    totalPrice: item.totalPrice,
+                    notes: item.notes,
+                    modifiers: item.modifiers || [],
+                })),
+            };
+
+            await createKDSOrderMutation.mutateAsync(kdsOrderRequest);
+            console.log('Order sent to KDS successfully');
+        } catch (error) {
+            console.error('Failed to send order to KDS:', error);
+        }
+    };
 
     // Handle product selection - add variant directly to order or increase quantity
     const handleProductSelect = (product: any) => {
@@ -189,7 +226,17 @@ export function POSRegisterView({
                 notes: undefined,
             };
 
+            // Create the order
             const order = await createOrderMutation.mutateAsync(orderRequest);
+
+            // Send order to kitchen (this will update table status to occupied)
+            await sendToKitchenMutation.mutateAsync(order.id);
+
+            // Send order to KDS system
+            await sendOrderToKDS(order);
+
+            // Clear order items and navigate
+            setOrderItems([]);
             onOrderCreated(order.id);
         } catch (error) {
             console.error('Failed to create order:', error);
@@ -227,6 +274,9 @@ export function POSRegisterView({
             };
 
             const order = await createOrderMutation.mutateAsync(orderRequest);
+
+            // Send order to KDS system
+            await sendOrderToKDS(order);
 
             // Then process the payment
             const paymentRequest: POSOrderPaymentRequest = {
@@ -323,12 +373,14 @@ export function POSRegisterView({
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                         <Button
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
                             onClick={handleSubmitOrder}
-                            disabled={orderItems.length === 0}
+                            disabled={orderItems.length === 0 || createOrderMutation.isPending || sendToKitchenMutation.isPending}
                         >
                             <div className="text-center">
-                                <div className="font-medium">Order</div>
+                                <div className="font-medium">
+                                    {createOrderMutation.isPending || sendToKitchenMutation.isPending ? 'Sending...' : 'Order'}
+                                </div>
                                 <div className="text-xs opacity-90">
                                     {orderType === 'dine-in' ? 'Food' : 'Items'}{' '}
                                     {orderItems.length}
