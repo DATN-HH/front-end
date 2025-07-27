@@ -54,10 +54,22 @@ export function POSRegisterView({
     const tax = subtotal * 0.1; // 10% tax
     const total = subtotal + tax;
 
-    // Handle product selection - show variants if available
+    // Handle product selection - add variant directly to order
     const handleProductSelect = (product: any) => {
-        setSelectedProduct(product);
-        setShowVariantModal(true);
+        // Since we're now displaying variants directly, add them straight to the order
+        const newItem: POSOrderItem = {
+            id: `${product.variantId}-${Date.now()}`,
+            productId: product.id,
+            variantId: product.variantId,
+            name: product.displayName || product.productTemplateName,
+            description: product.description || product.attributeCombination,
+            quantity: 1,
+            unitPrice: product.price || product.effectivePrice || 0,
+            totalPrice: product.price || product.effectivePrice || 0,
+            attributes: product.attributeCombination
+        };
+
+        setOrderItems(prev => [...prev, newItem]);
     };
 
     // Handle variant selection and add to order
@@ -66,11 +78,11 @@ export function POSRegisterView({
             id: `${variant.id}-${Date.now()}`,
             productId: selectedProduct.id,
             variantId: variant.id,
-            name: variant.displayName || selectedProduct.name,
-            description: variant.attributeCombination,
+            name: variant.displayName || `${selectedProduct.name} - ${variant.name}`,
+            description: variant.attributeCombination || variant.name,
             quantity: 1,
-            unitPrice: variant.effectivePrice,
-            totalPrice: variant.effectivePrice,
+            unitPrice: variant.effectivePrice || variant.price || selectedProduct.defaultPrice || selectedProduct.price || 0,
+            totalPrice: variant.effectivePrice || variant.price || selectedProduct.defaultPrice || selectedProduct.price || 0,
             attributes: variant.attributeCombination
         };
 
