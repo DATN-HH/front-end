@@ -69,9 +69,9 @@ export function POSKitchenNotesModal({
     }, [isOpen, currentNotes]);
 
     const handleNoteToggle = (note: string) => {
-        setSelectedNotes(prev => 
-            prev.includes(note) 
-                ? prev.filter(n => n !== note)
+        setSelectedNotes((prev) =>
+            prev.includes(note)
+                ? prev.filter((n) => n !== note)
                 : [...prev, note]
         );
     };
@@ -95,12 +95,11 @@ export function POSKitchenNotesModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>
-                        Add Kitchen Note
-                    </DialogTitle>
+                    <DialogTitle>Add Kitchen Note</DialogTitle>
                     {itemName && (
                         <p className="text-sm text-gray-600">
-                            Adding notes for: <span className="font-medium">{itemName}</span>
+                            Adding notes for:{' '}
+                            <span className="font-medium">{itemName}</span>
                         </p>
                     )}
                 </DialogHeader>
@@ -115,7 +114,11 @@ export function POSKitchenNotesModal({
                             {commonNotes.map((note) => (
                                 <Button
                                     key={note}
-                                    variant={selectedNotes.includes(note) ? "default" : "outline"}
+                                    variant={
+                                        selectedNotes.includes(note)
+                                            ? 'default'
+                                            : 'outline'
+                                    }
                                     size="sm"
                                     onClick={() => handleNoteToggle(note)}
                                     className="h-10 text-sm"
@@ -154,7 +157,9 @@ export function POSKitchenNotesModal({
                                         >
                                             {note}
                                             <button
-                                                onClick={() => handleNoteToggle(note)}
+                                                onClick={() =>
+                                                    handleNoteToggle(note)
+                                                }
                                                 className="hover:bg-blue-200 rounded-full p-0.5"
                                             >
                                                 <X className="h-3 w-3" />
@@ -165,7 +170,9 @@ export function POSKitchenNotesModal({
                                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
                                             {customNote.trim()}
                                             <button
-                                                onClick={() => setCustomNote('')}
+                                                onClick={() =>
+                                                    setCustomNote('')
+                                                }
                                                 className="hover:bg-green-200 rounded-full p-0.5"
                                             >
                                                 <X className="h-3 w-3" />
@@ -180,10 +187,7 @@ export function POSKitchenNotesModal({
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                        variant="outline"
-                        onClick={handleDiscard}
-                    >
+                    <Button variant="outline" onClick={handleDiscard}>
                         Discard
                     </Button>
                     <Button

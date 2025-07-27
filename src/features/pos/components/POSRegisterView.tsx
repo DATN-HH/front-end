@@ -75,21 +75,23 @@ export function POSRegisterView({
     // Handle product selection - add variant directly to order or increase quantity
     const handleProductSelect = (product: any) => {
         // Check if this variant already exists in the order
-        const existingItemIndex = orderItems.findIndex(item =>
-            item.variantId === product.variantId
+        const existingItemIndex = orderItems.findIndex(
+            (item) => item.variantId === product.variantId
         );
 
         if (existingItemIndex >= 0) {
             // If item exists, increase quantity
-            setOrderItems(prev => prev.map((item, index) =>
-                index === existingItemIndex
-                    ? {
-                        ...item,
-                        quantity: item.quantity + 1,
-                        totalPrice: (item.quantity + 1) * item.unitPrice
-                    }
-                    : item
-            ));
+            setOrderItems((prev) =>
+                prev.map((item, index) =>
+                    index === existingItemIndex
+                        ? {
+                              ...item,
+                              quantity: item.quantity + 1,
+                              totalPrice: (item.quantity + 1) * item.unitPrice,
+                          }
+                        : item
+                )
+            );
         } else {
             // If item doesn't exist, add new item
             const newItem: POSOrderItem = {
@@ -97,12 +99,13 @@ export function POSRegisterView({
                 productId: product.id,
                 variantId: product.variantId,
                 name: product.displayName || product.productTemplateName,
-                description: product.description || product.attributeCombination,
+                description:
+                    product.description || product.attributeCombination,
                 quantity: 1,
                 unitPrice: product.price || product.effectivePrice || 0,
                 totalPrice: product.price || product.effectivePrice || 0,
                 attributes: product.attributeCombination,
-                notes: []
+                notes: [],
             };
 
             setOrderItems((prev) => [...prev, newItem]);
@@ -162,11 +165,7 @@ export function POSRegisterView({
     // Handle notes changes
     const handleNotesChange = (itemId: string, notes: string[]) => {
         setOrderItems((prev) =>
-            prev.map((item) =>
-                item.id === itemId
-                    ? { ...item, notes }
-                    : item
-            )
+            prev.map((item) => (item.id === itemId ? { ...item, notes } : item))
         );
     };
 

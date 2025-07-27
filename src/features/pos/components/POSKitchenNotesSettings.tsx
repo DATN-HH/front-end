@@ -66,13 +66,13 @@ export function POSKitchenNotesSettings({
 
     const handleAddNote = () => {
         if (newNote.trim() && !notes.includes(newNote.trim())) {
-            setNotes(prev => [...prev, newNote.trim()]);
+            setNotes((prev) => [...prev, newNote.trim()]);
             setNewNote('');
         }
     };
 
     const handleRemoveNote = (index: number) => {
-        setNotes(prev => prev.filter((_, i) => i !== index));
+        setNotes((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleSave = () => {
@@ -96,9 +96,7 @@ export function POSKitchenNotesSettings({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>
-                        Kitchen Notes Settings
-                    </DialogTitle>
+                    <DialogTitle>Kitchen Notes Settings</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
@@ -117,7 +115,10 @@ export function POSKitchenNotesSettings({
                             />
                             <Button
                                 onClick={handleAddNote}
-                                disabled={!newNote.trim() || notes.includes(newNote.trim())}
+                                disabled={
+                                    !newNote.trim() ||
+                                    notes.includes(newNote.trim())
+                                }
                                 size="sm"
                             >
                                 <Plus className="h-4 w-4 mr-1" />
@@ -131,7 +132,7 @@ export function POSKitchenNotesSettings({
                         <Label className="text-sm font-medium text-gray-900 mb-3 block">
                             Current Notes ({notes.length})
                         </Label>
-                        
+
                         {notes.length === 0 ? (
                             <p className="text-gray-500 text-sm text-center py-8">
                                 No notes configured. Add some notes above.
@@ -149,7 +150,9 @@ export function POSKitchenNotesSettings({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleRemoveNote(index)}
+                                            onClick={() =>
+                                                handleRemoveNote(index)
+                                            }
                                             className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
                                             <X className="h-3 w-3" />
@@ -163,7 +166,8 @@ export function POSKitchenNotesSettings({
                     {/* Preview */}
                     <Card className="p-4 bg-blue-50">
                         <Label className="text-sm font-medium text-blue-900 mb-3 block">
-                            Preview - How notes will appear in the kitchen notes modal
+                            Preview - How notes will appear in the kitchen notes
+                            modal
                         </Label>
                         <div className="grid grid-cols-3 gap-2">
                             {notes.slice(0, 12).map((note, index) => (
@@ -195,12 +199,9 @@ export function POSKitchenNotesSettings({
                         <RotateCcw className="h-4 w-4 mr-1" />
                         Reset to Default
                     </Button>
-                    
+
                     <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={onClose}
-                        >
+                        <Button variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
                         <Button

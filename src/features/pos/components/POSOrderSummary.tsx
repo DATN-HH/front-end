@@ -88,8 +88,6 @@ export function POSOrderSummary({
                                 <span>${total.toFixed(2)}</span>
                             </div>
                         </div>
-
-
                     </div>
                 </Card>
             )}
@@ -128,7 +126,9 @@ function OrderItemCard({
                         {item.name}
                     </h4>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                        <span className="font-medium">{item.quantity.toFixed(2)}</span>
+                        <span className="font-medium">
+                            {item.quantity.toFixed(2)}
+                        </span>
                         <span>x</span>
                         <span>${item.unitPrice.toFixed(2)} / Units</span>
                     </div>
@@ -181,7 +181,9 @@ function OrderItemCard({
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onQuantityChange(item.id, item.quantity + 1)}
+                        onClick={() =>
+                            onQuantityChange(item.id, item.quantity + 1)
+                        }
                         className="h-8 w-8 p-0"
                     >
                         <Plus className="h-3 w-3" />
