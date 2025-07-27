@@ -16,8 +16,8 @@ import { POSOrdersView } from './POSOrdersView';
 // Types based on Odoo research
 export enum POSTab {
     TABLES = 'tables',
-    REGISTER = 'register', 
-    ORDERS = 'orders'
+    REGISTER = 'register',
+    ORDERS = 'orders',
 }
 
 interface OdooPOSInterfaceProps {
@@ -27,7 +27,12 @@ interface OdooPOSInterfaceProps {
     onBranchSelect?: (branch: BranchResponseDto) => void;
 }
 
-export function OdooPOSInterface({ floors, isLoading, selectedBranch, onBranchSelect }: OdooPOSInterfaceProps) {
+export function OdooPOSInterface({
+    floors,
+    isLoading,
+    selectedBranch,
+    onBranchSelect,
+}: OdooPOSInterfaceProps) {
     const [activeTab, setActiveTab] = useState<POSTab>(POSTab.TABLES);
     const [selectedFloor, setSelectedFloor] = useState<FloorResponse | null>(
         floors.length > 0 ? floors[0] : null
@@ -57,18 +62,18 @@ export function OdooPOSInterface({ floors, isLoading, selectedBranch, onBranchSe
         {
             id: POSTab.TABLES,
             label: 'Tables',
-            active: activeTab === POSTab.TABLES
+            active: activeTab === POSTab.TABLES,
         },
         {
             id: POSTab.REGISTER,
             label: 'Register',
-            active: activeTab === POSTab.REGISTER
+            active: activeTab === POSTab.REGISTER,
         },
         {
             id: POSTab.ORDERS,
             label: 'Orders',
-            active: activeTab === POSTab.ORDERS
-        }
+            active: activeTab === POSTab.ORDERS,
+        },
     ];
 
     return (
@@ -81,7 +86,7 @@ export function OdooPOSInterface({ floors, isLoading, selectedBranch, onBranchSe
                         {tabs.map((tab) => (
                             <Button
                                 key={tab.id}
-                                variant={tab.active ? "default" : "ghost"}
+                                variant={tab.active ? 'default' : 'ghost'}
                                 className={`px-6 py-2 font-medium transition-colors ${
                                     tab.active
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'

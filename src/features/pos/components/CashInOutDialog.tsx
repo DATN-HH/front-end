@@ -29,7 +29,9 @@ interface CashInOutDialogProps {
 
 export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
     const { success, error } = useCustomToast();
-    const [activeTab, setActiveTab] = useState<'cash-in' | 'cash-out'>('cash-in');
+    const [activeTab, setActiveTab] = useState<'cash-in' | 'cash-out'>(
+        'cash-in'
+    );
     const [amount, setAmount] = useState<string>('');
     const [reason, setReason] = useState<string>('');
 
@@ -57,16 +59,19 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
         try {
             await createCashMovementMutation.mutateAsync({
                 sessionId: currentSession.id,
-                type: activeTab === 'cash-in' ? CashMovementType.CASH_IN : CashMovementType.CASH_OUT,
+                type:
+                    activeTab === 'cash-in'
+                        ? CashMovementType.CASH_IN
+                        : CashMovementType.CASH_OUT,
                 amount: amountValue,
                 reason: reason.trim(),
             });
 
             success(
-                'Success', 
+                'Success',
                 `Cash ${activeTab === 'cash-in' ? 'added' : 'removed'} successfully`
             );
-            
+
             // Reset form
             setAmount('');
             setReason('');
@@ -107,13 +112,24 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                     </DialogTitle>
                 </DialogHeader>
 
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'cash-in' | 'cash-out')}>
+                <Tabs
+                    value={activeTab}
+                    onValueChange={(value) =>
+                        setActiveTab(value as 'cash-in' | 'cash-out')
+                    }
+                >
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="cash-in" className="flex items-center gap-2">
+                        <TabsTrigger
+                            value="cash-in"
+                            className="flex items-center gap-2"
+                        >
                             <Plus className="w-4 h-4" />
                             Cash In
                         </TabsTrigger>
-                        <TabsTrigger value="cash-out" className="flex items-center gap-2">
+                        <TabsTrigger
+                            value="cash-out"
+                            className="flex items-center gap-2"
+                        >
                             <Minus className="w-4 h-4" />
                             Cash Out
                         </TabsTrigger>
@@ -123,7 +139,7 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                         <div className="text-sm text-gray-600">
                             Add cash to the register
                         </div>
-                        
+
                         <div>
                             <Label htmlFor="amount-in">Amount (₫)</Label>
                             <Input
@@ -143,22 +159,28 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
                             />
-                            
+
                             {/* Predefined reasons */}
                             <div className="mt-2">
-                                <div className="text-xs text-gray-500 mb-1">Quick reasons:</div>
+                                <div className="text-xs text-gray-500 mb-1">
+                                    Quick reasons:
+                                </div>
                                 <div className="flex flex-wrap gap-1">
-                                    {predefinedReasons['cash-in'].map((predefinedReason) => (
-                                        <Button
-                                            key={predefinedReason}
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-xs h-6"
-                                            onClick={() => setReason(predefinedReason)}
-                                        >
-                                            {predefinedReason}
-                                        </Button>
-                                    ))}
+                                    {predefinedReasons['cash-in'].map(
+                                        (predefinedReason) => (
+                                            <Button
+                                                key={predefinedReason}
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-xs h-6"
+                                                onClick={() =>
+                                                    setReason(predefinedReason)
+                                                }
+                                            >
+                                                {predefinedReason}
+                                            </Button>
+                                        )
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -168,7 +190,7 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                         <div className="text-sm text-gray-600">
                             Remove cash from the register
                         </div>
-                        
+
                         <div>
                             <Label htmlFor="amount-out">Amount (₫)</Label>
                             <Input
@@ -188,22 +210,28 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
                             />
-                            
+
                             {/* Predefined reasons */}
                             <div className="mt-2">
-                                <div className="text-xs text-gray-500 mb-1">Quick reasons:</div>
+                                <div className="text-xs text-gray-500 mb-1">
+                                    Quick reasons:
+                                </div>
                                 <div className="flex flex-wrap gap-1">
-                                    {predefinedReasons['cash-out'].map((predefinedReason) => (
-                                        <Button
-                                            key={predefinedReason}
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-xs h-6"
-                                            onClick={() => setReason(predefinedReason)}
-                                        >
-                                            {predefinedReason}
-                                        </Button>
-                                    ))}
+                                    {predefinedReasons['cash-out'].map(
+                                        (predefinedReason) => (
+                                            <Button
+                                                key={predefinedReason}
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-xs h-6"
+                                                onClick={() =>
+                                                    setReason(predefinedReason)
+                                                }
+                                            >
+                                                {predefinedReason}
+                                            </Button>
+                                        )
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -216,7 +244,9 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                         <div className="font-medium mb-1">Current Session</div>
                         <div className="flex justify-between">
                             <span>Expected Cash:</span>
-                            <span>{currentSession.expectedCash.toLocaleString()} ₫</span>
+                            <span>
+                                {currentSession.expectedCash.toLocaleString()} ₫
+                            </span>
                         </div>
                     </div>
                 )}
@@ -235,10 +265,9 @@ export function CashInOutDialog({ isOpen, onClose }: CashInOutDialogProps) {
                         disabled={createCashMovementMutation.isPending}
                         className="flex-1"
                     >
-                        {createCashMovementMutation.isPending 
-                            ? 'Processing...' 
-                            : `${activeTab === 'cash-in' ? 'Add' : 'Remove'} Cash`
-                        }
+                        {createCashMovementMutation.isPending
+                            ? 'Processing...'
+                            : `${activeTab === 'cash-in' ? 'Add' : 'Remove'} Cash`}
                     </Button>
                 </div>
             </DialogContent>

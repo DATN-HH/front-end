@@ -16,7 +16,7 @@ function POSTableOrderPage() {
     return (
         <div className="flex flex-col h-full">
             {/* POS Header */}
-            <POSHeader 
+            <POSHeader
                 currentTab="register"
                 tableNumber={tableId}
                 branchName="Main Branch"
@@ -32,7 +32,9 @@ function POSTableOrderPage() {
 
 export default function POSTableOrderPageWrapper() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}
+        >
             <POSTableOrderPage />
         </ProtectedRoute>
     );

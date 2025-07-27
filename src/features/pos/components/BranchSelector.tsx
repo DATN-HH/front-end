@@ -12,14 +12,17 @@ interface BranchSelectorProps {
     selectedBranch?: BranchResponseDto | null;
 }
 
-export function BranchSelector({ onBranchSelect, selectedBranch }: BranchSelectorProps) {
+export function BranchSelector({
+    onBranchSelect,
+    selectedBranch,
+}: BranchSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
-    
+
     // Fetch branches
     const { data: branches = [], isLoading } = useBranches({
         page: 0,
         size: 100,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
     });
 
     const handleBranchSelect = (branch: BranchResponseDto) => {
@@ -77,7 +80,9 @@ export function BranchSelector({ onBranchSelect, selectedBranch }: BranchSelecto
                     {branches.length === 0 && (
                         <div className="text-center py-8">
                             <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-500">No branches available</p>
+                            <p className="text-gray-500">
+                                No branches available
+                            </p>
                         </div>
                     )}
                 </Card>
@@ -97,7 +102,9 @@ export function BranchSelector({ onBranchSelect, selectedBranch }: BranchSelecto
                     <Building2 className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="font-medium">{selectedBranch.name}</span>
                 </div>
-                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                    className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                />
             </Button>
 
             {isOpen && (

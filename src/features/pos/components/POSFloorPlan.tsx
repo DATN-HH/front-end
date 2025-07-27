@@ -1,6 +1,13 @@
 'use client';
 
-import { Plus, Grid3X3, ShoppingCart, Building2, Settings, MoreHorizontal } from 'lucide-react';
+import {
+    Plus,
+    Grid3X3,
+    ShoppingCart,
+    Building2,
+    Settings,
+    MoreHorizontal,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { type FloorResponse } from '@/api/v1/floors';
@@ -40,7 +47,7 @@ export function POSFloorPlan({
                     </div>
                     <Skeleton className="h-8 w-8" />
                 </div>
-                
+
                 {/* Floor Plan Skeleton */}
                 <div className="flex-1 p-4">
                     <div className="grid grid-cols-4 gap-4">
@@ -124,8 +131,13 @@ export function POSFloorPlan({
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-600">
                             <Grid3X3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                            <h3 className="text-lg font-medium mb-2">Select a Floor</h3>
-                            <p>Choose a floor from the left panel to view tables</p>
+                            <h3 className="text-lg font-medium mb-2">
+                                Select a Floor
+                            </h3>
+                            <p>
+                                Choose a floor from the left panel to view
+                                tables
+                            </p>
                         </div>
                     </div>
                 )}
@@ -137,7 +149,7 @@ export function POSFloorPlan({
 // POS Floor Canvas component that uses the visual table layout
 function POSFloorCanvas({
     floor,
-    onTableSelect
+    onTableSelect,
 }: {
     floor: FloorResponse;
     onTableSelect: (tableId: number) => void;
@@ -168,7 +180,9 @@ function POSFloorCanvas({
             <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500">
                     <Grid3X3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <h3 className="text-lg font-medium mb-2">No Tables Found</h3>
+                    <h3 className="text-lg font-medium mb-2">
+                        No Tables Found
+                    </h3>
                     <p>This floor doesn't have any tables configured</p>
                 </div>
             </div>
@@ -191,7 +205,7 @@ function POSFloorCanvas({
 // Odoo-style floor plan component that matches the exact Odoo POS interface
 function OdooStyleFloorPlan({
     tables,
-    onTableSelect
+    onTableSelect,
 }: {
     tables: TableResponse[];
     onTableSelect: (table: TableResponse | null) => void;
@@ -205,36 +219,67 @@ function OdooStyleFloorPlan({
             const layouts = [
                 // Round table with 4 chairs
                 {
-                    tableClass: "w-16 h-16 bg-green-200 border-2 border-green-400 rounded-full flex items-center justify-center",
+                    tableClass:
+                        'w-16 h-16 bg-green-200 border-2 border-green-400 rounded-full flex items-center justify-center',
                     chairs: [
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-1/2 transform -translate-x-1/2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2" },
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-1/2 transform -translate-x-1/2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2" }
-                    ]
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-1/2 transform -translate-x-1/2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2',
+                        },
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-1/2 transform -translate-x-1/2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2',
+                        },
+                    ],
                 },
                 // Square table with 4 chairs
                 {
-                    tableClass: "w-16 h-16 bg-green-200 border-2 border-green-400 rounded-lg flex items-center justify-center",
+                    tableClass:
+                        'w-16 h-16 bg-green-200 border-2 border-green-400 rounded-lg flex items-center justify-center',
                     chairs: [
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-1/2 transform -translate-x-1/2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2" },
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-1/2 transform -translate-x-1/2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2" }
-                    ]
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-1/2 transform -translate-x-1/2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2',
+                        },
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-1/2 transform -translate-x-1/2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2',
+                        },
+                    ],
                 },
                 // Rectangular table with 6 chairs
                 {
-                    tableClass: "w-20 h-16 bg-green-200 border-2 border-green-400 rounded-lg flex items-center justify-center",
+                    tableClass:
+                        'w-20 h-16 bg-green-200 border-2 border-green-400 rounded-lg flex items-center justify-center',
                     chairs: [
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-2" },
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 right-2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2" },
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 right-2" },
-                        { class: "w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-2" },
-                        { class: "w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2" }
-                    ]
-                }
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 left-2',
+                        },
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -top-7 right-2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -right-7 top-1/2 transform -translate-y-1/2',
+                        },
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 right-2',
+                        },
+                        {
+                            class: 'w-4 h-6 bg-blue-400 rounded-sm absolute -bottom-7 left-2',
+                        },
+                        {
+                            class: 'w-6 h-4 bg-blue-400 rounded-sm absolute -left-7 top-1/2 transform -translate-y-1/2',
+                        },
+                    ],
+                },
             ];
             return layouts[idx % layouts.length];
         };
@@ -248,8 +293,12 @@ function OdooStyleFloorPlan({
                 onClick={() => onTableSelect(table)}
             >
                 {/* Table */}
-                <div className={`${layout.tableClass} ${isOccupied ? 'bg-red-200 border-red-400' : ''} shadow-lg`}>
-                    <span className="text-lg font-bold text-gray-800">{table.tableName}</span>
+                <div
+                    className={`${layout.tableClass} ${isOccupied ? 'bg-red-200 border-red-400' : ''} shadow-lg`}
+                >
+                    <span className="text-lg font-bold text-gray-800">
+                        {table.tableName}
+                    </span>
                 </div>
 
                 {/* Chairs */}

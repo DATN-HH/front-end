@@ -11,7 +11,10 @@ import { Input } from '@/components/ui/input';
 
 // Import API hooks and types
 import { useAllCategories } from '@/api/v1/menu/categories';
-import { useAllAvailableVariants, ProductVariantResponse } from '@/api/v1/menu/product-attributes';
+import {
+    useAllAvailableVariants,
+    ProductVariantResponse,
+} from '@/api/v1/menu/product-attributes';
 
 // Types for POS products - based on variants
 interface POSProduct {
@@ -37,7 +40,9 @@ interface POSProductGridProps {
 }
 
 // Helper function to convert ProductVariantResponse to POSProduct
-const convertVariantToPOSProduct = (variant: ProductVariantResponse): POSProduct => {
+const convertVariantToPOSProduct = (
+    variant: ProductVariantResponse
+): POSProduct => {
     return {
         id: variant.productTemplateId,
         variantId: variant.id,
@@ -57,29 +62,41 @@ const convertVariantToPOSProduct = (variant: ProductVariantResponse): POSProduct
     };
 };
 
-
-
 export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(
+        null
+    );
     const [searchQuery, setSearchQuery] = useState('');
 
     // Fetch categories
-    const { data: categoriesData = [], isLoading: categoriesLoading } = useAllCategories();
+    const { data: categoriesData = [], isLoading: categoriesLoading } =
+        useAllCategories();
 
     // Fetch all product variants
-    const { data: allVariants = [], isLoading: variantsLoading } = useAllAvailableVariants();
+    const { data: allVariants = [], isLoading: variantsLoading } =
+        useAllAvailableVariants();
 
     // Convert variants to POS products
-    const allPOSProducts = allVariants.map(convertVariantToPOSProduct).filter(product => product.isActive);
+    const allPOSProducts = allVariants
+        .map(convertVariantToPOSProduct)
+        .filter((product) => product.isActive);
 
     // Filter by category if selected (we'll need to implement category filtering later)
     const categoryFilteredProducts = allPOSProducts; // For now, show all
 
     // Filter products by search query
-    const filteredProducts = categoryFilteredProducts.filter(product =>
-        product.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.productTemplateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filteredProducts = categoryFilteredProducts.filter(
+        (product) =>
+            product.displayName
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            product.productTemplateName
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            (product.description &&
+                product.description
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()))
     );
 
     return (
@@ -100,7 +117,9 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                 {/* Category Tabs - Odoo Style */}
                 <div className="flex space-x-1">
                     <Button
-                        variant={selectedCategory === null ? "default" : "outline"}
+                        variant={
+                            selectedCategory === null ? 'default' : 'outline'
+                        }
                         className={`px-4 py-2 font-medium ${
                             selectedCategory === null
                                 ? 'bg-blue-600 text-white'
@@ -113,7 +132,11 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                     {categoriesData.map((category) => (
                         <Button
                             key={category.id}
-                            variant={selectedCategory === category.id ? "default" : "outline"}
+                            variant={
+                                selectedCategory === category.id
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             className={`px-4 py-2 font-medium ${
                                 selectedCategory === category.id
                                     ? 'bg-blue-600 text-white'
@@ -153,9 +176,13 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                 ) : (
                     <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                         <div className="text-4xl mb-4">🔍</div>
-                        <h3 className="text-lg font-medium mb-2">No products found</h3>
+                        <h3 className="text-lg font-medium mb-2">
+                            No products found
+                        </h3>
                         <p className="text-sm text-center">
-                            {searchQuery ? `No products match "${searchQuery}"` : 'No products available in this category'}
+                            {searchQuery
+                                ? `No products match "${searchQuery}"`
+                                : 'No products available in this category'}
                         </p>
                     </div>
                 )}
@@ -164,12 +191,13 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                 {!variantsLoading && filteredProducts.length === 0 && (
                     <div className="flex items-center justify-center h-64">
                         <div className="text-center text-gray-500">
-                            <div className="text-lg font-medium mb-2">No products found</div>
+                            <div className="text-lg font-medium mb-2">
+                                No products found
+                            </div>
                             <div className="text-sm">
-                                {selectedCategory 
+                                {selectedCategory
                                     ? 'No products in this category'
-                                    : 'No products available'
-                                }
+                                    : 'No products available'}
                             </div>
                         </div>
                     </div>
@@ -180,11 +208,11 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
 }
 
 // Product Card Component - Odoo Style
-function ProductCard({ 
-    product, 
-    onClick 
-}: { 
-    product: POSProduct; 
+function ProductCard({
+    product,
+    onClick,
+}: {
+    product: POSProduct;
     onClick: () => void;
 }) {
     return (

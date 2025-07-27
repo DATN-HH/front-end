@@ -11,7 +11,7 @@ function POSOrdersPage() {
     return (
         <div className="flex flex-col h-full">
             {/* POS Header */}
-            <POSHeader 
+            <POSHeader
                 currentTab="orders"
                 tableNumber={null}
                 branchName="Main Branch"
@@ -27,7 +27,9 @@ function POSOrdersPage() {
 
 export default function POSOrdersPageWrapper() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}
+        >
             <POSOrdersPage />
         </ProtectedRoute>
     );

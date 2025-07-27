@@ -1,7 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Building2, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import {
+    Plus,
+    Search,
+    Building2,
+    ChevronLeft,
+    ChevronRight,
+    Menu,
+} from 'lucide-react';
 
 import { type FloorResponse } from '@/api/v1/floors';
 import { type BranchResponseDto } from '@/api/v1/branches';
@@ -32,7 +39,7 @@ export function POSTablesView({
     onTableSelect,
     onNewOrder,
     selectedBranch,
-    onBranchSelect
+    onBranchSelect,
 }: POSTablesViewProps) {
     const [showQuickNav, setShowQuickNav] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -50,7 +57,9 @@ export function POSTablesView({
     return (
         <div className="flex h-full">
             {/* Left Sidebar - Collapsible */}
-            <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-gray-700 border-r border-gray-600 transition-all duration-300 ease-in-out flex flex-col relative`}>
+            <div
+                className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-gray-700 border-r border-gray-600 transition-all duration-300 ease-in-out flex flex-col relative`}
+            >
                 {/* Collapse Toggle Button */}
                 <Button
                     variant="ghost"
@@ -58,7 +67,11 @@ export function POSTablesView({
                     className="absolute -right-3 top-4 z-10 bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white rounded-full w-6 h-6 p-0"
                     onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 >
-                    {sidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                    {sidebarCollapsed ? (
+                        <ChevronRight className="w-3 h-3" />
+                    ) : (
+                        <ChevronLeft className="w-3 h-3" />
+                    )}
                 </Button>
 
                 <div className={`p-4 ${sidebarCollapsed ? 'px-2' : ''}`}>
@@ -88,10 +101,10 @@ export function POSTablesView({
                     <Button
                         className={`w-full mb-4 ${sidebarCollapsed ? 'h-10 px-2' : 'h-12'} bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg flex items-center justify-center gap-2`}
                         onClick={onNewOrder}
-                        title={sidebarCollapsed ? "New Order" : ""}
+                        title={sidebarCollapsed ? 'New Order' : ''}
                     >
                         <Plus className="w-4 h-4" />
-                        {!sidebarCollapsed && "New Order"}
+                        {!sidebarCollapsed && 'New Order'}
                     </Button>
 
                     {/* Quick Table Navigation */}
@@ -99,10 +112,10 @@ export function POSTablesView({
                         variant="outline"
                         className={`w-full mb-4 h-10 bg-gray-600 border-gray-500 text-gray-200 hover:bg-gray-500 hover:text-white ${sidebarCollapsed ? 'px-2' : ''}`}
                         onClick={() => setShowQuickNav(!showQuickNav)}
-                        title={sidebarCollapsed ? "Quick Table Search" : ""}
+                        title={sidebarCollapsed ? 'Quick Table Search' : ''}
                     >
                         <Search className="w-4 h-4 mr-2" />
-                        {!sidebarCollapsed && "Quick Table Search"}
+                        {!sidebarCollapsed && 'Quick Table Search'}
                     </Button>
 
                     {showQuickNav && !sidebarCollapsed && (
@@ -117,7 +130,11 @@ export function POSTablesView({
 
                     {/* Floor Selector */}
                     <div className="mb-4">
-                        {!sidebarCollapsed && <h3 className="text-sm font-medium text-gray-300 mb-2">Floors</h3>}
+                        {!sidebarCollapsed && (
+                            <h3 className="text-sm font-medium text-gray-300 mb-2">
+                                Floors
+                            </h3>
+                        )}
                         <div className="space-y-1">
                             {floors.map((floor) => (
                                 <Button
@@ -129,7 +146,7 @@ export function POSTablesView({
                                             : 'text-gray-300 hover:bg-gray-600 hover:text-white'
                                     }`}
                                     onClick={() => onFloorChange(floor)}
-                                    title={sidebarCollapsed ? floor.name : ""}
+                                    title={sidebarCollapsed ? floor.name : ''}
                                 >
                                     <Building2 className="w-4 h-4 mr-2" />
                                     {!sidebarCollapsed && floor.name}
@@ -162,8 +179,13 @@ export function POSTablesView({
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-600">
                             <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                            <h3 className="text-lg font-medium mb-2">Select a Floor</h3>
-                            <p>Choose a floor from the left panel to view tables</p>
+                            <h3 className="text-lg font-medium mb-2">
+                                Select a Floor
+                            </h3>
+                            <p>
+                                Choose a floor from the left panel to view
+                                tables
+                            </p>
                         </div>
                     </div>
                 )}
@@ -175,7 +197,7 @@ export function POSTablesView({
 // Enhanced floor plan component with background image support
 function FloorPlanWithBackground({
     floor,
-    onTableSelect
+    onTableSelect,
 }: {
     floor: FloorResponse;
     onTableSelect: (tableId: number) => void;
@@ -206,7 +228,9 @@ function FloorPlanWithBackground({
             <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-600">
                     <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-medium mb-2">No Tables Found</h3>
+                    <h3 className="text-lg font-medium mb-2">
+                        No Tables Found
+                    </h3>
                     <p>This floor doesn't have any tables configured</p>
                 </div>
             </div>
@@ -225,7 +249,7 @@ function FloorPlanWithBackground({
                         order: floor.order,
                         status: floor.status,
                         createdAt: floor.createdAt,
-                        updatedAt: floor.updatedAt
+                        updatedAt: floor.updatedAt,
                     }}
                     tables={floorData.tables}
                     selectedTable={null}

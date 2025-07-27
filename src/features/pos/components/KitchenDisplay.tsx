@@ -46,8 +46,19 @@ export function KitchenDisplay() {
                 totalItems: 3,
                 estimatedTime: 15,
                 items: [
-                    { id: 1, name: 'Bacon Burger', quantity: 1, modifiers: ['Extra Cheese', 'No Onions'], prepared: false },
-                    { id: 2, name: 'French Fries', quantity: 2, prepared: false },
+                    {
+                        id: 1,
+                        name: 'Bacon Burger',
+                        quantity: 1,
+                        modifiers: ['Extra Cheese', 'No Onions'],
+                        prepared: false,
+                    },
+                    {
+                        id: 2,
+                        name: 'French Fries',
+                        quantity: 2,
+                        prepared: false,
+                    },
                     { id: 3, name: 'Coca-Cola', quantity: 1, prepared: true },
                 ],
             },
@@ -60,7 +71,12 @@ export function KitchenDisplay() {
                 stageStartTime: new Date(Date.now() - 2 * 60000), // 2 minutes ago
                 totalItems: 2,
                 items: [
-                    { id: 4, name: 'Pizza Margherita', quantity: 1, prepared: true },
+                    {
+                        id: 4,
+                        name: 'Pizza Margherita',
+                        quantity: 1,
+                        prepared: true,
+                    },
                     { id: 5, name: 'Green Tea', quantity: 1, prepared: true },
                 ],
             },
@@ -81,7 +97,7 @@ export function KitchenDisplay() {
 
     const getOrdersByStage = (stage: OrderStage) => {
         if (stage === 'all') return orders;
-        return orders.filter(order => order.stage === stage);
+        return orders.filter((order) => order.stage === stage);
     };
 
     const getStageCount = (stage: OrderStage) => {
@@ -106,34 +122,53 @@ export function KitchenDisplay() {
         }
     };
 
-    const handleOrderStageChange = (orderId: number, newStage: 'to-cook' | 'ready' | 'completed') => {
-        setOrders(prev => prev.map(order => 
-            order.id === orderId 
-                ? { ...order, stage: newStage, stageStartTime: new Date() }
-                : order
-        ));
+    const handleOrderStageChange = (
+        orderId: number,
+        newStage: 'to-cook' | 'ready' | 'completed'
+    ) => {
+        setOrders((prev) =>
+            prev.map((order) =>
+                order.id === orderId
+                    ? { ...order, stage: newStage, stageStartTime: new Date() }
+                    : order
+            )
+        );
     };
 
     const handleItemToggle = (orderId: number, itemId: number) => {
-        setOrders(prev => prev.map(order => 
-            order.id === orderId 
-                ? {
-                    ...order,
-                    items: order.items.map(item => 
-                        item.id === itemId 
-                            ? { ...item, prepared: !item.prepared }
-                            : item
-                    )
-                }
-                : order
-        ));
+        setOrders((prev) =>
+            prev.map((order) =>
+                order.id === orderId
+                    ? {
+                          ...order,
+                          items: order.items.map((item) =>
+                              item.id === itemId
+                                  ? { ...item, prepared: !item.prepared }
+                                  : item
+                          ),
+                      }
+                    : order
+            )
+        );
     };
 
     const stages = [
         { id: 'all' as OrderStage, label: 'All', count: getStageCount('all') },
-        { id: 'to-cook' as OrderStage, label: 'To cook', count: getStageCount('to-cook') },
-        { id: 'ready' as OrderStage, label: 'Ready', count: getStageCount('ready') },
-        { id: 'completed' as OrderStage, label: 'Completed', count: getStageCount('completed') },
+        {
+            id: 'to-cook' as OrderStage,
+            label: 'To cook',
+            count: getStageCount('to-cook'),
+        },
+        {
+            id: 'ready' as OrderStage,
+            label: 'Ready',
+            count: getStageCount('ready'),
+        },
+        {
+            id: 'completed' as OrderStage,
+            label: 'Completed',
+            count: getStageCount('completed'),
+        },
     ];
 
     const filteredOrders = getOrdersByStage(selectedStage);
@@ -153,7 +188,11 @@ export function KitchenDisplay() {
                         {stages.map((stage) => (
                             <Button
                                 key={stage.id}
-                                variant={selectedStage === stage.id ? 'default' : 'outline'}
+                                variant={
+                                    selectedStage === stage.id
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 className={`px-4 py-2 ${
                                     selectedStage === stage.id
                                         ? 'bg-blue-600 text-white'
@@ -161,7 +200,8 @@ export function KitchenDisplay() {
                                 }`}
                                 onClick={() => setSelectedStage(stage.id)}
                             >
-                                {stage.label} {stage.count > 0 && (
+                                {stage.label}{' '}
+                                {stage.count > 0 && (
                                     <span className="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded-full">
                                         {stage.count}
                                     </span>
@@ -190,8 +230,16 @@ export function KitchenDisplay() {
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500">
                             <div className="text-6xl mb-4">🍽️</div>
-                            <h3 className="text-xl font-medium mb-2">No Orders</h3>
-                            <p>No orders in {selectedStage === 'all' ? 'any stage' : selectedStage} stage</p>
+                            <h3 className="text-xl font-medium mb-2">
+                                No Orders
+                            </h3>
+                            <p>
+                                No orders in{' '}
+                                {selectedStage === 'all'
+                                    ? 'any stage'
+                                    : selectedStage}{' '}
+                                stage
+                            </p>
                         </div>
                     </div>
                 ) : (
@@ -204,12 +252,18 @@ export function KitchenDisplay() {
                                 {/* Order Header */}
                                 <div className="flex items-center justify-between mb-3">
                                     <div>
-                                        <div className="font-bold text-lg">{order.orderNumber}</div>
+                                        <div className="font-bold text-lg">
+                                            {order.orderNumber}
+                                        </div>
                                         {order.tableNumber && (
-                                            <div className="text-sm text-gray-600">Table {order.tableNumber}</div>
+                                            <div className="text-sm text-gray-600">
+                                                Table {order.tableNumber}
+                                            </div>
                                         )}
                                     </div>
-                                    <Badge className={getStageColor(order.stage)}>
+                                    <Badge
+                                        className={getStageColor(order.stage)}
+                                    >
                                         {order.stage.replace('-', ' ')}
                                     </Badge>
                                 </div>
@@ -238,20 +292,32 @@ export function KitchenDisplay() {
                                                     ? 'bg-green-50 border-green-200 text-green-800'
                                                     : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                                             }`}
-                                            onClick={() => handleItemToggle(order.id, item.id)}
+                                            onClick={() =>
+                                                handleItemToggle(
+                                                    order.id,
+                                                    item.id
+                                                )
+                                            }
                                         >
                                             <div className="flex-1">
                                                 <div className="flex items-center">
-                                                    <span className="font-medium">{item.quantity}x {item.name}</span>
+                                                    <span className="font-medium">
+                                                        {item.quantity}x{' '}
+                                                        {item.name}
+                                                    </span>
                                                     {item.prepared && (
                                                         <CheckCircle className="w-4 h-4 ml-2 text-green-600" />
                                                     )}
                                                 </div>
-                                                {item.modifiers && item.modifiers.length > 0 && (
-                                                    <div className="text-xs text-gray-500 mt-1">
-                                                        {item.modifiers.join(', ')}
-                                                    </div>
-                                                )}
+                                                {item.modifiers &&
+                                                    item.modifiers.length >
+                                                        0 && (
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {item.modifiers.join(
+                                                                ', '
+                                                            )}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                     ))}
@@ -263,7 +329,12 @@ export function KitchenDisplay() {
                                         <Button
                                             size="sm"
                                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                            onClick={() => handleOrderStageChange(order.id, 'ready')}
+                                            onClick={() =>
+                                                handleOrderStageChange(
+                                                    order.id,
+                                                    'ready'
+                                                )
+                                            }
                                         >
                                             Mark Ready
                                         </Button>
@@ -272,7 +343,12 @@ export function KitchenDisplay() {
                                         <Button
                                             size="sm"
                                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={() => handleOrderStageChange(order.id, 'completed')}
+                                            onClick={() =>
+                                                handleOrderStageChange(
+                                                    order.id,
+                                                    'completed'
+                                                )
+                                            }
                                         >
                                             Complete
                                         </Button>
@@ -282,7 +358,12 @@ export function KitchenDisplay() {
                                             size="sm"
                                             variant="outline"
                                             className="flex-1"
-                                            onClick={() => handleOrderStageChange(order.id, 'to-cook')}
+                                            onClick={() =>
+                                                handleOrderStageChange(
+                                                    order.id,
+                                                    'to-cook'
+                                                )
+                                            }
                                         >
                                             Reopen
                                         </Button>

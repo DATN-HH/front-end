@@ -6,7 +6,12 @@ import { DollarSign, Calculator, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface POSCashPaymentProps {
     isOpen: boolean;
@@ -23,7 +28,7 @@ export function POSCashPayment({
     isOpen,
     orderTotal,
     onPaymentComplete,
-    onClose
+    onClose,
 }: POSCashPaymentProps) {
     const [amountReceived, setAmountReceived] = useState<string>('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -50,15 +55,15 @@ export function POSCashPayment({
         if (!isValidPayment) return;
 
         setIsProcessing(true);
-        
+
         try {
             // Simulate payment processing
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
             onPaymentComplete({
                 method: 'CASH',
                 amountReceived: receivedAmount,
-                change: change
+                change: change,
             });
         } catch (error) {
             console.error('Payment processing failed:', error);
@@ -86,7 +91,9 @@ export function POSCashPayment({
                     {/* Order Total */}
                     <Card className="p-4 bg-blue-50 border-blue-200">
                         <div className="text-center">
-                            <div className="text-sm text-blue-700 mb-1">Order Total</div>
+                            <div className="text-sm text-blue-700 mb-1">
+                                Order Total
+                            </div>
                             <div className="text-2xl font-bold text-blue-900">
                                 ${orderTotal.toFixed(2)}
                             </div>
@@ -132,27 +139,38 @@ export function POSCashPayment({
 
                     {/* Change Calculation */}
                     {receivedAmount && (
-                        <Card className={`p-4 ${
-                            isValidPayment 
-                                ? change > 0 
-                                    ? 'bg-green-50 border-green-200' 
-                                    : 'bg-gray-50 border-gray-200'
-                                : 'bg-red-50 border-red-200'
-                        }`}>
+                        <Card
+                            className={`p-4 ${
+                                isValidPayment
+                                    ? change > 0
+                                        ? 'bg-green-50 border-green-200'
+                                        : 'bg-gray-50 border-gray-200'
+                                    : 'bg-red-50 border-red-200'
+                            }`}
+                        >
                             <div className="text-center">
-                                <div className={`text-sm mb-1 ${
-                                    isValidPayment ? 'text-green-700' : 'text-red-700'
-                                }`}>
-                                    {isValidPayment 
-                                        ? change > 0 ? 'Change Due' : 'Exact Amount'
-                                        : 'Insufficient Amount'
-                                    }
+                                <div
+                                    className={`text-sm mb-1 ${
+                                        isValidPayment
+                                            ? 'text-green-700'
+                                            : 'text-red-700'
+                                    }`}
+                                >
+                                    {isValidPayment
+                                        ? change > 0
+                                            ? 'Change Due'
+                                            : 'Exact Amount'
+                                        : 'Insufficient Amount'}
                                 </div>
-                                <div className={`text-xl font-bold ${
-                                    isValidPayment 
-                                        ? change > 0 ? 'text-green-900' : 'text-gray-900'
-                                        : 'text-red-900'
-                                }`}>
+                                <div
+                                    className={`text-xl font-bold ${
+                                        isValidPayment
+                                            ? change > 0
+                                                ? 'text-green-900'
+                                                : 'text-gray-900'
+                                            : 'text-red-900'
+                                    }`}
+                                >
                                     ${Math.abs(change).toFixed(2)}
                                 </div>
                             </div>

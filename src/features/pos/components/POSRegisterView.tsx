@@ -1,19 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, User, FileText, UtensilsCrossed, MoreHorizontal } from 'lucide-react';
+import {
+    ArrowLeft,
+    User,
+    FileText,
+    UtensilsCrossed,
+    MoreHorizontal,
+    Settings,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 // Import API hooks
-import { useCreatePOSOrder, useCreatePOSOrderPayment, POSOrderCreateRequest, POSOrderPaymentRequest, POSPaymentMethod } from '@/api/v1/pos-orders';
+import {
+    useCreatePOSOrder,
+    useCreatePOSOrderPayment,
+    POSOrderCreateRequest,
+    POSOrderPaymentRequest,
+    POSPaymentMethod,
+} from '@/api/v1/pos-orders';
 
 // Import POS components
 import { POSProductGrid } from './POSProductGrid';
 import { POSOrderSummary } from './POSOrderSummary';
 import { POSProductVariantModal } from './POSProductVariantModal';
 import { POSCashPayment } from './POSCashPayment';
+import { POSKitchenNotesSettings } from './POSKitchenNotesSettings';
 
 // Types for order management
 export interface POSOrderItem {
@@ -26,6 +40,7 @@ export interface POSOrderItem {
     unitPrice: number;
     totalPrice: number;
     attributes?: string;
+    notes?: string[];
 }
 
 interface POSRegisterViewProps {
@@ -37,13 +52,16 @@ interface POSRegisterViewProps {
 export function POSRegisterView({
     selectedTableId,
     onOrderCreated,
-    onBackToTables
+    onBackToTables,
 }: POSRegisterViewProps) {
     const [orderItems, setOrderItems] = useState<POSOrderItem[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [showVariantModal, setShowVariantModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [orderType, setOrderType] = useState<'dine-in' | 'takeout' | 'delivery'>('dine-in');
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [orderType, setOrderType] = useState<
+        'dine-in' | 'takeout' | 'delivery'
+    >('dine-in');
 
     // API hooks
     const createOrderMutation = useCreatePOSOrder();
@@ -54,22 +72,41 @@ export function POSRegisterView({
     const tax = subtotal * 0.1; // 10% tax
     const total = subtotal + tax;
 
-    // Handle product selection - add variant directly to order
+    // Handle product selection - add variant directly to order or increase quantity
     const handleProductSelect = (product: any) => {
-        // Since we're now displaying variants directly, add them straight to the order
-        const newItem: POSOrderItem = {
-            id: `${product.variantId}-${Date.now()}`,
-            productId: product.id,
-            variantId: product.variantId,
-            name: product.displayName || product.productTemplateName,
-            description: product.description || product.attributeCombination,
-            quantity: 1,
-            unitPrice: product.price || product.effectivePrice || 0,
-            totalPrice: product.price || product.effectivePrice || 0,
-            attributes: product.attributeCombination
-        };
+        // Check if this variant already exists in the order
+        const existingItemIndex = orderItems.findIndex(item =>
+            item.variantId === product.variantId
+        );
 
-        setOrderItems(prev => [...prev, newItem]);
+        if (existingItemIndex >= 0) {
+            // If item exists, increase quantity
+            setOrderItems(prev => prev.map((item, index) =>
+                index === existingItemIndex
+                    ? {
+                        ...item,
+                        quantity: item.quantity + 1,
+                        totalPrice: (item.quantity + 1) * item.unitPrice
+                    }
+                    : item
+            ));
+        } else {
+            // If item doesn't exist, add new item
+            const newItem: POSOrderItem = {
+                id: `${product.variantId}-${Date.now()}`,
+                productId: product.id,
+                variantId: product.variantId,
+                name: product.displayName || product.productTemplateName,
+                description: product.description || product.attributeCombination,
+                quantity: 1,
+                unitPrice: product.price || product.effectivePrice || 0,
+                totalPrice: product.price || product.effectivePrice || 0,
+                attributes: product.attributeCombination,
+                notes: []
+            };
+
+            setOrderItems((prev) => [...prev, newItem]);
+        }
     };
 
     // Handle variant selection and add to order
@@ -78,15 +115,27 @@ export function POSRegisterView({
             id: `${variant.id}-${Date.now()}`,
             productId: selectedProduct.id,
             variantId: variant.id,
-            name: variant.displayName || `${selectedProduct.name} - ${variant.name}`,
+            name:
+                variant.displayName ||
+                `${selectedProduct.name} - ${variant.name}`,
             description: variant.attributeCombination || variant.name,
             quantity: 1,
-            unitPrice: variant.effectivePrice || variant.price || selectedProduct.defaultPrice || selectedProduct.price || 0,
-            totalPrice: variant.effectivePrice || variant.price || selectedProduct.defaultPrice || selectedProduct.price || 0,
-            attributes: variant.attributeCombination
+            unitPrice:
+                variant.effectivePrice ||
+                variant.price ||
+                selectedProduct.defaultPrice ||
+                selectedProduct.price ||
+                0,
+            totalPrice:
+                variant.effectivePrice ||
+                variant.price ||
+                selectedProduct.defaultPrice ||
+                selectedProduct.price ||
+                0,
+            attributes: variant.attributeCombination,
         };
 
-        setOrderItems(prev => [...prev, newItem]);
+        setOrderItems((prev) => [...prev, newItem]);
         setShowVariantModal(false);
         setSelectedProduct(null);
     };
@@ -94,16 +143,31 @@ export function POSRegisterView({
     // Handle quantity changes
     const handleQuantityChange = (itemId: string, newQuantity: number) => {
         if (newQuantity <= 0) {
-            setOrderItems(prev => prev.filter(item => item.id !== itemId));
+            setOrderItems((prev) => prev.filter((item) => item.id !== itemId));
         } else {
-            setOrderItems(prev => 
-                prev.map(item => 
-                    item.id === itemId 
-                        ? { ...item, quantity: newQuantity, totalPrice: item.unitPrice * newQuantity }
+            setOrderItems((prev) =>
+                prev.map((item) =>
+                    item.id === itemId
+                        ? {
+                              ...item,
+                              quantity: newQuantity,
+                              totalPrice: item.unitPrice * newQuantity,
+                          }
                         : item
                 )
             );
         }
+    };
+
+    // Handle notes changes
+    const handleNotesChange = (itemId: string, notes: string[]) => {
+        setOrderItems((prev) =>
+            prev.map((item) =>
+                item.id === itemId
+                    ? { ...item, notes }
+                    : item
+            )
+        );
     };
 
     // Handle order submission
@@ -111,7 +175,7 @@ export function POSRegisterView({
         try {
             const orderRequest: POSOrderCreateRequest = {
                 tableId: selectedTableId || undefined,
-                items: orderItems.map(item => ({
+                items: orderItems.map((item) => ({
                     productId: item.productId,
                     productName: item.name,
                     variantId: item.variantId,
@@ -119,11 +183,11 @@ export function POSRegisterView({
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     notes: item.description,
-                    modifiers: []
+                    modifiers: [],
                 })),
                 customerName: undefined,
                 customerPhone: undefined,
-                notes: undefined
+                notes: undefined,
             };
 
             const order = await createOrderMutation.mutateAsync(orderRequest);
@@ -148,7 +212,7 @@ export function POSRegisterView({
             // First create the order
             const orderRequest: POSOrderCreateRequest = {
                 tableId: selectedTableId || undefined,
-                items: orderItems.map(item => ({
+                items: orderItems.map((item) => ({
                     productId: item.productId,
                     productName: item.name,
                     variantId: item.variantId,
@@ -156,11 +220,11 @@ export function POSRegisterView({
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     notes: item.description,
-                    modifiers: []
+                    modifiers: [],
                 })),
                 customerName: undefined,
                 customerPhone: undefined,
-                notes: undefined
+                notes: undefined,
             };
 
             const order = await createOrderMutation.mutateAsync(orderRequest);
@@ -170,7 +234,7 @@ export function POSRegisterView({
                 orderId: order.id,
                 method: POSPaymentMethod.CASH,
                 amount: total,
-                reference: `CASH-${Date.now()}`
+                reference: `CASH-${Date.now()}`,
             };
 
             await createPaymentMutation.mutateAsync(paymentRequest);
@@ -200,11 +264,21 @@ export function POSRegisterView({
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Tables
                         </Button>
-                        {selectedTableId && (
-                            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-medium">
-                                Table {selectedTableId}
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowSettingsModal(true)}
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                <Settings className="w-4 h-4" />
+                            </Button>
+                            {selectedTableId && (
+                                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-medium">
+                                    Table {selectedTableId}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -213,6 +287,7 @@ export function POSRegisterView({
                     <POSOrderSummary
                         items={orderItems}
                         onQuantityChange={handleQuantityChange}
+                        onNotesChange={handleNotesChange}
                         subtotal={subtotal}
                         tax={tax}
                         total={total}
@@ -231,8 +306,10 @@ export function POSRegisterView({
                             <FileText className="w-4 h-4 mr-2" />
                             Note
                         </Button>
-                        <Button 
-                            variant={orderType === 'dine-in' ? 'default' : 'outline'} 
+                        <Button
+                            variant={
+                                orderType === 'dine-in' ? 'default' : 'outline'
+                            }
                             size="sm"
                             onClick={() => setOrderType('dine-in')}
                         >
@@ -246,7 +323,7 @@ export function POSRegisterView({
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                        <Button 
+                        <Button
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                             onClick={handleSubmitOrder}
                             disabled={orderItems.length === 0}
@@ -254,7 +331,8 @@ export function POSRegisterView({
                             <div className="text-center">
                                 <div className="font-medium">Order</div>
                                 <div className="text-xs opacity-90">
-                                    {orderType === 'dine-in' ? 'Food' : 'Items'} {orderItems.length}
+                                    {orderType === 'dine-in' ? 'Food' : 'Items'}{' '}
+                                    {orderItems.length}
                                 </div>
                             </div>
                         </Button>
@@ -293,6 +371,12 @@ export function POSRegisterView({
                 orderTotal={total}
                 onPaymentComplete={handlePaymentComplete}
                 onClose={() => setShowPaymentModal(false)}
+            />
+
+            {/* Kitchen Notes Settings Modal */}
+            <POSKitchenNotesSettings
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
             />
         </div>
     );

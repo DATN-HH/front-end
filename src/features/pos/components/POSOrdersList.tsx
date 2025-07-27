@@ -88,13 +88,13 @@ export function POSOrdersList() {
 
                     <TabsContent value="active" className="px-4 pb-4 space-y-3">
                         {mockOrders
-                            .filter(order => order.status !== 'completed')
+                            .filter((order) => order.status !== 'completed')
                             .map((order) => (
-                                <Card 
+                                <Card
                                     key={order.id}
                                     className={`cursor-pointer transition-all ${
-                                        selectedOrder?.id === order.id 
-                                            ? 'ring-2 ring-blue-500 bg-blue-50' 
+                                        selectedOrder?.id === order.id
+                                            ? 'ring-2 ring-blue-500 bg-blue-50'
                                             : 'hover:shadow-md'
                                     }`}
                                     onClick={() => setSelectedOrder(order)}
@@ -103,16 +103,19 @@ export function POSOrdersList() {
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <h3 className="font-semibold">
-                                                    {order.tableNumber 
-                                                        ? `Table ${order.tableNumber}` 
-                                                        : 'Direct Sale'
-                                                    }
+                                                    {order.tableNumber
+                                                        ? `Table ${order.tableNumber}`
+                                                        : 'Direct Sale'}
                                                 </h3>
                                                 <p className="text-sm text-gray-600">
                                                     {order.customerName}
                                                 </p>
                                             </div>
-                                            <Badge className={getStatusColor(order.status)}>
+                                            <Badge
+                                                className={getStatusColor(
+                                                    order.status
+                                                )}
+                                            >
                                                 {getStatusLabel(order.status)}
                                             </Badge>
                                         </div>
@@ -138,11 +141,14 @@ export function POSOrdersList() {
                             ))}
                     </TabsContent>
 
-                    <TabsContent value="completed" className="px-4 pb-4 space-y-3">
+                    <TabsContent
+                        value="completed"
+                        className="px-4 pb-4 space-y-3"
+                    >
                         {mockOrders
-                            .filter(order => order.status === 'completed')
+                            .filter((order) => order.status === 'completed')
                             .map((order) => (
-                                <Card 
+                                <Card
                                     key={order.id}
                                     className="cursor-pointer hover:shadow-md"
                                     onClick={() => setSelectedOrder(order)}
@@ -151,16 +157,19 @@ export function POSOrdersList() {
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <h3 className="font-semibold">
-                                                    {order.tableNumber 
-                                                        ? `Table ${order.tableNumber}` 
-                                                        : 'Direct Sale'
-                                                    }
+                                                    {order.tableNumber
+                                                        ? `Table ${order.tableNumber}`
+                                                        : 'Direct Sale'}
                                                 </h3>
                                                 <p className="text-sm text-gray-600">
                                                     {order.customerName}
                                                 </p>
                                             </div>
-                                            <Badge className={getStatusColor(order.status)}>
+                                            <Badge
+                                                className={getStatusColor(
+                                                    order.status
+                                                )}
+                                            >
                                                 {getStatusLabel(order.status)}
                                             </Badge>
                                         </div>
@@ -178,7 +187,7 @@ export function POSOrdersList() {
 
                     <TabsContent value="all" className="px-4 pb-4 space-y-3">
                         {mockOrders.map((order) => (
-                            <Card 
+                            <Card
                                 key={order.id}
                                 className="cursor-pointer hover:shadow-md"
                                 onClick={() => setSelectedOrder(order)}
@@ -187,16 +196,19 @@ export function POSOrdersList() {
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <h3 className="font-semibold">
-                                                {order.tableNumber 
-                                                    ? `Table ${order.tableNumber}` 
-                                                    : 'Direct Sale'
-                                                }
+                                                {order.tableNumber
+                                                    ? `Table ${order.tableNumber}`
+                                                    : 'Direct Sale'}
                                             </h3>
                                             <p className="text-sm text-gray-600">
                                                 {order.customerName}
                                             </p>
                                         </div>
-                                        <Badge className={getStatusColor(order.status)}>
+                                        <Badge
+                                            className={getStatusColor(
+                                                order.status
+                                            )}
+                                        >
                                             {getStatusLabel(order.status)}
                                         </Badge>
                                     </div>
@@ -221,38 +233,51 @@ export function POSOrdersList() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>
-                                    {selectedOrder.tableNumber 
-                                        ? `Table ${selectedOrder.tableNumber}` 
-                                        : 'Direct Sale'
-                                    } - Order #{selectedOrder.id}
+                                    {selectedOrder.tableNumber
+                                        ? `Table ${selectedOrder.tableNumber}`
+                                        : 'Direct Sale'}{' '}
+                                    - Order #{selectedOrder.id}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
                                     <div>
-                                        <h4 className="font-medium mb-2">Customer Information</h4>
-                                        <p className="text-gray-600">{selectedOrder.customerName}</p>
+                                        <h4 className="font-medium mb-2">
+                                            Customer Information
+                                        </h4>
+                                        <p className="text-gray-600">
+                                            {selectedOrder.customerName}
+                                        </p>
                                         <p className="text-sm text-gray-500">
                                             Order placed at {selectedOrder.time}
                                         </p>
                                     </div>
 
                                     <div>
-                                        <h4 className="font-medium mb-2">Order Items</h4>
+                                        <h4 className="font-medium mb-2">
+                                            Order Items
+                                        </h4>
                                         <p className="text-gray-600">
-                                            {selectedOrder.items} items - Details will be loaded here
+                                            {selectedOrder.items} items -
+                                            Details will be loaded here
                                         </p>
                                     </div>
 
                                     <div>
-                                        <h4 className="font-medium mb-2">Total</h4>
+                                        <h4 className="font-medium mb-2">
+                                            Total
+                                        </h4>
                                         <p className="text-xl font-bold">
-                                            {selectedOrder.total.toLocaleString()} ₫
+                                            {selectedOrder.total.toLocaleString()}{' '}
+                                            ₫
                                         </p>
                                     </div>
 
                                     <div className="flex space-x-2">
-                                        <Button variant="outline" className="flex-1">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                        >
                                             Edit Order
                                         </Button>
                                         <Button className="flex-1">
@@ -266,7 +291,9 @@ export function POSOrdersList() {
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500">
-                            <h3 className="text-lg font-medium mb-2">Select an Order</h3>
+                            <h3 className="text-lg font-medium mb-2">
+                                Select an Order
+                            </h3>
                             <p>Choose an order from the list to view details</p>
                         </div>
                     </div>

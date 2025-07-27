@@ -2,10 +2,10 @@
 
 import { createContext, useContext, useReducer, ReactNode } from 'react';
 
-import { 
-    POSOrderItem, 
+import {
+    POSOrderItem,
     POSOrderItemModifier,
-    POSOrderStatus 
+    POSOrderStatus,
 } from '@/api/v1/pos-orders';
 
 // Types
@@ -27,7 +27,10 @@ export type POSOrderAction =
     | { type: 'SET_ORDER'; payload: POSOrderState }
     | { type: 'SET_TABLE'; payload: { tableId: number; tableName: string } }
     | { type: 'ADD_ITEM'; payload: Omit<POSOrderItem, 'id'> }
-    | { type: 'UPDATE_ITEM'; payload: { index: number; item: Partial<POSOrderItem> } }
+    | {
+          type: 'UPDATE_ITEM';
+          payload: { index: number; item: Partial<POSOrderItem> };
+      }
     | { type: 'REMOVE_ITEM'; payload: number } // index
     | { type: 'UPDATE_QUANTITY'; payload: { index: number; quantity: number } }
     | { type: 'SET_CUSTOMER'; payload: { name?: string; phone?: string } }
@@ -40,7 +43,12 @@ interface POSOrderContextType {
     state: POSOrderState;
     dispatch: React.Dispatch<POSOrderAction>;
     // Helper functions
-    addItem: (product: any, quantity?: number, modifiers?: POSOrderItemModifier[], notes?: string) => void;
+    addItem: (
+        product: any,
+        quantity?: number,
+        modifiers?: POSOrderItemModifier[],
+        notes?: string
+    ) => void;
     updateItemQuantity: (index: number, quantity: number) => void;
     removeItem: (index: number) => void;
     setTable: (tableId: number, tableName: string) => void;
@@ -63,7 +71,10 @@ const initialState: POSOrderState = {
 const TAX_RATE = 0.1;
 
 // Reducer
-function posOrderReducer(state: POSOrderState, action: POSOrderAction): POSOrderState {
+function posOrderReducer(
+    state: POSOrderState,
+    action: POSOrderAction
+): POSOrderState {
     switch (action.type) {
         case 'SET_ORDER':
             return action.payload;
@@ -101,7 +112,9 @@ function posOrderReducer(state: POSOrderState, action: POSOrderAction): POSOrder
         }
 
         case 'REMOVE_ITEM': {
-            const newItems = state.items.filter((_, index) => index !== action.payload);
+            const newItems = state.items.filter(
+                (_, index) => index !== action.payload
+            );
             const newState = {
                 ...state,
                 items: newItems,
@@ -155,7 +168,10 @@ function posOrderReducer(state: POSOrderState, action: POSOrderAction): POSOrder
 
 // Helper function to calculate totals
 function calculateTotals(state: POSOrderState): POSOrderState {
-    const subtotal = state.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const subtotal = state.items.reduce(
+        (sum, item) => sum + item.totalPrice,
+        0
+    );
     const tax = subtotal * TAX_RATE;
     const total = subtotal + tax;
 
@@ -168,7 +184,9 @@ function calculateTotals(state: POSOrderState): POSOrderState {
 }
 
 // Context
-const POSOrderContext = createContext<POSOrderContextType | undefined>(undefined);
+const POSOrderContext = createContext<POSOrderContextType | undefined>(
+    undefined
+);
 
 // Provider
 export function POSOrderProvider({ children }: { children: ReactNode }) {
@@ -181,9 +199,12 @@ export function POSOrderProvider({ children }: { children: ReactNode }) {
         modifiers: POSOrderItemModifier[] = [],
         notes?: string
     ) => {
-        const modifierPrice = modifiers.reduce((sum, mod) => sum + mod.price, 0);
+        const modifierPrice = modifiers.reduce(
+            (sum, mod) => sum + mod.price,
+            0
+        );
         const unitPrice = product.price + modifierPrice;
-        
+
         dispatch({
             type: 'ADD_ITEM',
             payload: {

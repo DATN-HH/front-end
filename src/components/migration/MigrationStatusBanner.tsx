@@ -80,7 +80,11 @@ export function MigrationStatusBanner({
                         </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Badge variant={migrationComplete ? 'default' : 'secondary'}>
+                        <Badge
+                            variant={
+                                migrationComplete ? 'default' : 'secondary'
+                            }
+                        >
                             {migrationComplete ? 'Completed' : 'Pending'}
                         </Badge>
                         <Button
@@ -102,7 +106,9 @@ export function MigrationStatusBanner({
                         <div className="text-2xl font-bold text-blue-900">
                             {stats.totalCategories}
                         </div>
-                        <div className="text-xs text-blue-600">Total Categories</div>
+                        <div className="text-xs text-blue-600">
+                            Total Categories
+                        </div>
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold text-green-600">
@@ -114,13 +120,17 @@ export function MigrationStatusBanner({
                         <div className="text-2xl font-bold text-blue-900">
                             {stats.totalProducts}
                         </div>
-                        <div className="text-xs text-blue-600">Total Products</div>
+                        <div className="text-xs text-blue-600">
+                            Total Products
+                        </div>
                     </div>
                     <div className="text-center">
                         <div className="text-2xl font-bold text-orange-600">
                             {stats.productsWithMigratedCategories}
                         </div>
-                        <div className="text-xs text-blue-600">Using Migrated Categories</div>
+                        <div className="text-xs text-blue-600">
+                            Using Migrated Categories
+                        </div>
                     </div>
                 </div>
 
@@ -128,7 +138,9 @@ export function MigrationStatusBanner({
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                     <CollapsibleTrigger asChild>
                         <Button variant="outline" size="sm" className="w-full">
-                            {isExpanded ? 'Hide Details' : 'Show Migration Details'}
+                            {isExpanded
+                                ? 'Hide Details'
+                                : 'Show Migration Details'}
                             <ArrowRight
                                 className={`ml-2 h-4 w-4 transition-transform ${
                                     isExpanded ? 'rotate-90' : ''
@@ -144,16 +156,20 @@ export function MigrationStatusBanner({
                             <AlertDescription>
                                 <ul className="list-disc list-inside space-y-1 mt-2">
                                     <li>
-                                        POS Categories have been merged into the main Categories system
+                                        POS Categories have been merged into the
+                                        main Categories system
                                     </li>
                                     <li>
-                                        All category data has been preserved with hierarchy support
+                                        All category data has been preserved
+                                        with hierarchy support
                                     </li>
                                     <li>
-                                        Products maintain their category associations
+                                        Products maintain their category
+                                        associations
                                     </li>
                                     <li>
-                                        New unified interface provides better organization
+                                        New unified interface provides better
+                                        organization
                                     </li>
                                 </ul>
                             </AlertDescription>
@@ -162,20 +178,31 @@ export function MigrationStatusBanner({
                         {/* Benefits */}
                         <Alert>
                             <Layers className="h-4 w-4" />
-                            <AlertTitle>Benefits of the Unified System</AlertTitle>
+                            <AlertTitle>
+                                Benefits of the Unified System
+                            </AlertTitle>
                             <AlertDescription>
                                 <ul className="list-disc list-inside space-y-1 mt-2">
                                     <li>
-                                        <strong>Hierarchical Organization:</strong> Create parent-child category relationships
+                                        <strong>
+                                            Hierarchical Organization:
+                                        </strong>{' '}
+                                        Create parent-child category
+                                        relationships
                                     </li>
                                     <li>
-                                        <strong>Simplified Management:</strong> One interface for all categories
+                                        <strong>Simplified Management:</strong>{' '}
+                                        One interface for all categories
                                     </li>
                                     <li>
-                                        <strong>Better Product Organization:</strong> Enhanced categorization options
+                                        <strong>
+                                            Better Product Organization:
+                                        </strong>{' '}
+                                        Enhanced categorization options
                                     </li>
                                     <li>
-                                        <strong>Backward Compatibility:</strong> All existing functionality preserved
+                                        <strong>Backward Compatibility:</strong>{' '}
+                                        All existing functionality preserved
                                     </li>
                                 </ul>
                             </AlertDescription>
@@ -189,15 +216,21 @@ export function MigrationStatusBanner({
                                 <AlertDescription>
                                     <div className="space-y-2 mt-2">
                                         <p>
-                                            Your POS Categories have been successfully migrated to the unified system.
-                                            All data has been preserved and enhanced with new features.
+                                            Your POS Categories have been
+                                            successfully migrated to the unified
+                                            system. All data has been preserved
+                                            and enhanced with new features.
                                         </p>
                                         <div className="flex items-center space-x-2">
                                             <Badge variant="outline">
-                                                {stats.migratedCategories} categories migrated
+                                                {stats.migratedCategories}{' '}
+                                                categories migrated
                                             </Badge>
                                             <Badge variant="outline">
-                                                {stats.productsWithMigratedCategories} products updated
+                                                {
+                                                    stats.productsWithMigratedCategories
+                                                }{' '}
+                                                products updated
                                             </Badge>
                                         </div>
                                     </div>
@@ -213,9 +246,7 @@ export function MigrationStatusBanner({
                                 </a>
                             </Button>
                             <Button variant="outline" size="sm" asChild>
-                                <a href="/app/menu/products">
-                                    Manage Products
-                                </a>
+                                <a href="/app/menu/products">Manage Products</a>
                             </Button>
                         </div>
                     </CollapsibleContent>

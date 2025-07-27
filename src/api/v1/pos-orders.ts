@@ -101,7 +101,9 @@ export interface POSOrderPaymentRequest {
 }
 
 // API calls
-const createPOSOrder = async (data: POSOrderCreateRequest): Promise<POSOrder> => {
+const createPOSOrder = async (
+    data: POSOrderCreateRequest
+): Promise<POSOrder> => {
     const response = await apiClient.post<BaseResponse<POSOrder>>(
         '/api/pos/orders',
         data
@@ -109,7 +111,9 @@ const createPOSOrder = async (data: POSOrderCreateRequest): Promise<POSOrder> =>
     return response.data.payload;
 };
 
-const updatePOSOrder = async (data: POSOrderUpdateRequest): Promise<POSOrder> => {
+const updatePOSOrder = async (
+    data: POSOrderUpdateRequest
+): Promise<POSOrder> => {
     const response = await apiClient.put<BaseResponse<POSOrder>>(
         `/api/pos/orders/${data.id}`,
         data
@@ -132,7 +136,9 @@ const getPOSOrders = async (status?: POSOrderStatus): Promise<POSOrder[]> => {
     return response.data.payload;
 };
 
-const createPOSOrderPayment = async (data: POSOrderPaymentRequest): Promise<POSOrderPayment> => {
+const createPOSOrderPayment = async (
+    data: POSOrderPaymentRequest
+): Promise<POSOrderPayment> => {
     const response = await apiClient.post<BaseResponse<POSOrderPayment>>(
         `/api/pos/orders/${data.orderId}/payments`,
         data
@@ -150,7 +156,7 @@ const sendOrderToKitchen = async (orderId: number): Promise<POSOrder> => {
 // Hooks
 export const useCreatePOSOrder = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: createPOSOrder,
         onSuccess: () => {
@@ -161,7 +167,7 @@ export const useCreatePOSOrder = () => {
 
 export const useUpdatePOSOrder = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: updatePOSOrder,
         onSuccess: (data) => {
@@ -188,18 +194,20 @@ export const usePOSOrders = (status?: POSOrderStatus) => {
 
 export const useCreatePOSOrderPayment = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: createPOSOrderPayment,
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['pos-order', variables.orderId] });
+            queryClient.invalidateQueries({
+                queryKey: ['pos-order', variables.orderId],
+            });
         },
     });
 };
 
 export const useSendOrderToKitchen = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: sendOrderToKitchen,
         onSuccess: (data) => {

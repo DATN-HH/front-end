@@ -18,32 +18,43 @@ interface POSOrdersViewProps {
 export function POSOrdersView({
     currentOrderId,
     onOrderSelect,
-    onBackToRegister
+    onBackToRegister,
 }: POSOrdersViewProps) {
-    const [selectedOrderType, setSelectedOrderType] = useState<'dine-in' | 'takeout' | 'delivery'>('dine-in');
+    const [selectedOrderType, setSelectedOrderType] = useState<
+        'dine-in' | 'takeout' | 'delivery'
+    >('dine-in');
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<POSOrderStatus | 'active' | null>('active');
+    const [statusFilter, setStatusFilter] = useState<
+        POSOrderStatus | 'active' | null
+    >('active');
 
     // Fetch orders based on filters
     const { data: orders = [], isLoading } = usePOSOrders(
-        statusFilter === 'active' ? undefined : statusFilter as POSOrderStatus
+        statusFilter === 'active' ? undefined : (statusFilter as POSOrderStatus)
     );
 
     // Filter orders based on search and type
-    const filteredOrders = orders.filter(order => {
-        const matchesSearch = !searchQuery || 
-            order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.tableName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.customerName?.toLowerCase().includes(searchQuery.toLowerCase());
-        
+    const filteredOrders = orders.filter((order) => {
+        const matchesSearch =
+            !searchQuery ||
+            order.orderNumber
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            order.tableName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            order.customerName
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+
         // For now, assume all orders are dine-in type
         // This would be enhanced with actual order type field
         return matchesSearch;
     });
 
     // Get selected order details
-    const selectedOrder = currentOrderId 
-        ? orders.find(order => order.id === currentOrderId)
+    const selectedOrder = currentOrderId
+        ? orders.find((order) => order.id === currentOrderId)
         : filteredOrders[0];
 
     const getStatusColor = (status: POSOrderStatus) => {
@@ -92,20 +103,26 @@ export function POSOrdersView({
                 <div className="p-4 border-b border-gray-200 space-y-4">
                     {/* Order Type Tabs */}
                     <div className="flex space-x-1">
-                        {(['dine-in', 'takeout', 'delivery'] as const).map((type) => (
-                            <Button
-                                key={type}
-                                variant={selectedOrderType === type ? "default" : "outline"}
-                                className={`px-4 py-2 font-medium capitalize ${
-                                    selectedOrderType === type
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                }`}
-                                onClick={() => setSelectedOrderType(type)}
-                            >
-                                {type.replace('-', ' ')}
-                            </Button>
-                        ))}
+                        {(['dine-in', 'takeout', 'delivery'] as const).map(
+                            (type) => (
+                                <Button
+                                    key={type}
+                                    variant={
+                                        selectedOrderType === type
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    className={`px-4 py-2 font-medium capitalize ${
+                                        selectedOrderType === type
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                    onClick={() => setSelectedOrderType(type)}
+                                >
+                                    {type.replace('-', ' ')}
+                                </Button>
+                            )
+                        )}
                     </div>
 
                     {/* Search and Filter */}
@@ -126,7 +143,10 @@ export function POSOrdersView({
 
                     {/* Pagination */}
                     <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>{filteredOrders.length > 0 ? '1' : '0'}-{filteredOrders.length} / {filteredOrders.length}</span>
+                        <span>
+                            {filteredOrders.length > 0 ? '1' : '0'}-
+                            {filteredOrders.length} / {filteredOrders.length}
+                        </span>
                         <div className="flex items-center space-x-1">
                             <Button variant="ghost" size="sm" disabled>
                                 <ChevronLeft className="w-4 h-4" />
@@ -144,15 +164,22 @@ export function POSOrdersView({
                         <div className="p-4">
                             <div className="animate-pulse space-y-3">
                                 {Array.from({ length: 5 }).map((_, index) => (
-                                    <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                                    <div
+                                        key={index}
+                                        className="h-16 bg-gray-200 rounded"
+                                    ></div>
                                 ))}
                             </div>
                         </div>
                     ) : filteredOrders.length === 0 ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="text-center text-gray-500">
-                                <div className="text-lg font-medium mb-2">No orders found</div>
-                                <div className="text-sm">No active orders at the moment</div>
+                                <div className="text-lg font-medium mb-2">
+                                    No orders found
+                                </div>
+                                <div className="text-sm">
+                                    No active orders at the moment
+                                </div>
                             </div>
                         </div>
                     ) : (
@@ -161,7 +188,9 @@ export function POSOrdersView({
                                 <div
                                     key={order.id}
                                     className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                                        selectedOrder?.id === order.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                                        selectedOrder?.id === order.id
+                                            ? 'bg-blue-50 border-l-4 border-blue-500'
+                                            : ''
                                     }`}
                                     onClick={() => onOrderSelect(order.id)}
                                 >
@@ -169,26 +198,43 @@ export function POSOrdersView({
                                         <div className="flex-1">
                                             <div className="flex items-center space-x-3 mb-1">
                                                 <span className="text-sm text-gray-500">
-                                                    {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(
+                                                        order.createdAt
+                                                    ).toLocaleDateString()}{' '}
+                                                    {new Date(
+                                                        order.createdAt
+                                                    ).toLocaleTimeString([], {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
                                                 </span>
                                             </div>
                                             <div className="flex items-center space-x-3 mb-1">
                                                 <span className="font-medium">
-                                                    {order.tableName ? `T ${order.tableName}` : 'Direct Sale'}
+                                                    {order.tableName
+                                                        ? `T ${order.tableName}`
+                                                        : 'Direct Sale'}
                                                 </span>
                                                 <span className="text-sm text-gray-600">
                                                     {order.orderNumber}
                                                 </span>
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                {selectedOrderType.replace('-', ' ')}
+                                                {selectedOrderType.replace(
+                                                    '-',
+                                                    ' '
+                                                )}
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <div className="font-medium text-lg mb-1">
                                                 ${order.total.toFixed(2)}
                                             </div>
-                                            <Badge className={getStatusColor(order.status)}>
+                                            <Badge
+                                                className={getStatusColor(
+                                                    order.status
+                                                )}
+                                            >
                                                 {getStatusLabel(order.status)}
                                             </Badge>
                                         </div>
@@ -206,11 +252,21 @@ export function POSOrdersView({
                     <>
                         {/* Order Details Header */}
                         <div className="p-4 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold mb-2">Order Details</h3>
+                            <h3 className="text-lg font-semibold mb-2">
+                                Order Details
+                            </h3>
                             <div className="space-y-1 text-sm text-gray-600">
                                 <div>Order: {selectedOrder.orderNumber}</div>
-                                <div>Table: {selectedOrder.tableName || 'Direct Sale'}</div>
-                                <div>Time: {new Date(selectedOrder.createdAt).toLocaleTimeString()}</div>
+                                <div>
+                                    Table:{' '}
+                                    {selectedOrder.tableName || 'Direct Sale'}
+                                </div>
+                                <div>
+                                    Time:{' '}
+                                    {new Date(
+                                        selectedOrder.createdAt
+                                    ).toLocaleTimeString()}
+                                </div>
                             </div>
                         </div>
 
@@ -248,16 +304,23 @@ export function POSOrdersView({
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span>Subtotal</span>
-                                        <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                                        <span>
+                                            ${selectedOrder.subtotal.toFixed(2)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span>Tax</span>
-                                        <span>${selectedOrder.tax.toFixed(2)}</span>
+                                        <span>
+                                            ${selectedOrder.tax.toFixed(2)}
+                                        </span>
                                     </div>
                                     <div className="border-t pt-2">
                                         <div className="flex justify-between font-bold">
                                             <span>Total</span>
-                                            <span>${selectedOrder.total.toFixed(2)}</span>
+                                            <span>
+                                                $
+                                                {selectedOrder.total.toFixed(2)}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -282,8 +345,12 @@ export function POSOrdersView({
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500">
-                            <div className="text-lg font-medium mb-2">Select an order</div>
-                            <div className="text-sm">Choose an order from the list to view details</div>
+                            <div className="text-lg font-medium mb-2">
+                                Select an order
+                            </div>
+                            <div className="text-sm">
+                                Choose an order from the list to view details
+                            </div>
                         </div>
                     </div>
                 )}

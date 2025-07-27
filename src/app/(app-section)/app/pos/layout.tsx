@@ -18,9 +18,7 @@ export default function POSLayout({ children }: POSLayoutProps) {
                 <POSOrderProvider>
                     <div className="flex h-screen bg-gray-100 overflow-hidden">
                         {/* POS Main Content - Full screen layout */}
-                        <div className="flex flex-col flex-1">
-                            {children}
-                        </div>
+                        <div className="flex flex-col flex-1">{children}</div>
                     </div>
                     <Toaster />
                 </POSOrderProvider>

@@ -30,7 +30,9 @@ function POSMainPage() {
 
 export default function POSPage() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}
+        >
             <POSMainPage />
         </ProtectedRoute>
     );

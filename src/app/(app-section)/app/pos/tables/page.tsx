@@ -16,7 +16,8 @@ function POSTablesPage() {
     const { user } = useAuth();
 
     // State for branch selection
-    const [selectedBranch, setSelectedBranch] = useState<BranchResponseDto | null>(null);
+    const [selectedBranch, setSelectedBranch] =
+        useState<BranchResponseDto | null>(null);
 
     // Get branch from user or selected branch
     const branchId = selectedBranch?.id || user?.branch?.id;
@@ -41,7 +42,7 @@ function POSTablesPage() {
                 updatedAt: '',
                 updatedBy: 0,
                 createdUsername: '',
-                updatedUsername: ''
+                updatedUsername: '',
             });
         }
     }, [user?.branch, selectedBranch]);
@@ -60,7 +61,9 @@ function POSTablesPage() {
 
 export default function POSTablesPageWrapper() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}
+        >
             <POSTablesPage />
         </ProtectedRoute>
     );

@@ -14,7 +14,11 @@ interface QuickTableNavigationProps {
     selectedFloorId?: number | null;
 }
 
-export function QuickTableNavigation({ onTableNavigate, onClose, selectedFloorId }: QuickTableNavigationProps) {
+export function QuickTableNavigation({
+    onTableNavigate,
+    onClose,
+    selectedFloorId,
+}: QuickTableNavigationProps) {
     const [tableInput, setTableInput] = useState('');
     const [error, setError] = useState('');
 
@@ -36,15 +40,17 @@ export function QuickTableNavigation({ onTableNavigate, onClose, selectedFloorId
 
         if (floorData?.tables) {
             // First try to find by table name (string match)
-            foundTable = floorData.tables.find(table =>
-                table.tableName?.toString() === input
+            foundTable = floorData.tables.find(
+                (table) => table.tableName?.toString() === input
             );
 
             // If not found by table number, try by ID
             if (!foundTable) {
                 const tableId = parseInt(input);
                 if (!isNaN(tableId) && tableId > 0) {
-                    foundTable = floorData.tables.find(table => table.id === tableId);
+                    foundTable = floorData.tables.find(
+                        (table) => table.id === tableId
+                    );
                 }
             }
         }
@@ -69,9 +75,11 @@ export function QuickTableNavigation({ onTableNavigate, onClose, selectedFloorId
         <Card className="p-4 bg-white border border-gray-200 shadow-lg">
             <div className="flex items-center mb-3">
                 <Hash className="w-4 h-4 text-gray-500 mr-2" />
-                <h3 className="font-medium text-gray-900">Quick Table Navigation</h3>
+                <h3 className="font-medium text-gray-900">
+                    Quick Table Navigation
+                </h3>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
                     <div className="relative">
@@ -92,19 +100,19 @@ export function QuickTableNavigation({ onTableNavigate, onClose, selectedFloorId
                         </div>
                     )}
                 </div>
-                
+
                 <div className="flex gap-2">
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         className="flex-1 bg-purple-600 hover:bg-purple-700"
                         disabled={!tableInput.trim()}
                     >
                         Go to Table
                     </Button>
                     {onClose && (
-                        <Button 
-                            type="button" 
-                            variant="outline" 
+                        <Button
+                            type="button"
+                            variant="outline"
                             onClick={onClose}
                         >
                             Cancel
@@ -112,14 +120,18 @@ export function QuickTableNavigation({ onTableNavigate, onClose, selectedFloorId
                     )}
                 </div>
             </form>
-            
+
             <div className="mt-3 pt-3 border-t border-gray-100">
                 <p className="text-xs text-gray-500">
-                    Enter a table name or ID to quickly navigate to that table's order
+                    Enter a table name or ID to quickly navigate to that table's
+                    order
                 </p>
                 {floorData?.tables && floorData.tables.length > 0 && (
                     <p className="text-xs text-gray-400 mt-1">
-                        Available tables: {floorData.tables.map(t => t.tableName || t.id).join(', ')}
+                        Available tables:{' '}
+                        {floorData.tables
+                            .map((t) => t.tableName || t.id)
+                            .join(', ')}
                     </p>
                 )}
             </div>

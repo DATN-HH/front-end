@@ -70,7 +70,9 @@ export interface POSSessionSummary {
 }
 
 // API calls
-const createPOSSession = async (data: POSSessionCreateRequest): Promise<POSSession> => {
+const createPOSSession = async (
+    data: POSSessionCreateRequest
+): Promise<POSSession> => {
     const response = await apiClient.post<BaseResponse<POSSession>>(
         '/api/pos/sessions',
         data
@@ -92,7 +94,9 @@ const getCurrentPOSSession = async (): Promise<POSSession | null> => {
     }
 };
 
-const closePOSSession = async (data: POSSessionCloseRequest): Promise<POSSession> => {
+const closePOSSession = async (
+    data: POSSessionCloseRequest
+): Promise<POSSession> => {
     const response = await apiClient.post<BaseResponse<POSSession>>(
         '/api/pos/sessions/close',
         data
@@ -100,7 +104,9 @@ const closePOSSession = async (data: POSSessionCloseRequest): Promise<POSSession
     return response.data.payload;
 };
 
-const createCashMovement = async (data: POSCashMovementRequest): Promise<POSCashMovement> => {
+const createCashMovement = async (
+    data: POSCashMovementRequest
+): Promise<POSCashMovement> => {
     const response = await apiClient.post<BaseResponse<POSCashMovement>>(
         `/api/pos/sessions/${data.sessionId}/cash-movements`,
         data
@@ -108,7 +114,9 @@ const createCashMovement = async (data: POSCashMovementRequest): Promise<POSCash
     return response.data.payload;
 };
 
-const getPOSSessionSummary = async (sessionId: number): Promise<POSSessionSummary> => {
+const getPOSSessionSummary = async (
+    sessionId: number
+): Promise<POSSessionSummary> => {
     const response = await apiClient.get<BaseResponse<POSSessionSummary>>(
         `/api/pos/sessions/${sessionId}/summary`
     );
@@ -116,20 +124,21 @@ const getPOSSessionSummary = async (sessionId: number): Promise<POSSessionSummar
 };
 
 const getPOSSessions = async (): Promise<POSSession[]> => {
-    const response = await apiClient.get<BaseResponse<POSSession[]>>(
-        '/api/pos/sessions'
-    );
+    const response =
+        await apiClient.get<BaseResponse<POSSession[]>>('/api/pos/sessions');
     return response.data.payload;
 };
 
 // Hooks
 export const useCreatePOSSession = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: createPOSSession,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
+            queryClient.invalidateQueries({
+                queryKey: ['pos-session-current'],
+            });
             queryClient.invalidateQueries({ queryKey: ['pos-sessions'] });
         },
     });
@@ -145,11 +154,13 @@ export const useCurrentPOSSession = () => {
 
 export const useClosePOSSession = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: closePOSSession,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
+            queryClient.invalidateQueries({
+                queryKey: ['pos-session-current'],
+            });
             queryClient.invalidateQueries({ queryKey: ['pos-sessions'] });
         },
     });
@@ -157,12 +168,16 @@ export const useClosePOSSession = () => {
 
 export const useCreateCashMovement = () => {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: createCashMovement,
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
-            queryClient.invalidateQueries({ queryKey: ['pos-session-summary', variables.sessionId] });
+            queryClient.invalidateQueries({
+                queryKey: ['pos-session-current'],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['pos-session-summary', variables.sessionId],
+            });
         },
     });
 };

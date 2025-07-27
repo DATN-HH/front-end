@@ -15,9 +15,13 @@ interface POSPaymentInterfaceProps {
 
 type PaymentMethod = 'cash' | 'card' | 'vietqr';
 
-export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInterfaceProps) {
+export function POSPaymentInterface({
+    onBack,
+    onPaymentComplete,
+}: POSPaymentInterfaceProps) {
     const { state } = usePOSOrder();
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('cash');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] =
+        useState<PaymentMethod>('cash');
     const [amountReceived, setAmountReceived] = useState<string>('');
     const [customerName, setCustomerName] = useState<string>('');
     const [generateInvoice, setGenerateInvoice] = useState<boolean>(false);
@@ -89,7 +93,9 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
             <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
                 {/* Payment Methods */}
                 <div className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                        Payment Method
+                    </h3>
                     <div className="grid grid-cols-1 gap-3">
                         {paymentMethods.map((method) => {
                             const IconComponent = method.icon;
@@ -101,12 +107,18 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                                             ? 'border-blue-500 bg-blue-50'
                                             : 'border-gray-200 hover:border-gray-300'
                                     }`}
-                                    onClick={() => setSelectedPaymentMethod(method.id)}
+                                    onClick={() =>
+                                        setSelectedPaymentMethod(method.id)
+                                    }
                                 >
                                     <IconComponent className="w-6 h-6 mr-3 text-gray-600" />
                                     <div>
-                                        <div className="font-medium">{method.name}</div>
-                                        <div className="text-sm text-gray-500">{method.description}</div>
+                                        <div className="font-medium">
+                                            {method.name}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {method.description}
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -121,7 +133,11 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                             <Button
                                 variant="outline"
                                 className="flex-1 h-10"
-                                onClick={() => setCustomerName(customerName ? '' : 'Customer')}
+                                onClick={() =>
+                                    setCustomerName(
+                                        customerName ? '' : 'Customer'
+                                    )
+                                }
                             >
                                 <User className="w-4 h-4 mr-2" />
                                 Customer
@@ -129,9 +145,13 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button
-                                variant={generateInvoice ? 'default' : 'outline'}
+                                variant={
+                                    generateInvoice ? 'default' : 'outline'
+                                }
                                 className="flex-1 h-10"
-                                onClick={() => setGenerateInvoice(!generateInvoice)}
+                                onClick={() =>
+                                    setGenerateInvoice(!generateInvoice)
+                                }
                             >
                                 <Receipt className="w-4 h-4 mr-2" />
                                 Invoice
@@ -141,13 +161,18 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
 
                     {customerName && (
                         <div className="mb-4">
-                            <Label htmlFor="customerName" className="text-sm font-medium">
+                            <Label
+                                htmlFor="customerName"
+                                className="text-sm font-medium"
+                            >
                                 Customer Name
                             </Label>
                             <Input
                                 id="customerName"
                                 value={customerName}
-                                onChange={(e) => setCustomerName(e.target.value)}
+                                onChange={(e) =>
+                                    setCustomerName(e.target.value)
+                                }
                                 placeholder="Enter customer name"
                                 className="mt-1"
                             />
@@ -158,7 +183,24 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                 {/* Numeric Keypad */}
                 <div className="p-6 border-t border-gray-200">
                     <div className="grid grid-cols-4 gap-2 mb-4">
-                        {[1, 2, 3, '+10', 4, 5, 6, '+20', 7, 8, 9, '+50', '+/-', 0, '.', '⌫'].map((key) => (
+                        {[
+                            1,
+                            2,
+                            3,
+                            '+10',
+                            4,
+                            5,
+                            6,
+                            '+20',
+                            7,
+                            8,
+                            9,
+                            '+50',
+                            '+/-',
+                            0,
+                            '.',
+                            '⌫',
+                        ].map((key) => (
                             <Button
                                 key={key}
                                 variant="outline"
@@ -167,9 +209,13 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                                     if (typeof key === 'number') {
                                         handleNumberClick(key.toString());
                                     } else if (key.startsWith('+')) {
-                                        const amount = parseInt(key.substring(1));
+                                        const amount = parseInt(
+                                            key.substring(1)
+                                        );
                                         if (!isNaN(amount)) {
-                                            handleAmountButtonClick(amount * 1000); // Convert to VND
+                                            handleAmountButtonClick(
+                                                amount * 1000
+                                            ); // Convert to VND
                                         }
                                     } else {
                                         handleNumberClick(key);
@@ -209,18 +255,30 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                 <div className="max-w-md mx-auto">
                     {/* Order Summary */}
                     <div className="bg-white rounded-lg p-6 mb-6">
-                        <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+                        <h3 className="text-lg font-semibold mb-4">
+                            Order Summary
+                        </h3>
                         <div className="space-y-3">
                             {state.items.map((item, index) => (
-                                <div key={index} className="flex justify-between text-sm">
+                                <div
+                                    key={index}
+                                    className="flex justify-between text-sm"
+                                >
                                     <div>
-                                        <div className="font-medium">{item.productName}</div>
-                                        <div className="text-gray-500">Qty: {item.quantity}</div>
-                                        {item.modifiers && item.modifiers.length > 0 && (
-                                            <div className="text-xs text-gray-400">
-                                                {item.modifiers.map(mod => mod.name).join(', ')}
-                                            </div>
-                                        )}
+                                        <div className="font-medium">
+                                            {item.productName}
+                                        </div>
+                                        <div className="text-gray-500">
+                                            Qty: {item.quantity}
+                                        </div>
+                                        {item.modifiers &&
+                                            item.modifiers.length > 0 && (
+                                                <div className="text-xs text-gray-400">
+                                                    {item.modifiers
+                                                        .map((mod) => mod.name)
+                                                        .join(', ')}
+                                                </div>
+                                            )}
                                     </div>
                                     <div className="font-medium">
                                         {item.totalPrice.toLocaleString()} ₫
@@ -247,29 +305,37 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
 
                     {/* Payment Details */}
                     <div className="bg-white rounded-lg p-6">
-                        <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-                        
+                        <h3 className="text-lg font-semibold mb-4">
+                            Payment Details
+                        </h3>
+
                         {selectedPaymentMethod === 'cash' && (
                             <div className="space-y-4">
                                 <div>
-                                    <Label htmlFor="amountReceived" className="text-sm font-medium">
+                                    <Label
+                                        htmlFor="amountReceived"
+                                        className="text-sm font-medium"
+                                    >
                                         Amount Received
                                     </Label>
                                     <Input
                                         id="amountReceived"
                                         value={amountReceived}
-                                        onChange={(e) => setAmountReceived(e.target.value)}
+                                        onChange={(e) =>
+                                            setAmountReceived(e.target.value)
+                                        }
                                         placeholder="0"
                                         className="mt-1 text-right text-lg"
                                     />
                                 </div>
-                                
+
                                 {amountReceived && (
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <div className="flex justify-between text-lg font-semibold">
                                             <span>Change:</span>
                                             <span className="text-green-600">
-                                                {calculateChange().toLocaleString()} ₫
+                                                {calculateChange().toLocaleString()}{' '}
+                                                ₫
                                             </span>
                                         </div>
                                     </div>
@@ -280,7 +346,9 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                         {selectedPaymentMethod === 'card' && (
                             <div className="text-center py-8">
                                 <CreditCard className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                                <p className="text-gray-600">Insert or swipe card</p>
+                                <p className="text-gray-600">
+                                    Insert or swipe card
+                                </p>
                                 <p className="text-sm text-gray-500 mt-2">
                                     Amount: {state.total.toLocaleString()} ₫
                                 </p>
@@ -290,9 +358,13 @@ export function POSPaymentInterface({ onBack, onPaymentComplete }: POSPaymentInt
                         {selectedPaymentMethod === 'vietqr' && (
                             <div className="text-center py-8">
                                 <div className="w-32 h-32 mx-auto mb-4 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span className="text-gray-500 text-sm">QR Code</span>
+                                    <span className="text-gray-500 text-sm">
+                                        QR Code
+                                    </span>
                                 </div>
-                                <p className="text-gray-600">Scan QR code to pay</p>
+                                <p className="text-gray-600">
+                                    Scan QR code to pay
+                                </p>
                                 <p className="text-sm text-gray-500 mt-2">
                                     Amount: {state.total.toLocaleString()} ₫
                                 </p>

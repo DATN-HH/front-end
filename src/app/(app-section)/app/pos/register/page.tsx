@@ -11,7 +11,7 @@ function POSRegisterPage() {
     return (
         <div className="flex flex-col h-full">
             {/* POS Header */}
-            <POSHeader 
+            <POSHeader
                 currentTab="register"
                 tableNumber={null}
                 branchName="Main Branch"
@@ -27,7 +27,9 @@ function POSRegisterPage() {
 
 export default function POSRegisterPageWrapper() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.WAITER, Role.CASHIER]}
+        >
             <POSRegisterPage />
         </ProtectedRoute>
     );

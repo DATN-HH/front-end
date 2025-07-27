@@ -30,7 +30,7 @@ export function POSHeader({
     currentTab,
     tableNumber,
     branchName,
-    onSearch
+    onSearch,
 }: POSHeaderProps) {
     const { user, logout } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
@@ -116,7 +116,9 @@ export function POSHeader({
                                 type="text"
                                 placeholder="Search products..."
                                 value={searchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleSearchChange(e.target.value)
+                                }
                                 className="pl-10 w-64"
                             />
                         </div>
@@ -125,36 +127,60 @@ export function POSHeader({
                     {/* User Menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center space-x-2"
+                            >
                                 <User className="w-5 h-5" />
-                                <span className="hidden sm:inline">{user?.fullName || user?.username}</span>
+                                <span className="hidden sm:inline">
+                                    {user?.fullName || user?.username}
+                                </span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuItem disabled>
                                 <div className="flex flex-col">
-                                    <span className="font-medium">{user?.fullName || user?.username}</span>
-                                    <span className="text-sm text-gray-500">{branchName}</span>
+                                    <span className="font-medium">
+                                        {user?.fullName || user?.username}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                        {branchName}
+                                    </span>
                                 </div>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>
                                 Switch to Dark Mode
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleMenuAction('cash-in-out')}>
+                            <DropdownMenuItem
+                                onClick={() => handleMenuAction('cash-in-out')}
+                            >
                                 Cash In/Out
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleMenuAction('reload-data')}>
+                            <DropdownMenuItem
+                                onClick={() => handleMenuAction('reload-data')}
+                            >
                                 Reload Data
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleMenuAction('create-product')}>
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    handleMenuAction('create-product')
+                                }
+                            >
                                 Create Product
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleMenuAction('backend')}>
+                            <DropdownMenuItem
+                                onClick={() => handleMenuAction('backend')}
+                            >
                                 Backend
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleMenuAction('close-register')}>
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    handleMenuAction('close-register')
+                                }
+                            >
                                 Close Register
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />

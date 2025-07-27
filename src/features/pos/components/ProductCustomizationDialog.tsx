@@ -20,7 +20,12 @@ interface ProductCustomizationDialogProps {
     isOpen: boolean;
     onClose: () => void;
     product: ProductResponse | null;
-    onAddToOrder: (product: ProductResponse, quantity: number, modifiers: POSOrderItemModifier[], notes?: string) => void;
+    onAddToOrder: (
+        product: ProductResponse,
+        quantity: number,
+        modifiers: POSOrderItemModifier[],
+        notes?: string
+    ) => void;
 }
 
 export function ProductCustomizationDialog({
@@ -31,7 +36,9 @@ export function ProductCustomizationDialog({
 }: ProductCustomizationDialogProps) {
     const [quantity, setQuantity] = useState(1);
     const [notes, setNotes] = useState('');
-    const [selectedModifiers, setSelectedModifiers] = useState<POSOrderItemModifier[]>([]);
+    const [selectedModifiers, setSelectedModifiers] = useState<
+        POSOrderItemModifier[]
+    >([]);
 
     // Mock modifiers - in real implementation, these would come from the product API
     const mockModifiers = [
@@ -50,10 +57,10 @@ export function ProductCustomizationDialog({
     };
 
     const handleModifierToggle = (modifier: POSOrderItemModifier) => {
-        setSelectedModifiers(prev => {
-            const exists = prev.find(m => m.id === modifier.id);
+        setSelectedModifiers((prev) => {
+            const exists = prev.find((m) => m.id === modifier.id);
             if (exists) {
-                return prev.filter(m => m.id !== modifier.id);
+                return prev.filter((m) => m.id !== modifier.id);
             } else {
                 return [...prev, modifier];
             }
@@ -62,7 +69,12 @@ export function ProductCustomizationDialog({
 
     const handleAddToOrder = () => {
         if (product) {
-            onAddToOrder(product, quantity, selectedModifiers, notes || undefined);
+            onAddToOrder(
+                product,
+                quantity,
+                selectedModifiers,
+                notes || undefined
+            );
             handleClose();
         }
     };
@@ -70,7 +82,10 @@ export function ProductCustomizationDialog({
     const calculateTotalPrice = () => {
         if (!product) return 0;
         const basePrice = product.price ? Number(product.price) : 0;
-        const modifiersPrice = selectedModifiers.reduce((sum, mod) => sum + mod.price, 0);
+        const modifiersPrice = selectedModifiers.reduce(
+            (sum, mod) => sum + mod.price,
+            0
+        );
         return (basePrice + modifiersPrice) * quantity;
     };
 
@@ -104,8 +119,8 @@ export function ProductCustomizationDialog({
                     <div className="text-center">
                         <div className="w-full h-32 bg-gray-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                             {product.image ? (
-                                <img 
-                                    src={product.image} 
+                                <img
+                                    src={product.image}
                                     alt={product.name}
                                     className="w-full h-full object-cover rounded-lg"
                                 />
@@ -114,7 +129,15 @@ export function ProductCustomizationDialog({
                             )}
                         </div>
                         <div className="text-sm text-gray-600">
-                            {product.name} | {product.price ? Number(product.price).toLocaleString() : 0} ₫ | VAT: 10% (= {Math.round(Number(product.price || 0) * 0.1).toLocaleString()} ₫)
+                            {product.name} |{' '}
+                            {product.price
+                                ? Number(product.price).toLocaleString()
+                                : 0}{' '}
+                            ₫ | VAT: 10% (={' '}
+                            {Math.round(
+                                Number(product.price || 0) * 0.1
+                            ).toLocaleString()}{' '}
+                            ₫)
                         </div>
                     </div>
 
@@ -123,12 +146,16 @@ export function ProductCustomizationDialog({
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            onClick={() =>
+                                setQuantity(Math.max(1, quantity - 1))
+                            }
                             className="h-8 w-8 p-0"
                         >
                             <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
+                        <span className="text-lg font-semibold w-8 text-center">
+                            {quantity}
+                        </span>
                         <Button
                             variant="outline"
                             size="sm"
@@ -149,13 +176,19 @@ export function ProductCustomizationDialog({
                                 <div
                                     key={modifier.id}
                                     className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                                        selectedModifiers.find(m => m.id === modifier.id)
+                                        selectedModifiers.find(
+                                            (m) => m.id === modifier.id
+                                        )
                                             ? 'border-blue-300 bg-blue-50'
                                             : 'border-gray-200 hover:border-gray-300'
                                     }`}
-                                    onClick={() => handleModifierToggle(modifier)}
+                                    onClick={() =>
+                                        handleModifierToggle(modifier)
+                                    }
                                 >
-                                    <span className="text-sm">{modifier.name}</span>
+                                    <span className="text-sm">
+                                        {modifier.name}
+                                    </span>
                                     {modifier.price > 0 && (
                                         <span className="text-sm text-gray-600">
                                             +{modifier.price.toLocaleString()} ₫
@@ -168,7 +201,10 @@ export function ProductCustomizationDialog({
 
                     {/* Notes Section */}
                     <div>
-                        <Label htmlFor="notes" className="text-sm font-medium text-gray-700 mb-2 block">
+                        <Label
+                            htmlFor="notes"
+                            className="text-sm font-medium text-gray-700 mb-2 block"
+                        >
                             Special Instructions
                         </Label>
                         <Textarea
@@ -186,7 +222,12 @@ export function ProductCustomizationDialog({
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span>Subtotal:</span>
-                                <span>{(calculateTotalPrice() - calculateTax()).toLocaleString()} ₫</span>
+                                <span>
+                                    {(
+                                        calculateTotalPrice() - calculateTax()
+                                    ).toLocaleString()}{' '}
+                                    ₫
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Tax (10%):</span>
@@ -194,7 +235,9 @@ export function ProductCustomizationDialog({
                             </div>
                             <div className="flex justify-between font-semibold text-base border-t pt-2">
                                 <span>Total:</span>
-                                <span>{calculateTotalPrice().toLocaleString()} ₫</span>
+                                <span>
+                                    {calculateTotalPrice().toLocaleString()} ₫
+                                </span>
                             </div>
                         </div>
                     </div>
