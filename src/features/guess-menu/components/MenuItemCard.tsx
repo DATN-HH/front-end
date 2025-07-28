@@ -200,7 +200,7 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
                                         Total: ${displayPrice.toFixed(2)}
                                     </span>
                                     <Button onClick={handleAddToCart}>
-                                        Add to Cart
+                                        Add
                                     </Button>
                                 </div>
                             </div>

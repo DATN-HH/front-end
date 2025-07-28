@@ -165,7 +165,7 @@ export interface ProductResponse {
 // ========== API Functions ==========
 
 // Money Attributes
-export const setDefaultMoneyAttribute = async (
+const setDefaultMoneyAttribute = async (
     productVariantId: number,
     attributeId: number,
     priceValue?: number
@@ -189,9 +189,7 @@ export const setDefaultMoneyAttribute = async (
     return response.data.data;
 };
 
-export const getDefaultMoneyAttribute = async (
-    productId: number
-): Promise<any> => {
+const getDefaultMoneyAttribute = async (productId: number): Promise<any> => {
     const response = await apiClient.get<ApiResponse<any>>(
         '/api/menu/product-attributes/money/default',
         {
@@ -203,15 +201,8 @@ export const getDefaultMoneyAttribute = async (
     return response.data.data;
 };
 
-export const getSupportedCurrencies = async (): Promise<string[]> => {
-    const response = await apiClient.get<ApiResponse<string[]>>(
-        '/api/menu/product-attributes/money/currencies'
-    );
-    return response.data.data;
-};
-
 // Product Attributes
-export const createProductAttribute = async (
+const createProductAttribute = async (
     data: ProductAttributeCreateRequest,
     saveAndNew: boolean = false
 ): Promise<ProductAttributeResponse> => {
@@ -222,7 +213,7 @@ export const createProductAttribute = async (
     return response.data.data;
 };
 
-export const getAllProductAttributes = async (): Promise<
+const getAllProductAttributes = async (): Promise<
     ProductAttributeResponse[]
 > => {
     const response = await apiClient.get<
@@ -231,7 +222,7 @@ export const getAllProductAttributes = async (): Promise<
     return response.data.data;
 };
 
-export const getProductAttribute = async (
+const getProductAttribute = async (
     id: number
 ): Promise<ProductAttributeResponse> => {
     const response = await apiClient.get<ApiResponse<ProductAttributeResponse>>(
@@ -240,7 +231,7 @@ export const getProductAttribute = async (
     return response.data.data;
 };
 
-export const updateProductAttribute = async (
+const updateProductAttribute = async (
     id: number,
     data: ProductAttributeCreateRequest
 ): Promise<ProductAttributeResponse> => {
@@ -251,7 +242,7 @@ export const updateProductAttribute = async (
     return response.data.data;
 };
 
-export const deleteProductAttribute = async (id: number): Promise<string> => {
+const deleteProductAttribute = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/product-attributes/${id}`
     );
@@ -259,7 +250,7 @@ export const deleteProductAttribute = async (id: number): Promise<string> => {
 };
 
 // Attribute Values
-export const createAttributeValue = async (
+const createAttributeValue = async (
     data: ProductAttributeValueCreateRequest
 ): Promise<ProductAttributeValueResponse> => {
     const response = await apiClient.post<
@@ -268,7 +259,7 @@ export const createAttributeValue = async (
     return response.data.data;
 };
 
-export const getAttributeValues = async (
+const getAttributeValues = async (
     attributeId: number
 ): Promise<ProductAttributeValueResponse[]> => {
     const response = await apiClient.get<
@@ -277,7 +268,7 @@ export const getAttributeValues = async (
     return response.data.data;
 };
 
-export const updateAttributeValue = async (
+const updateAttributeValue = async (
     id: number,
     data: ProductAttributeValueCreateRequest
 ): Promise<ProductAttributeValueResponse> => {
@@ -287,7 +278,7 @@ export const updateAttributeValue = async (
     return response.data.data;
 };
 
-export const deleteAttributeValue = async (id: number): Promise<string> => {
+const deleteAttributeValue = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/product-attributes/values/${id}`
     );
@@ -295,7 +286,7 @@ export const deleteAttributeValue = async (id: number): Promise<string> => {
 };
 
 // Product Variants
-export const assignAttributesToProduct = async (
+const assignAttributesToProduct = async (
     data: ProductAttributeAssignRequest
 ): Promise<ProductVariantResponse[]> => {
     const response = await apiClient.post<
@@ -304,7 +295,7 @@ export const assignAttributesToProduct = async (
     return response.data.data;
 };
 
-export const getProductVariants = async (
+const getProductVariants = async (
     productId: number
 ): Promise<ProductVariantResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductVariantResponse[]>>(
@@ -313,7 +304,7 @@ export const getProductVariants = async (
     return response.data.data;
 };
 
-export const createProductVariant = async (
+const createProductVariant = async (
     data: ProductVariantCreateRequest
 ): Promise<ProductVariantResponse> => {
     const response = await apiClient.post<ApiResponse<ProductVariantResponse>>(
@@ -323,7 +314,7 @@ export const createProductVariant = async (
     return response.data.data;
 };
 
-export const getProductVariant = async (
+const getProductVariant = async (
     id: number
 ): Promise<ProductVariantResponse> => {
     const response = await apiClient.get<ApiResponse<ProductVariantResponse>>(
@@ -332,7 +323,7 @@ export const getProductVariant = async (
     return response.data.data;
 };
 
-export const updateProductVariant = async (
+const updateProductVariant = async (
     id: number,
     data: ProductVariantUpdateRequest
 ): Promise<ProductVariantResponse> => {
@@ -343,7 +334,7 @@ export const updateProductVariant = async (
     return response.data.data;
 };
 
-export const archiveProductVariant = async (
+const archiveProductVariant = async (
     id: number
 ): Promise<ProductVariantResponse> => {
     const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(
@@ -352,7 +343,7 @@ export const archiveProductVariant = async (
     return response.data.data;
 };
 
-export const unarchiveProductVariant = async (
+const unarchiveProductVariant = async (
     id: number
 ): Promise<ProductVariantResponse> => {
     const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(
@@ -361,14 +352,14 @@ export const unarchiveProductVariant = async (
     return response.data.data;
 };
 
-export const deleteProductVariant = async (id: number): Promise<string> => {
+const deleteProductVariant = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/product-attributes/variants/${id}`
     );
     return response.data.data;
 };
 
-export const updateVariantPricing = async (
+const updateVariantPricing = async (
     data: ProductVariantPricingRequest
 ): Promise<ProductVariantResponse> => {
     const response = await apiClient.put<ApiResponse<ProductVariantResponse>>(
@@ -378,57 +369,8 @@ export const updateVariantPricing = async (
     return response.data.data;
 };
 
-// Attribute Value Price Extras
-export const updateAttributeValuePriceExtras = async (
-    data: AttributeValuePriceExtraRequest
-): Promise<ProductAttributeValueResponse[]> => {
-    const response = await apiClient.put<
-        ApiResponse<ProductAttributeValueResponse[]>
-    >('/api/menu/product-attributes/values/price-extras', data);
-    return response.data.data;
-};
-
-// POS Configuration
-export const updateProductPosConfig = async (
-    data: ProductPosConfigRequest
-): Promise<ProductResponse> => {
-    const response = await apiClient.put<ApiResponse<ProductResponse>>(
-        '/api/menu/product-attributes/pos-config',
-        data
-    );
-    return response.data.data;
-};
-
-/**
- * @deprecated Use getProductsForCategory instead
- */
-export const getProductsForPosCategory = async (
-    posCategoryId: number
-): Promise<ProductResponse[]> => {
-    const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
-        `/api/menu/product-attributes/categories/${posCategoryId}/products`
-    );
-    return response.data.data;
-};
-
-export const getProductsForCategory = async (
-    categoryId: number
-): Promise<ProductResponse[]> => {
-    const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
-        `/api/menu/product-attributes/categories/${categoryId}/products`
-    );
-    return response.data.data;
-};
-
-export const getAvailablePosProducts = async (): Promise<ProductResponse[]> => {
-    const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
-        '/api/menu/product-attributes/pos/available'
-    );
-    return response.data.data;
-};
-
 // Assign attributes to product using PUT /api/menu/product-attributes/assign
-export const removeAttributesFromProduct = async (
+const removeAttributesFromProduct = async (
     productId: number
 ): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
@@ -723,58 +665,6 @@ export const useUpdateVariantPricing = () => {
     });
 };
 
-// Price Extras and POS Config Hooks
-export const useUpdateAttributeValuePriceExtras = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: updateAttributeValuePriceExtras,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['product-attributes'] });
-        },
-    });
-};
-
-export const useUpdateProductPosConfig = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: updateProductPosConfig,
-        onSuccess: (_, data) => {
-            queryClient.invalidateQueries({
-                queryKey: ['products', data.productId, 'detail'],
-            });
-            queryClient.invalidateQueries({ queryKey: ['products'] });
-        },
-    });
-};
-
-/**
- * @deprecated Use useProductsForCategory instead
- */
-export const useProductsForPosCategory = (posCategoryId: number) => {
-    return useQuery({
-        queryKey: ['categories', posCategoryId, 'products'],
-        queryFn: () => getProductsForPosCategory(posCategoryId),
-        enabled: !!posCategoryId,
-    });
-};
-
-export const useProductsForCategory = (categoryId: number) => {
-    return useQuery({
-        queryKey: ['categories', categoryId, 'products'],
-        queryFn: () => getProductsForCategory(categoryId),
-        enabled: !!categoryId,
-    });
-};
-
-export const useAvailablePosProducts = () => {
-    return useQuery({
-        queryKey: ['pos', 'available-products'],
-        queryFn: getAvailablePosProducts,
-    });
-};
-
 // Money Attributes Hooks
 export const useSetDefaultMoneyAttribute = () => {
     const queryClient = useQueryClient();
@@ -812,14 +702,6 @@ export const useDefaultMoneyAttribute = (productId: number) => {
         queryKey: ['money-attributes', 'default', productId],
         queryFn: () => getDefaultMoneyAttribute(productId),
         enabled: !!productId,
-    });
-};
-
-export const useSupportedCurrencies = () => {
-    return useQuery({
-        queryKey: ['money-attributes', 'currencies'],
-        queryFn: getSupportedCurrencies,
-        staleTime: 1000 * 60 * 60, // Cache for 1 hour
     });
 };
 

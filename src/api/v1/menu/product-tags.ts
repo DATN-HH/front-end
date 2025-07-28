@@ -73,7 +73,7 @@ interface ApiListData {
 // ========== API Functions ==========
 
 // Get all tags using /api/menu/tags
-export const getAllTags = async (): Promise<ProductTagResponse[]> => {
+const getAllTags = async (): Promise<ProductTagResponse[]> => {
     const response =
         await apiClient.get<ApiResponse<ProductTagResponse[]>>(
             '/api/menu/tags'
@@ -82,7 +82,7 @@ export const getAllTags = async (): Promise<ProductTagResponse[]> => {
 };
 
 // Create tag using /api/menu/tags
-export const createTag = async (
+const createTag = async (
     data: ProductTagCreateRequest
 ): Promise<ProductTagResponse> => {
     const response = await apiClient.post<ApiResponse<ProductTagResponse>>(
@@ -93,7 +93,7 @@ export const createTag = async (
 };
 
 // Get single tag using /api/menu/tags/{id}
-export const getTag = async (id: number): Promise<ProductTagResponse> => {
+const getTag = async (id: number): Promise<ProductTagResponse> => {
     const response = await apiClient.get<ApiResponse<ProductTagResponse>>(
         `/api/menu/tags/${id}`
     );
@@ -101,7 +101,7 @@ export const getTag = async (id: number): Promise<ProductTagResponse> => {
 };
 
 // Update tag using /api/menu/tags/{id}
-export const updateTag = async (
+const updateTag = async (
     id: number,
     data: ProductTagUpdateRequest
 ): Promise<ProductTagResponse> => {
@@ -113,7 +113,7 @@ export const updateTag = async (
 };
 
 // Delete tag using /api/menu/tags/{id}
-export const deleteTag = async (id: number): Promise<string> => {
+const deleteTag = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/tags/${id}`
     );
@@ -121,9 +121,7 @@ export const deleteTag = async (id: number): Promise<string> => {
 };
 
 // Search tags by name using /api/menu/tags/search
-export const searchTags = async (
-    name: string
-): Promise<ProductTagResponse[]> => {
+const searchTags = async (name: string): Promise<ProductTagResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
         `/api/menu/tags/search?name=${encodeURIComponent(name)}`
     );
@@ -131,7 +129,7 @@ export const searchTags = async (
 };
 
 // Get paginated tag list using /api/menu/tags/list
-export const getTagList = async (
+const getTagList = async (
     params: ProductTagListParams = {}
 ): Promise<ProductTagListResponse> => {
     const searchParams = new URLSearchParams();
@@ -158,7 +156,7 @@ export const getTagList = async (
 };
 
 // Assign tags to product using /api/menu/tags/assign
-export const assignTagsToProduct = async (
+const assignTagsToProduct = async (
     data: ProductTagAssignRequest
 ): Promise<string> => {
     const response = await apiClient.post<ApiResponse<string>>(
@@ -169,7 +167,7 @@ export const assignTagsToProduct = async (
 };
 
 // Get tags by product using /api/menu/tags/product/{productId}
-export const getTagsByProduct = async (
+const getTagsByProduct = async (
     productId: number
 ): Promise<ProductTagResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
@@ -179,7 +177,7 @@ export const getTagsByProduct = async (
 };
 
 // Get popular tags using /api/menu/tags/popular
-export const getPopularTags = async (
+const getPopularTags = async (
     limit: number = 10
 ): Promise<ProductTagResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
@@ -221,14 +219,6 @@ export const useTagList = (params: ProductTagListParams = {}) => {
     });
 };
 
-export const useTagsByProduct = (productId: number) => {
-    return useQuery({
-        queryKey: ['tags', 'product', productId],
-        queryFn: () => getTagsByProduct(productId),
-        enabled: !!productId,
-    });
-};
-
 export const usePopularTags = (limit: number = 10) => {
     return useQuery({
         queryKey: ['tags', 'popular', limit],
@@ -265,18 +255,6 @@ export const useUpdateTag = () => {
             queryClient.invalidateQueries({ queryKey: ['tags'] });
             // Invalidate specific tag
             queryClient.invalidateQueries({ queryKey: ['tags', id] });
-        },
-    });
-};
-
-export const useDeleteTag = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: deleteTag,
-        onSuccess: () => {
-            // Invalidate all tags queries
-            queryClient.invalidateQueries({ queryKey: ['tags'] });
         },
     });
 };

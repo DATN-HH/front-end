@@ -197,7 +197,8 @@ export function BookingConfirmDialog({
             bookingtableId: bookingData.bookingId.toString(),
             branchId: selectedBranchId.toString(),
             time: bookingData.startTime,
-            duration: durationHours.toString(),
+            customerPhone: bookingData.customerPhone,
+            customerName: bookingData.customerName,
         });
 
         router.push(`/menu-booking?${queryParams.toString()}`);

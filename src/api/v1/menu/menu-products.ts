@@ -73,8 +73,30 @@ interface ApiResponse<T> {
 
 // ========== API Functions ==========
 
+// Get single menu product by ID
+const getMenuProduct = async (productId: number): Promise<MenuProduct> => {
+    try {
+        const response = await apiClient.get<ApiResponse<MenuProduct>>(
+            `/api/menu/menu-products/${productId}`
+        );
+
+        // Handle the new response format
+        if (response.data.success && response.data.data) {
+            return response.data.data;
+        } else {
+            throw new Error('Product not found');
+        }
+    } catch (error: any) {
+        // Handle 404 - product not found
+        if (error.response?.status === 404) {
+            throw new Error('Product not found');
+        }
+        throw error;
+    }
+};
+
 // Get menu products by category
-export const getMenuProductsByCategory = async (
+const getMenuProductsByCategory = async (
     categoryId: number
 ): Promise<MenuProduct[]> => {
     try {
@@ -97,31 +119,24 @@ export const getMenuProductsByCategory = async (
     }
 };
 
-// Get product variants by product ID
-export const getProductVariants = async (
-    productId: number
-): Promise<MenuVariant[]> => {
-    try {
-        const response = await apiClient.get<MenuProductsResponse>(
-            '/api/menu/categories/7/products' // This will be updated when we have the correct endpoint
-        );
-
-        if (response.data.success && response.data.data) {
-            // Find the product and return its variants
-            const product = response.data.data.find((p) => p.id === productId);
-            return product?.variants || [];
-        } else {
-            return [];
-        }
-    } catch (error: any) {
-        if (error.response?.status === 404) {
-            return [];
-        }
-        throw error;
-    }
-};
-
 // ========== React Query Hooks ==========
+
+export const useMenuProduct = (productId: number) => {
+    return useQuery({
+        queryKey: ['menu-product', productId],
+        queryFn: () => getMenuProduct(productId),
+        enabled: !!productId,
+        staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+        gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+        retry: (failureCount, error: any) => {
+            // Don't retry on 404 errors
+            if (error?.response?.status === 404) {
+                return false;
+            }
+            return failureCount < 3;
+        },
+    });
+};
 
 export const useMenuProductsByCategory = (categoryId: number) => {
     return useQuery({
@@ -137,50 +152,6 @@ export const useMenuProductsByCategory = (categoryId: number) => {
             }
             return failureCount < 3;
         },
-    });
-};
-
-export const useProductVariants = (productId: number) => {
-    return useQuery({
-        queryKey: ['product-variants', productId],
-        queryFn: () => getProductVariants(productId),
-        enabled: !!productId,
-        staleTime: 5 * 60 * 1000,
-        gcTime: 30 * 60 * 1000,
-        retry: (failureCount, error: any) => {
-            if (error?.response?.status === 404) {
-                return false;
-            }
-            return failureCount < 3;
-        },
-    });
-};
-
-// Hook to get products for multiple categories (lazy loading)
-export const useMenuProductsForCategories = (categoryIds: number[]) => {
-    return useQuery({
-        queryKey: ['menu-products', 'categories', categoryIds.sort()],
-        queryFn: async () => {
-            const results = await Promise.allSettled(
-                categoryIds.map((id) => getMenuProductsByCategory(id))
-            );
-
-            const productsByCategory: Record<number, MenuProduct[]> = {};
-
-            results.forEach((result, index) => {
-                const categoryId = categoryIds[index];
-                if (result.status === 'fulfilled') {
-                    productsByCategory[categoryId] = result.value;
-                } else {
-                    productsByCategory[categoryId] = [];
-                }
-            });
-
-            return productsByCategory;
-        },
-        enabled: categoryIds.length > 0,
-        staleTime: 5 * 60 * 1000,
-        gcTime: 30 * 60 * 1000,
     });
 };
 
@@ -206,20 +177,36 @@ export const getVariantPrice = (
     variant: MenuVariant,
     productPrice: number
 ): number => {
-    // First try to get price from "Total" attribute
+    // First try to use variant.effectivePrice if exists and > 0
+    if (variant.effectivePrice && variant.effectivePrice > 0) {
+        return variant.effectivePrice;
+    }
+
+    // Second try to use variant.price if exists
+    if (variant.price && variant.price > 0) {
+        return variant.price;
+    }
+
+    // Try to extract price from variant name (format: "price, size #id")
+    if (variant.name) {
+        const priceMatch = variant.name.match(/^(\d+)/);
+        if (priceMatch) {
+            const extractedPrice = parseInt(priceMatch[1]);
+            if (!isNaN(extractedPrice) && extractedPrice > 0) {
+                return extractedPrice;
+            }
+        }
+    }
+
+    // Fallback to get price from "Total" attribute
     const totalAttribute = variant.attributeValues?.find(
         (attr) => attr.attributeName === 'Total'
     );
     if (totalAttribute?.name) {
         const price = parseFloat(totalAttribute.name);
-        if (!isNaN(price)) {
+        if (!isNaN(price) && price > 0) {
             return price;
         }
-    }
-
-    // Fallback to variant.price if exists
-    if (variant.price) {
-        return variant.price;
     }
 
     // Final fallback to product price
@@ -230,16 +217,18 @@ export const getVariantPrice = (
 export const calculatePriceRange = (
     product: MenuProduct
 ): { min: number; max: number; hasRange: boolean } => {
+    const basePrice = product.price || 0;
+
     if (!product.variants || product.variants.length === 0) {
         return {
-            min: product.price,
-            max: product.price,
+            min: basePrice,
+            max: basePrice,
             hasRange: false,
         };
     }
 
     const prices = product.variants.map((variant) =>
-        getVariantPrice(variant, product.price)
+        getVariantPrice(variant, basePrice)
     );
     const min = Math.min(...prices);
     const max = Math.max(...prices);

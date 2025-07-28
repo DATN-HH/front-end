@@ -136,18 +136,10 @@ interface ApiResponse<T> {
     data: T;
 }
 
-// API List Response interface (what the API actually returns)
-interface ApiListData {
-    page: number;
-    size: number;
-    total: number;
-    data: CategoryResponse[];
-}
-
 // ========== API Functions ==========
 
 // Get all categories using /api/menu/categories
-export const getAllCategories = async (): Promise<CategoryResponse[]> => {
+const getAllCategories = async (): Promise<CategoryResponse[]> => {
     const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
         '/api/menu/categories'
     );
@@ -155,7 +147,7 @@ export const getAllCategories = async (): Promise<CategoryResponse[]> => {
 };
 
 // Create category using /api/menu/categories with optional saveAndNew parameter
-export const createCategory = async (
+const createCategory = async (
     data: CategoryCreateRequest,
     saveAndNew: boolean = false
 ): Promise<CategoryResponse> => {
@@ -168,7 +160,7 @@ export const createCategory = async (
 };
 
 // Get single category using /api/menu/categories/{id}
-export const getCategory = async (id: number): Promise<CategoryResponse> => {
+const getCategory = async (id: number): Promise<CategoryResponse> => {
     const response = await apiClient.get<ApiResponse<CategoryResponse>>(
         `/api/menu/categories/${id}`
     );
@@ -176,7 +168,7 @@ export const getCategory = async (id: number): Promise<CategoryResponse> => {
 };
 
 // Update category using /api/menu/categories/{id}
-export const updateCategory = async (
+const updateCategory = async (
     id: number,
     data: CategoryUpdateRequest
 ): Promise<CategoryResponse> => {
@@ -188,37 +180,15 @@ export const updateCategory = async (
 };
 
 // Delete category using /api/menu/categories/{id}
-export const deleteCategory = async (id: number): Promise<string> => {
+const deleteCategory = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/categories/${id}`
     );
     return response.data.data;
 };
 
-// Get category by code using /api/menu/categories/code/{code}
-export const getCategoryByCode = async (
-    code: string
-): Promise<CategoryResponse> => {
-    const response = await apiClient.get<ApiResponse<CategoryResponse>>(
-        `/api/menu/categories/code/${code}`
-    );
-    return response.data.data;
-};
-
-// Search categories by name using /api/menu/categories/search
-export const searchCategories = async (
-    name: string
-): Promise<CategoryResponse[]> => {
-    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
-        `/api/menu/categories/search?name=${encodeURIComponent(name)}`
-    );
-    return response.data.data;
-};
-
 // Get product count by category using /api/menu/categories/{id}/product-count
-export const getProductCountByCategory = async (
-    id: number
-): Promise<number> => {
+const getProductCountByCategory = async (id: number): Promise<number> => {
     const response = await apiClient.get<ApiResponse<number>>(
         `/api/menu/categories/${id}/product-count`
     );
@@ -227,46 +197,16 @@ export const getProductCountByCategory = async (
 
 // ========== HIERARCHY API FUNCTIONS ==========
 
-// Get root categories (categories without parent)
-export const getRootCategories = async (): Promise<CategoryResponse[]> => {
-    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
-        '/api/menu/categories/roots'
-    );
-    return response.data.data;
-};
-
-// Get children of a specific category
-export const getCategoryChildren = async (
-    id: number
-): Promise<CategoryResponse[]> => {
-    const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
-        `/api/menu/categories/${id}/children`
-    );
-    return response.data.data;
-};
-
 // Get complete category hierarchy as tree
-export const getCategoryHierarchy = async (): Promise<CategoryResponse[]> => {
+const getCategoryHierarchy = async (): Promise<CategoryResponse[]> => {
     const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
         '/api/menu/categories/hierarchy'
     );
     return response.data.data;
 };
 
-// Move category to different parent
-export const moveCategoryToParent = async (
-    id: number,
-    parentId?: number
-): Promise<CategoryResponse> => {
-    const params = parentId ? `?parentId=${parentId}` : '';
-    const response = await apiClient.put<ApiResponse<CategoryResponse>>(
-        `/api/menu/categories/${id}/move${params}`
-    );
-    return response.data.data;
-};
-
 // Update category sequence
-export const updateCategorySequence = async (
+const updateCategorySequence = async (
     id: number,
     sequence: number
 ): Promise<CategoryResponse> => {
@@ -277,7 +217,7 @@ export const updateCategorySequence = async (
 };
 
 // Get products by category using /api/menu/categories/{id}/products
-export const getProductsByCategory = async (
+const getProductsByCategory = async (
     id: number
 ): Promise<ProductListResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductListResponse[]>>(
@@ -286,37 +226,8 @@ export const getProductsByCategory = async (
     return response.data.data;
 };
 
-// Get paginated category list using /api/menu/categories/list
-export const getCategoryList = async (
-    params: CategoryListParams = {}
-): Promise<CategoryListResponse> => {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-            searchParams.append(key, String(value));
-        }
-    });
-
-    const response = await apiClient.get<ApiResponse<ApiListData>>(
-        `/api/menu/categories/list?${searchParams.toString()}`
-    );
-
-    // Transform the API response to match our expected interface
-    const apiData = response.data.data;
-    return {
-        content: apiData.data,
-        totalElements: apiData.total,
-        totalPages: Math.ceil(apiData.total / apiData.size),
-        size: apiData.size,
-        number: apiData.page,
-    };
-};
-
 // Archive category (soft delete by setting status to DELETED)
-export const archiveCategory = async (
-    id: number
-): Promise<CategoryResponse> => {
+const archiveCategory = async (id: number): Promise<CategoryResponse> => {
     const response = await apiClient.put<ApiResponse<CategoryResponse>>(
         `/api/menu/categories/${id}`,
         {
@@ -327,9 +238,7 @@ export const archiveCategory = async (
 };
 
 // Unarchive category (restore by setting status to ACTIVE)
-export const unarchiveCategory = async (
-    id: number
-): Promise<CategoryResponse> => {
+const unarchiveCategory = async (id: number): Promise<CategoryResponse> => {
     const response = await apiClient.put<ApiResponse<CategoryResponse>>(
         `/api/menu/categories/${id}`,
         {
@@ -357,22 +266,6 @@ export const useCategory = (id: number) => {
     });
 };
 
-export const useCategoryByCode = (code: string) => {
-    return useQuery({
-        queryKey: ['categories', 'code', code],
-        queryFn: () => getCategoryByCode(code),
-        enabled: !!code,
-    });
-};
-
-export const useSearchCategories = (name: string) => {
-    return useQuery({
-        queryKey: ['categories', 'search', name],
-        queryFn: () => searchCategories(name),
-        enabled: !!name && name.length > 0,
-    });
-};
-
 export const useProductCountByCategory = (id: number) => {
     return useQuery({
         queryKey: ['categories', id, 'product-count'],
@@ -386,13 +279,6 @@ export const useProductsByCategory = (id: number) => {
         queryKey: ['categories', id, 'products'],
         queryFn: () => getProductsByCategory(id),
         enabled: !!id,
-    });
-};
-
-export const useCategoryList = (params: CategoryListParams = {}) => {
-    return useQuery({
-        queryKey: ['categories', 'list', params],
-        queryFn: () => getCategoryList(params),
     });
 };
 
@@ -477,38 +363,10 @@ export const useUnarchiveCategory = () => {
 
 // ========== HIERARCHY HOOKS ==========
 
-export const useRootCategories = () => {
-    return useQuery({
-        queryKey: ['categories', 'roots'],
-        queryFn: getRootCategories,
-    });
-};
-
-export const useCategoryChildren = (id: number) => {
-    return useQuery({
-        queryKey: ['categories', id, 'children'],
-        queryFn: () => getCategoryChildren(id),
-        enabled: !!id,
-    });
-};
-
 export const useCategoryHierarchy = () => {
     return useQuery({
         queryKey: ['categories', 'hierarchy'],
         queryFn: getCategoryHierarchy,
-    });
-};
-
-export const useMoveCategoryToParent = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ id, parentId }: { id: number; parentId?: number }) =>
-            moveCategoryToParent(id, parentId),
-        onSuccess: () => {
-            // Invalidate all category-related queries
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-        },
     });
 };
 
@@ -528,52 +386,12 @@ export const useUpdateCategorySequence = () => {
 // ========== BACKWARD COMPATIBILITY FUNCTIONS ==========
 // These functions provide compatibility with the old pos-category API
 
-/**
- * @deprecated Use getAllCategories instead
- */
-export const getAllPosCategories = getAllCategories;
-
-/**
- * @deprecated Use getCategoryHierarchy instead
- */
-export const getPosCategoryTree = getCategoryHierarchy;
-
-/**
- * @deprecated Use getCategory instead
- */
-export const getPosCategory = getCategory;
-
-/**
- * @deprecated Use createCategory instead
- */
-export const createPosCategory = createCategory;
-
-/**
- * @deprecated Use updateCategory instead
- */
-export const updatePosCategory = updateCategory;
-
-/**
- * @deprecated Use deleteCategory instead
- */
-export const deletePosCategory = deleteCategory;
-
 // ========== BACKWARD COMPATIBILITY HOOKS ==========
 
 /**
  * @deprecated Use useAllCategories instead
  */
 export const useAllPosCategories = useAllCategories;
-
-/**
- * @deprecated Use useCategoryHierarchy instead
- */
-export const usePosCategoryTree = useCategoryHierarchy;
-
-/**
- * @deprecated Use useCategory instead
- */
-export const usePosCategory = useCategory;
 
 /**
  * @deprecated Use useCreateCategory instead
@@ -589,28 +407,3 @@ export const useUpdatePosCategory = useUpdateCategory;
  * @deprecated Use useDeleteCategory instead
  */
 export const useDeletePosCategory = useDeleteCategory;
-
-/**
- * @deprecated Use useUpdateCategorySequence instead
- */
-export const useMoveCategorySequence = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({
-            id,
-            direction,
-        }: {
-            id: number;
-            direction: 'up' | 'down';
-        }) => {
-            // This is a simplified implementation - in a real app you'd need to
-            // calculate the new sequence based on direction
-            const newSequence = direction === 'up' ? -1 : 1; // Placeholder logic
-            return updateCategorySequence(id, newSequence);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-        },
-    });
-};
