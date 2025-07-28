@@ -112,10 +112,7 @@ interface POSApiResponse<T> {
 const createPOSOrder = async (
     data: POSOrderCreateRequest
 ): Promise<POSOrder> => {
-    const response = await apiClient.post<any>(
-        '/api/pos/orders',
-        data
-    );
+    const response = await apiClient.post<any>('/api/pos/orders', data);
 
     // Handle the backend ApiResponse format: { success, code, message, data }
     // The actual order data is in response.data.data
@@ -129,7 +126,9 @@ const createPOSOrder = async (
             // Direct order object
             order = response.data;
         } else {
-            throw new Error(`Unexpected response format: ${JSON.stringify(response.data)}`);
+            throw new Error(
+                `Unexpected response format: ${JSON.stringify(response.data)}`
+            );
         }
     } else {
         throw new Error(`Invalid response: ${JSON.stringify(response.data)}`);

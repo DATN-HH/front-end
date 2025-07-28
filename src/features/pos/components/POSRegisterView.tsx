@@ -84,7 +84,10 @@ export function POSRegisterView({
             console.log('Order structure:', Object.keys(posOrder || {}));
 
             if (!posOrder || !posOrder.id) {
-                console.error('Invalid order object passed to sendOrderToKDS:', posOrder);
+                console.error(
+                    'Invalid order object passed to sendOrderToKDS:',
+                    posOrder
+                );
                 return;
             }
 
@@ -100,17 +103,18 @@ export function POSRegisterView({
                 priority: 'normal',
                 staffName: 'POS Staff', // TODO: Get from current user
                 branchId: 1, // TODO: Get from current branch
-                items: posOrder.items?.map((item: any, index: number) => ({
-                    id: `${posOrder.id}-${index + 1}`,
-                    productId: item.productId,
-                    productName: item.productName,
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    totalPrice: item.totalPrice,
-                    notes: item.notes,
-                    modifiers: item.modifiers || [],
-                })) || [],
+                items:
+                    posOrder.items?.map((item: any, index: number) => ({
+                        id: `${posOrder.id}-${index + 1}`,
+                        productId: item.productId,
+                        productName: item.productName,
+                        variantId: item.variantId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        totalPrice: item.totalPrice,
+                        notes: item.notes,
+                        modifiers: item.modifiers || [],
+                    })) || [],
             };
 
             await createKDSOrderMutation.mutateAsync(kdsOrderRequest);
@@ -252,7 +256,7 @@ export function POSRegisterView({
                         id: Date.now(), // Use timestamp as temporary ID
                         tableId: orderRequest.tableId,
                         items: orderRequest.items,
-                        status: 'PENDING'
+                        status: 'PENDING',
                     };
                     console.log('Using mock order:', order);
                 }
@@ -262,7 +266,9 @@ export function POSRegisterView({
 
                 // Final validation
                 if (!order || typeof order !== 'object') {
-                    throw new Error(`Invalid order object: ${JSON.stringify(order)}`);
+                    throw new Error(
+                        `Invalid order object: ${JSON.stringify(order)}`
+                    );
                 }
 
                 if (!order.id) {
@@ -271,7 +277,6 @@ export function POSRegisterView({
                 }
 
                 console.log('Final order object:', order);
-
             } catch (error) {
                 console.error('Error creating order:', error);
                 // For testing purposes, create a mock order instead of failing
@@ -279,7 +284,7 @@ export function POSRegisterView({
                     id: Date.now(),
                     tableId: orderRequest.tableId,
                     items: orderRequest.items,
-                    status: 'PENDING'
+                    status: 'PENDING',
                 };
                 console.log('Using fallback mock order due to error:', order);
             }
