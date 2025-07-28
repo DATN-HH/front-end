@@ -156,10 +156,11 @@ export default function FoodComboDetail({ id }: FoodComboDetailProps) {
                                 onClick={() => setIsFavorite(!isFavorite)}
                             >
                                 <Heart
-                                    className={`w-4 h-4 ${isFavorite
+                                    className={`w-4 h-4 ${
+                                        isFavorite
                                             ? 'fill-red-500 text-red-500'
                                             : 'text-gray-600'
-                                        }`}
+                                    }`}
                                 />
                             </Button>
                             <Button
@@ -232,19 +233,19 @@ export default function FoodComboDetail({ id }: FoodComboDetailProps) {
                                 </span>
                                 {combo.calculatedPrice !==
                                     combo.effectivePrice && (
-                                        <span className="text-xl text-gray-500 line-through">
-                                            {formatVietnameseCurrency(
-                                                combo.calculatedPrice
-                                            )}
-                                        </span>
-                                    )}
+                                    <span className="text-xl text-gray-500 line-through">
+                                        {formatVietnameseCurrency(
+                                            combo.calculatedPrice
+                                        )}
+                                    </span>
+                                )}
                             </div>
                             {combo.calculatedPrice !== combo.effectivePrice && (
                                 <p className="text-sm text-green-600 font-medium">
                                     You save{' '}
                                     {formatVietnameseCurrency(
                                         combo.calculatedPrice -
-                                        combo.effectivePrice
+                                            combo.effectivePrice
                                     )}
                                     !
                                 </p>

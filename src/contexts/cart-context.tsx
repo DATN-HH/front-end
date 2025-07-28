@@ -20,41 +20,41 @@ interface CartState {
 
 type CartAction =
     | {
-        type: 'ADD_PRODUCT';
-        payload: {
-            product: MenuProduct;
-            quantity?: number;
-            notes?: string;
-            customizations?: string[];
-        };
-    }
+          type: 'ADD_PRODUCT';
+          payload: {
+              product: MenuProduct;
+              quantity?: number;
+              notes?: string;
+              customizations?: string[];
+          };
+      }
     | {
-        type: 'ADD_PRODUCT_VARIANT';
-        payload: {
-            product: MenuProduct;
-            variant: MenuVariant;
-            quantity?: number;
-            notes?: string;
-            customizations?: string[];
-        };
-    }
+          type: 'ADD_PRODUCT_VARIANT';
+          payload: {
+              product: MenuProduct;
+              variant: MenuVariant;
+              quantity?: number;
+              notes?: string;
+              customizations?: string[];
+          };
+      }
     | {
-        type: 'ADD_FOOD_COMBO';
-        payload: {
-            combo: FoodComboResponse;
-            quantity?: number;
-            notes?: string;
-            customizations?: string[];
-        };
-    }
+          type: 'ADD_FOOD_COMBO';
+          payload: {
+              combo: FoodComboResponse;
+              quantity?: number;
+              notes?: string;
+              customizations?: string[];
+          };
+      }
     | {
-        type: 'ADD_ITEM'; // Legacy support
-        payload: {
-            menuItem: MenuItem;
-            notes?: string;
-            customizations?: string[];
-        };
-    }
+          type: 'ADD_ITEM'; // Legacy support
+          payload: {
+              menuItem: MenuItem;
+              notes?: string;
+              customizations?: string[];
+          };
+      }
     | { type: 'REMOVE_ITEM'; payload: string }
     | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
     | { type: 'CLEAR_CART' }
