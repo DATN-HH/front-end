@@ -181,7 +181,7 @@ export interface FoodComboResponse {
 // ========== API Functions ==========
 
 // Create Food Combo
-export const createFoodCombo = async (
+const createFoodCombo = async (
     data: FoodComboCreateRequest,
     saveAndNew: boolean = false
 ): Promise<FoodComboResponse> => {
@@ -194,7 +194,7 @@ export const createFoodCombo = async (
 };
 
 // Get all Food Combos
-export const getAllFoodCombos = async (): Promise<FoodComboResponse[]> => {
+const getAllFoodCombos = async (): Promise<FoodComboResponse[]> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
         '/api/menu/food-combos'
     );
@@ -202,7 +202,7 @@ export const getAllFoodCombos = async (): Promise<FoodComboResponse[]> => {
 };
 
 // Get single Food Combo
-export const getFoodCombo = async (id: number): Promise<FoodComboResponse> => {
+const getFoodCombo = async (id: number): Promise<FoodComboResponse> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse>>(
         `/api/menu/food-combos/${id}`
     );
@@ -210,7 +210,7 @@ export const getFoodCombo = async (id: number): Promise<FoodComboResponse> => {
 };
 
 // Update Food Combo
-export const updateFoodCombo = async (
+const updateFoodCombo = async (
     id: number,
     data: FoodComboUpdateRequest
 ): Promise<FoodComboResponse> => {
@@ -222,7 +222,7 @@ export const updateFoodCombo = async (
 };
 
 // Delete Food Combo
-export const deleteFoodCombo = async (id: number): Promise<string> => {
+const deleteFoodCombo = async (id: number): Promise<string> => {
     const response = await apiClient.delete<ApiResponse<string>>(
         `/api/menu/food-combos/${id}`
     );
@@ -230,7 +230,7 @@ export const deleteFoodCombo = async (id: number): Promise<string> => {
 };
 
 // Add Product to Combo
-export const addProductToCombo = async (
+const addProductToCombo = async (
     comboId: number,
     productId: number,
     quantity: number = 1
@@ -242,7 +242,7 @@ export const addProductToCombo = async (
 };
 
 // Remove Product from Combo
-export const removeProductFromCombo = async (
+const removeProductFromCombo = async (
     comboId: number,
     productId: number
 ): Promise<FoodComboResponse> => {
@@ -253,7 +253,7 @@ export const removeProductFromCombo = async (
 };
 
 // Update Combo Item Quantity
-export const updateComboItemQuantity = async (
+const updateComboItemQuantity = async (
     comboId: number,
     productId: number,
     quantity: number
@@ -265,7 +265,7 @@ export const updateComboItemQuantity = async (
 };
 
 // Search Food Combos
-export const searchFoodCombos = async (
+const searchFoodCombos = async (
     searchTerm: string
 ): Promise<FoodComboResponse[]> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
@@ -275,7 +275,7 @@ export const searchFoodCombos = async (
 };
 
 // Get Food Combos by Category
-export const getFoodCombosByCategory = async (
+const getFoodCombosByCategory = async (
     categoryId: number
 ): Promise<FoodComboResponse[]> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
@@ -285,7 +285,7 @@ export const getFoodCombosByCategory = async (
 };
 
 // Get Food Combos by POS Category
-export const getFoodCombosByPosCategory = async (
+const getFoodCombosByPosCategory = async (
     posCategoryId: number
 ): Promise<FoodComboResponse[]> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
@@ -295,7 +295,7 @@ export const getFoodCombosByPosCategory = async (
 };
 
 // Get Available POS Combos
-export const getAvailablePosCombo = async (): Promise<FoodComboResponse[]> => {
+const getAvailablePosCombo = async (): Promise<FoodComboResponse[]> => {
     const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
         '/api/menu/food-combos/pos/available'
     );

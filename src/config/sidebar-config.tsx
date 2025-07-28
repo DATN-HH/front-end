@@ -10,7 +10,6 @@ import {
     Package,
     Tags,
     Settings,
-    Printer,
     Clock,
     ShoppingCart,
     ClipboardList,
@@ -112,11 +111,11 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                     label: 'Attributes',
                     icon: <Settings className="h-4 w-4" />,
                 },
-                {
-                    href: '/app/menu/kitchen-printers',
-                    label: 'Kitchen Printers',
-                    icon: <Printer className="h-4 w-4" />,
-                },
+                // {
+                //     href: '/app/menu/kitchen-printers',
+                //     label: 'Kitchen Printers',
+                //     icon: <Printer className="h-4 w-4" />,
+                // },
             ],
         },
         {

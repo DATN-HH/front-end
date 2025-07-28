@@ -4,12 +4,6 @@ import { Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 import { useAllCategories } from '@/api/v1/menu/categories';
-import {
-    MenuProduct,
-    MenuVariant,
-    getVariantDisplayName,
-} from '@/api/v1/menu/menu-products';
-import { MenuCategorySection } from '@/components/common/MenuCategorySection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,16 +13,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useCustomToast } from '@/lib/show-toast';
+import { FoodComboSection } from '@/features/guess-menu/components/FoodComboSection';
+import { MenuCategorySection } from '@/features/guess-menu/components/MenuCategorySection';
 
 export default function MenuPage() {
     const [selectedCategory, setSelectedCategory] = useState<number | 'All'>(
         'All'
     );
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Toast for notifications
-    const { success, error } = useCustomToast();
 
     // Fetch categories data
     const { data: categoriesData, isLoading: categoriesLoading } =
@@ -48,26 +40,6 @@ export default function MenuPage() {
             category.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [categories, searchQuery]);
-
-    // Handle add to cart
-    const handleAddToCart = (
-        product: MenuProduct,
-        variant: MenuVariant | null,
-        quantity: number,
-        note?: string
-    ) => {
-        const itemName = variant
-            ? `${product.name} (${getVariantDisplayName(variant)})`
-            : product.name;
-        const noteText = note ? ` with note: "${note}"` : '';
-        success(
-            'Added to Cart',
-            `${quantity}x ${itemName} added to cart${noteText}`
-        );
-
-        // Here you would typically dispatch to a cart context or state management
-        console.log('Add to cart:', { product, variant, quantity, note });
-    };
 
     // Show loading state
     if (categoriesLoading) {
@@ -140,6 +112,9 @@ export default function MenuPage() {
                     </div>
                 </div>
 
+                {/* Food Combos Section */}
+                <FoodComboSection className="mb-8 md:mb-12" />
+
                 {/* Menu Categories with Lazy Loading */}
                 <div className="space-y-8 md:space-y-12">
                     {selectedCategory === 'All'
@@ -149,7 +124,6 @@ export default function MenuPage() {
                                   key={category.id}
                                   categoryId={category.id}
                                   categoryName={category.name}
-                                  onAddToCart={handleAddToCart}
                               />
                           ))
                         : // Show specific category
@@ -162,7 +136,6 @@ export default function MenuPage() {
                                       key={category.id}
                                       categoryId={category.id}
                                       categoryName={category.name}
-                                      onAddToCart={handleAddToCart}
                                   />
                               ) : null;
                           })()}

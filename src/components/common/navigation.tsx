@@ -1,15 +1,14 @@
 'use client';
 
-import { Menu, ShoppingCart, User } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { CartSidebar } from '@/components/common/CartSidebar';
 import { Logo } from '@/components/common/logo';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useCart } from '@/contexts/cart-context';
 
 const navItems = [
     { href: '/', label: 'Home' },
@@ -23,12 +22,7 @@ const navItems = [
 export function Navigation() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
-    const { state } = useCart();
     const router = useRouter();
-    const totalItems = state.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-    );
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,20 +50,7 @@ export function Navigation() {
 
                 {/* Desktop Actions */}
                 <div className="hidden md:flex items-center space-x-4">
-                    <Link href="/cart">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="relative"
-                        >
-                            <ShoppingCart className="h-4 w-4" />
-                            {totalItems > 0 && (
-                                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
-                                    {totalItems}
-                                </Badge>
-                            )}
-                        </Button>
-                    </Link>
+                    <CartSidebar />
                     <Link href="/login">
                         <Button variant="outline" size="sm">
                             <User className="h-4 w-4 mr-2" />
@@ -80,20 +61,7 @@ export function Navigation() {
 
                 {/* Mobile Navigation */}
                 <div className="flex md:hidden items-center space-x-2">
-                    <Link href="/cart">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="relative"
-                        >
-                            <ShoppingCart className="h-4 w-4" />
-                            {totalItems > 0 && (
-                                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
-                                    {totalItems}
-                                </Badge>
-                            )}
-                        </Button>
-                    </Link>
+                    <CartSidebar />
 
                     <Sheet open={isOpen} onOpenChange={setIsOpen}>
                         <SheetTrigger asChild>

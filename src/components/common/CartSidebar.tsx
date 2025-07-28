@@ -1,0 +1,263 @@
+'use client';
+
+import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+
+import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet';
+import type { CartItem } from '@/lib/types';
+import { useCartStore } from '@/stores/cart-store';
+
+interface CartItemCardProps {
+    item: CartItem;
+    onUpdateQuantity: (itemId: string, quantity: number) => void;
+    onRemove: (itemId: string) => void;
+}
+
+function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
+    const getItemDisplayName = () => {
+        switch (item.type) {
+            case 'product_variant':
+                return `${item.baseProductName} (${item.variantName})`;
+            case 'food_combo':
+                return item.name;
+            default:
+                return item.name;
+        }
+    };
+
+    const getItemDescription = () => {
+        switch (item.type) {
+            case 'food_combo':
+                return `${item.itemsCount} items included`;
+            default:
+                return item.description;
+        }
+    };
+
+    return (
+        <Card className="mb-3">
+            <CardContent className="p-3">
+                <div className="flex gap-3">
+                    {/* Item Image */}
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+                        <Image
+                            src={item.image ?? '/placeholder.svg'}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                        />
+                        {item.type === 'food_combo' && (
+                            <div className="absolute top-1 left-1">
+                                <Badge className="bg-orange-500 text-white text-xs px-1 py-0">
+                                    Combo
+                                </Badge>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Item Details */}
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm line-clamp-1">
+                            {getItemDisplayName()}
+                        </h4>
+
+                        {getItemDescription() && (
+                            <p className="text-xs text-gray-600 line-clamp-1 mt-1">
+                                {getItemDescription()}
+                            </p>
+                        )}
+
+                        {item.notes && (
+                            <p className="text-xs text-blue-600 italic mt-1">
+                                Note: {item.notes}
+                            </p>
+                        )}
+
+                        {item.customizations &&
+                            item.customizations.length > 0 && (
+                                <p className="text-xs text-green-600 mt-1">
+                                    {item.customizations.join(', ')}
+                                </p>
+                            )}
+
+                        {/* Price and Controls */}
+                        <div className="flex items-center justify-between mt-2">
+                            <div className="text-sm font-semibold text-orange-600">
+                                {formatVietnameseCurrency(
+                                    item.price * item.quantity
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {/* Quantity Controls */}
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() =>
+                                            onUpdateQuantity(
+                                                item.id,
+                                                item.quantity - 1
+                                            )
+                                        }
+                                        disabled={item.quantity <= 1}
+                                    >
+                                        <Minus className="h-3 w-3" />
+                                    </Button>
+                                    <span className="text-sm font-medium w-6 text-center">
+                                        {item.quantity}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() =>
+                                            onUpdateQuantity(
+                                                item.id,
+                                                item.quantity + 1
+                                            )
+                                        }
+                                    >
+                                        <Plus className="h-3 w-3" />
+                                    </Button>
+                                </div>
+
+                                {/* Remove Button */}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                    onClick={() => onRemove(item.id)}
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+export function CartSidebar() {
+    const items = useCartStore((state) => state.items);
+    const updateQuantity = useCartStore((state) => state.updateQuantity);
+    const removeItem = useCartStore((state) => state.removeItem);
+    const clearCart = useCartStore((state) => state.clearCart);
+    const getTotalItems = useCartStore((state) => state.getTotalItems);
+    const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+
+    const totalItems = getTotalItems();
+    const totalPrice = getTotalPrice();
+
+    return (
+        <Sheet>
+            <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="relative">
+                    <ShoppingCart className="h-4 w-4" />
+                    {totalItems > 0 && (
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                            {totalItems}
+                        </Badge>
+                    )}
+                </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-lg">
+                <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                        <ShoppingCart className="h-5 w-5" />
+                        Your Cart ({totalItems} items)
+                    </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex flex-col h-full mt-6">
+                    {items.length === 0 ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="text-center">
+                                <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                    Your cart is empty
+                                </h3>
+                                <p className="text-gray-600">
+                                    Add some delicious items to get started!
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Cart Items */}
+                            <ScrollArea className="flex-1 -mx-6 px-6">
+                                {items.map((item) => (
+                                    <CartItemCard
+                                        key={item.id}
+                                        item={item}
+                                        onUpdateQuantity={updateQuantity}
+                                        onRemove={removeItem}
+                                    />
+                                ))}
+                            </ScrollArea>
+
+                            {/* Cart Summary */}
+                            <div className="border-t pt-4 mt-4">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span>
+                                            Subtotal ({totalItems} items)
+                                        </span>
+                                        <span>
+                                            {formatVietnameseCurrency(
+                                                totalPrice
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span>Delivery Fee</span>
+                                        <span>Free</span>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-between text-lg font-semibold">
+                                        <span>Total</span>
+                                        <span className="text-orange-600">
+                                            {formatVietnameseCurrency(
+                                                totalPrice
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="space-y-2 mt-4">
+                                    <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                                        Proceed to Checkout
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={clearCart}
+                                    >
+                                        Clear Cart
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </SheetContent>
+        </Sheet>
+    );
+}

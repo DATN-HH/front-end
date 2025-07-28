@@ -252,7 +252,7 @@ export interface ProductGroupedParams {
 // ========== API Functions ==========
 
 // Get all products using /api/menu/products
-export const getAllProducts = async (): Promise<ProductResponse[]> => {
+const getAllProducts = async (): Promise<ProductResponse[]> => {
     const response =
         await apiClient.get<ApiResponse<ProductResponse[]>>(
             '/api/menu/products'
@@ -261,7 +261,7 @@ export const getAllProducts = async (): Promise<ProductResponse[]> => {
 };
 
 // Create product using /api/menu/products with optional saveAndNew parameter
-export const createProduct = async (
+const createProduct = async (
     data: ProductCreateRequest,
     saveAndNew: boolean = false
 ): Promise<ProductResponse> => {
@@ -273,7 +273,7 @@ export const createProduct = async (
 };
 
 // Get single product using /api/menu/products/{id}
-export const getProduct = async (id: number): Promise<ProductResponse> => {
+const getProduct = async (id: number): Promise<ProductResponse> => {
     const response = await apiClient.get<ApiResponse<ProductResponse>>(
         `/api/menu/products/${id}`
     );
@@ -281,9 +281,7 @@ export const getProduct = async (id: number): Promise<ProductResponse> => {
 };
 
 // Get product detail using /api/menu/products/{id}/detail
-export const getProductDetail = async (
-    id: number
-): Promise<ProductDetailResponse> => {
+const getProductDetail = async (id: number): Promise<ProductDetailResponse> => {
     const response = await apiClient.get<ApiResponse<ProductDetailResponse>>(
         `/api/menu/products/${id}/detail`
     );
@@ -291,7 +289,7 @@ export const getProductDetail = async (
 };
 
 // Update product using /api/menu/products/{id}
-export const updateProduct = async (
+const updateProduct = async (
     id: number,
     data: ProductUpdateRequest
 ): Promise<ProductDetailResponse> => {
@@ -303,7 +301,7 @@ export const updateProduct = async (
 };
 
 // Get products by category using /api/menu/products/category/{categoryId}
-export const getProductsByCategory = async (
+const getProductsByCategory = async (
     categoryId: number
 ): Promise<ProductResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
@@ -312,18 +310,8 @@ export const getProductsByCategory = async (
     return response.data.data;
 };
 
-// Search products using /api/menu/products/search
-export const searchProducts = async (
-    name: string
-): Promise<ProductResponse[]> => {
-    const response = await apiClient.get<ApiResponse<ProductResponse[]>>(
-        `/api/menu/products/search?name=${encodeURIComponent(name)}`
-    );
-    return response.data.data;
-};
-
 // Get paginated product list using /api/menu/products/list
-export const getProductList = async (
+const getProductList = async (
     params: ProductListParams = {}
 ): Promise<{
     content: ProductListResponse[];
@@ -356,7 +344,7 @@ export const getProductList = async (
 };
 
 // Get grouped product list using /api/menu/products/list/grouped
-export const getGroupedProductList = async (
+const getGroupedProductList = async (
     params: ProductGroupedParams = {}
 ): Promise<ProductGroupedResponse[]> => {
     const searchParams = new URLSearchParams();
@@ -373,30 +361,8 @@ export const getGroupedProductList = async (
     return response.data.data;
 };
 
-// Archive multiple products using /api/menu/products/archive
-export const archiveProducts = async (
-    data: ProductArchiveRequest
-): Promise<string> => {
-    const response = await apiClient.post<ApiResponse<string>>(
-        '/api/menu/products/archive',
-        data
-    );
-    return response.data.data;
-};
-
-// Unarchive multiple products using /api/menu/products/unarchive
-export const unarchiveProducts = async (
-    data: ProductArchiveRequest
-): Promise<string> => {
-    const response = await apiClient.post<ApiResponse<string>>(
-        '/api/menu/products/unarchive',
-        data
-    );
-    return response.data.data;
-};
-
 // Archive single product using /api/menu/products/{id}/archive
-export const archiveProduct = async (id: number): Promise<string> => {
+const archiveProduct = async (id: number): Promise<string> => {
     const response = await apiClient.post<ApiResponse<string>>(
         `/api/menu/products/${id}/archive`
     );
@@ -404,7 +370,7 @@ export const archiveProduct = async (id: number): Promise<string> => {
 };
 
 // Unarchive single product using /api/menu/products/{id}/unarchive
-export const unarchiveProduct = async (id: number): Promise<string> => {
+const unarchiveProduct = async (id: number): Promise<string> => {
     const response = await apiClient.post<ApiResponse<string>>(
         `/api/menu/products/${id}/unarchive`
     );
@@ -442,14 +408,6 @@ export const useProductsByCategory = (categoryId: number) => {
         queryKey: ['products', 'category', categoryId],
         queryFn: () => getProductsByCategory(categoryId),
         enabled: !!categoryId,
-    });
-};
-
-export const useSearchProducts = (name: string) => {
-    return useQuery({
-        queryKey: ['products', 'search', name],
-        queryFn: () => searchProducts(name),
-        enabled: !!name && name.length > 0,
     });
 };
 
@@ -524,28 +482,6 @@ export const useUpdateProduct = () => {
                     queryKey: ['categories', data.categoryId, 'product-count'],
                 });
             }
-        },
-    });
-};
-
-export const useArchiveProducts = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: archiveProducts,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['products'] });
-        },
-    });
-};
-
-export const useUnarchiveProducts = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: unarchiveProducts,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['products'] });
         },
     });
 };

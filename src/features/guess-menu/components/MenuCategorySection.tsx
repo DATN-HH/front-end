@@ -9,23 +9,21 @@ import {
     MenuVariant,
     useMenuProductsByCategory,
     formatPriceRange,
+    formatVietnameseCurrency,
 } from '@/api/v1/menu/menu-products';
+import { AddToCartDialog } from '@/components/common/AddToCartDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCustomToast } from '@/lib/show-toast';
+import { useCartStore } from '@/stores/cart-store';
 
 import { ProductVariantDialog } from './ProductVariantDialog';
 
 interface MenuCategorySectionProps {
     categoryId: number;
     categoryName: string;
-    onAddToCart?: (
-        product: MenuProduct,
-        variant: MenuVariant | null,
-        quantity: number,
-        note?: string
-    ) => void;
 }
 
 interface ProductCardProps {
@@ -136,13 +134,16 @@ function ProductCardSkeleton() {
 export function MenuCategorySection({
     categoryId,
     categoryName,
-    onAddToCart,
 }: MenuCategorySectionProps) {
     const router = useRouter();
+    const addProduct = useCartStore((state) => state.addProduct);
+    const addProductVariant = useCartStore((state) => state.addProductVariant);
+    const { success } = useCustomToast();
     const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(
         null
     );
     const [showVariantDialog, setShowVariantDialog] = useState(false);
+    const [showAddToCartDialog, setShowAddToCartDialog] = useState(false);
 
     const {
         data: products = [],
@@ -153,12 +154,11 @@ export function MenuCategorySection({
     const handleAddClick = (product: MenuProduct) => {
         const hasVariants = product.variants && product.variants.length > 0;
 
+        setSelectedProduct(product);
         if (hasVariants) {
-            setSelectedProduct(product);
             setShowVariantDialog(true);
         } else {
-            // Add directly to cart without variants
-            onAddToCart?.(product, null, 1);
+            setShowAddToCartDialog(true);
         }
     };
 
@@ -166,9 +166,44 @@ export function MenuCategorySection({
         product: MenuProduct,
         variant: MenuVariant | null,
         quantity: number,
-        note?: string
+        note?: string,
+        customizations?: string[]
     ) => {
-        onAddToCart?.(product, variant, quantity, note);
+        if (variant) {
+            addProductVariant(product, variant, {
+                quantity,
+                notes: note,
+                customizations,
+            });
+            success(
+                'Added to Cart',
+                `${product.name} (${variant.name}) added to cart`
+            );
+        } else {
+            addProduct(product, {
+                quantity,
+                notes: note,
+                customizations,
+            });
+            success('Added to Cart', `${product.name} added to cart`);
+        }
+        setShowVariantDialog(false);
+    };
+
+    const handleSimpleAddToCart = (
+        quantity: number,
+        notes?: string,
+        customizations?: string[]
+    ) => {
+        if (!selectedProduct) return;
+
+        addProduct(selectedProduct, {
+            quantity,
+            notes,
+            customizations,
+        });
+        success('Added to Cart', `${selectedProduct.name} added to cart`);
+        setShowAddToCartDialog(false);
     };
 
     // Don't render if loading and no cached data
@@ -304,6 +339,19 @@ export function MenuCategorySection({
                 product={selectedProduct}
                 onAddToCart={handleAddToCart}
             />
+
+            {/* Simple Add to Cart Dialog */}
+            {selectedProduct && (
+                <AddToCartDialog
+                    open={showAddToCartDialog}
+                    onOpenChange={setShowAddToCartDialog}
+                    title={selectedProduct.name}
+                    description={selectedProduct.description}
+                    price={selectedProduct.price || 0}
+                    onAddToCart={handleSimpleAddToCart}
+                    formatPrice={formatVietnameseCurrency}
+                />
+            )}
         </>
     );
 }

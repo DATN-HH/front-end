@@ -84,7 +84,7 @@ const eslintConfig = [
           semi: true,
           trailingComma: 'es5',
           printWidth: 80,
-          tabWidth: 2,
+          tabWidth: 4,
           useTabs: false,
           endOfLine: 'auto'
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Minus, Plus, MessageSquare } from 'lucide-react';
+import { Clock, Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -22,6 +22,25 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 
+// Common quick notes for all items (same as AddToCartDialog)
+const quickNotes = [
+    'No onions',
+    'Extra spicy',
+    'On the side',
+    'Well done',
+    'Medium rare',
+    'No cheese',
+    'Extra sauce',
+    'Gluten free',
+    'Vegetarian',
+    'Less salt',
+    'No ice',
+    'Extra hot',
+    'Mild spice',
+    'No garlic',
+    'Extra crispy',
+];
+
 interface ProductVariantDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -30,7 +49,8 @@ interface ProductVariantDialogProps {
         product: MenuProduct,
         variant: MenuVariant | null,
         quantity: number,
-        note?: string
+        note?: string,
+        customizations?: string[]
     ) => void;
 }
 
@@ -45,6 +65,7 @@ export function ProductVariantDialog({
     );
     const [quantity, setQuantity] = useState(1);
     const [note, setNote] = useState('');
+    const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
 
     if (!product) return null;
 
@@ -55,18 +76,19 @@ export function ProductVariantDialog({
 
     const handleAddToCart = () => {
         if (onAddToCart) {
+            const allNotes = [note, ...selectedQuickNotes]
+                .filter(Boolean)
+                .join(', ');
+
             onAddToCart(
                 product,
                 selectedVariant,
                 quantity,
-                note.trim() || undefined
+                allNotes || undefined,
+                selectedQuickNotes
             );
         }
-        onOpenChange(false);
-        // Reset state
-        setSelectedVariant(null);
-        setQuantity(1);
-        setNote('');
+        handleClose();
     };
 
     const handleQuantityChange = (delta: number) => {
@@ -76,13 +98,33 @@ export function ProductVariantDialog({
         }
     };
 
+    const toggleQuickNote = (noteText: string) => {
+        setSelectedQuickNotes((prev) =>
+            prev.includes(noteText)
+                ? prev.filter((n) => n !== noteText)
+                : [...prev, noteText]
+        );
+    };
+
+    const handleClose = () => {
+        // Reset state when closing
+        setSelectedVariant(null);
+        setQuantity(1);
+        setNote('');
+        setSelectedQuickNotes([]);
+        onOpenChange(false);
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <Dialog open={open} onOpenChange={handleClose}>
+            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-left">
-                        {product.name}
-                    </DialogTitle>
+                    <DialogTitle>Add {product.name} to Cart</DialogTitle>
+                    {product.description && (
+                        <p className="text-sm text-gray-600 mt-2">
+                            {product.description}
+                        </p>
+                    )}
                 </DialogHeader>
 
                 <div className="space-y-4">
@@ -115,17 +157,17 @@ export function ProductVariantDialog({
                     <Separator />
 
                     {/* Variants Selection */}
-                    {hasVariants ? (
-                        <div className="space-y-3">
-                            <h3 className="font-medium">Choose your option:</h3>
+                    {hasVariants && (
+                        <div className="space-y-2">
+                            <Label>Choose your option</Label>
                             <div className="space-y-2">
                                 {product.variants.map((variant) => (
                                     <div
                                         key={variant.id}
                                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                                             selectedVariant?.id === variant.id
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-orange-500 bg-orange-50'
+                                                : 'border-gray-200 hover:border-orange-300'
                                         }`}
                                         onClick={() =>
                                             setSelectedVariant(variant)
@@ -150,10 +192,7 @@ export function ProductVariantDialog({
                                             <div className="flex-shrink-0">
                                                 {selectedVariant?.id ===
                                                     variant.id && (
-                                                    <Badge
-                                                        variant="default"
-                                                        className="text-xs"
-                                                    >
+                                                    <Badge className="text-xs bg-orange-500 hover:bg-orange-600">
                                                         Selected
                                                     </Badge>
                                                 )}
@@ -163,20 +202,14 @@ export function ProductVariantDialog({
                                 ))}
                             </div>
                         </div>
-                    ) : (
-                        <div className="text-center py-2">
-                            <Badge variant="secondary" className="text-lg">
-                                {formatVietnameseCurrency(product.price)}
-                            </Badge>
-                        </div>
                     )}
 
                     <Separator />
 
                     {/* Quantity Selector */}
-                    <div className="space-y-3">
-                        <h3 className="font-medium">Quantity:</h3>
-                        <div className="flex items-center justify-center gap-4">
+                    <div className="flex items-center justify-between">
+                        <Label>Quantity</Label>
+                        <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -185,7 +218,7 @@ export function ProductVariantDialog({
                             >
                                 <Minus className="w-4 h-4" />
                             </Button>
-                            <span className="text-lg font-medium w-8 text-center">
+                            <span className="w-8 text-center font-medium">
                                 {quantity}
                             </span>
                             <Button
@@ -198,52 +231,82 @@ export function ProductVariantDialog({
                         </div>
                     </div>
 
-                    <Separator />
+                    {/* Quick Notes */}
+                    <div className="space-y-2">
+                        <Label>Quick Notes</Label>
+                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                            {quickNotes.map((noteText) => (
+                                <Badge
+                                    key={noteText}
+                                    variant={
+                                        selectedQuickNotes.includes(noteText)
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    className={`cursor-pointer text-xs transition-colors ${
+                                        selectedQuickNotes.includes(noteText)
+                                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                            : 'hover:bg-orange-50 hover:border-orange-300'
+                                    }`}
+                                    onClick={() => toggleQuickNote(noteText)}
+                                >
+                                    {noteText}
+                                </Badge>
+                            ))}
+                        </div>
+                        {selectedQuickNotes.length > 0 && (
+                            <div className="text-xs text-gray-500">
+                                Selected: {selectedQuickNotes.join(', ')}
+                            </div>
+                        )}
+                    </div>
 
-                    {/* Notes */}
-                    <div className="space-y-3">
-                        <Label
-                            htmlFor="note"
-                            className="flex items-center gap-2 text-sm font-medium"
-                        >
-                            <MessageSquare className="w-4 h-4" />
-                            Special Instructions (Optional)
-                        </Label>
+                    {/* Custom Notes */}
+                    <div className="space-y-2">
+                        <Label htmlFor="note">Special Instructions</Label>
                         <Textarea
                             id="note"
-                            placeholder="Any special requests or notes..."
+                            placeholder="Any special requests or modifications..."
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
                             rows={3}
-                            className="text-sm"
+                            className="resize-none"
                         />
                     </div>
 
-                    <Separator />
-
-                    {/* Total Price */}
-                    <div className="flex justify-between items-center text-lg font-semibold">
-                        <span>Total:</span>
-                        <span className="text-green-600">
-                            {formatVietnameseCurrency(currentPrice * quantity)}
-                        </span>
+                    {/* Price Summary */}
+                    <div className="border-t pt-4">
+                        <div className="flex items-center justify-between text-sm">
+                            <span>Unit Price:</span>
+                            <span>
+                                {formatVietnameseCurrency(currentPrice)}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between text-lg font-bold mt-2">
+                            <span>Total:</span>
+                            <span className="text-orange-600">
+                                {formatVietnameseCurrency(
+                                    currentPrice * quantity
+                                )}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-2 pt-2">
                         <Button
                             variant="outline"
-                            onClick={() => onOpenChange(false)}
+                            onClick={handleClose}
                             className="flex-1"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleAddToCart}
-                            className="flex-1"
+                            className="flex-1 bg-orange-500 hover:bg-orange-600"
                             disabled={hasVariants && !selectedVariant}
                         >
-                            Add to Cart
+                            Add
                         </Button>
                     </div>
                 </div>

@@ -9,17 +9,16 @@ import {
     Share2,
     ShoppingCart,
     Info,
+    Package,
+    Users,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useMemo, use } from 'react';
+import { useState } from 'react';
 
-import {
-    useMenuProduct,
-    getVariantPrice,
-    getVariantDisplayName,
-    formatVietnameseCurrency,
-} from '@/api/v1/menu/menu-products';
+import { useFoodCombo } from '@/api/v1/menu/food-combos';
+import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -34,7 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCustomToast } from '@/lib/show-toast';
 import { useCartStore } from '@/stores/cart-store';
 
-// Quick notes for menu items
+// Quick notes for combo items
 const quickNotes = [
     'No onions',
     'Extra spicy',
@@ -48,75 +47,39 @@ const quickNotes = [
     'Less salt',
 ];
 
-interface ProductDetailPageProps {
-    params: Promise<{ id: string }>;
+interface FoodComboDetailPageProps {
+    params: { id: string };
 }
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-    const resolvedParams = use(params);
+export default function FoodComboDetailPage({
+    params,
+}: FoodComboDetailPageProps) {
     const [isAddToCartOpen, setIsAddToCartOpen] = useState(false);
     const [notes, setNotes] = useState('');
     const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([]);
-    const [selectedVariant, setSelectedVariant] = useState<any>(null);
     const [quantity, setQuantity] = useState(1);
     const [isFavorite, setIsFavorite] = useState(false);
-    const addProduct = useCartStore((state) => state.addProduct);
-    const addProductVariant = useCartStore((state) => state.addProductVariant);
+    const addFoodCombo = useCartStore((state) => state.addFoodCombo);
     const { success } = useCustomToast();
 
-    // Fetch product details and variants from API
-    const productId = parseInt(resolvedParams.id);
-    const { data: product, isLoading, error } = useMenuProduct(productId);
-
-    // Extract variants from the product data
-    const variants = product?.variants || [];
-
-    // Calculate current price based on selected variant
-    const currentPrice = useMemo(() => {
-        if (selectedVariant && product) {
-            return getVariantPrice(selectedVariant, product.price || 0);
-        }
-        // If no variant selected, use the first variant's price or fallback to 0
-        if (product && variants.length > 0) {
-            return getVariantPrice(variants[0], product.price || 0);
-        }
-        return product?.price || 0;
-    }, [selectedVariant, product, variants]);
-
-    // Check if product has variants
-    const hasVariants = variants && variants.length > 0;
+    // Fetch combo details from API
+    const comboId = parseInt(params.id);
+    const { data: combo, isLoading, error } = useFoodCombo(comboId);
 
     const handleAddToCart = () => {
-        if (!product) return;
-
-        // Validate variant selection if product has variants
-        if (hasVariants && !selectedVariant) {
-            alert('Please select a variant before adding to cart');
-            return;
-        }
+        if (!combo) return;
 
         const allNotes = [notes, ...selectedQuickNotes]
             .filter(Boolean)
             .join(', ');
 
-        if (selectedVariant) {
-            addProductVariant(product, selectedVariant, {
-                quantity,
-                notes: allNotes || undefined,
-                customizations: selectedQuickNotes,
-            });
-            success(
-                'Added to Cart',
-                `${product.name} (${selectedVariant.name}) added to cart`
-            );
-        } else {
-            addProduct(product, {
-                quantity,
-                notes: allNotes || undefined,
-                customizations: selectedQuickNotes,
-            });
-            success('Added to Cart', `${product.name} added to cart`);
-        }
+        addFoodCombo(combo, {
+            quantity,
+            notes: allNotes || undefined,
+            customizations: selectedQuickNotes,
+        });
+
+        success('Added to Cart', `${combo.name} added to cart`);
 
         setIsAddToCartOpen(false);
         setNotes('');
@@ -135,8 +98,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     const handleShare = () => {
         if (navigator.share) {
             navigator.share({
-                title: product?.name,
-                text: product?.description,
+                title: combo?.name,
+                text: combo?.description,
                 url: window.location.href,
             });
         } else {
@@ -149,21 +112,21 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading product...</p>
+                    <p className="text-gray-600">Loading combo...</p>
                 </div>
             </div>
         );
     }
 
-    if (error || !product) {
+    if (error || !combo) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                        Product Not Found
+                        Combo Not Found
                     </h1>
                     <p className="text-gray-600 mb-8">
-                        The product you're looking for doesn't exist.
+                        The food combo you're looking for doesn't exist.
                     </p>
                     <Link href="/menu">
                         <Button className="bg-orange-500 hover:bg-orange-600">
@@ -216,86 +179,80 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
             <div className="container mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Product Image */}
+                    {/* Combo Image */}
                     <div className="space-y-4">
-                        <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-100">
+                        <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-100 relative">
                             <Image
-                                src={product.image || '/placeholder.svg'}
-                                alt={product.name}
+                                src={combo.image || '/placeholder.svg'}
+                                alt={combo.name}
                                 width={600}
                                 height={600}
                                 className="w-full h-full object-cover"
                                 priority
                             />
+                            {/* Combo Badge */}
+                            <div className="absolute top-4 left-4">
+                                <Badge className="bg-orange-500 hover:bg-orange-600 text-white">
+                                    <Package className="w-3 h-3 mr-1" />
+                                    Combo Deal
+                                </Badge>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Product Info */}
+                    {/* Combo Info */}
                     <div className="space-y-6">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                {product.name}
+                                {combo.name}
                             </h1>
                             <p className="text-gray-600 text-lg leading-relaxed">
-                                {product.description}
+                                {combo.description}
                             </p>
                         </div>
 
-                        {/* Price */}
-                        <div className="flex items-center gap-4">
-                            <span className="text-3xl font-bold text-orange-600">
-                                {formatVietnameseCurrency(currentPrice)}
-                            </span>
-                            {product.estimateTime && (
-                                <div className="flex items-center gap-1 text-gray-500">
+                        {/* Combo Stats */}
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                <span>{combo.itemsCount} items</span>
+                            </div>
+                            {combo.estimateTime && (
+                                <div className="flex items-center gap-1">
                                     <Clock className="w-4 h-4" />
-                                    <span className="text-sm">
-                                        {product.estimateTime} min
-                                    </span>
+                                    <span>{combo.estimateTime} min</span>
                                 </div>
                             )}
                         </div>
 
-                        {/* Variants */}
-                        {hasVariants && (
-                            <div className="space-y-3">
-                                <h3 className="font-semibold text-gray-900">
-                                    Choose your option:
-                                </h3>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {variants.map((variant) => (
-                                        <button
-                                            key={variant.id}
-                                            onClick={() =>
-                                                setSelectedVariant(variant)
-                                            }
-                                            className={`p-4 border rounded-lg text-left transition-colors ${
-                                                selectedVariant?.id ===
-                                                variant.id
-                                                    ? 'border-orange-500 bg-orange-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium">
-                                                    {getVariantDisplayName(
-                                                        variant
-                                                    )}
-                                                </span>
-                                                <span className="text-orange-600 font-semibold">
-                                                    {formatVietnameseCurrency(
-                                                        getVariantPrice(
-                                                            variant,
-                                                            product.price || 0
-                                                        )
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Price */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-4">
+                                <span className="text-3xl font-bold text-orange-600">
+                                    {formatVietnameseCurrency(
+                                        combo.effectivePrice
+                                    )}
+                                </span>
+                                {combo.calculatedPrice !==
+                                    combo.effectivePrice && (
+                                    <span className="text-xl text-gray-500 line-through">
+                                        {formatVietnameseCurrency(
+                                            combo.calculatedPrice
+                                        )}
+                                    </span>
+                                )}
                             </div>
-                        )}
+                            {combo.calculatedPrice !== combo.effectivePrice && (
+                                <p className="text-sm text-green-600 font-medium">
+                                    You save{' '}
+                                    {formatVietnameseCurrency(
+                                        combo.calculatedPrice -
+                                            combo.effectivePrice
+                                    )}
+                                    !
+                                </p>
+                            )}
+                        </div>
 
                         {/* Add to Cart Button */}
                         <Dialog
@@ -308,13 +265,13 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 text-lg"
                                 >
                                     <ShoppingCart className="w-5 h-5 mr-2" />
-                                    Add
+                                    Add Combo to Cart
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
                                     <DialogTitle>
-                                        Add {product.name} to Cart
+                                        Add {combo.name} to Cart
                                     </DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
@@ -385,7 +342,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                                         </Label>
                                         <Textarea
                                             id="notes"
-                                            placeholder="Any special requests..."
+                                            placeholder="Any special requests for this combo..."
                                             value={notes}
                                             onChange={(e) =>
                                                 setNotes(e.target.value)
@@ -401,7 +358,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                                         </span>
                                         <span className="text-xl font-bold text-orange-600">
                                             {formatVietnameseCurrency(
-                                                currentPrice * quantity
+                                                combo.effectivePrice * quantity
                                             )}
                                         </span>
                                     </div>
@@ -415,6 +372,72 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                                 </div>
                             </DialogContent>
                         </Dialog>
+                    </div>
+                </div>
+
+                {/* Combo Items Section */}
+                <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                        What's Included
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {combo.comboItems.map((item) => (
+                            <Card
+                                key={item.id}
+                                className="hover:shadow-md transition-shadow"
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-3">
+                                        {item.productImage && (
+                                            <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                <Image
+                                                    src={item.productImage}
+                                                    alt={item.productName}
+                                                    width={64}
+                                                    height={64}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                                    {item.quantity}x
+                                                </span>
+                                                <h3 className="font-medium text-gray-900 line-clamp-1">
+                                                    {item.productName}
+                                                </h3>
+                                            </div>
+                                            {item.productDescription && (
+                                                <p className="text-sm text-gray-600 line-clamp-2">
+                                                    {item.productDescription}
+                                                </p>
+                                            )}
+                                            {item.notes && (
+                                                <p className="text-xs text-gray-500 mt-1 italic">
+                                                    Note: {item.notes}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center justify-between mt-2">
+                                                <span className="text-sm font-medium text-gray-900">
+                                                    {formatVietnameseCurrency(
+                                                        item.totalPrice
+                                                    )}
+                                                </span>
+                                                {item.isOptional && (
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-xs"
+                                                    >
+                                                        Optional
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </div>
 
@@ -435,16 +458,16 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                         </CardContent>
                     </Card>
 
-                    {/* Related Products Section */}
+                    {/* Related Combos Section */}
                     <Card>
                         <CardContent className="p-6">
                             <div className="text-center py-8">
                                 <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                    Related Products
+                                    Related Combos
                                 </h3>
                                 <p className="text-gray-600">
-                                    Product recommendations coming soon!
+                                    Combo recommendations coming soon!
                                 </p>
                             </div>
                         </CardContent>
