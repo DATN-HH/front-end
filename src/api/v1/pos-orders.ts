@@ -100,57 +100,93 @@ export interface POSOrderPaymentRequest {
     reference?: string;
 }
 
+// API response interface for POS endpoints (different from KDS)
+interface POSApiResponse<T> {
+    success: boolean;
+    code: number;
+    message: string;
+    data: T;
+}
+
 // API calls
 const createPOSOrder = async (
     data: POSOrderCreateRequest
 ): Promise<POSOrder> => {
-    const response = await apiClient.post<BaseResponse<POSOrder>>(
+    const response = await apiClient.post<any>(
         '/api/pos/orders',
         data
     );
-    return response.data.payload;
+
+    // Handle the backend ApiResponse format: { success, code, message, data }
+    // The actual order data is in response.data.data
+    let order;
+
+    if (response.data && typeof response.data === 'object') {
+        if (response.data.data) {
+            // Standard ApiResponse format
+            order = response.data.data;
+        } else if (response.data.id) {
+            // Direct order object
+            order = response.data;
+        } else {
+            throw new Error(`Unexpected response format: ${JSON.stringify(response.data)}`);
+        }
+    } else {
+        throw new Error(`Invalid response: ${JSON.stringify(response.data)}`);
+    }
+
+    // Validate the order object
+    if (!order || typeof order !== 'object') {
+        throw new Error(`Invalid order object: ${JSON.stringify(order)}`);
+    }
+
+    if (!order.id) {
+        throw new Error(`Order missing ID: ${JSON.stringify(order)}`);
+    }
+
+    return order as POSOrder;
 };
 
 const updatePOSOrder = async (
     data: POSOrderUpdateRequest
 ): Promise<POSOrder> => {
-    const response = await apiClient.put<BaseResponse<POSOrder>>(
+    const response = await apiClient.put<POSApiResponse<POSOrder>>(
         `/api/pos/orders/${data.id}`,
         data
     );
-    return response.data.payload;
+    return response.data.data;
 };
 
 const getPOSOrder = async (id: number): Promise<POSOrder> => {
-    const response = await apiClient.get<BaseResponse<POSOrder>>(
+    const response = await apiClient.get<POSApiResponse<POSOrder>>(
         `/api/pos/orders/${id}`
     );
-    return response.data.payload;
+    return response.data.data;
 };
 
 const getPOSOrders = async (status?: POSOrderStatus): Promise<POSOrder[]> => {
-    const response = await apiClient.get<BaseResponse<POSOrder[]>>(
+    const response = await apiClient.get<POSApiResponse<POSOrder[]>>(
         '/api/pos/orders',
         { params: { status } }
     );
-    return response.data.payload;
+    return response.data.data;
 };
 
 const createPOSOrderPayment = async (
     data: POSOrderPaymentRequest
 ): Promise<POSOrderPayment> => {
-    const response = await apiClient.post<BaseResponse<POSOrderPayment>>(
+    const response = await apiClient.post<POSApiResponse<POSOrderPayment>>(
         `/api/pos/orders/${data.orderId}/payments`,
         data
     );
-    return response.data.payload;
+    return response.data.data;
 };
 
 const sendOrderToKitchen = async (orderId: number): Promise<POSOrder> => {
-    const response = await apiClient.post<BaseResponse<POSOrder>>(
+    const response = await apiClient.post<POSApiResponse<POSOrder>>(
         `/api/pos/orders/${orderId}/send-to-kitchen`
     );
-    return response.data.payload;
+    return response.data.data;
 };
 
 // Hooks
