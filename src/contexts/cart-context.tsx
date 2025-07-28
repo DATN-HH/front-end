@@ -188,7 +188,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
             // Calculate variant price
             const variantPrice =
-                (product.price || 0) + (variant.priceAdjustment || 0);
+                variant.effectivePrice || variant.price || product.price || 0;
 
             const newItem: ProductVariantCartItem = {
                 id: generateCartItemId(
