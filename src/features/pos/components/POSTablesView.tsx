@@ -75,13 +75,32 @@ export function POSTablesView({
                 </Button>
 
                 <div className={`p-4 ${sidebarCollapsed ? 'px-2' : ''}`}>
-                    {/* Branch Selector */}
-                    {selectedBranch && onBranchSelect && !sidebarCollapsed && (
+                    {/* Branch Selector - Only show if no branch selected (fallback case) */}
+                    {!selectedBranch && onBranchSelect && !sidebarCollapsed && (
                         <div className="mb-4">
                             <BranchSelector
                                 onBranchSelect={onBranchSelect}
                                 selectedBranch={selectedBranch}
                             />
+                        </div>
+                    )}
+
+                    {/* Branch Display - Show selected branch info without selector */}
+                    {selectedBranch && !sidebarCollapsed && (
+                        <div className="mb-4">
+                            <div className="flex items-center space-x-2 p-2 bg-purple-100 rounded-lg">
+                                <Building2 className="w-4 h-4 text-purple-600" />
+                                <div className="text-sm">
+                                    <div className="font-medium text-purple-900">
+                                        {selectedBranch.name}
+                                    </div>
+                                    {selectedBranch.address && (
+                                        <div className="text-purple-700 text-xs">
+                                            {selectedBranch.address}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 
