@@ -4,16 +4,24 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { FoodComboResponse } from '@/api/v1/menu/food-combos';
 import type { MenuProduct, MenuVariant } from '@/api/v1/menu/menu-products';
 import { getVariantPrice } from '@/api/v1/menu/menu-products';
+import {
+    PriceCalculationRequest,
+    PriceCalculationResponse,
+} from '@/api/v1/menu/price-calculation';
 import type {
     CartItem,
     ProductCartItem,
     ProductVariantCartItem,
     FoodComboCartItem,
 } from '@/lib/types';
+import { apiClient } from '@/services/api-client';
 
 interface CartState {
     items: CartItem[];
     isOpen: boolean;
+    // API price calculation state
+    apiResponse: PriceCalculationResponse | null;
+    isCalculating: boolean;
 }
 
 interface CartActions {
@@ -52,6 +60,10 @@ interface CartActions {
     // Computed values
     getTotalItems: () => number;
     getTotalPrice: () => number;
+
+    // Price calculation
+    calculatePrices: () => Promise<void>;
+    getDisplayItems: () => any[];
 }
 
 type CartStore = CartState & CartActions;
@@ -93,12 +105,28 @@ function findExistingCartItem(
     return items.find((item) => item.id === targetId);
 }
 
+// Price calculation API call
+const calculatePrice = async (
+    request: PriceCalculationRequest
+): Promise<PriceCalculationResponse> => {
+    const response = await apiClient.post<{
+        success: boolean;
+        payload: PriceCalculationResponse;
+    }>('/menu/price/calculate', request);
+    return response.data.payload;
+};
+
+// Debounce function
+let calculationTimeout: NodeJS.Timeout | null = null;
+
 export const useCartStore = create<CartStore>()(
     persist(
         (set, get) => ({
             // Initial state
             items: [],
             isOpen: false,
+            apiResponse: null,
+            isCalculating: false,
 
             // Actions
             addProduct: (product, options = {}) => {
@@ -115,7 +143,7 @@ export const useCartStore = create<CartStore>()(
                     );
 
                     if (existingItem) {
-                        return {
+                        const newState = {
                             items: state.items.map((item) =>
                                 item.id === existingItem.id
                                     ? {
@@ -125,6 +153,9 @@ export const useCartStore = create<CartStore>()(
                                     : item
                             ),
                         };
+                        // Trigger price calculation after state update
+                        setTimeout(() => get().calculatePrices(), 100);
+                        return newState;
                     }
 
                     const newItem: ProductCartItem = {
@@ -146,9 +177,12 @@ export const useCartStore = create<CartStore>()(
                         customizations,
                     };
 
-                    return {
+                    const newState = {
                         items: [...state.items, newItem],
                     };
+                    // Trigger price calculation after state update
+                    setTimeout(() => get().calculatePrices(), 100);
+                    return newState;
                 });
             },
 
@@ -166,7 +200,7 @@ export const useCartStore = create<CartStore>()(
                     );
 
                     if (existingItem) {
-                        return {
+                        const newState = {
                             items: state.items.map((item) =>
                                 item.id === existingItem.id
                                     ? {
@@ -176,6 +210,9 @@ export const useCartStore = create<CartStore>()(
                                     : item
                             ),
                         };
+                        // Trigger price calculation after state update
+                        setTimeout(() => get().calculatePrices(), 100);
+                        return newState;
                     }
 
                     // Calculate variant price using the proper function
@@ -206,9 +243,12 @@ export const useCartStore = create<CartStore>()(
                         customizations,
                     };
 
-                    return {
+                    const newState = {
                         items: [...state.items, newItem],
                     };
+                    // Trigger price calculation after state update
+                    setTimeout(() => get().calculatePrices(), 100);
+                    return newState;
                 });
             },
 
@@ -226,7 +266,7 @@ export const useCartStore = create<CartStore>()(
                     );
 
                     if (existingItem) {
-                        return {
+                        const newState = {
                             items: state.items.map((item) =>
                                 item.id === existingItem.id
                                     ? {
@@ -236,6 +276,9 @@ export const useCartStore = create<CartStore>()(
                                     : item
                             ),
                         };
+                        // Trigger price calculation after state update
+                        setTimeout(() => get().calculatePrices(), 100);
+                        return newState;
                     }
 
                     const newItem: FoodComboCartItem = {
@@ -263,16 +306,24 @@ export const useCartStore = create<CartStore>()(
                         })),
                     };
 
-                    return {
+                    const newState = {
                         items: [...state.items, newItem],
                     };
+                    // Trigger price calculation after state update
+                    setTimeout(() => get().calculatePrices(), 100);
+                    return newState;
                 });
             },
 
             removeItem: (itemId) => {
-                set((state) => ({
-                    items: state.items.filter((item) => item.id !== itemId),
-                }));
+                set((state) => {
+                    const newState = {
+                        items: state.items.filter((item) => item.id !== itemId),
+                    };
+                    // Trigger price calculation after state update
+                    setTimeout(() => get().calculatePrices(), 100);
+                    return newState;
+                });
             },
 
             updateQuantity: (itemId, quantity) => {
@@ -281,15 +332,20 @@ export const useCartStore = create<CartStore>()(
                     return;
                 }
 
-                set((state) => ({
-                    items: state.items.map((item) =>
-                        item.id === itemId ? { ...item, quantity } : item
-                    ),
-                }));
+                set((state) => {
+                    const newState = {
+                        items: state.items.map((item) =>
+                            item.id === itemId ? { ...item, quantity } : item
+                        ),
+                    };
+                    // Trigger price calculation after state update
+                    setTimeout(() => get().calculatePrices(), 100);
+                    return newState;
+                });
             },
 
             clearCart: () => {
-                set({ items: [] });
+                set({ items: [], apiResponse: null });
             },
 
             toggleCart: () => {
@@ -300,6 +356,122 @@ export const useCartStore = create<CartStore>()(
                 set({ isOpen: open });
             },
 
+            // Price calculation function
+            calculatePrices: async () => {
+                const { items } = get();
+
+                if (items.length === 0) {
+                    set({ apiResponse: null, isCalculating: false });
+                    return;
+                }
+
+                // Clear existing timeout
+                if (calculationTimeout) {
+                    clearTimeout(calculationTimeout);
+                }
+
+                // Debounce API calls
+                calculationTimeout = setTimeout(async () => {
+                    set({ isCalculating: true });
+
+                    try {
+                        // Group items by type for API request
+                        const request: PriceCalculationRequest = {
+                            foodCombo: [],
+                            productVariant: [],
+                            product: [],
+                        };
+
+                        items.forEach((item) => {
+                            const apiItem = {
+                                id: 0,
+                                note: item.notes || '',
+                                quantity: item.quantity,
+                            };
+
+                            switch (item.type) {
+                                case 'food_combo':
+                                    apiItem.id = (
+                                        item as FoodComboCartItem
+                                    ).comboId;
+                                    request.foodCombo.push(apiItem);
+                                    break;
+                                case 'product_variant':
+                                    apiItem.id = (
+                                        item as ProductVariantCartItem
+                                    ).variantId;
+                                    request.productVariant.push(apiItem);
+                                    break;
+                                case 'product':
+                                    apiItem.id = (
+                                        item as ProductCartItem
+                                    ).productId;
+                                    request.product.push(apiItem);
+                                    break;
+                            }
+                        });
+
+                        const apiResponse = await calculatePrice(request);
+                        set({ apiResponse, isCalculating: false });
+                    } catch (error) {
+                        console.error('Price calculation failed:', error);
+                        set({ isCalculating: false });
+                        // Keep current apiResponse on error
+                    }
+                }, 500);
+            },
+
+            // Get display items from API response or fallback to local items
+            getDisplayItems: () => {
+                const { apiResponse, items } = get();
+
+                if (!apiResponse) return items;
+
+                const allItems = [
+                    ...apiResponse.foodCombo.map((item) => ({
+                        ...item,
+                        type: 'food_combo' as const,
+                        name:
+                            items.find(
+                                (localItem) =>
+                                    localItem.type === 'food_combo' &&
+                                    (localItem as FoodComboCartItem).comboId ===
+                                        item.id &&
+                                    (localItem.notes || '') ===
+                                        (item.note || '')
+                            )?.name || `Combo #${item.id}`,
+                    })),
+                    ...apiResponse.productVariant.map((item) => ({
+                        ...item,
+                        type: 'product_variant' as const,
+                        name:
+                            items.find(
+                                (localItem) =>
+                                    localItem.type === 'product_variant' &&
+                                    (localItem as ProductVariantCartItem)
+                                        .variantId === item.id &&
+                                    (localItem.notes || '') ===
+                                        (item.note || '')
+                            )?.name || `Variant #${item.id}`,
+                    })),
+                    ...apiResponse.product.map((item) => ({
+                        ...item,
+                        type: 'product' as const,
+                        name:
+                            items.find(
+                                (localItem) =>
+                                    localItem.type === 'product' &&
+                                    (localItem as ProductCartItem).productId ===
+                                        item.id &&
+                                    (localItem.notes || '') ===
+                                        (item.note || '')
+                            )?.name || `Product #${item.id}`,
+                    })),
+                ];
+
+                return allItems;
+            },
+
             // Computed values
             getTotalItems: () => {
                 const { items } = get();
@@ -307,19 +479,26 @@ export const useCartStore = create<CartStore>()(
             },
 
             getTotalPrice: () => {
-                const { items } = get();
+                const { apiResponse, items } = get();
+
+                // Use API response total if available
+                if (apiResponse) {
+                    return apiResponse.totalPromotion || apiResponse.total;
+                }
+
+                // Fallback to local calculation if API not called yet
                 return items.reduce((sum, item) => {
-                    const itemPrice = item.price || 0; // Safe fallback for undefined price
+                    const itemPrice = item.price || 0;
                     return sum + itemPrice * item.quantity;
                 }, 0);
             },
         }),
         {
-            name: 'cart-storage', // unique name for localStorage key
-            storage: createJSONStorage(() => localStorage), // use localStorage
+            name: 'cart-storage',
+            storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 items: state.items,
-            }), // only persist items, not isOpen state
+            }), // only persist items, not API response or isCalculating state
         }
     )
 );

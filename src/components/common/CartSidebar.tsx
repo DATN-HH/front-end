@@ -20,13 +20,23 @@ import type { CartItem } from '@/lib/types';
 import { useCartStore } from '@/stores/cart-store';
 
 interface CartItemCardProps {
-    item: CartItem;
+    item: CartItem | any; // Allow API response items too
     onUpdateQuantity: (itemId: string, quantity: number) => void;
     onRemove: (itemId: string) => void;
+    isFromApi?: boolean;
 }
 
-function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
+function CartItemCard({
+    item,
+    onUpdateQuantity,
+    onRemove,
+    isFromApi = false,
+}: CartItemCardProps) {
     const getItemDisplayName = () => {
+        if (isFromApi) {
+            return item.name;
+        }
+
         switch (item.type) {
             case 'product_variant':
                 return `${item.baseProductName} (${item.variantName})`;
@@ -38,12 +48,30 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
     };
 
     const getItemDescription = () => {
+        if (isFromApi) {
+            return item.note || '';
+        }
+
         switch (item.type) {
             case 'food_combo':
                 return `${item.itemsCount} items included`;
             default:
                 return item.description;
         }
+    };
+
+    const getItemId = () => {
+        return isFromApi ? item.tempId : item.id;
+    };
+
+    const getItemPrice = () => {
+        return isFromApi ? item.totalPrice : item.price * item.quantity;
+    };
+
+    const getItemImage = () => {
+        return isFromApi
+            ? '/placeholder.svg'
+            : (item.image ?? '/placeholder.svg');
     };
 
     return (
@@ -53,8 +81,8 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                     {/* Item Image */}
                     <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
                         <Image
-                            src={item.image ?? '/placeholder.svg'}
-                            alt={item.name}
+                            src={getItemImage()}
+                            alt={getItemDisplayName()}
                             fill
                             className="object-cover"
                             sizes="64px"
@@ -64,6 +92,14 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                                 <Badge className="bg-orange-500 text-white text-xs px-1 py-0">
                                     Combo
                                 </Badge>
+                            </div>
+                        )}
+                        {isFromApi && (
+                            <div className="absolute top-1 right-1">
+                                <div
+                                    className="w-2 h-2 bg-green-500 rounded-full"
+                                    title="Price calculated by system"
+                                ></div>
                             </div>
                         )}
                     </div>
@@ -80,13 +116,14 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                             </p>
                         )}
 
-                        {item.notes && (
+                        {(isFromApi ? item.note : item.notes) && (
                             <p className="text-xs text-blue-600 italic mt-1">
-                                Note: {item.notes}
+                                Note: {isFromApi ? item.note : item.notes}
                             </p>
                         )}
 
-                        {item.customizations &&
+                        {!isFromApi &&
+                            item.customizations &&
                             item.customizations.length > 0 && (
                                 <p className="text-xs text-green-600 mt-1">
                                     {item.customizations.join(', ')}
@@ -96,9 +133,23 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                         {/* Price and Controls */}
                         <div className="flex items-center justify-between mt-2">
                             <div className="text-sm font-semibold text-orange-600">
-                                {formatVietnameseCurrency(
-                                    item.price * item.quantity
+                                {isFromApi && (
+                                    <div className="flex flex-col">
+                                        <span>
+                                            {item.quantity}x{' '}
+                                            {formatVietnameseCurrency(
+                                                item.price
+                                            )}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {formatVietnameseCurrency(
+                                                getItemPrice()
+                                            )}
+                                        </span>
+                                    </div>
                                 )}
+                                {!isFromApi &&
+                                    formatVietnameseCurrency(getItemPrice())}
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -110,7 +161,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                                         className="h-6 w-6 p-0"
                                         onClick={() =>
                                             onUpdateQuantity(
-                                                item.id,
+                                                getItemId(),
                                                 item.quantity - 1
                                             )
                                         }
@@ -127,7 +178,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                                         className="h-6 w-6 p-0"
                                         onClick={() =>
                                             onUpdateQuantity(
-                                                item.id,
+                                                getItemId(),
                                                 item.quantity + 1
                                             )
                                         }
@@ -141,7 +192,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
                                     variant="ghost"
                                     size="sm"
                                     className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                    onClick={() => onRemove(item.id)}
+                                    onClick={() => onRemove(getItemId())}
                                 >
                                     <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -161,9 +212,13 @@ export function CartSidebar() {
     const clearCart = useCartStore((state) => state.clearCart);
     const getTotalItems = useCartStore((state) => state.getTotalItems);
     const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+    const apiResponse = useCartStore((state) => state.apiResponse);
+    const isCalculating = useCartStore((state) => state.isCalculating);
+    const getDisplayItems = useCartStore((state) => state.getDisplayItems);
 
     const totalItems = getTotalItems();
     const totalPrice = getTotalPrice();
+    const displayItems = getDisplayItems();
 
     return (
         <Sheet>
@@ -202,14 +257,97 @@ export function CartSidebar() {
                         <>
                             {/* Cart Items */}
                             <ScrollArea className="flex-1 -mx-6 px-6">
-                                {items.map((item) => (
-                                    <CartItemCard
-                                        key={item.id}
-                                        item={item}
-                                        onUpdateQuantity={updateQuantity}
-                                        onRemove={removeItem}
-                                    />
-                                ))}
+                                {displayItems.length > 0 && apiResponse
+                                    ? // Show API response items with calculated prices
+                                      displayItems.map((item) => (
+                                          <CartItemCard
+                                              key={item.tempId}
+                                              item={item}
+                                              onUpdateQuantity={(
+                                                  itemId,
+                                                  quantity
+                                              ) => {
+                                                  // Find local item to update
+                                                  const localItem = items.find(
+                                                      (local) => {
+                                                          const localId =
+                                                              local.type ===
+                                                              'food_combo'
+                                                                  ? local.comboId
+                                                                  : local.type ===
+                                                                      'product_variant'
+                                                                    ? local.variantId
+                                                                    : local.productId;
+                                                          return (
+                                                              localId ===
+                                                                  item.id &&
+                                                              local.type.replace(
+                                                                  '_',
+                                                                  ''
+                                                              ) ===
+                                                                  item.type.replace(
+                                                                      '_',
+                                                                      ''
+                                                                  ) &&
+                                                              (local.notes ||
+                                                                  '') ===
+                                                                  (item.note ||
+                                                                      '')
+                                                          );
+                                                      }
+                                                  );
+                                                  if (localItem)
+                                                      updateQuantity(
+                                                          localItem.id,
+                                                          quantity
+                                                      );
+                                              }}
+                                              onRemove={(itemId) => {
+                                                  // Find local item to remove
+                                                  const localItem = items.find(
+                                                      (local) => {
+                                                          const localId =
+                                                              local.type ===
+                                                              'food_combo'
+                                                                  ? local.comboId
+                                                                  : local.type ===
+                                                                      'product_variant'
+                                                                    ? local.variantId
+                                                                    : local.productId;
+                                                          return (
+                                                              localId ===
+                                                                  item.id &&
+                                                              local.type.replace(
+                                                                  '_',
+                                                                  ''
+                                                              ) ===
+                                                                  item.type.replace(
+                                                                      '_',
+                                                                      ''
+                                                                  ) &&
+                                                              (local.notes ||
+                                                                  '') ===
+                                                                  (item.note ||
+                                                                      '')
+                                                          );
+                                                      }
+                                                  );
+                                                  if (localItem)
+                                                      removeItem(localItem.id);
+                                              }}
+                                              isFromApi={true}
+                                          />
+                                      ))
+                                    : // Fallback to local items
+                                      items.map((item) => (
+                                          <CartItemCard
+                                              key={item.id}
+                                              item={item}
+                                              onUpdateQuantity={updateQuantity}
+                                              onRemove={removeItem}
+                                              isFromApi={false}
+                                          />
+                                      ))}
                             </ScrollArea>
 
                             {/* Cart Summary */}
@@ -218,13 +356,37 @@ export function CartSidebar() {
                                     <div className="flex justify-between text-sm">
                                         <span>
                                             Subtotal ({totalItems} items)
+                                            {apiResponse && (
+                                                <span className="inline-flex items-center gap-1 ml-2 text-green-600">
+                                                    <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
+                                                    Calculated
+                                                </span>
+                                            )}
                                         </span>
                                         <span>
-                                            {formatVietnameseCurrency(
-                                                totalPrice
+                                            {isCalculating ? (
+                                                <span className="text-muted-foreground">
+                                                    Calculating...
+                                                </span>
+                                            ) : (
+                                                formatVietnameseCurrency(
+                                                    totalPrice
+                                                )
                                             )}
                                         </span>
                                     </div>
+                                    {apiResponse?.totalPromotion && (
+                                        <div className="flex justify-between text-sm text-green-600">
+                                            <span>Promotion Discount</span>
+                                            <span>
+                                                -
+                                                {formatVietnameseCurrency(
+                                                    apiResponse.total -
+                                                        apiResponse.totalPromotion
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-sm">
                                         <span>Delivery Fee</span>
                                         <span>Free</span>
@@ -233,8 +395,15 @@ export function CartSidebar() {
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total</span>
                                         <span className="text-orange-600">
-                                            {formatVietnameseCurrency(
-                                                totalPrice
+                                            {isCalculating ? (
+                                                <span className="text-muted-foreground">
+                                                    Calculating...
+                                                </span>
+                                            ) : (
+                                                formatVietnameseCurrency(
+                                                    apiResponse?.totalPromotion ||
+                                                        totalPrice
+                                                )
                                             )}
                                         </span>
                                     </div>
@@ -242,8 +411,15 @@ export function CartSidebar() {
 
                                 {/* Action Buttons */}
                                 <div className="space-y-2 mt-4">
-                                    <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                                        Proceed to Checkout
+                                    <Button
+                                        className="w-full bg-orange-500 hover:bg-orange-600"
+                                        disabled={
+                                            isCalculating || totalItems === 0
+                                        }
+                                    >
+                                        {isCalculating
+                                            ? 'Calculating...'
+                                            : 'Proceed to Checkout'}
                                     </Button>
                                     <Button
                                         variant="outline"
