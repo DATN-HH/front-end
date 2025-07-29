@@ -1,6 +1,18 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useState,
+    ReactNode,
+    useEffect,
+} from 'react';
+
+import {
+    usePriceCalculation,
+    PriceCalculationRequest,
+    PriceCalculationResponse,
+} from '@/api/v1/menu/price-calculation';
 
 export interface MenuBookingItem {
     id: string;
@@ -22,6 +34,15 @@ interface MenuBookingContextType {
     clearItems: () => void;
     getTotalItems: () => number;
     getTotalPrice: () => number;
+    isCalculating: boolean;
+    calculatePrices: () => void;
+    // API response data for Order Summary
+    apiResponse: PriceCalculationResponse | null;
+    getItemNameById: (
+        id: number,
+        type: 'product' | 'variant' | 'combo',
+        note?: string
+    ) => string;
 }
 
 const MenuBookingContext = createContext<MenuBookingContextType | undefined>(
@@ -30,6 +51,9 @@ const MenuBookingContext = createContext<MenuBookingContextType | undefined>(
 
 export function MenuBookingProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<MenuBookingItem[]>([]);
+    const [apiResponse, setApiResponse] =
+        useState<PriceCalculationResponse | null>(null);
+    const priceCalculation = usePriceCalculation();
 
     const addItem = (newItem: Omit<MenuBookingItem, 'id'>) => {
         const id = `${newItem.type}-${newItem.productId || newItem.variantId || newItem.comboId}-${Date.now()}`;
@@ -52,6 +76,7 @@ export function MenuBookingProvider({ children }: { children: ReactNode }) {
 
     const clearItems = () => {
         setItems([]);
+        setApiResponse(null);
     };
 
     const getTotalItems = () => {
@@ -59,8 +84,83 @@ export function MenuBookingProvider({ children }: { children: ReactNode }) {
     };
 
     const getTotalPrice = () => {
+        // Use API response total if available
+        if (apiResponse) {
+            return apiResponse.total;
+        }
+        // Fallback to local calculation if API not called yet
         return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     };
+
+    const calculatePrices = async () => {
+        if (items.length === 0) {
+            setApiResponse(null);
+            return;
+        }
+
+        // Group items by type for API request
+        const request: PriceCalculationRequest = {
+            foodCombo: [],
+            productVariant: [],
+            product: [],
+        };
+
+        items.forEach((item) => {
+            const apiItem = {
+                id: item.comboId || item.variantId || item.productId || 0,
+                note: item.notes || '',
+                quantity: item.quantity,
+            };
+
+            switch (item.type) {
+                case 'combo':
+                    request.foodCombo.push(apiItem);
+                    break;
+                case 'variant':
+                    request.productVariant.push(apiItem);
+                    break;
+                case 'product':
+                    request.product.push(apiItem);
+                    break;
+            }
+        });
+
+        try {
+            const response = await priceCalculation.mutateAsync(request);
+            if (response.success && response.payload) {
+                setApiResponse(response.payload);
+            }
+        } catch (error) {
+            console.error('Price calculation failed:', error);
+            // Keep current apiResponse on error
+        }
+    };
+
+    // Helper function to get item name by matching with local items
+    const getItemNameById = (
+        id: number,
+        type: 'product' | 'variant' | 'combo',
+        note?: string
+    ) => {
+        const localItem = items.find((item) => {
+            const itemId = item.comboId || item.variantId || item.productId;
+            return (
+                itemId === id &&
+                item.type === type &&
+                (item.notes || '') === (note || '')
+            );
+        });
+        return localItem?.name || `${type} #${id}`;
+    };
+
+    // Auto-calculate prices when items change
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            calculatePrices();
+        }, 500); // Debounce API calls
+
+        return () => clearTimeout(timeoutId);
+    }, [items]);
 
     return (
         <MenuBookingContext.Provider
@@ -72,6 +172,10 @@ export function MenuBookingProvider({ children }: { children: ReactNode }) {
                 clearItems,
                 getTotalItems,
                 getTotalPrice,
+                isCalculating: priceCalculation.isPending,
+                calculatePrices,
+                apiResponse,
+                getItemNameById,
             }}
         >
             {children}
