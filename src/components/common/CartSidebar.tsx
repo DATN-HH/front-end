@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Minus, Plus, ShoppingCart, Trash2, Package, Coffee, Utensils } from 'lucide-react';
+import {
+    Minus,
+    Plus,
+    ShoppingCart,
+    Trash2,
+    Package,
+    Coffee,
+    Utensils,
+} from 'lucide-react';
 
 import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 import { Badge } from '@/components/ui/badge';
@@ -292,95 +300,95 @@ export function CartSidebar() {
                             <ScrollArea className="flex-1 -mx-6 px-6">
                                 {displayItems.length > 0 && apiResponse
                                     ? // Show API response items with calculated prices
-                                    displayItems.map((item) => (
-                                        <CartItemCard
-                                            key={item.tempId}
-                                            item={item}
-                                            onUpdateQuantity={(
-                                                itemId,
-                                                quantity
-                                            ) => {
-                                                // Find local item to update
-                                                const localItem = items.find(
-                                                    (local) => {
-                                                        const localId =
-                                                            local.type ===
-                                                                'food_combo'
-                                                                ? local.comboId
-                                                                : local.type ===
-                                                                    'product_variant'
+                                      displayItems.map((item) => (
+                                          <CartItemCard
+                                              key={item.tempId}
+                                              item={item}
+                                              onUpdateQuantity={(
+                                                  itemId,
+                                                  quantity
+                                              ) => {
+                                                  // Find local item to update
+                                                  const localItem = items.find(
+                                                      (local) => {
+                                                          const localId =
+                                                              local.type ===
+                                                              'food_combo'
+                                                                  ? local.comboId
+                                                                  : local.type ===
+                                                                      'product_variant'
                                                                     ? local.variantId
                                                                     : local.productId;
-                                                        return (
-                                                            localId ===
-                                                            item.id &&
-                                                            local.type.replace(
-                                                                '_',
-                                                                ''
-                                                            ) ===
-                                                            item.type.replace(
-                                                                '_',
-                                                                ''
-                                                            ) &&
-                                                            (local.notes ||
-                                                                '') ===
-                                                            (item.note ||
-                                                                '')
-                                                        );
-                                                    }
-                                                );
-                                                if (localItem)
-                                                    updateQuantity(
-                                                        localItem.id,
-                                                        quantity
-                                                    );
-                                            }}
-                                            onRemove={(itemId) => {
-                                                // Find local item to remove
-                                                const localItem = items.find(
-                                                    (local) => {
-                                                        const localId =
-                                                            local.type ===
-                                                                'food_combo'
-                                                                ? local.comboId
-                                                                : local.type ===
-                                                                    'product_variant'
+                                                          return (
+                                                              localId ===
+                                                                  item.id &&
+                                                              local.type.replace(
+                                                                  '_',
+                                                                  ''
+                                                              ) ===
+                                                                  item.type.replace(
+                                                                      '_',
+                                                                      ''
+                                                                  ) &&
+                                                              (local.notes ||
+                                                                  '') ===
+                                                                  (item.note ||
+                                                                      '')
+                                                          );
+                                                      }
+                                                  );
+                                                  if (localItem)
+                                                      updateQuantity(
+                                                          localItem.id,
+                                                          quantity
+                                                      );
+                                              }}
+                                              onRemove={(itemId) => {
+                                                  // Find local item to remove
+                                                  const localItem = items.find(
+                                                      (local) => {
+                                                          const localId =
+                                                              local.type ===
+                                                              'food_combo'
+                                                                  ? local.comboId
+                                                                  : local.type ===
+                                                                      'product_variant'
                                                                     ? local.variantId
                                                                     : local.productId;
-                                                        return (
-                                                            localId ===
-                                                            item.id &&
-                                                            local.type.replace(
-                                                                '_',
-                                                                ''
-                                                            ) ===
-                                                            item.type.replace(
-                                                                '_',
-                                                                ''
-                                                            ) &&
-                                                            (local.notes ||
-                                                                '') ===
-                                                            (item.note ||
-                                                                '')
-                                                        );
-                                                    }
-                                                );
-                                                if (localItem)
-                                                    removeItem(localItem.id);
-                                            }}
-                                            isFromApi={true}
-                                        />
-                                    ))
+                                                          return (
+                                                              localId ===
+                                                                  item.id &&
+                                                              local.type.replace(
+                                                                  '_',
+                                                                  ''
+                                                              ) ===
+                                                                  item.type.replace(
+                                                                      '_',
+                                                                      ''
+                                                                  ) &&
+                                                              (local.notes ||
+                                                                  '') ===
+                                                                  (item.note ||
+                                                                      '')
+                                                          );
+                                                      }
+                                                  );
+                                                  if (localItem)
+                                                      removeItem(localItem.id);
+                                              }}
+                                              isFromApi={true}
+                                          />
+                                      ))
                                     : // Fallback to local items
-                                    items.map((item) => (
-                                        <CartItemCard
-                                            key={item.id}
-                                            item={item}
-                                            onUpdateQuantity={updateQuantity}
-                                            onRemove={removeItem}
-                                            isFromApi={false}
-                                        />
-                                    ))}
+                                      items.map((item) => (
+                                          <CartItemCard
+                                              key={item.id}
+                                              item={item}
+                                              onUpdateQuantity={updateQuantity}
+                                              onRemove={removeItem}
+                                              isFromApi={false}
+                                          />
+                                      ))}
                             </ScrollArea>
 
                             {/* Cart Summary */}
@@ -415,7 +423,7 @@ export function CartSidebar() {
                                                 -
                                                 {formatVietnameseCurrency(
                                                     apiResponse.total -
-                                                    apiResponse.totalPromotion
+                                                        apiResponse.totalPromotion
                                                 )}
                                             </span>
                                         </div>
@@ -435,7 +443,7 @@ export function CartSidebar() {
                                             ) : (
                                                 formatVietnameseCurrency(
                                                     apiResponse?.totalPromotion ||
-                                                    totalPrice
+                                                        totalPrice
                                                 )
                                             )}
                                         </span>
