@@ -16,6 +16,7 @@ import {
     Table,
     LayoutGrid,
     CalendarRange,
+    ShoppingBag,
 } from 'lucide-react';
 
 import { Role, employeeRole } from '@/lib/rbac';
@@ -130,6 +131,12 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                     label: 'Table Reservation',
                     icon: <Table className="h-4 w-4" />,
                     roles: [Role.SUPPORT, Role.MANAGER],
+                },
+                {
+                    href: '/app/reservation/pre-order',
+                    label: 'Pre-order Management',
+                    icon: <ShoppingBag className="h-4 w-4" />,
+                    roles: [Role.MANAGER],
                 },
             ],
         },
