@@ -50,7 +50,9 @@ export function ProductBookingDialog({
 
     if (!product) return null;
 
-    const hasVariants = product.variants && product.variants.length > 0;
+    // Filter variants with non-null prices
+    const validVariants = product.variants?.filter(variant => variant.price !== null) || [];
+    const hasVariants = validVariants.length > 0;
     const currentPrice = selectedVariant
         ? getVariantPrice(selectedVariant, product.price || 0)
         : product.price || 0;
@@ -127,14 +129,13 @@ export function ProductBookingDialog({
                                 Choose Option
                             </Label>
                             <div className="grid grid-cols-1 gap-2 mt-2">
-                                {product.variants?.map((variant) => (
+                                {validVariants.map((variant) => (
                                     <div
                                         key={variant.id}
-                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                                            selectedVariant?.id === variant.id
-                                                ? 'border-orange-500 bg-orange-50'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
+                                            ? 'border-orange-500 bg-orange-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
                                         onClick={() =>
                                             setSelectedVariant(variant)
                                         }

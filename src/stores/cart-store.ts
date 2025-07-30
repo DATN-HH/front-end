@@ -3,7 +3,6 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { FoodComboResponse } from '@/api/v1/menu/food-combos';
 import type { MenuProduct, MenuVariant } from '@/api/v1/menu/menu-products';
-import { getVariantPrice } from '@/api/v1/menu/menu-products';
 import {
     PriceCalculationRequest,
     PriceCalculationResponse,
@@ -154,7 +153,7 @@ export const useCartStore = create<CartStore>()(
                             ),
                         };
                         // Trigger price calculation after state update
-                        setTimeout(() => get().calculatePrices(), 100);
+                        setTimeout(() => get().calculatePrices(), 50);
                         return newState;
                     }
 
@@ -171,7 +170,7 @@ export const useCartStore = create<CartStore>()(
                         name: product.name,
                         description: product.description,
                         image: product.image,
-                        price: product.price || 0,
+                        price: 0, // Price will be calculated by API
                         quantity,
                         notes,
                         customizations,
@@ -181,7 +180,7 @@ export const useCartStore = create<CartStore>()(
                         items: [...state.items, newItem],
                     };
                     // Trigger price calculation after state update
-                    setTimeout(() => get().calculatePrices(), 100);
+                    setTimeout(() => get().calculatePrices(), 50);
                     return newState;
                 });
             },
@@ -211,15 +210,9 @@ export const useCartStore = create<CartStore>()(
                             ),
                         };
                         // Trigger price calculation after state update
-                        setTimeout(() => get().calculatePrices(), 100);
+                        setTimeout(() => get().calculatePrices(), 50);
                         return newState;
                     }
-
-                    // Calculate variant price using the proper function
-                    const variantPrice = getVariantPrice(
-                        variant,
-                        product.price || 0
-                    );
 
                     const newItem: ProductVariantCartItem = {
                         id: generateCartItemId(
@@ -237,7 +230,7 @@ export const useCartStore = create<CartStore>()(
                         baseProductName: product.name,
                         description: product.description,
                         image: product.image,
-                        price: variantPrice,
+                        price: 0, // Price will be calculated by API
                         quantity,
                         notes,
                         customizations,
@@ -247,7 +240,7 @@ export const useCartStore = create<CartStore>()(
                         items: [...state.items, newItem],
                     };
                     // Trigger price calculation after state update
-                    setTimeout(() => get().calculatePrices(), 100);
+                    setTimeout(() => get().calculatePrices(), 50);
                     return newState;
                 });
             },
@@ -277,7 +270,7 @@ export const useCartStore = create<CartStore>()(
                             ),
                         };
                         // Trigger price calculation after state update
-                        setTimeout(() => get().calculatePrices(), 100);
+                        setTimeout(() => get().calculatePrices(), 50);
                         return newState;
                     }
 
@@ -294,7 +287,7 @@ export const useCartStore = create<CartStore>()(
                         name: combo.name,
                         description: combo.description,
                         image: combo.image,
-                        price: combo.effectivePrice,
+                        price: 0, // Price will be calculated by API
                         quantity,
                         notes,
                         customizations,
@@ -310,7 +303,7 @@ export const useCartStore = create<CartStore>()(
                         items: [...state.items, newItem],
                     };
                     // Trigger price calculation after state update
-                    setTimeout(() => get().calculatePrices(), 100);
+                    setTimeout(() => get().calculatePrices(), 50);
                     return newState;
                 });
             },
@@ -321,7 +314,7 @@ export const useCartStore = create<CartStore>()(
                         items: state.items.filter((item) => item.id !== itemId),
                     };
                     // Trigger price calculation after state update
-                    setTimeout(() => get().calculatePrices(), 100);
+                    setTimeout(() => get().calculatePrices(), 50);
                     return newState;
                 });
             },
@@ -339,7 +332,7 @@ export const useCartStore = create<CartStore>()(
                         ),
                     };
                     // Trigger price calculation after state update
-                    setTimeout(() => get().calculatePrices(), 100);
+                    setTimeout(() => get().calculatePrices(), 50);
                     return newState;
                 });
             },
@@ -418,7 +411,7 @@ export const useCartStore = create<CartStore>()(
                         set({ isCalculating: false });
                         // Keep current apiResponse on error
                     }
-                }, 500);
+                }, 200); // Reduced debounce time for better UX
             },
 
             // Get display items from API response or fallback to local items
@@ -479,18 +472,15 @@ export const useCartStore = create<CartStore>()(
             },
 
             getTotalPrice: () => {
-                const { apiResponse, items } = get();
+                const { apiResponse } = get();
 
-                // Use API response total if available
+                // Only use API response total - no local calculation fallback
                 if (apiResponse) {
                     return apiResponse.totalPromotion || apiResponse.total;
                 }
 
-                // Fallback to local calculation if API not called yet
-                return items.reduce((sum, item) => {
-                    const itemPrice = item.price || 0;
-                    return sum + itemPrice * item.quantity;
-                }, 0);
+                // Return 0 if no API response yet (prices will be calculated by API)
+                return 0;
             },
         }),
         {
