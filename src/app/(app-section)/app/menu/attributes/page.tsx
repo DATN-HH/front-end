@@ -14,6 +14,7 @@ import {
     Eye,
     Tags,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import {
@@ -186,7 +187,12 @@ export default function AttributesPage() {
             header: 'Attribute Name',
             cell: ({ row }) => (
                 <div>
-                    <div className="font-medium">{row.original.name}</div>
+                    <Link
+                        href={`/app/menu/attributes/${row.original.id}/detail`}
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                        {row.original.name}
+                    </Link>
                     {row.original.description && (
                         <div className="text-sm text-gray-500">
                             {row.original.description}
@@ -259,7 +265,6 @@ export default function AttributesPage() {
                             }}
                         >
                             <Eye className="h-4 w-4 mr-1" />
-                            View
                         </Button>
                         {!isDeleted && (
                             <>
@@ -268,7 +273,6 @@ export default function AttributesPage() {
                                     onClick={() => handleEdit(row.original.id)}
                                 >
                                     <Edit className="h-4 w-4 mr-1" />
-                                    Edit
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -283,7 +287,6 @@ export default function AttributesPage() {
                                     disabled={deleteAttributeMutation.isPending}
                                 >
                                     <Trash2 className="h-4 w-4 mr-1" />
-                                    Delete
                                 </Button>
                             </>
                         )}

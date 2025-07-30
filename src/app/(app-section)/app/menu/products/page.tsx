@@ -11,8 +11,6 @@ import {
     List,
     Image as ImageLucide,
     ChevronRight,
-    Tag,
-    X,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,6 +42,8 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+
+import { ProductNameCell } from './components/ProductNameCell';
 
 type ViewMode = 'table' | 'card' | 'grouped';
 
@@ -265,31 +265,12 @@ export default function ProductsPage() {
             accessorKey: 'name',
             header: 'Product Name',
             cell: ({ row }) => (
-                <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                        {row.original.image ? (
-                            <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100">
-                                <Image
-                                    src={row.original.image}
-                                    alt={row.original.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="40px"
-                                />
-                            </div>
-                        ) : (
-                            <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
-                                <ImageLucide className="h-5 w-5 text-gray-400" />
-                            </div>
-                        )}
-                    </div>
-                    <div>
-                        <div className="font-medium">{row.original.name}</div>
-                        <div className="text-sm text-gray-500">
-                            {row.original.internalReference || '-'}
-                        </div>
-                    </div>
-                </div>
+                <ProductNameCell
+                    id={row.original.id}
+                    name={row.original.name}
+                    image={row.original.image}
+                    internalReference={row.original.internalReference}
+                />
             ),
         },
         {
@@ -363,7 +344,6 @@ export default function ProductsPage() {
                         >
                             <Button variant="outline" size="sm">
                                 <Eye className="h-4 w-4 mr-1" />
-                                View
                             </Button>
                         </Link>
                         {!isArchived && (
@@ -376,7 +356,6 @@ export default function ProductsPage() {
                                     }}
                                 >
                                     <Edit className="h-4 w-4 mr-1" />
-                                    Edit
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -391,7 +370,6 @@ export default function ProductsPage() {
                                     disabled={archiveProductMutation.isPending}
                                 >
                                     <Archive className="h-4 w-4 mr-1" />
-                                    Archive
                                 </Button>
                             </>
                         )}
@@ -406,9 +384,7 @@ export default function ProductsPage() {
                                     )
                                 }
                                 disabled={unarchiveProductMutation.isPending}
-                            >
-                                Unarchive
-                            </Button>
+                            ></Button>
                         )}
                     </div>
                 );
@@ -806,92 +782,6 @@ export default function ProductsPage() {
                     </div>
                 }
             />
-
-            {/* Tag Filter Section */}
-            {allTags.length > 0 && (
-                <div className="bg-white p-4 rounded-lg border">
-                    <div className="flex items-center space-x-2 mb-3">
-                        <Tag className="h-5 w-5 text-blue-500" />
-                        <h3 className="font-medium">Filter by Tags</h3>
-                        {selectedTags.length > 0 && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedTags([])}
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                <X className="h-4 w-4 mr-1" />
-                                Clear All
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Selected Tags */}
-                    {selectedTags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-blue-50 rounded">
-                            {selectedTags.map((tag) => (
-                                <Badge
-                                    key={tag.id}
-                                    variant="default"
-                                    className="flex items-center space-x-1"
-                                    style={{
-                                        backgroundColor: tag.color || undefined,
-                                        borderColor: tag.color || undefined,
-                                    }}
-                                >
-                                    <span>{tag.name}</span>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-4 w-4 p-0 hover:bg-transparent"
-                                        onClick={() =>
-                                            setSelectedTags((prev) =>
-                                                prev.filter(
-                                                    (t) => t.id !== tag.id
-                                                )
-                                            )
-                                        }
-                                    >
-                                        <X className="h-3 w-3" />
-                                    </Button>
-                                </Badge>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Available Tags */}
-                    <div className="flex flex-wrap gap-2">
-                        {allTags
-                            .filter(
-                                (tag) =>
-                                    !selectedTags.some(
-                                        (selected) => selected.id === tag.id
-                                    )
-                            )
-                            .map((tag) => (
-                                <Badge
-                                    key={tag.id}
-                                    variant="outline"
-                                    className="cursor-pointer hover:bg-gray-50"
-                                    onClick={() =>
-                                        setSelectedTags((prev) => [
-                                            ...prev,
-                                            tag,
-                                        ])
-                                    }
-                                    style={{
-                                        borderColor: tag.color || undefined,
-                                        color: tag.color || undefined,
-                                    }}
-                                >
-                                    {tag.name}
-                                    {tag.productCount !== undefined &&
-                                        ` (${tag.productCount})`}
-                                </Badge>
-                            ))}
-                    </div>
-                </div>
-            )}
 
             {/* Group Controls - only show for grouped view */}
             {viewMode === 'grouped' &&
