@@ -51,7 +51,8 @@ export function ProductBookingDialog({
     if (!product) return null;
 
     // Filter variants with non-null prices
-    const validVariants = product.variants?.filter(variant => variant.price !== null) || [];
+    const validVariants =
+        product.variants?.filter((variant) => variant.price !== null) || [];
     const hasVariants = validVariants.length > 0;
     const currentPrice = selectedVariant
         ? getVariantPrice(selectedVariant, product.price || 0)
@@ -132,10 +133,11 @@ export function ProductBookingDialog({
                                 {validVariants.map((variant) => (
                                     <div
                                         key={variant.id}
-                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
-                                            ? 'border-orange-500 bg-orange-50'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                            }`}
+                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                            selectedVariant?.id === variant.id
+                                                ? 'border-orange-500 bg-orange-50'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        }`}
                                         onClick={() =>
                                             setSelectedVariant(variant)
                                         }

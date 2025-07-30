@@ -111,23 +111,28 @@ export function MenuCategorySectionBooking({
 
     // Filter products and variants with null prices
     const products = rawProducts
-        ?.map(product => {
+        ?.map((product) => {
             // Filter variants with non-null prices
-            const validVariants = product.variants?.filter(variant => variant.price !== null) || [];
+            const validVariants =
+                product.variants?.filter((variant) => variant.price !== null) ||
+                [];
 
             return {
                 ...product,
-                variants: validVariants
+                variants: validVariants,
             };
         })
-        .filter(product => {
+        .filter((product) => {
             // Show product if:
             // 1. Has valid variants, OR
             // 2. Has no variants but price is not null/0
-            const hasValidVariants = product.variants && product.variants.length > 0;
+            const hasValidVariants =
+                product.variants && product.variants.length > 0;
             const hasValidPrice = product.price != null && product.price > 0;
 
-            return hasValidVariants || (!product.variants?.length && hasValidPrice);
+            return (
+                hasValidVariants || (!product.variants?.length && hasValidPrice)
+            );
         });
 
     const handleAddClick = (product: MenuProduct) => {

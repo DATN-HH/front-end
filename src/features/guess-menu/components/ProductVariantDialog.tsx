@@ -70,7 +70,8 @@ export function ProductVariantDialog({
     if (!product) return null;
 
     // Filter variants with non-null prices
-    const validVariants = product.variants?.filter(variant => variant.price !== null) || [];
+    const validVariants =
+        product.variants?.filter((variant) => variant.price !== null) || [];
     const hasVariants = validVariants.length > 0;
     const currentPrice = selectedVariant
         ? getVariantPrice(selectedVariant, product.price)
@@ -166,10 +167,11 @@ export function ProductVariantDialog({
                                 {validVariants.map((variant) => (
                                     <div
                                         key={variant.id}
-                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedVariant?.id === variant.id
-                                            ? 'border-orange-500 bg-orange-50'
-                                            : 'border-gray-200 hover:border-orange-300'
-                                            }`}
+                                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                            selectedVariant?.id === variant.id
+                                                ? 'border-orange-500 bg-orange-50'
+                                                : 'border-gray-200 hover:border-orange-300'
+                                        }`}
                                         onClick={() =>
                                             setSelectedVariant(variant)
                                         }
@@ -193,10 +195,10 @@ export function ProductVariantDialog({
                                             <div className="flex-shrink-0">
                                                 {selectedVariant?.id ===
                                                     variant.id && (
-                                                        <Badge className="text-xs bg-orange-500 hover:bg-orange-600">
-                                                            Selected
-                                                        </Badge>
-                                                    )}
+                                                    <Badge className="text-xs bg-orange-500 hover:bg-orange-600">
+                                                        Selected
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -244,10 +246,11 @@ export function ProductVariantDialog({
                                             ? 'default'
                                             : 'outline'
                                     }
-                                    className={`cursor-pointer text-xs transition-colors ${selectedQuickNotes.includes(noteText)
-                                        ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                                        : 'hover:bg-orange-50 hover:border-orange-300'
-                                        }`}
+                                    className={`cursor-pointer text-xs transition-colors ${
+                                        selectedQuickNotes.includes(noteText)
+                                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                            : 'hover:bg-orange-50 hover:border-orange-300'
+                                    }`}
                                     onClick={() => toggleQuickNote(noteText)}
                                 >
                                     {noteText}
