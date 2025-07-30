@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import {
     Minus,
     Plus,
@@ -10,6 +9,7 @@ import {
     Coffee,
     Utensils,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 import { Badge } from '@/components/ui/badge';

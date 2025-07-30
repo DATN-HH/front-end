@@ -7,6 +7,7 @@ import { useState, useEffect, Suspense } from 'react';
 
 import { useBranches } from '@/api/v1/branches';
 import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
+import { useCreatePreOrder, PreOrderResponse } from '@/api/v1/pre-order';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,10 +24,12 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { MenuBookingContent } from '@/features/pre-order/components/MenuBookingContent';
+import { PreOrderConfirmDialog } from '@/features/pre-order/components/PreOrderConfirmDialog';
 import {
     MenuBookingProvider,
     useMenuBooking,
 } from '@/features/pre-order/context/MenuBookingContext';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface OrderData {
     type: 'dine-in' | 'takeaway';
@@ -41,6 +44,7 @@ interface OrderData {
 function MenuBookingPageContent() {
     const searchParams = useSearchParams();
     const { data: branches } = useBranches();
+    const { success, error } = useCustomToast();
     const {
         items: menuItems,
         clearItems,
@@ -58,6 +62,13 @@ function MenuBookingPageContent() {
         notes: '',
         customerPhone: '',
     });
+
+    // Pre-order states
+    const [showPreOrderDialog, setShowPreOrderDialog] = useState(false);
+    const [preOrderData, setPreOrderData] = useState<PreOrderResponse | null>(
+        null
+    );
+    const createPreOrderMutation = useCreatePreOrder();
 
     // Auto-fill data from query params
     useEffect(() => {
@@ -140,13 +151,81 @@ function MenuBookingPageContent() {
         setOrderData((prev) => ({ ...prev, type }));
     };
 
-    const handlePlaceOrder = () => {
-        // TODO: Implement order placement logic
-        // console.log('Placing order:', {
-        //     orderData,
-        //     menuItems,
-        //     totalPrice,
-        // });
+    const handlePlaceOrder = async () => {
+        try {
+            // Validate required fields
+            if (
+                !orderData.customerName ||
+                !orderData.customerPhone ||
+                !orderData.branchId
+            ) {
+                error('Validation Error', 'Please fill in all required fields');
+                return;
+            }
+
+            if (!orderData.time) {
+                error('Validation Error', 'Please select pickup/dining time');
+                return;
+            }
+
+            if (menuItems.length === 0) {
+                error('Validation Error', 'Please add items to your order');
+                return;
+            }
+
+            // Convert menu items to API format
+            const orderItems = {
+                foodCombo: menuItems
+                    .filter((item) => item.type === 'combo')
+                    .map((item) => ({
+                        id: item.comboId!,
+                        quantity: item.quantity,
+                        note: item.notes || '',
+                    })),
+                productVariant: menuItems
+                    .filter((item) => item.type === 'variant')
+                    .map((item) => ({
+                        id: item.variantId!,
+                        quantity: item.quantity,
+                        note: item.notes || '',
+                    })),
+                product: menuItems
+                    .filter((item) => item.type === 'product')
+                    .map((item) => ({
+                        id: item.productId!,
+                        quantity: item.quantity,
+                        note: item.notes || '',
+                    })),
+            };
+
+            // Create pre-order request
+            const preOrderRequest = {
+                type: orderData.type,
+                branchId: Number(orderData.branchId),
+                bookingTableId: orderData.bookingTableId
+                    ? Number(orderData.bookingTableId)
+                    : undefined,
+                time: orderData.time,
+                customerName: orderData.customerName,
+                customerPhone: orderData.customerPhone,
+                notes: orderData.notes || undefined,
+                orderItems,
+            };
+
+            // Create pre-order
+            const result =
+                await createPreOrderMutation.mutateAsync(preOrderRequest);
+
+            setPreOrderData(result);
+            setShowPreOrderDialog(true);
+            success('Success', 'Pre-order created successfully!');
+        } catch (err: any) {
+            console.error('Failed to create pre-order:', err);
+            error(
+                'Error',
+                err.response?.data?.message || 'Failed to create pre-order'
+            );
+        }
     };
 
     const isFromTableBooking = searchParams.get('bookingtableId');
@@ -740,13 +819,17 @@ function MenuBookingPageContent() {
                                                         !orderData.customerName ||
                                                         !orderData.customerPhone ||
                                                         !orderData.branchId ||
+                                                        !orderData.time ||
                                                         totalItems === 0 ||
-                                                        isCalculating
+                                                        isCalculating ||
+                                                        createPreOrderMutation.isPending
                                                     }
                                                 >
-                                                    {isCalculating
-                                                        ? 'Calculating...'
-                                                        : 'Place Order'}
+                                                    {createPreOrderMutation.isPending
+                                                        ? 'Creating Order...'
+                                                        : isCalculating
+                                                          ? 'Calculating...'
+                                                          : 'Place Order'}
                                                 </Button>
                                                 <Button
                                                     onClick={clearItems}
@@ -764,6 +847,17 @@ function MenuBookingPageContent() {
                     </div>
                 </div>
             </div>
+
+            {/* Pre-order Confirm Dialog */}
+            <PreOrderConfirmDialog
+                open={showPreOrderDialog}
+                onOpenChange={setShowPreOrderDialog}
+                preOrderData={preOrderData}
+                onPaymentSuccess={() => {
+                    clearItems();
+                    setPreOrderData(null);
+                }}
+            />
         </div>
     );
 }
