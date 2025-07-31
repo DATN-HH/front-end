@@ -11,15 +11,15 @@ import { Input } from '@/components/ui/input';
 
 // Import API hooks and types
 import { useAllCategories } from '@/api/v1/menu/categories';
+import { useAllProducts } from '@/api/v1/menu/products';
 import {
-    useAllAvailableVariants,
     ProductVariantResponse,
 } from '@/api/v1/menu/product-attributes';
 
 // Types for POS products - based on variants
 interface POSProduct {
     id: number;
-    variantId: number;
+    variantId?: number;
     name: string;
     displayName: string;
     description?: string;
@@ -39,26 +39,24 @@ interface POSProductGridProps {
     onProductSelect: (product: POSProduct) => void;
 }
 
-// Helper function to convert ProductVariantResponse to POSProduct
-const convertVariantToPOSProduct = (
-    variant: ProductVariantResponse
-): POSProduct => {
+// Helper function to convert Product to POSProduct
+const convertProductToPOSProduct = (product: any): POSProduct => {
     return {
-        id: variant.productTemplateId,
-        variantId: variant.id,
-        name: variant.name,
-        displayName: variant.displayName,
-        description: variant.attributeCombination,
-        image: variant.image,
-        categoryId: undefined, // Will be set from product template if needed
-        categoryName: undefined,
-        price: variant.price || variant.effectivePrice || 0,
-        effectivePrice: variant.effectivePrice || variant.price || 0,
-        attributeCombination: variant.attributeCombination,
-        productTemplateId: variant.productTemplateId,
-        productTemplateName: variant.productTemplateName,
-        status: variant.status,
-        isActive: variant.isActive,
+        id: product.id,
+        variantId: undefined,
+        name: product.name,
+        displayName: product.name,
+        description: product.description,
+        image: product.image,
+        categoryId: product.categoryId,
+        categoryName: product.categoryName,
+        price: product.price || 0,
+        effectivePrice: product.price || 0,
+        attributeCombination: undefined,
+        productTemplateId: product.id,
+        productTemplateName: product.name,
+        status: product.status,
+        isActive: product.canBeSold && product.status === 'ACTIVE',
     };
 };
 
@@ -72,17 +70,19 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     const { data: categoriesData = [], isLoading: categoriesLoading } =
         useAllCategories();
 
-    // Fetch all product variants
-    const { data: allVariants = [], isLoading: variantsLoading } =
-        useAllAvailableVariants();
+    // Fetch all products
+    const { data: allProducts = [], isLoading: productsLoading } =
+        useAllProducts();
 
-    // Convert variants to POS products
-    const allPOSProducts = allVariants
-        .map(convertVariantToPOSProduct)
+    // Convert products to POS products
+    const allPOSProducts = allProducts
+        .map(convertProductToPOSProduct)
         .filter((product) => product.isActive);
 
-    // Filter by category if selected (we'll need to implement category filtering later)
-    const categoryFilteredProducts = allPOSProducts; // For now, show all
+    // Filter by category if selected
+    const categoryFilteredProducts = selectedCategory
+        ? allPOSProducts.filter((product) => product.categoryId === selectedCategory)
+        : allPOSProducts;
 
     // Filter products by search query
     const filteredProducts = categoryFilteredProducts.filter(
@@ -127,32 +127,37 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                         }`}
                         onClick={() => setSelectedCategory(null)}
                     >
-                        All Variants ({filteredProducts.length})
+                        All Products ({allPOSProducts.length})
                     </Button>
-                    {categoriesData.map((category) => (
-                        <Button
-                            key={category.id}
-                            variant={
-                                selectedCategory === category.id
-                                    ? 'default'
-                                    : 'outline'
-                            }
-                            className={`px-4 py-2 font-medium ${
-                                selectedCategory === category.id
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                            onClick={() => setSelectedCategory(category.id)}
-                        >
-                            {category.name}
-                        </Button>
-                    ))}
+                    {categoriesData.map((category) => {
+                        const categoryProductCount = allPOSProducts.filter(
+                            (product) => product.categoryId === category.id
+                        ).length;
+                        return (
+                            <Button
+                                key={category.id}
+                                variant={
+                                    selectedCategory === category.id
+                                        ? 'default'
+                                        : 'outline'
+                                }
+                                className={`px-4 py-2 font-medium ${
+                                    selectedCategory === category.id
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                                onClick={() => setSelectedCategory(category.id)}
+                            >
+                                {category.name} ({categoryProductCount})
+                            </Button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Product Grid */}
             <div className="flex-1 overflow-y-auto p-4">
-                {variantsLoading ? (
+                {productsLoading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {Array.from({ length: 15 }).map((_, index) => (
                             <Card key={index} className="p-3">
@@ -188,7 +193,7 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                 )}
 
                 {/* Empty State */}
-                {!variantsLoading && filteredProducts.length === 0 && (
+                {!productsLoading && filteredProducts.length === 0 && (
                     <div className="flex items-center justify-center h-64">
                         <div className="text-center text-gray-500">
                             <div className="text-lg font-medium mb-2">
