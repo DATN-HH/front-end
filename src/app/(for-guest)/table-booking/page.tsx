@@ -330,11 +330,11 @@ export default function TableBookingPage() {
     }, [floorData, selectedTables, selectableTables, handleTableSelect]);
 
     return (
-        <div className="container mx-auto px-4 py-4">
-            <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold mb-1">Table Booking</h1>
-                <p className="text-gray-600 text-sm">
-                    Select date, time and table for your reservation
+        <div className="container mx-auto px-4 py-8">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold mb-4">Table Booking</h1>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                    Book your table now and enjoy a great dining experience.
                 </p>
             </div>
 

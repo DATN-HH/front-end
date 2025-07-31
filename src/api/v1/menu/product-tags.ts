@@ -112,14 +112,6 @@ const updateTag = async (
     return response.data.data;
 };
 
-// Delete tag using /api/menu/tags/{id}
-const deleteTag = async (id: number): Promise<string> => {
-    const response = await apiClient.delete<ApiResponse<string>>(
-        `/api/menu/tags/${id}`
-    );
-    return response.data.data;
-};
-
 // Search tags by name using /api/menu/tags/search
 const searchTags = async (name: string): Promise<ProductTagResponse[]> => {
     const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
@@ -162,16 +154,6 @@ const assignTagsToProduct = async (
     const response = await apiClient.post<ApiResponse<string>>(
         '/api/menu/tags/assign',
         data
-    );
-    return response.data.data;
-};
-
-// Get tags by product using /api/menu/tags/product/{productId}
-const getTagsByProduct = async (
-    productId: number
-): Promise<ProductTagResponse[]> => {
-    const response = await apiClient.get<ApiResponse<ProductTagResponse[]>>(
-        `/api/menu/tags/product/${productId}`
     );
     return response.data.data;
 };

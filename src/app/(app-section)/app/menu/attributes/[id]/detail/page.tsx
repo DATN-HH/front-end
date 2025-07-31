@@ -29,12 +29,12 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function AttributeDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
     const attributeId = parseInt(params.id as string);
 
     // Modal states
@@ -125,17 +125,13 @@ export default function AttributeDetailPage() {
 
         try {
             await deleteAttributeMutation.mutateAsync(attributeId);
-            toast({
-                title: 'Attribute Deleted',
-                description: `${attribute.name} has been deleted successfully.`,
-            });
+            success(
+                'Attribute Deleted',
+                `${attribute.name} has been deleted successfully.`
+            );
             router.push('/app/menu/attributes');
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete attribute. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            error('Error', 'Failed to delete attribute. Please try again.');
         }
     };
 
@@ -150,16 +146,12 @@ export default function AttributeDetailPage() {
 
         try {
             await deleteValueMutation.mutateAsync(valueId);
-            toast({
-                title: 'Value Deleted',
-                description: `${valueName} has been deleted successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete value. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Value Deleted',
+                `${valueName} has been deleted successfully.`
+            );
+        } catch (err) {
+            error('Error', 'Failed to delete value. Please try again.');
         }
     };
 

@@ -1,13 +1,14 @@
-import { Star, MapPin, Phone, Award, Users, ChefHat } from 'lucide-react';
+import { Star, Award, Users, ChefHat } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+
+import { LocationsSection } from './components/LocationsSection';
 
 export default function HomePage() {
     return (
-        <div className="flex flex-col">
+        <main>
             {/* Hero Section */}
             <section className="relative h-screen flex items-center justify-center">
                 <Image
@@ -168,7 +169,7 @@ export default function HomePage() {
             </section>
 
             {/* Signature Dishes */}
-            <section className="py-20 px-4 bg-gray-50">
+            {/* <section className="py-20 px-4 bg-gray-50">
                 <div className="container mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-serif font-bold mb-6">
@@ -244,80 +245,10 @@ export default function HomePage() {
                         </Button>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* Locations */}
-            <section className="py-20 px-4">
-                <div className="container mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-serif font-bold mb-6">
-                            Our Locations
-                        </h2>
-                        <p className="text-xl text-muted-foreground">
-                            Experience Menu+ at our carefully selected venues
-                            across the nation
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[
-                            {
-                                city: 'New York',
-                                address: '155 West 51st Street',
-                                phone: '(212) 554-1515',
-                                image: 'https://cdn.vox-cdn.com/thumbor/5KW6LyvRoAlyD2Sg4tgV8PHGTLs=/0x0:8000x6000/1200x800/filters:focal(3360x2360:4640x3640)/cdn.vox-cdn.com/uploads/chorus_image/image/73722929/NYC_STORE_VISUAL_STELLAR_4000x_DSCF3644_R1.0.jpg',
-                            },
-                            {
-                                city: 'San Francisco',
-                                address: '2891 Mission Street',
-                                phone: '(415) 282-8283',
-                                image: 'https://www.6newyork.fr/wp-content/uploads/2022/02/restaurant-6-newyork-paris.jpg',
-                            },
-                            {
-                                city: 'Beverly Hills',
-                                address: '9500 Wilshire Boulevard',
-                                phone: '(310) 555-0199',
-                                image: 'https://image-tc.galaxy.tf/wijpeg-41asktw6ctetbsko5nahsw0wx/murals-restaurant-new-york_wide.jpg?crop=0%2C44%2C1917%2C1078',
-                            },
-                            {
-                                city: 'Chicago',
-                                address: '233 North Michigan Avenue',
-                                phone: '(312) 555-0145',
-                                image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy3VB8tClrGSHaZ9o8ilo_lBXMq4f_q2ClVQ&s',
-                            },
-                        ].map((location, index) => (
-                            <Card
-                                key={index}
-                                className="text-center hover:shadow-lg transition-shadow"
-                            >
-                                <div className="relative h-48">
-                                    <Image
-                                        src={`${location.image}`}
-                                        alt={`Menu+ ${location.city}`}
-                                        fill
-                                        className="object-cover rounded-t-lg"
-                                    />
-                                </div>
-                                <CardContent className="p-6">
-                                    <h3 className="text-xl font-serif font-semibold mb-2">
-                                        {location.city}
-                                    </h3>
-                                    <div className="space-y-2 text-sm text-muted-foreground">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <MapPin className="h-4 w-4" />
-                                            <span>{location.address}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Phone className="h-4 w-4" />
-                                            <span>{location.phone}</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            <LocationsSection />
 
             {/* Call to Action */}
             <section className="py-20 px-4 bg-gray-900 text-white">
@@ -346,6 +277,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-        </div>
+        </main>
     );
 }

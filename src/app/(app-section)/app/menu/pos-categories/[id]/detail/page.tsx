@@ -18,7 +18,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function PosCategoryDetailPage({
     params,
@@ -26,12 +26,16 @@ export default function PosCategoryDetailPage({
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = use(params);
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const router = useRouter();
     const categoryId = Number(resolvedParams.id);
 
     // API hooks
-    const { data: category, isLoading, error } = usePosCategory(categoryId);
+    const {
+        data: category,
+        isLoading,
+        error: apiError,
+    } = usePosCategory(categoryId);
     const deletePosCategoryMutation = useDeletePosCategory();
 
     const handleDelete = async () => {
@@ -47,17 +51,13 @@ export default function PosCategoryDetailPage({
 
         try {
             await deletePosCategoryMutation.mutateAsync(category.id);
-            toast({
-                title: 'Category Deleted',
-                description: `${category.name} has been deleted successfully.`,
-            });
+            success(
+                'Category Deleted',
+                `${category.name} has been deleted successfully.`
+            );
             router.push('/app/menu/pos-categories');
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to delete category. Please try again.');
         }
     };
 
@@ -79,7 +79,7 @@ export default function PosCategoryDetailPage({
         );
     }
 
-    if (error || !category) {
+    if (apiError || !category) {
         return (
             <div className="space-y-6">
                 <div className="flex items-center space-x-4">

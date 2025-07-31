@@ -19,10 +19,10 @@ import { TagCreateModal } from '@/components/modals/TagCreateModal';
 import { TagEditModal } from '@/components/modals/TagEditModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function TagsPage() {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     // State for table controls
     const [pageIndex, setPageIndex] = useState(0);
@@ -94,18 +94,16 @@ export default function TagsPage() {
             });
 
             const action = newStatus === 'ACTIVE' ? 'activated' : 'deactivated';
-            toast({
-                title: 'Status Updated',
-                description: `${tag.name} has been ${action} successfully.`,
-            });
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.response?.data?.message ||
-                    'Failed to update tag status. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Status Updated',
+                `${tag.name} has been ${action} successfully.`
+            );
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.response?.data?.message ||
+                    'Failed to update tag status. Please try again.'
+            );
         }
     };
 

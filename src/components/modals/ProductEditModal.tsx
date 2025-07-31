@@ -43,9 +43,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Form validation schema
 const productSchema = z.object({
@@ -82,7 +81,7 @@ export function ProductEditModal({
     onOpenChange,
     productId,
 }: ProductEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -143,21 +142,13 @@ export function ProductEditModal({
 
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                toast({
-                    title: 'Invalid File Type',
-                    description: 'Please upload an image file.',
-                    variant: 'destructive',
-                });
+                showError('Invalid File Type', 'Please upload an image file.');
                 return;
             }
 
             // Validate file size (5MB max)
             if (file.size > 5 * 1024 * 1024) {
-                toast({
-                    title: 'File Too Large',
-                    description: 'Image must be less than 5MB.',
-                    variant: 'destructive',
-                });
+                showError('File Too Large', 'Image must be less than 5MB.');
                 return;
             }
 
@@ -179,20 +170,11 @@ export function ProductEditModal({
 
                 // Update form with image URL
                 form.setValue('image', uploadResult.secureUrl);
-
-                toast({
-                    title: 'Image Uploaded',
-                    description:
-                        'Product image has been uploaded successfully.',
-                });
-            } catch (error: any) {
-                toast({
-                    title: 'Upload Failed',
-                    description:
-                        error?.response?.data?.message ||
-                        'Failed to upload image.',
-                    variant: 'destructive',
-                });
+            } catch (err: any) {
+                showError(
+                    'Upload Failed',
+                    err?.response?.data?.message || 'Failed to upload image.'
+                );
                 // Revert to original image if upload fails
                 if (productDetail?.image) {
                     setImagePreview(productDetail.image);
@@ -205,7 +187,7 @@ export function ProductEditModal({
                 setUploadingImage(false);
             }
         },
-        [uploadImageMutation, form, toast, productDetail]
+        [uploadImageMutation, form, showError, productDetail]
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -244,20 +226,18 @@ export function ProductEditModal({
                 data: requestData,
             });
 
-            toast({
-                title: 'Product Updated',
-                description: `${data.name} has been updated successfully.`,
-            });
+            success(
+                'Product Updated',
+                `${data.name} has been updated successfully.`
+            );
 
             handleClose();
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error?.response?.data?.message ||
-                    'Failed to update product. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err?.response?.data?.message ||
+                    'Failed to update product. Please try again.'
+            );
         }
     };
 
@@ -328,393 +308,296 @@ export function ProductEditModal({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-6"
                     >
-                        <Tabs defaultValue="basic" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="basic">
-                                    Basic Info
-                                </TabsTrigger>
-                                <TabsTrigger value="image">Image</TabsTrigger>
-                                <TabsTrigger value="settings">
-                                    Settings
-                                </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="basic" className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Product Name *
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="e.g., Beef Pho"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="type"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Product Type *
-                                                </FormLabel>
-                                                <Select
-                                                    onValueChange={
-                                                        field.onChange
-                                                    }
-                                                    value={field.value}
-                                                >
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select product type" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {productTypes.map(
-                                                            (type) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        type.value
-                                                                    }
-                                                                    value={
-                                                                        type.value
-                                                                    }
-                                                                >
-                                                                    <div>
-                                                                        <div>
-                                                                            {
-                                                                                type.label
-                                                                            }
-                                                                        </div>
-                                                                        <div className="text-xs text-gray-500">
-                                                                            {
-                                                                                type.description
-                                                                            }
-                                                                        </div>
-                                                                    </div>
-                                                                </SelectItem>
-                                                            )
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="categoryId"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Category</FormLabel>
-                                                <FormControl>
-                                                    <CategorySelector
-                                                        categories={categories}
-                                                        value={
-                                                            field.value === 0
-                                                                ? undefined
-                                                                : field.value
-                                                        }
-                                                        onValueChange={(
-                                                            value
-                                                        ) =>
-                                                            field.onChange(
-                                                                value || 0
-                                                            )
-                                                        }
-                                                        placeholder="Select category"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="price"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Sale Price (VND)
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={
-                                                            field.onChange
-                                                        }
-                                                        placeholder="50,000"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="cost"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Cost (VND)
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={
-                                                            field.onChange
-                                                        }
-                                                        placeholder="30,000"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="size"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Size</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Medium, Large, etc."
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="estimateTime"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Estimate Time (minutes)
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <NumberInput
-                                                        value={field.value}
-                                                        onChange={
-                                                            field.onChange
-                                                        }
-                                                        placeholder="15"
-                                                        min={0}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Description</FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    placeholder="Describe your product..."
-                                                    rows={3}
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="groupName"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Group Name</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="e.g., Vietnamese Noodles"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormDescription>
-                                                Group related products together
-                                                for better organization
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </TabsContent>
-
-                            <TabsContent value="image" className="space-y-4">
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-2">
-                                            Product Image
-                                        </h3>
-                                        <p className="text-sm text-gray-600 mb-4">
-                                            Upload a high-quality image of your
-                                            product. Supported formats: JPEG,
-                                            PNG, GIF, WebP (max 5MB)
-                                        </p>
-                                    </div>
-
-                                    {imagePreview ? (
-                                        <div className="relative">
-                                            <img
-                                                src={imagePreview}
-                                                alt="Product preview"
-                                                className="w-full max-w-md h-64 object-cover rounded-lg border"
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Product Name *</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="e.g., Beef Pho"
+                                                {...field}
                                             />
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                className="absolute top-2 right-2"
-                                                onClick={removeImage}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            {...getRootProps()}
-                                            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                                                isDragActive
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-300 hover:border-gray-400'
-                                            }`}
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Product Type *</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
                                         >
-                                            <input {...getInputProps()} />
-                                            <div className="space-y-2">
-                                                {uploadingImage ? (
-                                                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-                                                ) : (
-                                                    <ImageIcon className="h-8 w-8 mx-auto text-gray-400" />
-                                                )}
-                                                <div>
-                                                    <p className="text-lg font-medium">
-                                                        {uploadingImage
-                                                            ? 'Uploading...'
-                                                            : 'Drop image here or click to upload'}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        JPEG, PNG, GIF, WebP up
-                                                        to 5MB
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select product type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {productTypes.map((type) => (
+                                                    <SelectItem
+                                                        key={type.value}
+                                                        value={type.value}
+                                                    >
+                                                        <div>
+                                                            <div>
+                                                                {type.label}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {
+                                                                    type.description
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="categoryId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Category</FormLabel>
+                                        <FormControl>
+                                            <CategorySelector
+                                                categories={categories}
+                                                value={
+                                                    field.value === 0
+                                                        ? undefined
+                                                        : field.value
+                                                }
+                                                onValueChange={(value) =>
+                                                    field.onChange(value || 0)
+                                                }
+                                                placeholder="Select category"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="price"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Sale Price (VND)</FormLabel>
+                                        <FormControl>
+                                            <NumberInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="50,000"
+                                                min={0}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="cost"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cost (VND)</FormLabel>
+                                        <FormControl>
+                                            <NumberInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="30,000"
+                                                min={0}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="estimateTime"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>
+                                            Estimate Time (minutes)
+                                        </FormLabel>
+                                        <FormControl>
+                                            <NumberInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                placeholder="15"
+                                                min={0}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder="Describe your product..."
+                                            rows={3}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="text-lg font-medium mb-2">
+                                    Product Image
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Upload a high-quality image of your product.
+                                    Supported formats: JPEG, PNG, GIF, WebP (max
+                                    5MB)
+                                </p>
+                            </div>
+
+                            {imagePreview ? (
+                                <div className="relative">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Product preview"
+                                        className="w-full max-w-md h-64 object-cover rounded-lg border"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        className="absolute top-2 right-2"
+                                        onClick={removeImage}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                            </TabsContent>
-
-                            <TabsContent value="settings" className="space-y-4">
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-medium">
-                                        Product Settings
-                                    </h3>
-
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="canBeSold"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={
-                                                                field.value
-                                                            }
-                                                            onCheckedChange={
-                                                                field.onChange
-                                                            }
-                                                        />
-                                                    </FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel>
-                                                            Can be sold
-                                                        </FormLabel>
-                                                        <FormDescription>
-                                                            Enable if this
-                                                            product can be sold
-                                                            to customers
-                                                        </FormDescription>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="canBePurchased"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={
-                                                                field.value
-                                                            }
-                                                            onCheckedChange={
-                                                                field.onChange
-                                                            }
-                                                        />
-                                                    </FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel>
-                                                            Can be purchased
-                                                        </FormLabel>
-                                                        <FormDescription>
-                                                            Enable if this
-                                                            product can be
-                                                            purchased from
-                                                            suppliers
-                                                        </FormDescription>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
+                            ) : (
+                                <div
+                                    {...getRootProps()}
+                                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                                        isDragActive
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-300 hover:border-gray-400'
+                                    }`}
+                                >
+                                    <input {...getInputProps()} />
+                                    <div className="space-y-2">
+                                        {uploadingImage ? (
+                                            <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+                                        ) : (
+                                            <ImageIcon className="h-8 w-8 mx-auto text-gray-400" />
+                                        )}
+                                        <div>
+                                            <p className="text-lg font-medium">
+                                                {uploadingImage
+                                                    ? 'Uploading...'
+                                                    : 'Drop image here or click to upload'}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                JPEG, PNG, GIF, WebP up to 5MB
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </TabsContent>
-                        </Tabs>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="canBeSold"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>Can be sold</FormLabel>
+                                            <FormDescription>
+                                                Enable if this product can be
+                                                sold to customers
+                                            </FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="canBePurchased"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>
+                                                Can be purchased
+                                            </FormLabel>
+                                            <FormDescription>
+                                                Enable if this product can be
+                                                purchased from suppliers
+                                            </FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
                         <div className="flex justify-end space-x-2 pt-4 border-t">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={handleClose}
-                                disabled={updateProductMutation.isPending}
+                                disabled={
+                                    updateProductMutation.isPending ||
+                                    uploadingImage
+                                }
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={updateProductMutation.isPending}
+                                disabled={
+                                    updateProductMutation.isPending ||
+                                    uploadingImage
+                                }
                             >
-                                {updateProductMutation.isPending ? (
+                                {updateProductMutation.isPending ||
+                                uploadingImage ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : null}
                                 Update Product

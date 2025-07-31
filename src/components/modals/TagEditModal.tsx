@@ -28,7 +28,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface TagEditModalProps {
     open: boolean;
@@ -55,7 +55,7 @@ const DEFAULT_COLORS = [
 ];
 
 export function TagEditModal({ open, onOpenChange, tag }: TagEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const updateTagMutation = useUpdateTag();
 
     // Form state
@@ -114,20 +114,15 @@ export function TagEditModal({ open, onOpenChange, tag }: TagEditModalProps) {
                 },
             });
 
-            toast({
-                title: 'Success',
-                description: 'Tag updated successfully.',
-            });
+            success('Success', 'Tag updated successfully.');
 
             onOpenChange(false);
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.response?.data?.message ||
-                    'Failed to update tag. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.response?.data?.message ||
+                    'Failed to update tag. Please try again.'
+            );
         }
     };
 

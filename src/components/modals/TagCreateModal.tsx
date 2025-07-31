@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface TagCreateModalProps {
     open: boolean;
@@ -45,7 +45,7 @@ const DEFAULT_COLORS = [
 ];
 
 export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const createTagMutation = useCreateTag();
 
     // Form state
@@ -84,23 +84,18 @@ export function TagCreateModal({ open, onOpenChange }: TagCreateModalProps) {
                 description: formData.description || undefined,
             });
 
-            toast({
-                title: 'Success',
-                description: 'Tag created successfully.',
-            });
+            success('Success', 'Tag created successfully.');
 
             // Reset form and close modal
             setFormData({ name: '', color: '', description: '' });
             setErrors({});
             onOpenChange(false);
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.response?.data?.message ||
-                    'Failed to create tag. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.response?.data?.message ||
+                    'Failed to create tag. Please try again.'
+            );
         }
     };
 

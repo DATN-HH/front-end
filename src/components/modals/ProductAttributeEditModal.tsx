@@ -38,7 +38,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Form schema
 const formSchema = z.object({
@@ -75,7 +75,7 @@ export function ProductAttributeEditModal({
     onOpenChange,
     attributeId,
 }: ProductAttributeEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     const { data: attribute, isLoading } = useProductAttribute(attributeId);
     const updateAttributeMutation = useUpdateProductAttribute();
@@ -122,18 +122,14 @@ export function ProductAttributeEditModal({
                 data: requestData,
             });
 
-            toast({
-                title: 'Attribute Updated',
-                description: `${data.name} has been updated successfully.`,
-            });
+            success(
+                'Attribute Updated',
+                `${data.name} has been updated successfully.`
+            );
 
             onOpenChange(false);
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to update attribute. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to update attribute. Please try again.');
         }
     };
 

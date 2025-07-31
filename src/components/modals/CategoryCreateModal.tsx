@@ -37,7 +37,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 const categorySchema = z.object({
     code: z
@@ -83,7 +83,7 @@ export function CategoryCreateModal({
     onOpenChange,
     parentCategory,
 }: CategoryCreateModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [saveAndNew, setSaveAndNew] = useState(false);
 
     // Get all categories for parent selection
@@ -131,10 +131,10 @@ export function CategoryCreateModal({
                 saveAndNew,
             });
 
-            toast({
-                title: 'Category Created',
-                description: `Category "${data.name}" has been created successfully.`,
-            });
+            success(
+                'Category Created',
+                `Category "${data.name}" has been created successfully.`
+            );
 
             if (saveAndNew) {
                 form.reset({
@@ -148,14 +148,12 @@ export function CategoryCreateModal({
                 form.reset();
                 onOpenChange(false);
             }
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.response?.data?.message ||
-                    'Failed to create category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.response?.data?.message ||
+                    'Failed to create category. Please try again.'
+            );
         }
     };
 

@@ -16,6 +16,7 @@ export const useCustomToast = () => {
             toast({
                 title,
                 description: message,
+                duration: 1000,
             }),
 
         // Hiển thị toast lỗi
@@ -24,6 +25,7 @@ export const useCustomToast = () => {
                 variant: 'destructive',
                 title,
                 description: message,
+                duration: 1000,
             }),
 
         // Hiển thị toast thành công
@@ -32,6 +34,7 @@ export const useCustomToast = () => {
                 className: 'bg-green-500 text-white border-green-600',
                 title,
                 description: message,
+                duration: 1000,
             }),
 
         // Hiển thị toast thông tin
@@ -40,6 +43,7 @@ export const useCustomToast = () => {
                 className: 'bg-blue-500 text-white border-blue-600',
                 title,
                 description: message,
+                duration: 1000,
             }),
 
         // Hiển thị toast cảnh báo
@@ -48,6 +52,7 @@ export const useCustomToast = () => {
                 className: 'bg-yellow-500 text-white border-yellow-600',
                 title,
                 description: message,
+                duration: 1000,
             }),
 
         // Hàm gốc từ useToast nếu cần sử dụng trực tiếp

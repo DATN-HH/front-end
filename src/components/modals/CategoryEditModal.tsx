@@ -36,7 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 const categoryEditSchema = z.object({
     code: z
@@ -73,7 +73,7 @@ export function CategoryEditModal({
     onOpenChange,
     category,
 }: CategoryEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     const form = useForm<CategoryEditFormValues>({
         resolver: zodResolver(categoryEditSchema),
@@ -117,21 +117,19 @@ export function CategoryEditModal({
                 data: updateData,
             });
 
-            toast({
-                title: 'Category Updated',
-                description: `Category "${data.name}" has been updated successfully.`,
-            });
+            success(
+                'Category Updated',
+                `Category "${data.name}" has been updated successfully.`
+            );
 
             form.reset();
             onOpenChange(false);
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.response?.data?.message ||
-                    'Failed to update category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.response?.data?.message ||
+                    'Failed to update category. Please try again.'
+            );
         }
     };
 

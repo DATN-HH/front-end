@@ -34,7 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface PosCategoryModalProps {
     open: boolean;
@@ -45,7 +45,7 @@ export function PosCategoryModal({
     open,
     onOpenChange,
 }: PosCategoryModalProps) {
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         parentCategory: 'none',
@@ -64,11 +64,7 @@ export function PosCategoryModal({
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please enter category name.',
-                variant: 'destructive',
-            });
+            error('Validation Error', 'Please enter category name.');
             return;
         }
 
@@ -90,10 +86,10 @@ export function PosCategoryModal({
                 saveAndNew: false,
             });
 
-            toast({
-                title: 'Category Created',
-                description: `${formData.name} has been created successfully.`,
-            });
+            success(
+                'Category Created',
+                `${formData.name} has been created successfully.`
+            );
 
             // Reset form and close modal
             setFormData({
@@ -103,12 +99,8 @@ export function PosCategoryModal({
                 description: '',
             });
             onOpenChange(false);
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to create category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            error('Error', 'Failed to create category. Please try again.');
         }
     };
 
@@ -116,11 +108,7 @@ export function PosCategoryModal({
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please enter category name.',
-                variant: 'destructive',
-            });
+            error('Validation Error', 'Please enter category name.');
             return;
         }
 
@@ -142,10 +130,10 @@ export function PosCategoryModal({
                 saveAndNew: true,
             });
 
-            toast({
-                title: 'Category Created',
-                description: `${formData.name} has been created successfully. Create new category.`,
-            });
+            success(
+                'Category Created',
+                `${formData.name} has been created successfully. Create new category.`
+            );
 
             // Reset form but keep modal open
             setFormData({
@@ -154,12 +142,8 @@ export function PosCategoryModal({
                 sequence: '',
                 description: '',
             });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to create category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            error('Error', 'Failed to create category. Please try again.');
         }
     };
 

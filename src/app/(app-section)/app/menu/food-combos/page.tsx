@@ -26,6 +26,7 @@ import {
 import { DataTable } from '@/components/common/Table/DataTable';
 import { FilterDefinition, OperandType } from '@/components/common/Table/types';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { FoodComboEditModal } from '@/components/modals/FoodComboEditModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,12 +36,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 type ViewMode = 'table' | 'card';
 
 export default function FoodCombosPage() {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     // State for filtering
     const [keyword, setKeyword] = useState('');
@@ -52,13 +53,24 @@ export default function FoodCombosPage() {
     const [viewMode, setViewMode] = useState<ViewMode>('table');
 
     // Modal state
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
+
     const [editingComboId, setEditingComboId] = useState<number | null>(null);
 
+    // Add this to handle edit modal
+    const [editModalOpen, setEditModalOpen] = useState(false);
+
     // API hooks
-    const { data: combos = [], isLoading, error } = useAllFoodCombos();
+    const {
+        data: combos = [],
+        isLoading,
+        error: apiError,
+    } = useAllFoodCombos();
     const deleteComboMutation = useDeleteFoodCombo();
+
+    const handleEdit = (comboId: number) => {
+        setEditingComboId(comboId);
+        setEditModalOpen(true);
+    };
 
     // Filter combos based on current filters
     const filteredCombos = useMemo(() => {
@@ -129,16 +141,15 @@ export default function FoodCombosPage() {
     const handleDelete = async (comboId: number, comboName: string) => {
         try {
             await deleteComboMutation.mutateAsync(comboId);
-            toast({
-                title: 'Food Combo Deleted',
-                description: `${comboName} has been deleted successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete food combo. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Food Combo Deleted',
+                `${comboName} has been deleted successfully.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to delete food combo. Please try again.'
+            );
         }
     };
 
@@ -169,7 +180,10 @@ export default function FoodCombosPage() {
             accessorKey: 'name',
             header: 'Combo Name',
             cell: ({ row }) => (
-                <div className="flex items-center space-x-3">
+                <Link
+                    href={`/app/menu/food-combos/${row.original.id}/detail`}
+                    className="flex items-center space-x-3 group"
+                >
                     <div className="flex-shrink-0">
                         {row.original.image ? (
                             <div className="relative w-12 h-12 rounded-md overflow-hidden bg-gray-100">
@@ -188,12 +202,14 @@ export default function FoodCombosPage() {
                         )}
                     </div>
                     <div>
-                        <div className="font-medium">{row.original.name}</div>
+                        <div className="font-medium group-hover:underline text-blue-500 hover:underline ">
+                            {row.original.name}
+                        </div>
                         <div className="text-sm text-gray-500">
                             {row.original.internalReference || '-'}
                         </div>
                     </div>
-                </div>
+                </Link>
             ),
         },
         {
@@ -285,45 +301,36 @@ export default function FoodCombosPage() {
         {
             id: 'actions',
             header: 'Actions',
+            meta: { pin: 'right' },
             cell: ({ row }) => {
-                const isDeleted = row.original.status === 'DELETED';
+                const combo = row.original;
+                const isDeleted = combo.status === 'DELETED';
 
                 return (
                     <div className="flex gap-2">
-                        <Link
-                            href={`/app/menu/food-combos/${row.original.id}/detail`}
-                        >
+                        <Link href={`/app/menu/food-combos/${combo.id}/detail`}>
                             <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
+                                <Eye className="h-4 w-4 mr-1" />{' '}
                             </Button>
                         </Link>
                         {!isDeleted && (
                             <>
                                 <Button
                                     size="sm"
-                                    onClick={() => {
-                                        setEditingComboId(row.original.id);
-                                        setShowEditModal(true);
-                                    }}
+                                    onClick={() => handleEdit(combo.id)}
                                 >
                                     <Edit className="h-4 w-4 mr-1" />
-                                    Edit
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="text-red-500"
                                     onClick={() =>
-                                        handleDelete(
-                                            row.original.id,
-                                            row.original.name
-                                        )
+                                        handleDelete(combo.id, combo.name)
                                     }
                                     disabled={deleteComboMutation.isPending}
                                 >
                                     <Archive className="h-4 w-4 mr-1" />
-                                    Delete
                                 </Button>
                             </>
                         )}
@@ -491,10 +498,7 @@ export default function FoodCombosPage() {
                                 {!isDeleted && (
                                     <Button
                                         size="sm"
-                                        onClick={() => {
-                                            setEditingComboId(combo.id);
-                                            setShowEditModal(true);
-                                        }}
+                                        onClick={() => handleEdit(combo.id)}
                                         className="flex-1 h-8"
                                     >
                                         <Edit className="h-3 w-3 mr-1" />
@@ -525,7 +529,7 @@ export default function FoodCombosPage() {
         );
     };
 
-    if (error) {
+    if (apiError) {
         return (
             <div className="space-y-6">
                 <PageTitle
@@ -539,7 +543,7 @@ export default function FoodCombosPage() {
                     }
                 />
                 <div className="text-center text-red-500">
-                    Error loading food combos: {error.message}
+                    Error loading food combos: {apiError.message}
                 </div>
             </div>
         );
@@ -733,6 +737,19 @@ export default function FoodCombosPage() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* Add the edit modal */}
+            {editingComboId && (
+                <FoodComboEditModal
+                    open={editModalOpen}
+                    onOpenChange={setEditModalOpen}
+                    comboId={editingComboId}
+                    onSuccess={() => {
+                        setEditModalOpen(false);
+                        setEditingComboId(null);
+                    }}
+                />
             )}
         </div>
     );

@@ -9,48 +9,7 @@ const nextConfig = {
     dynamicIO: false,
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.indianexpress.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'hospitalityinsights.ehl.edu',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.prod.website-files.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.stockcake.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'uglyfood.com.sg',
-      },
-      {
-        protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.vox-cdn.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.6newyork.fr',
-      },
-      {
-        protocol: 'https',
-        hostname: 'image-tc.galaxy.tf',
-      },
-    ],
+    unoptimized: true,
   },
   webpack: (config, { isServer }) => {
     // Exclude server-only packages from client bundle

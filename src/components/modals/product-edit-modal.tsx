@@ -31,7 +31,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface Product {
     id: number;
@@ -58,7 +58,7 @@ export function ProductEditModal({
     onOpenChange,
     product,
 }: ProductEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         type: '',
@@ -94,18 +94,17 @@ export function ProductEditModal({
         e.preventDefault();
 
         if (!formData.name || !formData.type || !formData.salesPrice) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fill in all required fields.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please fill in all required fields.'
+            );
             return;
         }
 
-        toast({
-            title: 'Product Updated',
-            description: `${formData.name} has been updated successfully.`,
-        });
+        success(
+            'Product Updated',
+            `${formData.name} has been updated successfully.`
+        );
 
         onOpenChange(false);
     };

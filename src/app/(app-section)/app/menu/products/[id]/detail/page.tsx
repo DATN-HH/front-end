@@ -97,7 +97,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Form schemas
 const assignmentFormSchema = z.object({
@@ -134,7 +134,7 @@ type EditVariantFormData = z.infer<typeof editVariantFormSchema>;
 export default function ProductDetailPage() {
     const params = useParams();
     const productId = params.id as string;
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [showEditModal, setShowEditModal] = useState(false);
 
     // Variant management state
@@ -235,16 +235,12 @@ export default function ProductDetailPage() {
 
         try {
             await archiveProductMutation.mutateAsync(product.id);
-            toast({
-                title: 'Product Archived',
-                description: `${product.name} has been archived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to archive product. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Product Archived',
+                `${product.name} has been archived successfully.`
+            );
+        } catch (err) {
+            showError('Error', 'Failed to archive product. Please try again.');
         }
     };
 
@@ -253,16 +249,15 @@ export default function ProductDetailPage() {
 
         try {
             await unarchiveProductMutation.mutateAsync(product.id);
-            toast({
-                title: 'Product Unarchived',
-                description: `${product.name} has been unarchived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to unarchive product. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Product Unarchived',
+                `${product.name} has been unarchived successfully.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to unarchive product. Please try again.'
+            );
         }
     };
 
@@ -370,20 +365,19 @@ export default function ProductDetailPage() {
             const newVariants =
                 await assignAttributesMutation.mutateAsync(requestData);
 
-            toast({
-                title: 'Attributes Assigned',
-                description: `Successfully assigned attributes and generated ${newVariants.length} variants.`,
-            });
+            success(
+                'Attributes Assigned',
+                `Successfully assigned attributes and generated ${newVariants.length} variants.`
+            );
 
             // Reset form and switch to variants list
             assignmentForm.reset();
             setActiveVariantTab('list');
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to assign attributes. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to assign attributes. Please try again.'
+            );
         }
     };
 
@@ -394,7 +388,6 @@ export default function ProductDetailPage() {
         attributeName: string,
         priceValue?: string
     ) => {
-        console.log('priceValue', priceValue);
         try {
             await setDefaultMoneyAttributeMutation.mutateAsync({
                 productVariantId: Number(productVariantId),
@@ -402,17 +395,15 @@ export default function ProductDetailPage() {
                 priceValue: priceValue ? Number(priceValue) : undefined,
             });
 
-            toast({
-                title: 'Default Price Set',
-                description: `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${priceValue}` : ''}.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description:
-                    'Failed to set default price attribute. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Default Price Set',
+                `Successfully set "${attributeName}" as the default price attribute${priceValue ? ` with price ${priceValue}` : ''}.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to set default price attribute. Please try again.'
+            );
         }
     };
 
@@ -445,20 +436,16 @@ export default function ProductDetailPage() {
                 });
             }
 
-            toast({
-                title: 'Variant Updated',
-                description: 'Product variant has been updated successfully.',
-            });
+            success(
+                'Variant Updated',
+                'Product variant has been updated successfully.'
+            );
 
             setShowEditVariantModal(false);
             setEditingVariantId(null);
             editVariantForm.reset();
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to update variant. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to update variant. Please try again.');
         }
     };
 
@@ -473,17 +460,15 @@ export default function ProductDetailPage() {
 
         try {
             await removeAttributesMutation.mutateAsync(Number(productId));
-            toast({
-                title: 'Attributes Removed',
-                description:
-                    'All attributes have been removed from this product.',
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to remove attributes. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Attributes Removed',
+                'All attributes have been removed from this product.'
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to remove attributes. Please try again.'
+            );
         }
     };
 
@@ -500,19 +485,15 @@ export default function ProductDetailPage() {
 
             await createVariantMutation.mutateAsync(requestData);
 
-            toast({
-                title: 'Variant Created',
-                description: 'Product variant has been created successfully.',
-            });
+            success(
+                'Variant Created',
+                'Product variant has been created successfully.'
+            );
 
             variantForm.reset();
             setActiveVariantTab('list');
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to create variant. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to create variant. Please try again.');
         }
     };
 
@@ -530,16 +511,12 @@ export default function ProductDetailPage() {
 
         try {
             await deleteVariantMutation.mutateAsync(variantId);
-            toast({
-                title: 'Variant Deleted',
-                description: `${variantName} has been deleted successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete variant. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Variant Deleted',
+                `${variantName} has been deleted successfully.`
+            );
+        } catch (err) {
+            showError('Error', 'Failed to delete variant. Please try again.');
         }
     };
 
@@ -549,16 +526,12 @@ export default function ProductDetailPage() {
     ) => {
         try {
             await archiveVariantMutation.mutateAsync(variantId);
-            toast({
-                title: 'Variant Archived',
-                description: `${variantName} has been archived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to archive variant. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Variant Archived',
+                `${variantName} has been archived successfully.`
+            );
+        } catch (err) {
+            showError('Error', 'Failed to archive variant. Please try again.');
         }
     };
 
@@ -568,16 +541,15 @@ export default function ProductDetailPage() {
     ) => {
         try {
             await unarchiveVariantMutation.mutateAsync(variantId);
-            toast({
-                title: 'Variant Unarchived',
-                description: `${variantName} has been unarchived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to unarchive variant. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Variant Unarchived',
+                `${variantName} has been unarchived successfully.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to unarchive variant. Please try again.'
+            );
         }
     };
 
