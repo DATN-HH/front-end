@@ -12,9 +12,7 @@ import { Input } from '@/components/ui/input';
 // Import API hooks and types
 import { useAllCategories } from '@/api/v1/menu/categories';
 import { useAllProducts } from '@/api/v1/menu/products';
-import {
-    ProductVariantResponse,
-} from '@/api/v1/menu/product-attributes';
+import { ProductVariantResponse } from '@/api/v1/menu/product-attributes';
 
 // Types for POS products - based on variants
 interface POSProduct {
@@ -81,7 +79,9 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
 
     // Filter by category if selected
     const categoryFilteredProducts = selectedCategory
-        ? allPOSProducts.filter((product) => product.categoryId === selectedCategory)
+        ? allPOSProducts.filter(
+              (product) => product.categoryId === selectedCategory
+          )
         : allPOSProducts;
 
     // Filter products by search query
