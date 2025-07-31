@@ -30,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface KitchenPrinterModalProps {
     open: boolean;
@@ -41,7 +41,7 @@ export function KitchenPrinterModal({
     open,
     onOpenChange,
 }: KitchenPrinterModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         type: '',
@@ -66,18 +66,17 @@ export function KitchenPrinterModal({
         e.preventDefault();
 
         if (!formData.name || !formData.type || !formData.ipAddress) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fill in all required fields.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please fill in all required fields.'
+            );
             return;
         }
 
-        toast({
-            title: 'Device Created',
-            description: `${formData.name} has been created successfully.`,
-        });
+        success(
+            'Device Created',
+            `${formData.name} has been created successfully.`
+        );
 
         // Reset form and close modal
         setFormData({

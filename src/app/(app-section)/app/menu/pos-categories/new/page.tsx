@@ -23,11 +23,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function NewPosCategoryPage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         parentCategory: '',
@@ -38,18 +38,14 @@ export default function NewPosCategoryPage() {
         e.preventDefault();
 
         if (!formData.name) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please enter category name.',
-                variant: 'destructive',
-            });
+            showError('Validation Error', 'Please enter category name.');
             return;
         }
 
-        toast({
-            title: 'Category Created',
-            description: `${formData.name} has been created successfully.`,
-        });
+        success(
+            'Category Created',
+            `${formData.name} has been created successfully.`
+        );
 
         router.push('/app/menu/pos-categories');
     };
@@ -58,18 +54,14 @@ export default function NewPosCategoryPage() {
         e.preventDefault();
 
         if (!formData.name) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please enter category name.',
-                variant: 'destructive',
-            });
+            showError('Validation Error', 'Please enter category name.');
             return;
         }
 
-        toast({
-            title: 'Category Created',
-            description: `${formData.name} has been created successfully. Creating new category.`,
-        });
+        success(
+            'Category Created',
+            `${formData.name} has been created successfully. Creating new category.`
+        );
 
         // Reset form
         setFormData({

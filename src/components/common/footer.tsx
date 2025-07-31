@@ -1,17 +1,8 @@
-import {
-    MapPin,
-    Phone,
-    Mail,
-    Clock,
-    Facebook,
-    Instagram,
-    Twitter,
-} from 'lucide-react';
+import { Phone, Mail, Clock, Facebook, Instagram, Twitter } from 'lucide-react';
 import Link from 'next/link';
 
 import { Logo } from '@/components/common/logo';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 const branches = [
     {
@@ -66,7 +57,7 @@ export function Footer() {
     return (
         <footer className="bg-gray-900 text-white">
             {/* Newsletter Section */}
-            <div className="border-b border-gray-800">
+            {/* <div className="border-b border-gray-800">
                 <div className="container mx-auto px-4 py-12">
                     <div className="max-w-2xl mx-auto text-center">
                         <h3 className="text-2xl font-serif font-bold mb-4">
@@ -88,7 +79,7 @@ export function Footer() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Main Footer Content */}
             <div className="container mx-auto px-4 py-12">
@@ -207,7 +198,7 @@ export function Footer() {
                 </div>
 
                 {/* Locations */}
-                <div className="mt-12 pt-8 border-t border-gray-800">
+                {/* <div className="mt-12 pt-8 border-t border-gray-800">
                     <h4 className="text-xl font-serif font-semibold mb-6 text-center">
                         Our Locations
                     </h4>
@@ -234,7 +225,7 @@ export function Footer() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* Bottom Bar */}

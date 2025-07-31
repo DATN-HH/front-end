@@ -24,11 +24,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function NewAttributePage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         displayType: '',
@@ -41,27 +41,22 @@ export default function NewAttributePage() {
         e.preventDefault();
 
         if (!formData.name || !formData.displayType) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fill in all required fields.',
-                variant: 'destructive',
-            });
+            error('Validation Error', 'Please fill in all required fields.');
             return;
         }
 
         if (values.length === 0) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please add at least one value for the attribute.',
-                variant: 'destructive',
-            });
+            error(
+                'Validation Error',
+                'Please add at least one value for the attribute.'
+            );
             return;
         }
 
-        toast({
-            title: 'Attribute Created',
-            description: `${formData.name} has been created successfully with ${values.length} values.`,
-        });
+        success(
+            'Attribute Created',
+            `${formData.name} has been created successfully with ${values.length} values.`
+        );
 
         router.push('/app/menu/attributes');
     };

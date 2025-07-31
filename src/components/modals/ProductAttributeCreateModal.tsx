@@ -47,7 +47,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Form schema
 const formSchema = z.object({
@@ -89,7 +89,7 @@ export function ProductAttributeCreateModal({
     open,
     onOpenChange,
 }: ProductAttributeCreateModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [saveAndNew, setSaveAndNew] = useState(false);
     const [attributeValues, setAttributeValues] = useState<AttributeValue[]>(
         []
@@ -117,11 +117,7 @@ export function ProductAttributeCreateModal({
 
     const addValue = () => {
         if (!newValue.name.trim()) {
-            toast({
-                title: 'Validation Error',
-                description: 'Value name is required.',
-                variant: 'destructive',
-            });
+            showError('Validation Error', 'Value name is required.');
             return;
         }
 
@@ -130,11 +126,7 @@ export function ProductAttributeCreateModal({
                 (v) => v.name.toLowerCase() === newValue.name.toLowerCase()
             )
         ) {
-            toast({
-                title: 'Validation Error',
-                description: 'Value name already exists.',
-                variant: 'destructive',
-            });
+            showError('Validation Error', 'Value name already exists.');
             return;
         }
 
@@ -187,10 +179,10 @@ export function ProductAttributeCreateModal({
                 await Promise.all(valuePromises);
             }
 
-            toast({
-                title: 'Attribute Created',
-                description: `${data.name} has been created successfully${attributeValues.length > 0 ? ` with ${attributeValues.length} values` : ''}.`,
-            });
+            success(
+                'Attribute Created',
+                `${data.name} has been created successfully${attributeValues.length > 0 ? ` with ${attributeValues.length} values` : ''}.`
+            );
 
             if (saveAndNew) {
                 form.reset();
@@ -205,12 +197,8 @@ export function ProductAttributeCreateModal({
             } else {
                 handleClose();
             }
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to create attribute. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to create attribute. Please try again.');
         }
     };
 
@@ -427,11 +415,15 @@ export function ProductAttributeCreateModal({
                                 <CardContent className="space-y-4">
                                     {/* Add new value form */}
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-gray-50">
-                                        <div>
+                                        <div className="w-full">
                                             <label className="text-sm font-medium">
-                                                Value Name *
+                                                Value Name{' '}
+                                                <span className="text-red-500">
+                                                    *
+                                                </span>
                                             </label>
                                             <Input
+                                                className="mt-2"
                                                 value={newValue.name}
                                                 onChange={(e) =>
                                                     setNewValue({

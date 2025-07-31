@@ -24,6 +24,7 @@ import {
     Status,
 } from '@/api/v1/menu/food-combos';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { FoodComboEditModal } from '@/components/modals/FoodComboEditModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,18 +35,18 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function FoodComboDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     const comboId = Number(params.id);
-    const { data: combo, isLoading, error } = useFoodCombo(comboId);
+    const { data: combo, isLoading, error: apiError } = useFoodCombo(comboId);
     const deleteComboMutation = useDeleteFoodCombo();
 
-    const [showEditModal, setShowEditModal] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!combo) return;
@@ -57,19 +58,16 @@ export default function FoodComboDetailPage() {
 
         try {
             await deleteComboMutation.mutateAsync(comboId);
-            toast({
-                title: 'Food Combo Deleted',
-                description: `${combo.name} has been deleted successfully.`,
-            });
+            success(
+                'Food Combo Deleted',
+                `${combo.name} has been deleted successfully.`
+            );
             router.push('/app/menu/food-combos');
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.message ||
-                    'Failed to delete food combo. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err.message || 'Failed to delete food combo. Please try again.'
+            );
         }
     };
 
@@ -125,7 +123,7 @@ export default function FoodComboDetailPage() {
         );
     }
 
-    if (error || !combo) {
+    if (apiError || !combo) {
         return (
             <div className="space-y-6">
                 <PageTitle
@@ -141,7 +139,7 @@ export default function FoodComboDetailPage() {
                 />
                 <div className="text-center text-red-500 py-8">
                     Error loading food combo:{' '}
-                    {error?.message || 'Food combo not found'}
+                    {apiError?.message || 'Food combo not found'}
                 </div>
             </div>
         );
@@ -174,7 +172,7 @@ export default function FoodComboDetailPage() {
                     <div className="flex items-center space-x-3">
                         <Button
                             variant="outline"
-                            onClick={() => setShowEditModal(true)}
+                            onClick={() => setEditModalOpen(true)}
                         >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
@@ -739,6 +737,16 @@ export default function FoodComboDetailPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {/* Add the edit modal */}
+            <FoodComboEditModal
+                open={editModalOpen}
+                onOpenChange={setEditModalOpen}
+                comboId={comboId}
+                onSuccess={() => {
+                    setEditModalOpen(false);
+                }}
+            />
         </div>
     );
 }

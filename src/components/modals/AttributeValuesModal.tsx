@@ -36,7 +36,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Form schema for attribute values
 const valueFormSchema = z.object({
@@ -64,7 +64,7 @@ export function AttributeValuesModal({
     attributeId,
     editingValueId: externalEditingValueId,
 }: AttributeValuesModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     // State for editing
     const [editingValueId, setEditingValueId] = useState<number | null>(null);
@@ -103,28 +103,26 @@ export function AttributeValuesModal({
                     id: editingValueId,
                     data: requestData,
                 });
-                toast({
-                    title: 'Value Updated',
-                    description: `${data.name} has been updated successfully.`,
-                });
+                success(
+                    'Value Updated',
+                    `${data.name} has been updated successfully.`
+                );
                 setEditingValueId(null);
             } else {
                 await createValueMutation.mutateAsync(requestData);
-                toast({
-                    title: 'Value Created',
-                    description: `${data.name} has been created successfully.`,
-                });
+                success(
+                    'Value Created',
+                    `${data.name} has been created successfully.`
+                );
                 setShowCreateForm(false);
             }
 
             form.reset();
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description:
-                    'Failed to save attribute value. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to save attribute value. Please try again.'
+            );
         }
     };
 
@@ -150,17 +148,15 @@ export function AttributeValuesModal({
 
         try {
             await deleteValueMutation.mutateAsync(valueId);
-            toast({
-                title: 'Value Deleted',
-                description: `${valueName} has been deleted successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description:
-                    'Failed to delete attribute value. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Value Deleted',
+                `${valueName} has been deleted successfully.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to delete attribute value. Please try again.'
+            );
         }
     };
 

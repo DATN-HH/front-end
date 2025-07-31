@@ -30,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface Attribute {
     id: number;
@@ -52,7 +52,7 @@ export function AttributeEditModal({
     onOpenChange,
     attribute,
 }: AttributeEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         displayType: '',
@@ -77,27 +77,25 @@ export function AttributeEditModal({
         e.preventDefault();
 
         if (!formData.name || !formData.displayType) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fill in all required fields.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please fill in all required fields.'
+            );
             return;
         }
 
         if (values.length === 0) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please add at least one value for the attribute.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please add at least one value for the attribute.'
+            );
             return;
         }
 
-        toast({
-            title: 'Attribute Updated',
-            description: `${formData.name} has been updated successfully with ${values.length} values.`,
-        });
+        success(
+            'Attribute Updated',
+            `${formData.name} has been updated successfully with ${values.length} values.`
+        );
 
         onOpenChange(false);
     };

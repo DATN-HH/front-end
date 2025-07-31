@@ -35,7 +35,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface PosCategoryEditModalProps {
     open: boolean;
@@ -48,7 +48,7 @@ export function PosCategoryEditModal({
     onOpenChange,
     category,
 }: PosCategoryEditModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         parentCategory: 'none',
@@ -83,11 +83,7 @@ export function PosCategoryEditModal({
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please enter category name.',
-                variant: 'destructive',
-            });
+            showError('Validation Error', 'Please enter category name.');
             return;
         }
 
@@ -111,18 +107,14 @@ export function PosCategoryEditModal({
                 data: requestData,
             });
 
-            toast({
-                title: 'Category Updated',
-                description: `${formData.name} has been updated successfully.`,
-            });
+            success(
+                'Category Updated',
+                `${formData.name} has been updated successfully.`
+            );
 
             onOpenChange(false);
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to update category. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err) {
+            showError('Error', 'Failed to update category. Please try again.');
         }
     };
 

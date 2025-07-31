@@ -8,10 +8,9 @@ import {
     Trash2,
     Eye,
     Layers,
-    List,
-    TreePine,
     Filter,
     Loader2,
+    Layers2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
@@ -53,7 +52,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 type ViewMode = 'list' | 'hierarchy';
 type SortField = 'name' | 'sequence' | 'productsCount' | 'createdAt';
@@ -74,7 +73,7 @@ export default function UnifiedCategoriesPage() {
         useState<CategoryResponse | null>(null);
     const [parentCategoryForCreate, setParentCategoryForCreate] =
         useState<CategoryResponse | null>(null);
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
 
     // API hooks
     const {
@@ -93,7 +92,7 @@ export default function UnifiedCategoriesPage() {
     const updateSequence = useUpdateCategorySequence();
 
     const isLoading = isLoadingList || isLoadingHierarchy;
-    const error = listError || hierarchyError;
+    const hasError = listError || hierarchyError;
 
     // Filter and sort logic for list view
     const filteredAndSortedCategories = useMemo(() => {
@@ -166,16 +165,12 @@ export default function UnifiedCategoriesPage() {
         ) {
             try {
                 await deleteCategory.mutateAsync(category.id);
-                toast({
-                    title: 'Category Deleted',
-                    description: `${category.name} has been deleted successfully.`,
-                });
-            } catch (error) {
-                toast({
-                    title: 'Error',
-                    description: 'Failed to delete category. Please try again.',
-                    variant: 'destructive',
-                });
+                success(
+                    'Category Deleted',
+                    `${category.name} has been deleted successfully.`
+                );
+            } catch (err) {
+                error('Error', 'Failed to delete category. Please try again.');
             }
         }
     };
@@ -198,7 +193,7 @@ export default function UnifiedCategoriesPage() {
         );
     }
 
-    if (error) {
+    if (hasError) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -214,44 +209,16 @@ export default function UnifiedCategoriesPage() {
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <PageTitle title="Categories" />
-                <p className="text-muted-foreground">
-                    Manage your product categories with hierarchy support
-                </p>
-            </div>
-
-            {/* Header Actions */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    {/* View Mode Toggle */}
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            variant={
-                                viewMode === 'list' ? 'default' : 'outline'
-                            }
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                        >
-                            <List className="h-4 w-4 mr-2" />
-                            List
+                <PageTitle
+                    title="Categories"
+                    icon={Layers2}
+                    left={
+                        <Button onClick={() => setShowCreateModal(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Category
                         </Button>
-                        <Button
-                            variant={
-                                viewMode === 'hierarchy' ? 'default' : 'outline'
-                            }
-                            size="sm"
-                            onClick={() => setViewMode('hierarchy')}
-                        >
-                            <TreePine className="h-4 w-4 mr-2" />
-                            Hierarchy
-                        </Button>
-                    </div>
-                </div>
-
-                <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Category
-                </Button>
+                    }
+                />
             </div>
 
             {/* Filters and Search */}

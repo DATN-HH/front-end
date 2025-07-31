@@ -22,7 +22,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 // Product Card Component
 const ProductCard = ({ product }: { product: ProductListResponse }) => {
@@ -132,7 +132,7 @@ export default function CategoryDetailPage({
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
     const { id } = use(params);
     const categoryId = parseInt(id);
 
@@ -140,7 +140,11 @@ export default function CategoryDetailPage({
     const [showEditModal, setShowEditModal] = useState(false);
 
     // API hooks using /api/menu/categories/{id}, /api/menu/categories/{id}/product-count, and /api/menu/categories/{id}/products
-    const { data: category, isLoading, error } = useCategory(categoryId);
+    const {
+        data: category,
+        isLoading,
+        error: categoryError,
+    } = useCategory(categoryId);
     const { data: productCount } = useProductCountByCategory(categoryId);
     const { data: products, isLoading: productsLoading } =
         useProductsByCategory(categoryId);
@@ -152,16 +156,12 @@ export default function CategoryDetailPage({
 
         try {
             await archiveCategoryMutation.mutateAsync(categoryId);
-            toast({
-                title: 'Category Archived',
-                description: `${category.name} has been archived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to archive category. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Category Archived',
+                `${category.name} has been archived successfully.`
+            );
+        } catch (err) {
+            error('Error', 'Failed to archive category. Please try again.');
         }
     };
 
@@ -170,16 +170,12 @@ export default function CategoryDetailPage({
 
         try {
             await unarchiveCategoryMutation.mutateAsync(categoryId);
-            toast({
-                title: 'Category Unarchived',
-                description: `${category.name} has been unarchived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to unarchive category. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Category Unarchived',
+                `${category.name} has been unarchived successfully.`
+            );
+        } catch (err) {
+            error('Error', 'Failed to unarchive category. Please try again.');
         }
     };
 
@@ -217,7 +213,7 @@ export default function CategoryDetailPage({
         );
     }
 
-    if (error || !category) {
+    if (categoryError || !category) {
         return (
             <div className="space-y-6">
                 <div className="flex items-center space-x-4">
@@ -240,7 +236,7 @@ export default function CategoryDetailPage({
                         <div className="text-center">
                             <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <p className="text-gray-500 mb-4">
-                                {error?.message || 'Category not found'}
+                                {categoryError?.message || 'Category not found'}
                             </p>
                             <Link href="/app/menu/categories">
                                 <Button>Back to Categories</Button>

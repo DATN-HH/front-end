@@ -26,7 +26,6 @@ import {
     Status,
 } from '@/api/v1/menu/product-attributes';
 import { DataTable } from '@/components/common/Table/DataTable';
-import { FilterDefinition, OperandType } from '@/components/common/Table/types';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { ProductAttributeCreateModal } from '@/components/modals/ProductAttributeCreateModal';
 import { ProductAttributeEditModal } from '@/components/modals/ProductAttributeEditModal';
@@ -39,10 +38,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 export default function AttributesPage() {
-    const { toast } = useToast();
+    const { success, error } = useCustomToast();
 
     // Modal states
     const [showAttributeModal, setShowAttributeModal] = useState(false);
@@ -55,7 +54,7 @@ export default function AttributesPage() {
     const {
         data: attributes = [],
         isLoading,
-        error,
+        error: apiError,
     } = useAllProductAttributes();
     const deleteAttributeMutation = useDeleteProductAttribute();
 
@@ -71,16 +70,12 @@ export default function AttributesPage() {
 
         try {
             await deleteAttributeMutation.mutateAsync(attributeId);
-            toast({
-                title: 'Attribute Deleted',
-                description: `${attributeName} has been deleted successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to delete attribute. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Attribute Deleted',
+                `${attributeName} has been deleted successfully.`
+            );
+        } catch (err) {
+            error('Error', 'Failed to delete attribute. Please try again.');
         }
     };
 
@@ -144,41 +139,6 @@ export default function AttributesPage() {
                 return <Badge variant="outline">{status}</Badge>;
         }
     };
-
-    // Filter definitions for DataTable
-    const filterDefinitions: FilterDefinition[] = [
-        {
-            field: 'displayType',
-            label: 'Display Type',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'RADIO', label: 'Radio' },
-                { value: 'SELECT', label: 'Select' },
-                { value: 'COLOR', label: 'Color' },
-                { value: 'CHECKBOX', label: 'Checkbox' },
-            ],
-        },
-        {
-            field: 'variantCreationMode',
-            label: 'Creation Mode',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'INSTANTLY', label: 'Instantly' },
-                { value: 'DYNAMICALLY', label: 'Dynamically' },
-                { value: 'NEVER', label: 'Never' },
-            ],
-        },
-        {
-            field: 'status',
-            label: 'Status',
-            type: OperandType.ENUM,
-            options: [
-                { value: 'ACTIVE', label: 'Active' },
-                { value: 'INACTIVE', label: 'Inactive' },
-                { value: 'DELETED', label: 'Deleted' },
-            ],
-        },
-    ];
 
     // Table columns
     const columns: ColumnDef<ProductAttributeResponse>[] = [
@@ -310,7 +270,7 @@ export default function AttributesPage() {
         ),
     };
 
-    if (error) {
+    if (apiError) {
         return (
             <div className="space-y-6">
                 <PageTitle
@@ -324,7 +284,7 @@ export default function AttributesPage() {
                     }
                 />
                 <div className="text-center text-red-500">
-                    Error loading attributes: {error.message}
+                    Error loading attributes: {apiError.message}
                 </div>
             </div>
         );
@@ -435,7 +395,6 @@ export default function AttributesPage() {
                         onSortingChange={() => {}}
                         onFilterChange={() => {}}
                         onSearchChange={() => {}}
-                        filterDefinitions={filterDefinitions}
                         enableSearch={true}
                         enableColumnVisibility={true}
                         enableSorting={true}

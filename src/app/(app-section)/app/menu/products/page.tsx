@@ -16,7 +16,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 
-import { useAllTags, ProductTagResponse } from '@/api/v1/menu/product-tags';
 import {
     useProductList,
     useGroupedProductList,
@@ -41,25 +40,23 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 import { ProductNameCell } from './components/ProductNameCell';
 
 type ViewMode = 'table' | 'card' | 'grouped';
 
 export default function ProductsPage() {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
 
     // State for table controls
     const [pageIndex, setPageIndex] = useState(0);
-    const [pageSize, setPageSize] = useState(25);
+    const [pageSize, setPageSize] = useState(20);
     const [keyword, setKeyword] = useState('');
     const [selectedType, setSelectedType] = useState<ProductType | ''>('');
     const [canBeSold, setCanBeSold] = useState<boolean | undefined>(undefined);
     const [archived, setArchived] = useState(false);
-    const [selectedTags, setSelectedTags] = useState<ProductTagResponse[]>([]);
     const [sorting, setSorting] = useState<string>('');
-    const [columnFilters, setColumnFilters] = useState<any[]>([]);
 
     // View mode state
     const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -79,6 +76,7 @@ export default function ProductsPage() {
 
     // Build API parameters
     const apiParams: ProductListParams = useMemo(() => {
+        console.log('pageIndex', pageIndex);
         const [sortField, sortDirection] = sorting
             ? sorting.split(':')
             : ['name', 'asc'];
@@ -123,7 +121,6 @@ export default function ProductsPage() {
         isLoading: groupedLoading,
         error: groupedError,
     } = useGroupedProductList(groupedApiParams);
-    const { data: allTags = [] } = useAllTags();
     const archiveProductMutation = useArchiveProduct();
     const unarchiveProductMutation = useUnarchiveProduct();
 
@@ -194,32 +191,27 @@ export default function ProductsPage() {
     const handleArchive = async (productId: number, productName: string) => {
         try {
             await archiveProductMutation.mutateAsync(productId);
-            toast({
-                title: 'Product Archived',
-                description: `${productName} has been archived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to archive product. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Product Archived',
+                `${productName} has been archived successfully.`
+            );
+        } catch (err) {
+            showError('Error', 'Failed to archive product. Please try again.');
         }
     };
 
     const handleUnarchive = async (productId: number, productName: string) => {
         try {
             await unarchiveProductMutation.mutateAsync(productId);
-            toast({
-                title: 'Product Unarchived',
-                description: `${productName} has been unarchived successfully.`,
-            });
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to unarchive product. Please try again.',
-                variant: 'destructive',
-            });
+            success(
+                'Product Unarchived',
+                `${productName} has been unarchived successfully.`
+            );
+        } catch (err) {
+            showError(
+                'Error',
+                'Failed to unarchive product. Please try again.'
+            );
         }
     };
 
@@ -292,11 +284,6 @@ export default function ProductsPage() {
             accessorKey: 'cost',
             header: 'Cost',
             cell: ({ row }) => formatCurrency(row.original.cost),
-        },
-        {
-            accessorKey: 'size',
-            header: 'Size',
-            cell: ({ row }) => row.original.size || '-',
         },
         {
             accessorKey: 'canBeSold',
@@ -389,6 +376,7 @@ export default function ProductsPage() {
                     </div>
                 );
             },
+            meta: { pin: 'right' },
         },
     ];
 
@@ -836,13 +824,11 @@ export default function ProductsPage() {
                         setPageSize(newPageSize);
                     }}
                     onSortingChange={setSorting}
-                    onFilterChange={(filters) => {
-                        setColumnFilters(filters);
-                    }}
                     onSearchChange={(searchTerm) => {
                         setKeyword(searchTerm);
-                        setPageIndex(0); // Reset to first page when searching
+                        // setPageIndex(0); // Reset to first page when searching
                     }}
+                    onFilterChange={(filters) => {}}
                     filterDefinitions={filterDefinitions}
                     enableSearch={true}
                     enableColumnVisibility={true}
@@ -865,7 +851,7 @@ export default function ProductsPage() {
                                 value={keyword}
                                 onChange={(e) => {
                                     setKeyword(e.target.value);
-                                    setPageIndex(0);
+                                    // setPageIndex(0);
                                 }}
                                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
@@ -875,7 +861,7 @@ export default function ProductsPage() {
                                     setSelectedType(
                                         e.target.value as ProductType | ''
                                     );
-                                    setPageIndex(0);
+                                    // setPageIndex(0);
                                 }}
                                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
@@ -927,11 +913,11 @@ export default function ProductsPage() {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() =>
-                                                setPageIndex(
-                                                    Math.max(0, pageIndex - 1)
-                                                )
-                                            }
+                                            // onClick={() =>
+                                            //     setPageIndex(
+                                            //         Math.max(0, pageIndex - 1)
+                                            //     )
+                                            // }
                                             disabled={pageIndex === 0}
                                         >
                                             Previous
@@ -939,14 +925,14 @@ export default function ProductsPage() {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() =>
-                                                setPageIndex(
-                                                    Math.min(
-                                                        totalPages - 1,
-                                                        pageIndex + 1
-                                                    )
-                                                )
-                                            }
+                                            // onClick={() =>
+                                            //     setPageIndex(
+                                            //         Math.min(
+                                            //             totalPages - 1,
+                                            //             pageIndex + 1
+                                            //         )
+                                            //     )
+                                            // }
                                             disabled={
                                                 pageIndex >= totalPages - 1
                                             }

@@ -1,11 +1,21 @@
 'use client';
 
-import { ArrowLeft, Save, Plus, Search, X, Package } from 'lucide-react';
+import {
+    ArrowLeft,
+    Save,
+    Plus,
+    Search,
+    X,
+    Package,
+    ImageIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 
+import { useUploadImage } from '@/api/v1/images';
 import { useAllCategories } from '@/api/v1/menu/categories';
 import {
     useCreateFoodCombo,
@@ -32,7 +42,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface ProductSelectionModal {
     isOpen: boolean;
@@ -43,12 +53,17 @@ interface ProductSelectionModal {
 
 export default function NewFoodComboPage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const createComboMutation = useCreateFoodCombo();
+    const uploadImageMutation = useUploadImage();
 
     // API hooks
     const { data: categories = [] } = useAllCategories();
     const { data: products = [] } = useAllProducts();
+
+    // Image state
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -63,6 +78,7 @@ export default function NewFoodComboPage() {
         canBePurchased: false,
         availableInPos: true,
         posSequence: '',
+        image: '', // Add image field
     });
 
     // Combo items state
@@ -103,13 +119,84 @@ export default function NewFoodComboPage() {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Image upload handling
+    const onDrop = useCallback(
+        async (acceptedFiles: File[]) => {
+            const file = acceptedFiles[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showError('Invalid File Type', 'Please upload an image file.');
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File Too Large', 'Image must be less than 5MB.');
+                return;
+            }
+
+            setUploadingImage(true);
+
+            try {
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setImagePreview(e.target?.result as string);
+                };
+                reader.readAsDataURL(file);
+
+                // Upload to server
+                const uploadResult = await uploadImageMutation.mutateAsync({
+                    file,
+                    folder: 'food-combos',
+                });
+
+                // Update form with image URL
+                setFormData((prev) => ({
+                    ...prev,
+                    image: uploadResult.secureUrl,
+                }));
+            } catch (err: any) {
+                showError(
+                    'Upload Failed',
+                    err?.response?.data?.message || 'Failed to upload image.'
+                );
+                setImagePreview(null);
+                setFormData((prev) => ({
+                    ...prev,
+                    image: '',
+                }));
+            } finally {
+                setUploadingImage(false);
+            }
+        },
+        [uploadImageMutation]
+    );
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: {
+            'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
+        },
+        maxFiles: 1,
+    });
+
+    const removeImage = () => {
+        setImagePreview(null);
+        setFormData((prev) => ({
+            ...prev,
+            image: '',
+        }));
+    };
+
     const handleSubmit = async (saveAndNew = false) => {
         if (!validateForm()) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fix the errors before saving.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please fix the errors before saving.'
+            );
             return;
         }
 
@@ -133,6 +220,7 @@ export default function NewFoodComboPage() {
                     ? Number(formData.posSequence)
                     : undefined,
                 comboItems,
+                image: formData.image || undefined, // Add image to request
             };
 
             await createComboMutation.mutateAsync({
@@ -140,10 +228,10 @@ export default function NewFoodComboPage() {
                 saveAndNew,
             });
 
-            toast({
-                title: 'Food Combo Created',
-                description: `${formData.name} has been created successfully.`,
-            });
+            success(
+                'Food Combo Created',
+                `${formData.name} has been created successfully.`
+            );
 
             if (saveAndNew) {
                 // Reset form
@@ -159,25 +247,23 @@ export default function NewFoodComboPage() {
                     canBePurchased: false,
                     availableInPos: true,
                     posSequence: '',
+                    image: '',
                 });
                 setComboItems([]);
+                setImagePreview(null);
                 setErrors({});
-                toast({
-                    title: 'Ready for next combo',
-                    description:
-                        'Form has been reset. You can create another combo.',
-                });
+                success(
+                    'Ready for next combo',
+                    'Form has been reset. You can create another combo.'
+                );
             } else {
                 router.push('/app/menu/food-combos');
             }
-        } catch (error: any) {
-            toast({
-                title: 'Error',
-                description:
-                    error.message ||
-                    'Failed to create food combo. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            showError(
+                'Error',
+                err?.response?.data?.message || 'Failed to create food combo.'
+            );
         }
     };
 
@@ -202,14 +288,15 @@ export default function NewFoodComboPage() {
     };
 
     const handleProductSearch = (searchTerm: string) => {
+        const trimmedSearchTerm = searchTerm.trim().toLowerCase();
         const filtered = products.filter(
             (p) =>
                 p.status === 'ACTIVE' &&
                 p.canBeSold &&
-                (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (p.name.toLowerCase().includes(trimmedSearchTerm) ||
                     p.internalReference
                         ?.toLowerCase()
-                        .includes(searchTerm.toLowerCase()))
+                        .includes(trimmedSearchTerm))
         );
 
         setProductModal((prev) => ({
@@ -239,10 +326,10 @@ export default function NewFoodComboPage() {
         setComboItems((prev) => [...prev, ...newItems]);
         closeProductModal();
 
-        toast({
-            title: 'Products Added',
-            description: `${newItems.length} product(s) added to the combo.`,
-        });
+        success(
+            'Products Added',
+            `${newItems.length} product(s) added to the combo.`
+        );
     };
 
     const updateComboItem = (
@@ -309,7 +396,10 @@ export default function NewFoodComboPage() {
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Combo Name *</Label>
+                                <Label htmlFor="name">
+                                    Combo Name{' '}
+                                    <span className="text-red-500">*</span>
+                                </Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
@@ -427,6 +517,61 @@ export default function NewFoodComboPage() {
                                     }
                                     placeholder="0"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Image Upload Section */}
+                        <div className="space-y-2">
+                            <Label>Combo Image</Label>
+                            <div
+                                {...getRootProps()}
+                                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                                    isDragActive
+                                        ? 'border-primary bg-primary/10'
+                                        : 'border-border'
+                                }`}
+                            >
+                                <input {...getInputProps()} />
+                                {uploadingImage ? (
+                                    <div className="flex flex-col items-center justify-center py-4">
+                                        <div className="loading loading-spinner loading-md"></div>
+                                        <p className="mt-2">
+                                            Uploading image...
+                                        </p>
+                                    </div>
+                                ) : imagePreview ? (
+                                    <div className="relative w-full aspect-video">
+                                        <Image
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            fill
+                                            className="object-cover rounded-lg"
+                                        />
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeImage();
+                                            }}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-4">
+                                        <ImageIcon className="h-8 w-8 mb-2 text-muted-foreground" />
+                                        <p className="text-sm text-muted-foreground">
+                                            Drag & drop an image here, or click
+                                            to select
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            (Max size: 5MB, Formats: JPG, PNG,
+                                            GIF, WebP)
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>

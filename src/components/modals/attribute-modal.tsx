@@ -30,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface AttributeModalProps {
     open: boolean;
@@ -38,7 +38,7 @@ interface AttributeModalProps {
 }
 
 export function AttributeModal({ open, onOpenChange }: AttributeModalProps) {
-    const { toast } = useToast();
+    const { success, error: showError } = useCustomToast();
     const [formData, setFormData] = useState({
         name: '',
         displayType: '',
@@ -51,27 +51,25 @@ export function AttributeModal({ open, onOpenChange }: AttributeModalProps) {
         e.preventDefault();
 
         if (!formData.name || !formData.displayType) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please fill in all required fields.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please fill in all required fields.'
+            );
             return;
         }
 
         if (values.length === 0) {
-            toast({
-                title: 'Validation Error',
-                description: 'Please add at least one value for the attribute.',
-                variant: 'destructive',
-            });
+            showError(
+                'Validation Error',
+                'Please add at least one value for the attribute.'
+            );
             return;
         }
 
-        toast({
-            title: 'Attribute Created',
-            description: `${formData.name} has been created successfully with ${values.length} values.`,
-        });
+        success(
+            'Attribute Created',
+            `${formData.name} has been created successfully with ${values.length} values.`
+        );
 
         // Reset form and close modal
         setFormData({
