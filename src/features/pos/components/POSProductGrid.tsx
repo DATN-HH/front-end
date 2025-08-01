@@ -72,8 +72,10 @@ const convertProductToPOSProduct = (
                         defaultVariant.displayName || product.name || '',
                     description: product.description || '',
                     image: product.image || '',
-                    categoryId: product.categoryId || product.category?.id || undefined,
-                    categoryName: product.categoryName || product.category?.name || '',
+                    categoryId:
+                        product.categoryId || product.category?.id || undefined,
+                    categoryName:
+                        product.categoryName || product.category?.name || '',
                     price:
                         defaultVariant.effectivePrice ||
                         defaultVariant.price ||
@@ -140,8 +142,7 @@ const convertComboToPOSProduct = (combo: any): POSProduct => {
             productTemplateId: combo.id || 0,
             productTemplateName: combo.name || '',
             status: combo.status || 'ACTIVE',
-            isActive:
-                combo.canBeSold !== false && combo.status === 'ACTIVE',
+            isActive: combo.canBeSold !== false && combo.status === 'ACTIVE',
             isCombo: true,
         };
     } catch (err) {
@@ -176,8 +177,6 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     const [showVariantModal, setShowVariantModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [showFoodCombos, setShowFoodCombos] = useState(false);
-
-
 
     // Fetch categories
     const { data: categoriesData = [], isLoading: categoriesLoading } =
@@ -231,9 +230,8 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     let allCombosPOS: POSProduct[] = [];
     try {
         allCombosPOS = allCombos
-            .filter((combo: any) => 
-                combo.status === 'ACTIVE' && 
-                combo.canBeSold
+            .filter(
+                (combo: any) => combo.status === 'ACTIVE' && combo.canBeSold
                 // Remove availableInPos filter as it's not consistently set
             )
             .map((combo: any) => convertComboToPOSProduct(combo))
@@ -259,7 +257,12 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
             console.log('Filtering by category ID:', selectedCategory);
             console.log('Base products:', baseProducts.length);
             console.log('Filtered products:', categoryFilteredProducts.length);
-            console.log('Sample product categoryIds:', baseProducts.slice(0, 3).map(p => ({ name: p.name, categoryId: p.categoryId })));
+            console.log(
+                'Sample product categoryIds:',
+                baseProducts
+                    .slice(0, 3)
+                    .map((p) => ({ name: p.name, categoryId: p.categoryId }))
+            );
         } else {
             categoryFilteredProducts = baseProducts;
         }
@@ -312,20 +315,29 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                             (item) => item.categoryId === category.id
                         ).length;
 
-                        const isSelected = selectedCategory === category.id && !showFoodCombos;
+                        const isSelected =
+                            selectedCategory === category.id && !showFoodCombos;
 
                         return (
                             <Button
                                 key={category.id}
                                 variant={isSelected ? 'default' : 'outline'}
                                 className={`flex-shrink-0 px-4 py-2 font-medium whitespace-nowrap ${
-                                    isSelected 
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                    isSelected
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : 'text-gray-600 hover:text-gray-900'
                                 }`}
                                 onClick={() => {
-                                    console.log('Category clicked:', category.name, 'ID:', category.id);
-                                    console.log('Product count for category:', categoryProductCount);
+                                    console.log(
+                                        'Category clicked:',
+                                        category.name,
+                                        'ID:',
+                                        category.id
+                                    );
+                                    console.log(
+                                        'Product count for category:',
+                                        categoryProductCount
+                                    );
                                     setSelectedCategory(category.id);
                                     setShowFoodCombos(false);
                                 }}
@@ -339,12 +351,15 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                     <Button
                         variant={showFoodCombos ? 'default' : 'outline'}
                         className={`flex-shrink-0 px-4 py-2 font-medium whitespace-nowrap ${
-                            showFoodCombos 
-                                ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                            showFoodCombos
+                                ? 'bg-amber-600 text-white hover:bg-amber-700'
                                 : 'text-gray-600 hover:text-gray-900'
                         }`}
                         onClick={() => {
-                            console.log('Food Combos clicked, count:', allCombosPOS.length);
+                            console.log(
+                                'Food Combos clicked, count:',
+                                allCombosPOS.length
+                            );
                             setShowFoodCombos(!showFoodCombos);
                             setSelectedCategory(null);
                         }}
@@ -365,8 +380,6 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                         Show All
                     </Button>
                 </div>
-
-
             </div>
 
             {/* Product Grid */}
@@ -578,8 +591,10 @@ function ProductCard({
                             <div className="text-lg font-bold text-green-600">
                                 {new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
-                                    currency: 'VND'
-                                }).format(product.effectivePrice || product.price || 0)}
+                                    currency: 'VND',
+                                }).format(
+                                    product.effectivePrice || product.price || 0
+                                )}
                             </div>
                             <div className="text-xs text-gray-500">
                                 Per combo

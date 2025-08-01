@@ -480,9 +480,7 @@ export function POSRegisterView({
 
             {/* Right Panel - Product Grid */}
             <div className="flex-1 bg-gray-50">
-                <POSProductGrid 
-                    onProductSelect={handleProductSelect}
-                />
+                <POSProductGrid onProductSelect={handleProductSelect} />
             </div>
 
             {/* Product Variant Selection Modal */}
