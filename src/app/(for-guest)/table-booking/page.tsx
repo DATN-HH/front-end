@@ -37,6 +37,7 @@ import { WaitlistCard } from '@/features/waitlist/components/WaitlistCard';
 import { WaitlistForm } from '@/features/waitlist/components/WaitlistForm';
 import { getIconByName } from '@/lib/icon-utils';
 import { useCustomToast } from '@/lib/show-toast';
+import { useAuth } from '@/contexts/auth-context';
 
 interface BookingData {
     startTime: string;
@@ -52,6 +53,7 @@ interface BookingData {
 }
 
 export default function TableBookingPage() {
+    const { user } = useAuth();
     // Basic selection state
     const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
     const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
@@ -76,9 +78,9 @@ export default function TableBookingPage() {
         branchId: 0,
         floorId: 0,
         tableIds: [], // Changed to array
-        customerName: 'John Doe', // Fake user data
-        customerPhone: '0345888777', // Fake user data
-        customerEmail: '', // Optional email field
+        customerName: user?.fullName || '', // Fake user data
+        customerPhone: user?.phoneNumber || '', // Fake user data
+        customerEmail: user?.email || '', // Optional email field
     });
 
     // Dialog state

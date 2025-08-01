@@ -30,6 +30,7 @@ import {
     useMenuBooking,
 } from '@/features/pre-order/context/MenuBookingContext';
 import { useCustomToast } from '@/lib/show-toast';
+import { useAuth } from '@/contexts/auth-context';
 
 interface OrderData {
     type: 'dine-in' | 'takeaway';
@@ -42,6 +43,7 @@ interface OrderData {
 }
 
 function MenuBookingPageContent() {
+    const { user } = useAuth();
     const searchParams = useSearchParams();
     const { data: branches } = useBranches();
     const { success, error } = useCustomToast();
@@ -58,9 +60,9 @@ function MenuBookingPageContent() {
 
     const [orderData, setOrderData] = useState<OrderData>({
         type: 'dine-in',
-        customerName: '',
+        customerName: user?.fullName || '',
         notes: '',
-        customerPhone: '',
+        customerPhone: user?.phoneNumber || '',
     });
 
     // Pre-order states
