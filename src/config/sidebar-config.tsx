@@ -134,7 +134,7 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                 },
                 {
                     href: '/app/reservation/pre-order',
-                    label: 'Pre-order Management',
+                    label: 'Pre-order',
                     icon: <ShoppingBag className="h-4 w-4" />,
                     roles: [Role.MANAGER],
                 },
