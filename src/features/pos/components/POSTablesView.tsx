@@ -173,6 +173,8 @@ export function POSTablesView({
                             ))}
                         </div>
                     </div>
+
+
                 </div>
             </div>
 

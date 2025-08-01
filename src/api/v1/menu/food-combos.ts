@@ -301,17 +301,17 @@ const getAvailablePosCombo = async (): Promise<FoodComboResponse[]> => {
         const response = await apiClient.get<ApiResponse<FoodComboResponse[]>>(
             '/api/menu/food-combos'
         );
-        
+
         // Filter active combos
-        const activeCombos = response.data.data.filter(combo => 
-            combo.status === 'ACTIVE' && combo.canBeSold
+        const activeCombos = response.data.data.filter(
+            (combo) => combo.status === 'ACTIVE' && combo.canBeSold
         );
-        
+
         // If we have combos, return them
         if (activeCombos.length > 0) {
             return activeCombos;
         }
-        
+
         // If no combos found, use hardcoded demo data
         return [
             {
@@ -369,7 +369,7 @@ const getAvailablePosCombo = async (): Promise<FoodComboResponse[]> => {
                 variantsCount: 0,
                 hasVariants: false,
                 hasAttributes: false,
-            }
+            },
         ];
     } catch (error) {
         console.error('Error fetching food combos for POS:', error);

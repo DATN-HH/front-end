@@ -40,6 +40,7 @@ export function OdooPOSInterface({
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null);
 
+
     // Handle table selection - switches to register view
     const handleTableSelect = (tableId: number) => {
         setSelectedTableId(tableId);
@@ -56,6 +57,8 @@ export function OdooPOSInterface({
     const handleFloorChange = (floor: FloorResponse) => {
         setSelectedFloor(floor);
     };
+
+
 
     // Tab configuration based on Odoo research
     const tabs = [

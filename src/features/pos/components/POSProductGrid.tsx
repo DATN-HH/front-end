@@ -1,10 +1,10 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useAllCategories } from '@/api/v1/menu/categories';
-import { useAvailablePosCombo } from '@/api/v1/menu/food-combos';
+import { useAllFoodCombos } from '@/api/v1/menu/food-combos';
 import { ProductVariantResponse } from '@/api/v1/menu/product-attributes';
 import { useAllProducts } from '@/api/v1/menu/products';
 import { Button } from '@/components/ui/button';
@@ -72,8 +72,8 @@ const convertProductToPOSProduct = (
                         defaultVariant.displayName || product.name || '',
                     description: product.description || '',
                     image: product.image || '',
-                    categoryId: product.categoryId,
-                    categoryName: product.categoryName || '',
+                    categoryId: product.categoryId || product.category?.id || undefined,
+                    categoryName: product.categoryName || product.category?.name || '',
                     price:
                         defaultVariant.effectivePrice ||
                         defaultVariant.price ||
@@ -109,8 +109,8 @@ const convertProductToPOSProduct = (
         displayName: product.name,
         description: product.description,
         image: product.image,
-        categoryId: product.categoryId,
-        categoryName: product.categoryName,
+        categoryId: product.categoryId || product.category?.id || undefined,
+        categoryName: product.categoryName || product.category?.name || '',
         price: product.price || 0,
         effectivePrice: product.price || 0,
         attributeCombination: undefined,
@@ -141,7 +141,7 @@ const convertComboToPOSProduct = (combo: any): POSProduct => {
             productTemplateName: combo.name || '',
             status: combo.status || 'ACTIVE',
             isActive:
-                combo.availableInPos !== false && combo.status === 'ACTIVE',
+                combo.canBeSold !== false && combo.status === 'ACTIVE',
             isCombo: true,
         };
     } catch (err) {
@@ -169,11 +169,15 @@ const convertComboToPOSProduct = (combo: any): POSProduct => {
 };
 
 export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(
+        null
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [showVariantModal, setShowVariantModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [showFoodCombos, setShowFoodCombos] = useState(false);
+
+
 
     // Fetch categories
     const { data: categoriesData = [], isLoading: categoriesLoading } =
@@ -185,7 +189,7 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
 
     // Fetch available food combos for POS
     const { data: allCombos = [], isLoading: combosLoading } =
-        useAvailablePosCombo();
+        useAllFoodCombos();
 
     // Create a map to store product variants
     const productVariantsMap = new Map<number, ProductVariantResponse[]>();
@@ -209,6 +213,7 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     // Convert products to POS products with variant awareness
     let allProductsPOS: POSProduct[] = [];
     try {
+        console.log('Raw products data:', allProducts?.slice(0, 2)); // Debug: show first 2 products
         allProductsPOS = allProducts
             .map((product: any) =>
                 convertProductToPOSProduct(
@@ -217,6 +222,7 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                 )
             )
             .filter((product) => product?.isActive);
+        console.log('Converted POS products:', allProductsPOS.slice(0, 2)); // Debug: show first 2 converted products
     } catch (err) {
         console.error('Error processing products:', err);
     }
@@ -225,6 +231,11 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     let allCombosPOS: POSProduct[] = [];
     try {
         allCombosPOS = allCombos
+            .filter((combo: any) => 
+                combo.status === 'ACTIVE' && 
+                combo.canBeSold
+                // Remove availableInPos filter as it's not consistently set
+            )
             .map((combo: any) => convertComboToPOSProduct(combo))
             .filter((combo) => combo?.isActive);
     } catch (err) {
@@ -239,12 +250,16 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     try {
         // Determine which product set to use based on showFoodCombos toggle
         const baseProducts = showFoodCombos ? allCombosPOS : allProductsPOS;
-        
+
         // Apply category filter if selected
         if (selectedCategory) {
             categoryFilteredProducts = baseProducts.filter(
                 (product) => product.categoryId === selectedCategory
             );
+            console.log('Filtering by category ID:', selectedCategory);
+            console.log('Base products:', baseProducts.length);
+            console.log('Filtered products:', categoryFilteredProducts.length);
+            console.log('Sample product categoryIds:', baseProducts.slice(0, 3).map(p => ({ name: p.name, categoryId: p.categoryId })));
         } else {
             categoryFilteredProducts = baseProducts;
         }
@@ -288,61 +303,70 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                     />
                 </div>
 
-                {/* Food Combo Toggle Button */}
-                <div className="flex justify-between items-center mb-3">
-                    <div>
-                        <Button
-                            variant={showFoodCombos ? "default" : "outline"}
-                            className={`px-4 py-2 font-medium ${showFoodCombos ? "bg-amber-600 text-white" : "text-gray-600 hover:text-gray-900"}`}
-                            onClick={() => {
-                                setShowFoodCombos(!showFoodCombos);
-                                setSelectedCategory(null);
-                            }}
-                        >
-                            Food Combos ({allCombosPOS.length})
-                        </Button>
-                    </div>
-                    
-                    <Button
-                        variant="outline"
-                        onClick={() => setSelectedCategory(null)}
-                        className="text-sm"
-                    >
-                        Show All Categories
-                    </Button>
-                </div>
-                
-                {/* Category Boxes */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-4">
-                    {/* Show categories that have items based on the current filter mode */}
+                {/* Category and Food Combo Buttons - Horizontally Scrollable */}
+                <div className="flex overflow-x-auto gap-2 mb-3 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    {/* Category Buttons */}
                     {categoriesData.map((category) => {
-                        // Only show categories relevant to the current mode
-                        const itemsToCheck = showFoodCombos ? allCombosPOS : allProductsPOS;
-                        
-                        // Count items in this category
-                        const categoryItemCount = itemsToCheck.filter(
+                        // Count products in this category (excluding combos)
+                        const categoryProductCount = allProductsPOS.filter(
                             (item) => item.categoryId === category.id
                         ).length;
-                        
-                        // Skip empty categories
-                        if (categoryItemCount === 0) return null;
-                        
-                        const isSelected = selectedCategory === category.id;
-                        
+
+                        const isSelected = selectedCategory === category.id && !showFoodCombos;
+
                         return (
-                            <Card 
+                            <Button
                                 key={category.id}
-                                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary shadow-md' : ''}`}
-                                onClick={() => setSelectedCategory(category.id)}
+                                variant={isSelected ? 'default' : 'outline'}
+                                className={`flex-shrink-0 px-4 py-2 font-medium whitespace-nowrap ${
+                                    isSelected 
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                        : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                                onClick={() => {
+                                    console.log('Category clicked:', category.name, 'ID:', category.id);
+                                    console.log('Product count for category:', categoryProductCount);
+                                    setSelectedCategory(category.id);
+                                    setShowFoodCombos(false);
+                                }}
                             >
-                                <CardContent className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
-                                    <h3 className="font-bold text-lg mb-2">{category.name}</h3>
-                                    <span className="text-sm text-gray-600">{categoryItemCount} items</span>
-                                </CardContent>
-                            </Card>
+                                {category.name} ({categoryProductCount})
+                            </Button>
                         );
                     })}
+
+                    {/* Food Combos Button */}
+                    <Button
+                        variant={showFoodCombos ? 'default' : 'outline'}
+                        className={`flex-shrink-0 px-4 py-2 font-medium whitespace-nowrap ${
+                            showFoodCombos 
+                                ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                        onClick={() => {
+                            console.log('Food Combos clicked, count:', allCombosPOS.length);
+                            setShowFoodCombos(!showFoodCombos);
+                            setSelectedCategory(null);
+                        }}
+                    >
+                        Food Combos ({allCombosPOS.length})
+                    </Button>
+
+                    {/* Show All Button */}
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            console.log('Show All clicked');
+                            setSelectedCategory(null);
+                            setShowFoodCombos(false);
+                        }}
+                        className="flex-shrink-0 text-sm px-4 py-2 whitespace-nowrap"
+                    >
+                        Show All
+                    </Button>
                 </div>
+
+
             </div>
 
             {/* Product Grid */}
@@ -527,7 +551,7 @@ function ProductCard({
                     </p>
                 )}
 
-                {/* Product Type Indicator */}
+                {/* Price and Product Type */}
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
                     <div className="flex items-center">
                         {product.isCombo ? (
@@ -540,13 +564,28 @@ function ProductCard({
                             </span>
                         )}
 
-                        {/* Action hint */}
+                        {/* Action hint for products only */}
                         {!product.isCombo && (
                             <span className="ml-2 text-xs text-gray-500 px-1 py-0.5 rounded">
                                 Click to select options
                             </span>
                         )}
                     </div>
+
+                    {/* Price Display - Only for combos */}
+                    {product.isCombo && (
+                        <div className="text-right">
+                            <div className="text-lg font-bold text-green-600">
+                                {new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                }).format(product.effectivePrice || product.price || 0)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Per combo
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </Card>
