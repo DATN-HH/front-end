@@ -1,6 +1,5 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { ShoppingBag, Plus, Settings } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
@@ -30,7 +29,6 @@ import { useCustomToast } from '@/lib/show-toast';
 function PreOrderPage() {
     const { user } = useAuth();
     const { error: toastError, success } = useCustomToast();
-    const queryClient = useQueryClient();
 
     // State management
     const [pageIndex, setPageIndex] = useState(0);
@@ -109,7 +107,7 @@ function PreOrderPage() {
         <div className="flex flex-col gap-4 lg:gap-6">
             <PageTitle
                 icon={ShoppingBag}
-                title="Pre-order Management"
+                title="Pre-order"
                 left={
                     <Button
                         onClick={() => setShowCreateDialog(true)}

@@ -152,7 +152,7 @@ export default function ProductDetailPage() {
 
     // Variant view mode state
     const [variantViewMode, setVariantViewMode] = useState<'card' | 'table'>(
-        'card'
+        'table'
     );
 
     const {

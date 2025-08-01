@@ -61,6 +61,7 @@ export interface BookedTable {
     tableId: number;
     tableName: string;
     tableType: string;
+    floorName: string;
     deposit: number; // Deposit for this specific table
 }
 
@@ -199,3 +200,52 @@ export const useCheckBookingPaymentStatus = (
         refetchInterval: 10000, // Check every 10 seconds
     });
 };
+
+export interface GetMyBookingsParams {
+    page?: number;
+    size?: number;
+    bookingStatus?: string;
+    timeStart?: string;
+    timeEnd?: string;
+    branchId?: number;
+}
+
+export interface MyBookingResponse {
+    id: number;
+    timeStart: string;
+    timeEnd: string;
+    guestCount: number;
+    bookingStatus: 'BOOKED' | 'DEPOSIT_PAID' | 'COMPLETED' | 'CANCELLED';
+    note: string;
+    customerName: string;
+    customerPhone: string;
+    customerEmail: string | null;
+    totalDeposit: number;
+    expireTime: string;
+    status: Status;
+    bookedTables: BookedTable[];
+    createdAt: string;
+    createdBy: number;
+    updatedAt: string;
+    updatedBy: number;
+    createdUsername: string;
+    updatedUsername: string;
+}
+
+export function useMyBookings(params: GetMyBookingsParams) {
+    return useQuery({
+        queryKey: ['my-bookings', params],
+        queryFn: async () => {
+            const { data } = await apiClient.get<
+                BaseResponse<PageResponse<MyBookingResponse>>
+            >('/booking-table/my-bookings', {
+                params: {
+                    ...params,
+                    page: params.page ?? 0,
+                    size: params.size ?? 10,
+                },
+            });
+            return data;
+        },
+    });
+}
