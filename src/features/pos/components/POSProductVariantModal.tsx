@@ -42,10 +42,20 @@ interface POSProductVariantModalProps {
 const fetchProductVariants = async (
     productId: number
 ): Promise<ProductVariant[]> => {
-    const response = await apiClient.get<BaseResponse<ProductVariant[]>>(
-        `/products/${productId}/variants`
-    );
-    return response.data.payload.filter((variant) => variant.isActive);
+    try {
+        console.log('Fetching variants for product ID:', productId);
+        // Use the correct API endpoint path from product-attributes.ts
+        const response = await apiClient.get<any>(
+            `/api/menu/product-attributes/products/${productId}/variants`
+        );
+        console.log('API response for variants:', response.data);
+        // Extract data based on the API response structure
+        const variants = response.data.data || [];
+        return variants.filter((variant: any) => variant.isActive !== false);
+    } catch (error) {
+        console.error('Error fetching product variants:', error);
+        return [];
+    }
 };
 
 export function POSProductVariantModal({
@@ -176,8 +186,39 @@ export function POSProductVariantModal({
                                     <div className="text-lg font-medium mb-2">
                                         No variants available
                                     </div>
-                                    <div className="text-sm">
-                                        This product has no active variants
+                                    <div className="text-sm mb-4">
+                                        This product does not have any variants yet. 
+                                        Go to the product detail page to create new variants.
+                                    </div>
+                                    <div className="flex flex-col space-y-3">
+                                        <Button
+                                            onClick={() => {
+                                                // Create a basic variant from the product itself
+                                                const basicVariant = {
+                                                    id: product.id,
+                                                    name: product.name,
+                                                    displayName: product.name,
+                                                    effectivePrice: product.price,
+                                                    attributeCombination: 'Standard',
+                                                    attributeValues: [],
+                                                    isActive: true
+                                                };
+                                                onVariantSelect(basicVariant as ProductVariant);
+                                            }}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                                        >
+                                            Add Standard Option
+                                        </Button>
+                                        <Button
+                                            onClick={() => {
+                                                // Navigate to product detail page
+                                                window.location.href = `/app/menu/products/${product.id}/detail`;
+                                            }}
+                                            variant="outline"
+                                            className="w-full"
+                                        >
+                                            Go to Product Detail
+                                        </Button>
                                     </div>
                                 </div>
                             ) : (
