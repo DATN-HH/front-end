@@ -177,9 +177,16 @@ export function POSProductVariantModal({
                                     <div className="text-lg font-medium mb-2">
                                         Error loading variants
                                     </div>
-                                    <div className="text-sm">
+                                    <div className="text-sm mb-4">
                                         Please try again
                                     </div>
+                                    <Button
+                                        variant="outline"
+                                        onClick={onClose}
+                                        className="w-full"
+                                    >
+                                        Close
+                                    </Button>
                                 </div>
                             ) : variants.length === 0 ? (
                                 <div className="text-center text-gray-500 py-8">
@@ -187,8 +194,9 @@ export function POSProductVariantModal({
                                         No variants available
                                     </div>
                                     <div className="text-sm mb-4">
-                                        This product does not have any variants yet. 
-                                        Go to the product detail page to create new variants.
+                                        This product does not have any variants
+                                        yet. Go to the product detail page to
+                                        create new variants.
                                     </div>
                                     <div className="flex flex-col space-y-3">
                                         <Button
@@ -198,12 +206,16 @@ export function POSProductVariantModal({
                                                     id: product.id,
                                                     name: product.name,
                                                     displayName: product.name,
-                                                    effectivePrice: product.price,
-                                                    attributeCombination: 'Standard',
+                                                    effectivePrice:
+                                                        product.price,
+                                                    attributeCombination:
+                                                        'Standard',
                                                     attributeValues: [],
-                                                    isActive: true
+                                                    isActive: true,
                                                 };
-                                                onVariantSelect(basicVariant as ProductVariant);
+                                                onVariantSelect(
+                                                    basicVariant as ProductVariant
+                                                );
                                             }}
                                             className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                                         >

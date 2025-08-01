@@ -8,7 +8,7 @@ import { useAvailablePosCombo } from '@/api/v1/menu/food-combos';
 import { ProductVariantResponse } from '@/api/v1/menu/product-attributes';
 import { useAllProducts } from '@/api/v1/menu/products';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -169,12 +169,11 @@ const convertComboToPOSProduct = (combo: any): POSProduct => {
 };
 
 export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(
-        null
-    );
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [showVariantModal, setShowVariantModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [showFoodCombos, setShowFoodCombos] = useState(false);
 
     // Fetch categories
     const { data: categoriesData = [], isLoading: categoriesLoading } =
@@ -235,16 +234,22 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
     // Combine products and combos
     const allPOSProducts = [...allProductsPOS, ...allCombosPOS];
 
-    // Filter by category if selected
-    let categoryFilteredProducts: POSProduct[] = allPOSProducts;
+    // Filter products based on selection
+    let categoryFilteredProducts: POSProduct[] = [];
     try {
+        // Determine which product set to use based on showFoodCombos toggle
+        const baseProducts = showFoodCombos ? allCombosPOS : allProductsPOS;
+        
+        // Apply category filter if selected
         if (selectedCategory) {
-            categoryFilteredProducts = allPOSProducts.filter(
+            categoryFilteredProducts = baseProducts.filter(
                 (product) => product.categoryId === selectedCategory
             );
+        } else {
+            categoryFilteredProducts = baseProducts;
         }
     } catch (err) {
-        console.error('Error filtering by category:', err);
+        console.error('Error filtering products:', err);
     }
 
     // Filter products by search query
@@ -283,63 +288,58 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                     />
                 </div>
 
-                {/* Category Tabs - Odoo Style */}
-                <div className="flex space-x-1">
+                {/* Food Combo Toggle Button */}
+                <div className="flex justify-between items-center mb-3">
+                    <div>
+                        <Button
+                            variant={showFoodCombos ? "default" : "outline"}
+                            className={`px-4 py-2 font-medium ${showFoodCombos ? "bg-amber-600 text-white" : "text-gray-600 hover:text-gray-900"}`}
+                            onClick={() => {
+                                setShowFoodCombos(!showFoodCombos);
+                                setSelectedCategory(null);
+                            }}
+                        >
+                            Food Combos ({allCombosPOS.length})
+                        </Button>
+                    </div>
+                    
                     <Button
-                        variant={
-                            selectedCategory === null ? 'default' : 'outline'
-                        }
-                        className={`px-4 py-2 font-medium ${
-                            selectedCategory === null
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        variant="outline"
                         onClick={() => setSelectedCategory(null)}
+                        className="text-sm"
                     >
-                        All Items ({allPOSProducts.length})
+                        Show All Categories
                     </Button>
+                </div>
+                
+                {/* Category Boxes */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-4">
+                    {/* Show categories that have items based on the current filter mode */}
                     {categoriesData.map((category) => {
-                        // Count both products and combos in this category
-                        const categoryItemCount = allPOSProducts.filter(
+                        // Only show categories relevant to the current mode
+                        const itemsToCheck = showFoodCombos ? allCombosPOS : allProductsPOS;
+                        
+                        // Count items in this category
+                        const categoryItemCount = itemsToCheck.filter(
                             (item) => item.categoryId === category.id
                         ).length;
-
-                        // Don't show empty categories
+                        
+                        // Skip empty categories
                         if (categoryItemCount === 0) return null;
-
-                        // Count products vs combos to show a breakdown
-                        const productsCount = allPOSProducts.filter(
-                            (item) =>
-                                item.categoryId === category.id && !item.isCombo
-                        ).length;
-
-                        const combosCount = allPOSProducts.filter(
-                            (item) =>
-                                item.categoryId === category.id && item.isCombo
-                        ).length;
-
+                        
+                        const isSelected = selectedCategory === category.id;
+                        
                         return (
-                            <Button
+                            <Card 
                                 key={category.id}
-                                variant={
-                                    selectedCategory === category.id
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                className={`px-4 py-2 font-medium ${
-                                    selectedCategory === category.id
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                }`}
+                                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary shadow-md' : ''}`}
                                 onClick={() => setSelectedCategory(category.id)}
                             >
-                                {category.name} ({categoryItemCount})
-                                {combosCount > 0 && productsCount > 0 && (
-                                    <span className="text-xs ml-1">
-                                        {productsCount}+{combosCount}
-                                    </span>
-                                )}
-                            </Button>
+                                <CardContent className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+                                    <h3 className="font-bold text-lg mb-2">{category.name}</h3>
+                                    <span className="text-sm text-gray-600">{categoryItemCount} items</span>
+                                </CardContent>
+                            </Card>
                         );
                     })}
                 </div>
@@ -370,18 +370,30 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                                         onProductSelect(product);
                                     } else {
                                         // For regular products, check if we need to show variants
-                                        console.log('Product clicked:', product);
-                                        console.log('Product ID for variants lookup:', product.productTemplateId);
-                                        console.log('Available variants in map:', productVariantsMap);
-                                        
+                                        console.log(
+                                            'Product clicked:',
+                                            product
+                                        );
+                                        console.log(
+                                            'Product ID for variants lookup:',
+                                            product.productTemplateId
+                                        );
+                                        console.log(
+                                            'Available variants in map:',
+                                            productVariantsMap
+                                        );
+
                                         // Check if we have variants or need to fetch them
                                         const productVariants =
                                             productVariantsMap.get(
                                                 product.productTemplateId
                                             );
-                                            
-                                        console.log('Found variants for product:', productVariants);
-                                            
+
+                                        console.log(
+                                            'Found variants for product:',
+                                            productVariants
+                                        );
+
                                         // Always show the modal when clicking on a non-combo product for testing
                                         setSelectedProduct({
                                             id: product.productTemplateId,
@@ -390,7 +402,7 @@ export function POSProductGrid({ onProductSelect }: POSProductGridProps) {
                                             image: product.image,
                                             price: product.price,
                                             // Use existing variants or empty array
-                                            variants: productVariants || []
+                                            variants: productVariants || [],
                                         });
                                         setShowVariantModal(true);
                                     }
@@ -524,10 +536,10 @@ function ProductCard({
                             </span>
                         ) : (
                             <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
-                                {product.variantId ? "Has Variants" : "Product"}
+                                {product.variantId ? 'Has Variants' : 'Product'}
                             </span>
                         )}
-                        
+
                         {/* Action hint */}
                         {!product.isCombo && (
                             <span className="ml-2 text-xs text-gray-500 px-1 py-0.5 rounded">
