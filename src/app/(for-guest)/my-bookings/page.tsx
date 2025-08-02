@@ -1,10 +1,20 @@
 'use client';
 
-import { useMyBookings, MyBookingResponse } from '@/api/v1/table-booking';
-import { useState } from 'react';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { addDays, startOfDay, endOfDay, format, parseISO } from 'date-fns';
+import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
+
+import { useMyBookings, MyBookingResponse } from '@/api/v1/table-booking';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import {
     Table,
     TableBody,
@@ -13,15 +23,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 
 export default function MyBookingsPage() {
     const [page, setPage] = useState(0);

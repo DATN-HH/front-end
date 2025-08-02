@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { ArrowLeft, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+
 import PaymentModal from './PaymentModal';
 
 interface POSOrdersViewProps {

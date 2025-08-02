@@ -17,7 +17,6 @@ import {
     LayoutGrid,
     CalendarRange,
     Calculator,
-    Receipt,
     ChefHat,
     ShoppingBag,
 } from 'lucide-react';

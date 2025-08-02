@@ -1,11 +1,11 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/protected-component';
-import { Role } from '@/lib/rbac';
 
 // Import POS-specific components (to be created)
 import { POSHeader } from '@/features/pos/components/POSHeader';
 import { POSOrderInterface } from '@/features/pos/components/POSOrderInterface';
+import { Role } from '@/lib/rbac';
 
 function POSRegisterPage() {
     return (

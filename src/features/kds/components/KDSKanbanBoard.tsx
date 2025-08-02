@@ -1,29 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-    Clock,
-    User,
-    RotateCcw,
-    X,
-    ChefHat,
-    Timer,
-    CheckCircle,
-    AlertCircle,
-    Loader2,
-} from 'lucide-react';
+import { Clock, User, RotateCcw, X, ChefHat, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+
 import {
     useKDSOrdersByBranch,
     useUpdateKDSOrderItemStatus,
     useUpdateKDSOrderStatus,
     KDSOrder,
-    KDSOrderItem,
     KDSOrderStatus,
-    KDSItemStatus,
 } from '@/api/v1/kds-orders';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 interface KDSKanbanBoardProps {
     branchId: number;

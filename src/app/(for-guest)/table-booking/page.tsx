@@ -28,6 +28,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/auth-context';
 import { BookingConfirmDialog } from '@/features/booking/components/table-booking/BookingConfirmDialog';
 import { BookingForm } from '@/features/booking/components/table-booking/BookingForm';
 import { DateTimeSelector } from '@/features/booking/components/table-booking/DateTimeSelector';
@@ -37,7 +38,6 @@ import { WaitlistCard } from '@/features/waitlist/components/WaitlistCard';
 import { WaitlistForm } from '@/features/waitlist/components/WaitlistForm';
 import { getIconByName } from '@/lib/icon-utils';
 import { useCustomToast } from '@/lib/show-toast';
-import { useAuth } from '@/contexts/auth-context';
 
 interface BookingData {
     startTime: string;

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/auth-context';
 import { MenuBookingContent } from '@/features/pre-order/components/MenuBookingContent';
 import { PreOrderConfirmDialog } from '@/features/pre-order/components/PreOrderConfirmDialog';
 import {
@@ -30,7 +31,6 @@ import {
     useMenuBooking,
 } from '@/features/pre-order/context/MenuBookingContext';
 import { useCustomToast } from '@/lib/show-toast';
-import { useAuth } from '@/contexts/auth-context';
 
 interface OrderData {
     type: 'dine-in' | 'takeaway';

@@ -1,17 +1,17 @@
 'use client';
 
+import { DollarSign, Check } from 'lucide-react';
 import { useState } from 'react';
-import { DollarSign, Calculator, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface POSCashPaymentProps {
     isOpen: boolean;
@@ -63,7 +63,7 @@ export function POSCashPayment({
             onPaymentComplete({
                 method: 'CASH',
                 amountReceived: receivedAmount,
-                change: change,
+                change,
             });
         } catch (error) {
             console.error('Payment processing failed:', error);

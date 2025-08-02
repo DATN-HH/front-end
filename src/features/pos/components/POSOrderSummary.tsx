@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { Minus, Plus, Trash2, StickyNote } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-import { POSOrderItem } from './POSRegisterView';
 import { POSKitchenNotesModal } from './POSKitchenNotesModal';
+import { POSOrderItem } from './POSRegisterView';
 
 interface POSOrderSummaryProps {
     items: POSOrderItem[];

@@ -3,6 +3,8 @@
 import { X, Plus, Minus } from 'lucide-react';
 import { useState } from 'react';
 
+import type { ProductResponse } from '@/api/v1/menu/products';
+import { POSOrderItemModifier } from '@/api/v1/pos-orders';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,11 +12,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-
-import type { ProductResponse } from '@/api/v1/menu/products';
-import { POSOrderItemModifier } from '@/api/v1/pos-orders';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ProductCustomizationDialogProps {
     isOpen: boolean;

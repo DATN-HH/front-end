@@ -1,22 +1,22 @@
 'use client';
 
-import { useState } from 'react';
 import {
     Plus,
     Search,
     Building2,
     ChevronLeft,
     ChevronRight,
-    Menu,
 } from 'lucide-react';
+import { useState } from 'react';
 
-import { type FloorResponse } from '@/api/v1/floors';
 import { type BranchResponseDto } from '@/api/v1/branches';
-import { Button } from '@/components/ui/button';
+import { type FloorResponse } from '@/api/v1/floors';
 import { useTablesByFloor, type TableResponse } from '@/api/v1/tables';
+import { Button } from '@/components/ui/button';
 
 // Import existing floor management components
 import { FloorCanvas } from '@/features/booking/components/floor-management/[floorId]/FloorCanvas';
+
 import { BranchSelector } from './BranchSelector';
 import { QuickTableNavigation } from './QuickTableNavigation';
 

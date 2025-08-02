@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface POSKitchenNotesModalProps {
     isOpen: boolean;

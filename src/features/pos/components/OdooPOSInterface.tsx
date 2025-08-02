@@ -1,17 +1,17 @@
 'use client';
 
+import { Settings, MoreHorizontal, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Plus, Settings, MoreHorizontal, Search } from 'lucide-react';
 
-import { type FloorResponse } from '@/api/v1/floors';
 import { type BranchResponseDto } from '@/api/v1/branches';
+import { type FloorResponse } from '@/api/v1/floors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 // Import POS components
-import { POSTablesView } from './POSTablesView';
-import { POSRegisterView } from './POSRegisterView';
 import { POSOrdersView } from './POSOrdersView';
+import { POSRegisterView } from './POSRegisterView';
+import { POSTablesView } from './POSTablesView';
 
 // Types based on Odoo research
 export enum POSTab {

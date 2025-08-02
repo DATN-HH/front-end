@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { CreditCard, Banknote, User, Receipt, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,7 +55,7 @@ export function POSPaymentInterface({
     const handleNumberClick = (num: string) => {
         if (num === '.') {
             if (!amountReceived.includes('.')) {
-                setAmountReceived(amountReceived + '.');
+                setAmountReceived(`${amountReceived}.`);
             }
         } else if (num === '⌫') {
             setAmountReceived(amountReceived.slice(0, -1));
