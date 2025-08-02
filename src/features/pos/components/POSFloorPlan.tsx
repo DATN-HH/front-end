@@ -1,22 +1,14 @@
 'use client';
 
-import {
-    Plus,
-    Grid3X3,
-    ShoppingCart,
-    Building2,
-    Settings,
-    MoreHorizontal,
-} from 'lucide-react';
+import { Plus, Grid3X3 } from 'lucide-react';
 import { useState } from 'react';
 
 import { type FloorResponse } from '@/api/v1/floors';
+import { useTablesByFloor, type TableResponse } from '@/api/v1/tables';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Import existing floor management components
-import { useTablesByFloor, type TableResponse } from '@/api/v1/tables';
-import { FloorCanvas } from '@/features/booking/components/floor-management/[floorId]/FloorCanvas';
 
 interface POSFloorPlanProps {
     floors: FloorResponse[];
@@ -175,7 +167,7 @@ function POSFloorCanvas({
         );
     }
 
-    if (!floorData || !floorData.tables || floorData.tables.length === 0) {
+    if (!floorData?.tables || floorData.tables.length === 0) {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500">

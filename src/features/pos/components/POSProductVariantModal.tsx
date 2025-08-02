@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Check } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiClient } from '@/services/api-client';
-import { BaseResponse } from '@/api/v1';
 
 // Types for product variants
 interface ProductVariant {

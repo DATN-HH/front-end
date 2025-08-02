@@ -1,20 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { ShoppingCart } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { usePOSOrder } from '@/contexts/pos-order-context';
+import { useState, useEffect } from 'react';
 
 // Import product API
 import { useAllCategories } from '@/api/v1/menu/categories';
 import { useProductsByCategory } from '@/api/v1/menu/products';
-import type { CategoryResponse, ProductResponse } from '@/api/v1/menu/products';
+import type { ProductResponse } from '@/api/v1/menu/products';
 import { POSOrderItemModifier } from '@/api/v1/pos-orders';
+import { Button } from '@/components/ui/button';
+import { usePOSOrder } from '@/contexts/pos-order-context';
 
 // Import components
-import { ProductCustomizationDialog } from './ProductCustomizationDialog';
 import { POSPaymentInterface } from './POSPaymentInterface';
+import { ProductCustomizationDialog } from './ProductCustomizationDialog';
 
 interface POSOrderInterfaceProps {
     tableId?: string;

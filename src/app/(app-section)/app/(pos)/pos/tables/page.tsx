@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Building2 } from 'lucide-react';
 
-import { useFloorsByBranch } from '@/api/v1/floors';
 import { type BranchResponseDto } from '@/api/v1/branches';
+import { useFloorsByBranch } from '@/api/v1/floors';
 import { ProtectedRoute } from '@/components/protected-component';
 import { useAuth } from '@/contexts/auth-context';
+import { OdooPOSInterface } from '@/features/pos/components/OdooPOSInterface';
 import { Role } from '@/lib/rbac';
 
 // Import new Odoo-style POS interface
-import { OdooPOSInterface } from '@/features/pos/components/OdooPOSInterface';
 
 function POSTablesPage() {
     const { user } = useAuth();

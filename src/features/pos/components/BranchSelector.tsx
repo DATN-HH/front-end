@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Building2, ChevronDown, Check } from 'lucide-react';
+import { useState } from 'react';
 
 import { useBranches, type BranchResponseDto } from '@/api/v1/branches';
 import { Button } from '@/components/ui/button';

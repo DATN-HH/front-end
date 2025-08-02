@@ -1,14 +1,14 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { useAllCategories } from '@/api/v1/menu/categories';
 import { useAllFoodCombos } from '@/api/v1/menu/food-combos';
 import { ProductVariantResponse } from '@/api/v1/menu/product-attributes';
 import { useAllProducts } from '@/api/v1/menu/products';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 

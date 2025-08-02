@@ -3,6 +3,11 @@
 import { DollarSign, Clock, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
+import {
+    useCurrentPOSSession,
+    useCreatePOSSession,
+    useClosePOSSession,
+} from '@/api/v1/pos-sessions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,13 +21,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCustomToast } from '@/lib/show-toast';
-
-import {
-    useCurrentPOSSession,
-    useCreatePOSSession,
-    useClosePOSSession,
-    POSSessionStatus,
-} from '@/api/v1/pos-sessions';
 
 export function POSSessionManager() {
     const { success, error } = useCustomToast();

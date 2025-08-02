@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
     ArrowLeft,
     User,
@@ -9,11 +8,9 @@ import {
     MoreHorizontal,
     Settings,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-// Import API hooks
+import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
 import {
     useCreatePOSOrder,
     useUpdatePOSOrder,
@@ -25,14 +22,16 @@ import {
     POSOrderPaymentRequest,
     POSPaymentMethod,
 } from '@/api/v1/pos-orders';
-import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
+import { Button } from '@/components/ui/button';
+
+// Import API hooks
 
 // Import POS components
-import { POSProductGrid } from './POSProductGrid';
-import { POSOrderSummary } from './POSOrderSummary';
-import { POSProductVariantModal } from './POSProductVariantModal';
 import { POSCashPayment } from './POSCashPayment';
 import { POSKitchenNotesSettings } from './POSKitchenNotesSettings';
+import { POSOrderSummary } from './POSOrderSummary';
+import { POSProductGrid } from './POSProductGrid';
+import { POSProductVariantModal } from './POSProductVariantModal';
 
 // Types for order management
 export interface POSOrderItem {
@@ -198,7 +197,7 @@ export function POSRegisterView({
             console.log('Order ID:', posOrder?.id);
             console.log('Order structure:', Object.keys(posOrder || {}));
 
-            if (!posOrder || !posOrder.id) {
+            if (!posOrder?.id) {
                 console.error(
                     'Invalid order object passed to sendOrderToKDS:',
                     posOrder

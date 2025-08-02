@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+
+import { useAuth } from '@/contexts/auth-context';
+
 import { KDSBranchSelection } from './KDSBranchSelection';
 import { KDSKanbanBoard } from './KDSKanbanBoard';
-import { useAuth } from '@/contexts/auth-context';
 
 export function KDSPage() {
     const { user } = useAuth();

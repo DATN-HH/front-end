@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { Search, Hash, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import { useTablesByFloor, type TableResponse } from '@/api/v1/tables';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 interface QuickTableNavigationProps {
     onTableNavigate: (tableId: number) => void;

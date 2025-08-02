@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,6 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 

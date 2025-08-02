@@ -1,28 +1,12 @@
 'use client';
 
-import { usePreOrderDetail } from '@/api/v1/pre-order-management';
 import { format, parseISO } from 'date-fns';
+import { ChevronLeft, Clock, MapPin, User, Receipt } from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
+
+import { usePreOrderDetail } from '@/api/v1/pre-order-management';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import {
-    ChevronLeft,
-    Clock,
-    MapPin,
-    Phone,
-    User,
-    Receipt,
-    FileText,
-    Wallet,
-} from 'lucide-react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     Card,
     CardContent,
@@ -31,19 +15,20 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
-type PreOrderDetailPageProps = {
-    params: Promise<{ id: string }>;
-};
-
-export default async function PreOrderDetailPage({
-    params,
-}: PreOrderDetailPageProps) {
+export default function PreOrderDetailPage() {
     const router = useRouter();
-    const resolvedParams = await params;
-    const { data: order, isLoading } = usePreOrderDetail(
-        Number(resolvedParams.id)
-    );
+    const params = useParams();
+    const id = params?.id as string;
+    const { data: order, isLoading } = usePreOrderDetail(Number(id));
 
     const getStatusColor = (
         status: 'BOOKED' | 'DEPOSIT_PAID' | 'CANCELLED' | 'COMPLETED'
