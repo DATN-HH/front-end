@@ -105,7 +105,11 @@ export function Navigation() {
                                     <CalendarDays className="mr-2 h-4 w-4" />
                                     Table Bookings
                                 </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        router.push('/my-pre-orders')
+                                    }
+                                >
                                     <ShoppingBag className="mr-2 h-4 w-4" />
                                     Pre-Orders
                                 </DropdownMenuItem>
@@ -207,7 +211,11 @@ export function Navigation() {
                                                 <Button
                                                     variant="ghost"
                                                     className="w-full justify-start"
-                                                    disabled
+                                                    onClick={() =>
+                                                        router.push(
+                                                            '/my-pre-orders'
+                                                        )
+                                                    }
                                                 >
                                                     <ShoppingBag className="mr-2 h-4 w-4" />
                                                     Pre-Orders
