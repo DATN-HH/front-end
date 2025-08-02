@@ -401,7 +401,7 @@ export function POSOrdersView({
                             {selectedOrder.items.every(
                                 (item) => item.itemStatus === 'COMPLETED'
                             ) && (
-                                <Button 
+                                <Button
                                     className="w-full bg-green-600 hover:bg-green-700"
                                     onClick={() => setPaymentModalOpen(true)}
                                 >

@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Banknote, Smartphone, Calculator, DollarSign } from 'lucide-react';
-import { useCreateVietQRPaymentLink, useCreatePOSOrderPayment, POSOrder, POSPaymentMethod } from '@/api/v1/pos-orders';
+import {
+    useCreateVietQRPaymentLink,
+    useCreatePOSOrderPayment,
+    POSOrder,
+    POSPaymentMethod,
+} from '@/api/v1/pos-orders';
 
 interface PaymentModalProps {
     open: boolean;
@@ -39,7 +49,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
-            currency: 'VND'
+            currency: 'VND',
         }).format(amount);
     };
 
@@ -58,11 +68,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 reference: JSON.stringify({
                     receivedAmount: cashReceivedAmount,
                     changeAmount: changeAmount > 0 ? changeAmount : 0,
-                    paymentType: 'CASH'
+                    paymentType: 'CASH',
                 }),
             });
 
-            alert(`Thanh toán thành công!\nTiền thối: ${formatCurrency(changeAmount > 0 ? changeAmount : 0)}`);
+            alert(
+                `Thanh toán thành công!\nTiền thối: ${formatCurrency(changeAmount > 0 ? changeAmount : 0)}`
+            );
             onPaymentSuccess?.();
             onOpenChange(false);
         } catch (error) {
@@ -78,13 +90,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         try {
             const paymentData = await createVietQRPayment.mutateAsync(order.id);
             setVietQRData(paymentData);
-            
+
             // Open payment URL in a new tab
             if (paymentData.checkoutUrl) {
                 window.open(paymentData.checkoutUrl, '_blank');
             }
-            
-            alert('Link thanh toán VietQR đã được tạo! Vui lòng kiểm tra tab mới để hoàn tất thanh toán.');
+
+            alert(
+                'Link thanh toán VietQR đã được tạo! Vui lòng kiểm tra tab mới để hoàn tất thanh toán.'
+            );
         } catch (error) {
             console.error('Error creating VietQR payment:', error);
             alert('Có lỗi xảy ra khi tạo link thanh toán VietQR!');
@@ -129,28 +143,39 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     {/* Order Summary */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Tóm tắt đơn hàng</CardTitle>
+                            <CardTitle className="text-lg">
+                                Tóm tắt đơn hàng
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="flex justify-between">
                                 <span>Bàn:</span>
-                                <span className="font-medium">{order.tableName || `Table ${order.tableId}`}</span>
+                                <span className="font-medium">
+                                    {order.tableName ||
+                                        `Table ${order.tableId}`}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Số món:</span>
-                                <span className="font-medium">{order.items?.length || 0} món</span>
+                                <span className="font-medium">
+                                    {order.items?.length || 0} món
+                                </span>
                             </div>
                             <Separator />
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Tổng tiền:</span>
-                                <span className="text-green-600">{formatCurrency(orderTotal)}</span>
+                                <span className="text-green-600">
+                                    {formatCurrency(orderTotal)}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
 
                     {/* Payment Method Selection */}
                     <div className="space-y-4">
-                        <Label className="text-base font-semibold">Chọn phương thức thanh toán</Label>
+                        <Label className="text-base font-semibold">
+                            Chọn phương thức thanh toán
+                        </Label>
                         <div className="grid grid-cols-2 gap-4">
                             <Card
                                 className={`cursor-pointer transition-all ${
@@ -163,7 +188,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <CardContent className="p-4 text-center">
                                     <Banknote className="h-8 w-8 mx-auto mb-2 text-green-600" />
                                     <div className="font-medium">Tiền mặt</div>
-                                    <div className="text-sm text-gray-500">Thanh toán bằng tiền mặt</div>
+                                    <div className="text-sm text-gray-500">
+                                        Thanh toán bằng tiền mặt
+                                    </div>
                                 </CardContent>
                             </Card>
 
@@ -178,7 +205,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <CardContent className="p-4 text-center">
                                     <Smartphone className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                                     <div className="font-medium">VietQR</div>
-                                    <div className="text-sm text-gray-500">Thanh toán qua QR Code</div>
+                                    <div className="text-sm text-gray-500">
+                                        Thanh toán qua QR Code
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
@@ -196,14 +225,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             <CardContent className="space-y-4">
                                 {/* Quick Amount Buttons */}
                                 <div>
-                                    <Label className="text-sm font-medium mb-2 block">Chọn nhanh:</Label>
+                                    <Label className="text-sm font-medium mb-2 block">
+                                        Chọn nhanh:
+                                    </Label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {quickAmounts.map((amount) => (
                                             <Button
                                                 key={amount}
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => setCashReceived(amount.toString())}
+                                                onClick={() =>
+                                                    setCashReceived(
+                                                        amount.toString()
+                                                    )
+                                                }
                                                 className="text-sm"
                                             >
                                                 {formatCurrency(amount)}
@@ -214,12 +249,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
                                 {/* Manual Input */}
                                 <div>
-                                    <Label htmlFor="cashReceived">Số tiền nhận từ khách:</Label>
+                                    <Label htmlFor="cashReceived">
+                                        Số tiền nhận từ khách:
+                                    </Label>
                                     <Input
                                         id="cashReceived"
                                         type="number"
                                         value={cashReceived}
-                                        onChange={(e) => setCashReceived(e.target.value)}
+                                        onChange={(e) =>
+                                            setCashReceived(e.target.value)
+                                        }
                                         placeholder="Nhập số tiền..."
                                         className="text-lg"
                                     />
@@ -230,22 +269,44 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                     <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
                                         <div className="flex justify-between">
                                             <span>Tiền nhận:</span>
-                                            <span className="font-medium">{formatCurrency(cashReceivedAmount)}</span>
+                                            <span className="font-medium">
+                                                {formatCurrency(
+                                                    cashReceivedAmount
+                                                )}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Tổng tiền:</span>
-                                            <span className="font-medium">{formatCurrency(orderTotal)}</span>
+                                            <span className="font-medium">
+                                                {formatCurrency(orderTotal)}
+                                            </span>
                                         </div>
                                         <Separator />
                                         <div className="flex justify-between text-lg font-bold">
                                             <span>Tiền thối:</span>
-                                            <span className={changeAmount < 0 ? 'text-red-600' : 'text-green-600'}>
-                                                {formatCurrency(changeAmount > 0 ? changeAmount : 0)}
+                                            <span
+                                                className={
+                                                    changeAmount < 0
+                                                        ? 'text-red-600'
+                                                        : 'text-green-600'
+                                                }
+                                            >
+                                                {formatCurrency(
+                                                    changeAmount > 0
+                                                        ? changeAmount
+                                                        : 0
+                                                )}
                                             </span>
                                         </div>
                                         {changeAmount < 0 && (
-                                            <Badge variant="destructive" className="w-full justify-center">
-                                                Thiếu {formatCurrency(Math.abs(changeAmount))}
+                                            <Badge
+                                                variant="destructive"
+                                                className="w-full justify-center"
+                                            >
+                                                Thiếu{' '}
+                                                {formatCurrency(
+                                                    Math.abs(changeAmount)
+                                                )}
                                             </Badge>
                                         )}
                                     </div>
@@ -253,11 +314,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
                                 <Button
                                     onClick={handleCashPayment}
-                                    disabled={isProcessing || cashReceivedAmount < orderTotal}
+                                    disabled={
+                                        isProcessing ||
+                                        cashReceivedAmount < orderTotal
+                                    }
                                     className="w-full"
                                     size="lg"
                                 >
-                                    {isProcessing ? 'Đang xử lý...' : 'Thanh toán tiền mặt'}
+                                    {isProcessing
+                                        ? 'Đang xử lý...'
+                                        : 'Thanh toán tiền mặt'}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -275,7 +341,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             <CardContent className="space-y-4">
                                 <div className="text-center space-y-2">
                                     <div className="text-sm text-gray-600">
-                                        Tạo link thanh toán VietQR cho khách hàng
+                                        Tạo link thanh toán VietQR cho khách
+                                        hàng
                                     </div>
                                     <div className="text-lg font-semibold">
                                         Số tiền: {formatCurrency(orderTotal)}
@@ -285,19 +352,35 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 {vietQRData && (
                                     <div className="p-4 bg-green-50 rounded-lg space-y-2">
                                         <div className="text-center">
-                                            <Badge variant="default" className="bg-green-600">
+                                            <Badge
+                                                variant="default"
+                                                className="bg-green-600"
+                                            >
                                                 Link thanh toán đã được tạo
                                             </Badge>
                                         </div>
                                         <div className="text-sm">
-                                            <div><strong>Mã đơn hàng:</strong> {vietQRData.orderCode}</div>
-                                            <div><strong>Số tiền:</strong> {formatCurrency(vietQRData.amount)}</div>
+                                            <div>
+                                                <strong>Mã đơn hàng:</strong>{' '}
+                                                {vietQRData.orderCode}
+                                            </div>
+                                            <div>
+                                                <strong>Số tiền:</strong>{' '}
+                                                {formatCurrency(
+                                                    vietQRData.amount
+                                                )}
+                                            </div>
                                         </div>
                                         {vietQRData.checkoutUrl && (
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => window.open(vietQRData.checkoutUrl, '_blank')}
+                                                onClick={() =>
+                                                    window.open(
+                                                        vietQRData.checkoutUrl,
+                                                        '_blank'
+                                                    )
+                                                }
                                                 className="w-full"
                                             >
                                                 Mở lại link thanh toán
@@ -312,7 +395,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                     className="w-full"
                                     size="lg"
                                 >
-                                    {isProcessing ? 'Đang tạo link...' : 'Tạo link thanh toán VietQR'}
+                                    {isProcessing
+                                        ? 'Đang tạo link...'
+                                        : 'Tạo link thanh toán VietQR'}
                                 </Button>
                             </CardContent>
                         </Card>

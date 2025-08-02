@@ -217,7 +217,9 @@ export interface VietQRPaymentResponse {
     qrCode: string;
 }
 
-const createVietQRPaymentLink = async (orderId: number): Promise<VietQRPaymentResponse> => {
+const createVietQRPaymentLink = async (
+    orderId: number
+): Promise<VietQRPaymentResponse> => {
     const response = await apiClient.post<BaseResponse<VietQRPaymentResponse>>(
         `/payment/create-payment-link-for-order/${orderId}`
     );
