@@ -1,14 +1,10 @@
 'use client';
 
-import { addDays, startOfDay, endOfDay, format, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import { DateRange } from 'react-day-picker';
-
 import { useMyBookings, MyBookingResponse } from '@/api/v1/table-booking';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { addDays, startOfDay, endOfDay, format, parseISO } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 import {
     Table,
     TableBody,
@@ -17,6 +13,15 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 
 export default function MyBookingsPage() {
     const [page, setPage] = useState(0);
@@ -59,107 +64,230 @@ export default function MyBookingsPage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="container mx-auto py-10 px-4">
+                <div className="flex items-center justify-center h-[60vh]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container mx-auto py-10">
-            <h1 className="text-2xl font-bold mb-6">My Bookings</h1>
+        <div className="container mx-auto py-10 px-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold">My Bookings</h1>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((old) => Math.max(0, old - 1))}
+                        disabled={page === 0}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((old) => old + 1)}
+                        disabled={
+                            bookings &&
+                            bookings.page >=
+                                Math.ceil(bookings.total / bookings.size) - 1
+                        }
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
 
             <div className="mb-6">
                 <DatePickerWithRange date={date} setDate={setDate} />
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Booking Time</TableHead>
-                            <TableHead>Tables</TableHead>
-                            <TableHead>Guest Count</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Total Deposit</TableHead>
-                            <TableHead>Note</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
+            {/* Desktop View */}
+            <div className="hidden md:block">
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center">
-                                    Loading...
-                                </TableCell>
+                                <TableHead>Booking Time</TableHead>
+                                <TableHead>Tables</TableHead>
+                                <TableHead>Guest Count</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Total Deposit</TableHead>
+                                <TableHead>Note</TableHead>
                             </TableRow>
-                        ) : bookings?.data?.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center">
-                                    No bookings found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            bookings?.data?.map(
-                                (booking: MyBookingResponse) => (
-                                    <TableRow key={booking.id}>
-                                        <TableCell>
-                                            <div className="flex flex-col gap-1">
-                                                <span>
-                                                    {format(
-                                                        parseISO(
-                                                            booking.timeStart
-                                                        ),
-                                                        'dd/MM/yyyy HH:mm'
-                                                    )}
-                                                </span>
-                                                <span className="text-sm text-gray-500">
-                                                    to{' '}
-                                                    {format(
-                                                        parseISO(
-                                                            booking.timeEnd
-                                                        ),
-                                                        'HH:mm'
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col gap-1">
-                                                {booking.bookedTables.map(
-                                                    (table) => (
-                                                        <div
-                                                            key={table.tableId}
-                                                            className="flex items-center gap-2"
-                                                        >
-                                                            <span className="font-medium">
-                                                                {
-                                                                    table.tableName
+                        </TableHeader>
+                        <TableBody>
+                            {!bookings?.data?.length ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="text-center"
+                                    >
+                                        No bookings found
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                bookings.data.map(
+                                    (booking: MyBookingResponse) => (
+                                        <TableRow key={booking.id}>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-1">
+                                                    <span>
+                                                        {format(
+                                                            parseISO(
+                                                                booking.timeStart
+                                                            ),
+                                                            'dd/MM/yyyy HH:mm'
+                                                        )}
+                                                    </span>
+                                                    <span className="text-sm text-gray-500">
+                                                        to{' '}
+                                                        {format(
+                                                            parseISO(
+                                                                booking.timeEnd
+                                                            ),
+                                                            'HH:mm'
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-1">
+                                                    {booking.bookedTables.map(
+                                                        (table) => (
+                                                            <div
+                                                                key={
+                                                                    table.tableId
                                                                 }
-                                                            </span>
-                                                            <span className="text-sm text-gray-500">
-                                                                (
-                                                                {
-                                                                    table.floorName
-                                                                }{' '}
-                                                                -{' '}
-                                                                {
-                                                                    table.tableType
-                                                                }
-                                                                )
-                                                            </span>
-                                                        </div>
-                                                    )
+                                                                className="flex items-center gap-2"
+                                                            >
+                                                                <span className="font-medium">
+                                                                    {
+                                                                        table.tableName
+                                                                    }
+                                                                </span>
+                                                                <span className="text-sm text-gray-500">
+                                                                    (
+                                                                    {
+                                                                        table.floorName
+                                                                    }{' '}
+                                                                    -{' '}
+                                                                    {
+                                                                        table.tableType
+                                                                    }
+                                                                    )
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {booking.guestCount}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    className={`${getStatusColor(booking.bookingStatus)} text-white`}
+                                                >
+                                                    {booking.bookingStatus.replace(
+                                                        '_',
+                                                        ' '
+                                                    )}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {booking.totalDeposit.toLocaleString(
+                                                    'vi-VN',
+                                                    {
+                                                        style: 'currency',
+                                                        currency: 'VND',
+                                                    }
                                                 )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.guestCount}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={`${getStatusColor(booking.bookingStatus)} text-white`}
+                                            </TableCell>
+                                            <TableCell>
+                                                {booking.note || '-'}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                )
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+
+            {/* Mobile View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {!bookings?.data?.length ? (
+                    <div className="text-center text-gray-500 py-8">
+                        No bookings found
+                    </div>
+                ) : (
+                    bookings.data.map((booking: MyBookingResponse) => (
+                        <Card key={booking.id} className="overflow-hidden">
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-base">
+                                        Booking #{booking.id}
+                                    </CardTitle>
+                                    <Badge
+                                        className={`${getStatusColor(booking.bookingStatus)} text-white`}
+                                    >
+                                        {booking.bookingStatus.replace(
+                                            '_',
+                                            ' '
+                                        )}
+                                    </Badge>
+                                </div>
+                                <CardDescription>
+                                    {format(
+                                        parseISO(booking.timeStart),
+                                        'dd/MM/yyyy HH:mm'
+                                    )}{' '}
+                                    -{' '}
+                                    {format(parseISO(booking.timeEnd), 'HH:mm')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-3 text-sm">
+                                <div>
+                                    <div className="text-gray-500 mb-1">
+                                        Tables
+                                    </div>
+                                    <div className="space-y-1">
+                                        {booking.bookedTables.map((table) => (
+                                            <div
+                                                key={table.tableId}
+                                                className="flex items-center gap-2"
                                             >
-                                                {booking.bookingStatus.replace(
-                                                    '_',
-                                                    ' '
-                                                )}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
+                                                <span className="font-medium">
+                                                    {table.tableName}
+                                                </span>
+                                                <span className="text-gray-500">
+                                                    ({table.floorName} -{' '}
+                                                    {table.tableType})
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <div className="text-gray-500">
+                                            Guest Count
+                                        </div>
+                                        <div className="font-medium">
+                                            {booking.guestCount}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-gray-500">
+                                            Deposit
+                                        </div>
+                                        <div className="font-medium">
                                             {booking.totalDeposit.toLocaleString(
                                                 'vi-VN',
                                                 {
@@ -167,41 +295,23 @@ export default function MyBookingsPage() {
                                                     currency: 'VND',
                                                 }
                                             )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.note || '-'}
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            )
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((old) => Math.max(0, old - 1))}
-                    disabled={page === 0}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((old) => old + 1)}
-                    disabled={
-                        bookings &&
-                        bookings.page >=
-                            Math.ceil(bookings.total / bookings.size) - 1
-                    }
-                >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {booking.note && (
+                                    <div>
+                                        <div className="text-gray-500">
+                                            Note
+                                        </div>
+                                        <div className="font-medium">
+                                            {booking.note}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
         </div>
     );

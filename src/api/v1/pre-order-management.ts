@@ -127,6 +127,23 @@ const getPreOrderList = async (
     return response.data.payload;
 };
 
+const getMyPreOrderList = async (
+    params: BaseListRequest
+): Promise<PreOrderListResponse> => {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            searchParams.append(key, String(value));
+        }
+    });
+
+    const response = await apiClient.get<BaseResponse<PreOrderListResponse>>(
+        `/booking-table/pre-order/my-pre-orders?${searchParams.toString()}`
+    );
+    return response.data.payload;
+};
+
 const getPreOrderDetail = async (
     id: number
 ): Promise<PreOrderDetailResponse> => {
@@ -150,6 +167,14 @@ export const usePreOrderList = (params: BaseListRequest) => {
     return useQuery({
         queryKey: ['preOrderList', params],
         queryFn: () => getPreOrderList(params),
+        staleTime: 30000, // 30 seconds
+    });
+};
+
+export const useMyPreOrderList = (params: BaseListRequest) => {
+    return useQuery({
+        queryKey: ['myPreOrderList', params],
+        queryFn: () => getMyPreOrderList(params),
         staleTime: 30000, // 30 seconds
     });
 };
