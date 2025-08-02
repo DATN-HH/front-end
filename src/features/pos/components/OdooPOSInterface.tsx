@@ -39,6 +39,7 @@ export function OdooPOSInterface({
     );
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null);
+    const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
     // Handle table selection - switches to register view
     const handleTableSelect = (tableId: number) => {
@@ -55,6 +56,12 @@ export function OdooPOSInterface({
     // Handle floor change
     const handleFloorChange = (floor: FloorResponse) => {
         setSelectedFloor(floor);
+    };
+
+    // Handle edit order - navigate to register with order data
+    const handleEditOrder = (orderId: number) => {
+        setEditingOrderId(orderId);
+        setActiveTab(POSTab.REGISTER);
     };
 
     // Tab configuration based on Odoo research
@@ -147,11 +154,16 @@ export function OdooPOSInterface({
                 {activeTab === POSTab.REGISTER && (
                     <POSRegisterView
                         selectedTableId={selectedTableId}
+                        editingOrderId={editingOrderId}
                         onOrderCreated={(orderId) => {
                             setCurrentOrderId(orderId);
+                            setEditingOrderId(null); // Clear editing state
                             setActiveTab(POSTab.ORDERS);
                         }}
-                        onBackToTables={() => setActiveTab(POSTab.TABLES)}
+                        onBackToTables={() => {
+                            setEditingOrderId(null); // Clear editing state
+                            setActiveTab(POSTab.TABLES);
+                        }}
                     />
                 )}
 
@@ -160,6 +172,7 @@ export function OdooPOSInterface({
                         currentOrderId={currentOrderId}
                         onOrderSelect={(orderId) => setCurrentOrderId(orderId)}
                         onBackToRegister={() => setActiveTab(POSTab.REGISTER)}
+                        onEditOrder={handleEditOrder}
                     />
                 )}
             </div>

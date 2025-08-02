@@ -8,17 +8,20 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
+import PaymentModal from './PaymentModal';
 
 interface POSOrdersViewProps {
     currentOrderId: number | null;
     onOrderSelect: (orderId: number) => void;
     onBackToRegister: () => void;
+    onEditOrder?: (orderId: number) => void;
 }
 
 export function POSOrdersView({
     currentOrderId,
     onOrderSelect,
     onBackToRegister,
+    onEditOrder,
 }: POSOrdersViewProps) {
     const [selectedOrderType, setSelectedOrderType] = useState<
         'dine-in' | 'takeout' | 'delivery'
@@ -27,6 +30,7 @@ export function POSOrdersView({
     const [statusFilter, setStatusFilter] = useState<
         POSOrderStatus | 'active' | null
     >('active');
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     // Fetch orders based on filters
     const { data: orders = [], isLoading } = usePOSOrders(
@@ -90,6 +94,36 @@ export function POSOrdersView({
                 return 'Completed';
             case POSOrderStatus.CANCELLED:
                 return 'Cancelled';
+            default:
+                return status;
+        }
+    };
+
+    const getItemStatusColor = (status: string) => {
+        switch (status) {
+            case 'RECEIVED':
+                return 'bg-gray-100 text-gray-800';
+            case 'PREPARING':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'READY':
+                return 'bg-green-100 text-green-800';
+            case 'COMPLETED':
+                return 'bg-blue-100 text-blue-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getItemStatusLabel = (status: string) => {
+        switch (status) {
+            case 'RECEIVED':
+                return 'Received';
+            case 'PREPARING':
+                return 'Preparing';
+            case 'READY':
+                return 'Ready';
+            case 'COMPLETED':
+                return 'Completed';
             default:
                 return status;
         }
@@ -284,7 +318,23 @@ export function POSOrdersView({
                                                     <span className="font-medium text-sm">
                                                         {item.productName}
                                                     </span>
+                                                    {/* Item Status Badge */}
+                                                    <Badge
+                                                        className={`ml-2 text-xs ${getItemStatusColor(item.itemStatus || 'RECEIVED')}`}
+                                                    >
+                                                        {getItemStatusLabel(
+                                                            item.itemStatus ||
+                                                                'RECEIVED'
+                                                        )}
+                                                    </Badge>
                                                 </div>
+                                                {item.attributeCombination && (
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        {
+                                                            item.attributeCombination
+                                                        }
+                                                    </p>
+                                                )}
                                                 {item.notes && (
                                                     <p className="text-xs text-gray-500 mb-1">
                                                         {item.notes}
@@ -337,9 +387,27 @@ export function POSOrdersView({
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Go Back
                             </Button>
-                            <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                                Load Order
-                            </Button>
+                            {onEditOrder && (
+                                <Button
+                                    className="w-full bg-blue-600 hover:bg-blue-700"
+                                    onClick={() =>
+                                        onEditOrder(selectedOrder.id)
+                                    }
+                                >
+                                    Load Order
+                                </Button>
+                            )}
+                            {/* Payment button - only show when all items are completed */}
+                            {selectedOrder.items.every(
+                                (item) => item.itemStatus === 'COMPLETED'
+                            ) && (
+                                <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700"
+                                    onClick={() => setPaymentModalOpen(true)}
+                                >
+                                    Process Payment
+                                </Button>
+                            )}
                         </div>
                     </>
                 ) : (
@@ -355,6 +423,20 @@ export function POSOrdersView({
                     </div>
                 )}
             </div>
+
+            {/* Payment Modal */}
+            {selectedOrder && (
+                <PaymentModal
+                    open={paymentModalOpen}
+                    onOpenChange={setPaymentModalOpen}
+                    order={selectedOrder}
+                    onPaymentSuccess={() => {
+                        // Refresh orders list and close modal
+                        setPaymentModalOpen(false);
+                        // Optionally refetch orders data here
+                    }}
+                />
+            )}
         </div>
     );
 }

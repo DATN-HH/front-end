@@ -39,6 +39,10 @@ export interface POSOrderItem {
     totalPrice: number;
     notes?: string;
     modifiers?: POSOrderItemModifier[];
+    itemStatus?: string; // RECEIVED, PREPARING, READY, COMPLETED
+    isCombo?: boolean;
+    variantId?: number;
+    attributeCombination?: string;
 }
 
 export interface POSOrderItemModifier {
@@ -188,6 +192,38 @@ const sendOrderToKitchen = async (orderId: number): Promise<POSOrder> => {
     return response.data.data;
 };
 
+const updateOrderItemStatus = async (
+    orderId: number,
+    itemId: number,
+    status: string
+): Promise<POSOrder> => {
+    const response = await apiClient.patch<POSApiResponse<POSOrder>>(
+        `/api/pos/orders/${orderId}/items/${itemId}/status?status=${status}`
+    );
+    return response.data.data;
+};
+
+// VietQR Payment Link Creation
+export interface VietQRPaymentResponse {
+    orderCode: number;
+    amount: number;
+    description: string;
+    accountNumber: string;
+    accountName: string;
+    bin: string;
+    checkoutUrl: string;
+    paymentLinkId: string;
+    status: string;
+    qrCode: string;
+}
+
+const createVietQRPaymentLink = async (orderId: number): Promise<VietQRPaymentResponse> => {
+    const response = await apiClient.post<BaseResponse<VietQRPaymentResponse>>(
+        `/payment/create-payment-link-for-order/${orderId}`
+    );
+    return response.data.payload;
+};
+
 // Hooks
 export const useCreatePOSOrder = () => {
     const queryClient = useQueryClient();
@@ -248,5 +284,31 @@ export const useSendOrderToKitchen = () => {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['pos-order', data.id] });
         },
+    });
+};
+
+export const useUpdateOrderItemStatus = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            orderId,
+            itemId,
+            status,
+        }: {
+            orderId: number;
+            itemId: number;
+            status: string;
+        }) => updateOrderItemStatus(orderId, itemId, status),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['pos-order', data.id] });
+            queryClient.invalidateQueries({ queryKey: ['pos-orders'] });
+        },
+    });
+};
+
+export const useCreateVietQRPaymentLink = () => {
+    return useMutation({
+        mutationFn: createVietQRPaymentLink,
     });
 };
