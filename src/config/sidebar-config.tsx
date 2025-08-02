@@ -16,6 +16,9 @@ import {
     Table,
     LayoutGrid,
     CalendarRange,
+    Calculator,
+    Receipt,
+    ChefHat,
     ShoppingBag,
 } from 'lucide-react';
 
@@ -201,6 +204,18 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
             label: 'Dashboard',
             icon: <Home className="h-5 w-5" />,
             roles: [Role.MANAGER], // Chỉ manager mới có quyền truy cập dashboard
+        },
+        {
+            href: '/app/pos',
+            label: 'Point of Sale',
+            icon: <Calculator className="h-5 w-5" />,
+            roles: [Role.MANAGER, Role.WAITER, Role.CASHIER],
+        },
+        {
+            href: '/app/kds',
+            label: 'Kitchen Display',
+            icon: <ChefHat className="h-5 w-5" />,
+            roles: [Role.MANAGER, Role.KITCHEN, Role.EMPLOYEE],
         },
         {
             href: '/app/employee-portal',

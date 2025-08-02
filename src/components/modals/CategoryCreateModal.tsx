@@ -283,7 +283,7 @@ export function CategoryCreateModal({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="root">
+                                            <SelectItem value="">
                                                 No Parent (Root Category)
                                             </SelectItem>
                                             {allCategories
