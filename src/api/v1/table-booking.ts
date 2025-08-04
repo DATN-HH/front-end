@@ -249,3 +249,71 @@ export function useMyBookings(params: GetMyBookingsParams) {
         },
     });
 }
+
+// ===== NEW BOOKING STATUS API =====
+export interface BookingStatusResponse {
+    bookingStatus: 'PENDING' | 'BOOKED' | 'DEPOSIT_PAID' | 'CANCELLED' | 'COMPLETED';
+}
+
+const getBookingStatus = async (
+    bookingId: number
+): Promise<BaseResponse<BookingStatusResponse>> => {
+    const response = await apiClient.get(`/booking-table/status/${bookingId}`);
+    return response.data;
+};
+
+export const useBookingStatus = (
+    bookingId: number,
+    enabled: boolean = true,
+    refetchInterval: number = 5000
+) => {
+    return useQuery({
+        queryKey: ['booking-status', bookingId],
+        queryFn: () => getBookingStatus(bookingId),
+        enabled: enabled && !!bookingId,
+        refetchInterval,
+    });
+};
+
+// ===== CASH PAYMENT API =====
+export interface CashPaymentRequest {
+    bookingTableId: number;
+    requiredAmount: number;
+    givenAmount: number;
+}
+
+export interface CashPaymentResponse {
+    bookingId: number;
+    bookingStatus: string;
+    message: string;
+    requiredAmount: number;
+    givenAmount: number;
+    changeAmount: number;
+}
+
+const processCashPayment = async (
+    request: CashPaymentRequest
+): Promise<BaseResponse<CashPaymentResponse>> => {
+    const response = await apiClient.post('/booking-table/cash-payment', request);
+    return response.data;
+};
+
+export const useCashPayment = () => {
+    return useMutation({
+        mutationFn: processCashPayment,
+        onError: (error: unknown) => {
+            console.error('Cash payment processing failed:', error);
+        },
+    });
+};
+
+// ===== ENHANCED CREATE BOOKING RESPONSE WITH PAYMENT INFO =====
+export interface EnhancedCreateBookingResponse extends CreateBookingResponse {
+    customerEmail?: string | null;
+    paymentType?: 'cash' | 'banking';
+    paymentUrl?: string;
+    qrCode?: string;
+    orderCode?: number;
+    emailSent?: boolean;
+    message?: string;
+}

@@ -65,7 +65,7 @@ export function CreatePreOrderDialog({
         time: '',
         customerName: '',
         customerPhone: '',
-        customerEmail: '',
+        customerEmail: 'temp@gmail.com',
         paymentType: 'banking' as 'cash' | 'banking',
         notes: '',
         bookingTableId: undefined as number | undefined,
@@ -217,7 +217,7 @@ export function CreatePreOrderDialog({
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="customerName">
-                                        Customer Name *
+                                        Customer Name
                                     </Label>
                                     <Input
                                         id="customerName"
@@ -235,7 +235,7 @@ export function CreatePreOrderDialog({
 
                                 <div className="space-y-2">
                                     <Label htmlFor="customerPhone">
-                                        Phone Number *
+                                        Phone Number
                                     </Label>
                                     <Input
                                         id="customerPhone"
@@ -263,7 +263,7 @@ export function CreatePreOrderDialog({
                                                 customerEmail: e.target.value,
                                             }))
                                         }
-                                        placeholder="Enter email (optional)"
+                                        placeholder="Enter email"
                                     />
                                 </div>
                             </CardContent>
@@ -279,7 +279,7 @@ export function CreatePreOrderDialog({
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="type">Order Type *</Label>
+                                    <Label htmlFor="type">Order Type</Label>
                                     <Select
                                         value={formData.type}
                                         onValueChange={(
@@ -307,7 +307,7 @@ export function CreatePreOrderDialog({
 
                                 <div className="space-y-2">
                                     <Label htmlFor="time">
-                                        Pickup/Dining Time *
+                                        Pickup/Dining Time
                                     </Label>
                                     <Input
                                         id="time"
@@ -323,34 +323,6 @@ export function CreatePreOrderDialog({
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="paymentType">
-                                        Payment Type *
-                                    </Label>
-                                    <Select
-                                        value={formData.paymentType}
-                                        onValueChange={(
-                                            value: 'cash' | 'banking'
-                                        ) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                paymentType: value,
-                                            }))
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="banking">
-                                                Banking
-                                            </SelectItem>
-                                            <SelectItem value="cash">
-                                                Cash
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>

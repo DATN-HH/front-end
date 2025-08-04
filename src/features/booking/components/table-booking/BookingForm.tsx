@@ -7,7 +7,6 @@ import {
     Phone,
     Mail,
     MessageSquare,
-    CreditCard,
 } from 'lucide-react';
 
 import { TableResponse } from '@/api/v1/tables';
@@ -64,30 +63,6 @@ export function BookingForm({
     // Handle form submission with validation
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Validate email requirement for banking
-        if (isEmailRequired && !bookingData.customerEmail.trim()) {
-            // Create a validation error by focusing the email field
-            const emailField = document.getElementById(
-                'customerEmail'
-            ) as HTMLInputElement;
-            if (emailField) {
-                emailField.focus();
-                emailField.setCustomValidity(
-                    'Email is required for banking payment'
-                );
-                emailField.reportValidity();
-            }
-            return;
-        }
-
-        // Clear any previous validation errors
-        const emailField = document.getElementById(
-            'customerEmail'
-        ) as HTMLInputElement;
-        if (emailField) {
-            emailField.setCustomValidity('');
-        }
 
         // Call parent submit handler
         onSubmit(e);
@@ -191,63 +166,21 @@ export function BookingForm({
                             className="flex items-center gap-2 text-sm"
                         >
                             <Mail className="w-4 h-4" />
-                            Email Address{' '}
-                            {isEmailRequired
-                                ? '(Required for Banking)'
-                                : '(Optional)'}
+                            Email Address
                         </Label>
                         <Input
                             id="customerEmail"
                             type="email"
                             placeholder="Enter email address"
-                            value={bookingData.customerEmail}
+                            value={bookingData.customerEmail || 'temp@gmail.com'}
                             onChange={(e) =>
                                 onBookingDataChange({
                                     customerEmail: e.target.value,
                                 })
                             }
-                            required={isEmailRequired}
+                            required={true}
                         />
-                        {isEmailRequired ? (
-                            <p className="text-xs text-orange-600">
-                                Email is required for banking payment
-                                confirmations and receipts
-                            </p>
-                        ) : (
-                            <p className="text-xs text-muted-foreground">
-                                For booking reminders and payment confirmations
-                            </p>
-                        )}
                     </div>
-
-                    {/* Payment Type - Only for admin mode */}
-                    {mode === 'admin' && (
-                        <div className="space-y-1">
-                            <Label
-                                htmlFor="paymentType"
-                                className="flex items-center gap-2 text-sm"
-                            >
-                                <CreditCard className="w-4 h-4" />
-                                Payment Type
-                            </Label>
-                            <Select
-                                value={bookingData.paymentType || 'cash'}
-                                onValueChange={(value: 'cash' | 'banking') =>
-                                    onBookingDataChange({ paymentType: value })
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="cash">Cash</SelectItem>
-                                    <SelectItem value="banking">
-                                        Banking
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
 
                     <div className="space-y-1">
                         <Label
@@ -273,27 +206,19 @@ export function BookingForm({
                         className="w-full"
                         disabled={
                             !hasSelectedTables ||
-                            isSubmitting ||
-                            (isEmailRequired &&
-                                !bookingData.customerEmail.trim())
+                            isSubmitting
                         }
                     >
                         {isSubmitting
                             ? 'Processing...'
                             : mode === 'admin'
-                              ? 'Complete Booking'
-                              : 'Book Now'}
+                                ? 'Create Booking'
+                                : 'Book Now'}
                     </Button>
 
                     {!hasSelectedTables && (
                         <p className="text-sm text-muted-foreground text-center">
                             Please select at least one table to continue
-                        </p>
-                    )}
-
-                    {isEmailRequired && !bookingData.customerEmail.trim() && (
-                        <p className="text-sm text-orange-600 text-center">
-                            Email is required for banking payment
                         </p>
                     )}
                 </form>
