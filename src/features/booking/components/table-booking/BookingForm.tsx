@@ -172,7 +172,9 @@ export function BookingForm({
                             id="customerEmail"
                             type="email"
                             placeholder="Enter email address"
-                            value={bookingData.customerEmail || 'temp@gmail.com'}
+                            value={
+                                bookingData.customerEmail || 'temp@gmail.com'
+                            }
                             onChange={(e) =>
                                 onBookingDataChange({
                                     customerEmail: e.target.value,
@@ -204,16 +206,13 @@ export function BookingForm({
                     <Button
                         type="submit"
                         className="w-full"
-                        disabled={
-                            !hasSelectedTables ||
-                            isSubmitting
-                        }
+                        disabled={!hasSelectedTables || isSubmitting}
                     >
                         {isSubmitting
                             ? 'Processing...'
                             : mode === 'admin'
-                                ? 'Create Booking'
-                                : 'Book Now'}
+                              ? 'Create Booking'
+                              : 'Book Now'}
                     </Button>
 
                     {!hasSelectedTables && (

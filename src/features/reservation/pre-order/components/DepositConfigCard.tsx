@@ -144,7 +144,6 @@ export function DepositConfigCard() {
                         </div>
                         <div className="text-right">
                             <div className="flex items-center gap-1">
-                                <Percent className="w-4 h-4 text-gray-400" />
                                 <span className="text-2xl font-bold text-green-600">
                                     {config?.depositPercentage || 15}%
                                 </span>

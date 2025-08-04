@@ -12,11 +12,11 @@ import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { useState, useRef, useEffect } from 'react';
 
 import {
-    EnhancedCreateBookingResponse,
-    useBookingStatus,
-    useCashPayment,
-    CashPaymentRequest,
-} from '@/api/v1/table-booking';
+    usePreOrderStatus,
+    usePreOrderCashPayment,
+    PreOrderCashPaymentRequest,
+} from '@/api/v1/pre-order';
+import { AdminCreatePreOrderResponse } from '@/api/v1/pre-order-management';
 import { formatCurrency } from '@/api/v1/table-types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,23 +32,23 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useCustomToast } from '@/lib/show-toast';
 
-interface BookingSuccessDialogProps {
+interface PreOrderSuccessDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    bookingData: EnhancedCreateBookingResponse | null;
+    preOrderData: AdminCreatePreOrderResponse | null;
     onPaymentSuccess?: () => void;
     onClose?: () => void;
 }
 
 const QUICK_AMOUNTS = [50000, 100000, 200000, 500000, 1000000, 2000000];
 
-export function BookingSuccessDialog({
+export function PreOrderSuccessDialog({
     open,
     onOpenChange,
-    bookingData,
+    preOrderData,
     onPaymentSuccess,
     onClose,
-}: BookingSuccessDialogProps) {
+}: PreOrderSuccessDialogProps) {
     const [showCashPayment, setShowCashPayment] = useState(false);
     const [givenAmount, setGivenAmount] = useState<number>(0);
     const [isPolling, setIsPolling] = useState(true);
@@ -57,24 +57,24 @@ export function BookingSuccessDialog({
 
     const { success, error: showError } = useCustomToast();
 
-    // Poll booking status every 5 seconds
-    const { data: statusData } = useBookingStatus(
-        bookingData?.bookingId || 0,
-        !!(bookingData?.bookingId && isPolling),
-        5000
-    );
-
-    const cashPaymentMutation = useCashPayment();
-
     // Reset state when dialog opens/closes or booking changes
     useEffect(() => {
-        if (open && bookingData) {
+        if (open && preOrderData) {
             setIsPolling(true);
             setHasProcessedPayment(false);
             setShowCashPayment(false);
             setGivenAmount(0);
         }
-    }, [open, bookingData?.bookingId]);
+    }, [open, preOrderData?.preOrderId]);
+
+    // Poll pre-order status every 5 seconds
+    const { data: statusData } = usePreOrderStatus(
+        preOrderData?.preOrderId || 0,
+        !!(preOrderData?.preOrderId && isPolling),
+        5000
+    );
+
+    const cashPaymentMutation = usePreOrderCashPayment();
 
     // Check if payment is completed
     useEffect(() => {
@@ -90,13 +90,13 @@ export function BookingSuccessDialog({
     }, [statusData?.payload?.bookingStatus, hasProcessedPayment]);
 
     const handleCashPayment = async () => {
-        if (!bookingData || !givenAmount) {
+        if (!preOrderData || !givenAmount) {
             showError('Error', 'Please enter the amount given by customer');
             return;
         }
 
         const givenAmountNumber = givenAmount;
-        const requiredAmount = bookingData.totalDeposit;
+        const requiredAmount = preOrderData.totalDeposit;
 
         console.log('givenAmountNumber', givenAmountNumber);
         console.log('requiredAmount', requiredAmount);
@@ -106,8 +106,8 @@ export function BookingSuccessDialog({
             return;
         }
 
-        const request: CashPaymentRequest = {
-            bookingTableId: bookingData.bookingId,
+        const request: PreOrderCashPaymentRequest = {
+            preOrderId: preOrderData.preOrderId,
             requiredAmount,
             givenAmount: givenAmountNumber,
         };
@@ -119,7 +119,11 @@ export function BookingSuccessDialog({
                 const changeAmount = givenAmountNumber - requiredAmount;
                 success(
                     'Payment Processed',
-                    `Cash payment processed successfully! ${changeAmount > 0 ? `Change: ${formatCurrency(changeAmount)}` : ''}`
+                    `Cash payment processed successfully! ${
+                        changeAmount > 0
+                            ? `Change: ${formatCurrency(changeAmount)}`
+                            : ''
+                    }`
                 );
                 setIsPolling(false);
                 setShowCashPayment(false);
@@ -140,7 +144,7 @@ export function BookingSuccessDialog({
                 printWindow.document.write(`
                     <html>
                         <head>
-                            <title>Booking Receipt</title>
+                            <title>Pre-Order Receipt</title>
                             <style>
                                 body { font-family: Arial, sans-serif; margin: 20px; }
                                 .receipt { max-width: 400px; margin: 0 auto; }
@@ -166,12 +170,12 @@ export function BookingSuccessDialog({
         setGivenAmount(amount);
     };
 
-    if (!bookingData) return null;
+    if (!preOrderData) return null;
 
     const isPaymentCompleted =
         statusData?.payload?.bookingStatus === 'DEPOSIT_PAID';
     const changeAmount = givenAmount
-        ? givenAmount - bookingData.totalDeposit
+        ? givenAmount - preOrderData.totalDeposit
         : 0;
 
     return (
@@ -182,17 +186,17 @@ export function BookingSuccessDialog({
                         {isPaymentCompleted ? (
                             <>
                                 <CheckCircle className="w-5 h-5 text-green-500" />
-                                Booking Confirmed - Payment Completed
+                                Pre-Order Confirmed - Payment Completed
                             </>
                         ) : (
                             <>
                                 <Clock className="w-5 h-5 text-orange-500" />
-                                Booking Created - Awaiting Payment
+                                Pre-Order Created - Awaiting Payment
                             </>
                         )}
                     </DialogTitle>
                     <DialogDescription>
-                        Booking ID: #{bookingData.bookingId}
+                        Pre-Order ID: #{preOrderData.preOrderId}
                     </DialogDescription>
                     <div className="flex items-center gap-2 mt-2">
                         <span className="text-sm text-muted-foreground">
@@ -204,67 +208,56 @@ export function BookingSuccessDialog({
                             }
                         >
                             {statusData?.payload?.bookingStatus ||
-                                bookingData.bookingStatus}
+                                preOrderData.bookingStatus}
                         </Badge>
                     </div>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Left Column - Booking Details */}
+                    {/* Left Column - Order Details */}
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <h3 className="font-semibold mb-3">
-                                Booking Information
+                                Order Information
                             </h3>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span>Customer:</span>
                                     <span className="font-medium">
-                                        {bookingData.customerName}
+                                        {preOrderData.customerName}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Phone:</span>
-                                    <span>{bookingData.customerPhone}</span>
+                                    <span>{preOrderData.customerPhone}</span>
                                 </div>
-                                {bookingData.customerEmail && (
+                                {preOrderData.customerEmail && (
                                     <div className="flex justify-between">
                                         <span>Email:</span>
-                                        <span>{bookingData.customerEmail}</span>
+                                        <span>
+                                            {preOrderData.customerEmail}
+                                        </span>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
                                     <span>Date & Time:</span>
                                     <span>
                                         {new Date(
-                                            bookingData.startTime
+                                            preOrderData.time
                                         ).toLocaleString('vi-VN')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span>Duration:</span>
-                                    <span>
-                                        {Math.round(
-                                            (new Date(
-                                                bookingData.endTime
-                                            ).getTime() -
-                                                new Date(
-                                                    bookingData.startTime
-                                                ).getTime()) /
-                                                (1000 * 60 * 60)
-                                        )}{' '}
-                                        hours
+                                    <span>Type:</span>
+                                    <span className="capitalize">
+                                        {preOrderData.type}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span>Guests:</span>
-                                    <span>{bookingData.guests}</span>
-                                </div>
-                                {bookingData.notes && (
+                                {preOrderData.notes && (
                                     <div className="flex justify-between">
                                         <span>Notes:</span>
                                         <span className="text-right">
-                                            {bookingData.notes}
+                                            {preOrderData.notes}
                                         </span>
                                     </div>
                                 )}
@@ -273,33 +266,41 @@ export function BookingSuccessDialog({
 
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <h3 className="font-semibold mb-3">
-                                Reserved Tables
+                                Ordered Items
                             </h3>
                             <div className="space-y-2">
-                                {bookingData.bookedTables.map((table) => (
+                                {preOrderData.orderItemsSummary.map((item) => (
                                     <div
-                                        key={table.tableId}
+                                        key={`${item.itemType}-${item.itemId}`}
                                         className="flex justify-between items-center"
                                     >
                                         <div>
                                             <span className="font-medium">
-                                                {table.tableName}
+                                                {item.itemName}
                                             </span>
                                             <span className="text-sm text-gray-500 ml-2">
-                                                ({table.tableType})
+                                                x{item.quantity}
                                             </span>
                                         </div>
                                         <span className="text-sm">
-                                            {formatCurrency(table.deposit)}
+                                            {formatCurrency(item.totalPrice)}
                                         </span>
                                     </div>
                                 ))}
                                 <Separator />
-                                <div className="flex justify-between font-semibold text-lg">
-                                    <span>Total Deposit:</span>
+                                <div className="flex justify-between text-base">
+                                    <span>Total Amount:</span>
                                     <span>
                                         {formatCurrency(
-                                            bookingData.totalDeposit
+                                            preOrderData.totalAmount
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-lg">
+                                    <span>Required Deposit:</span>
+                                    <span>
+                                        {formatCurrency(
+                                            preOrderData.totalDeposit
                                         )}
                                     </span>
                                 </div>
@@ -316,9 +317,9 @@ export function BookingSuccessDialog({
                                 </div>
                                 <p className="text-sm text-orange-700">
                                     Please complete the payment to confirm your
-                                    booking. Booking will expire at:{' '}
+                                    pre-order. Order will expire at:{' '}
                                     {new Date(
-                                        bookingData.expireTime
+                                        preOrderData.expireTime
                                     ).toLocaleString('vi-VN')}
                                 </p>
                             </div>
@@ -327,7 +328,7 @@ export function BookingSuccessDialog({
 
                     {/* Right Column - Payment Options */}
                     <div className="space-y-4">
-                        {!isPaymentCompleted && bookingData.qrCode && (
+                        {!isPaymentCompleted && preOrderData.qrCode && (
                             <div className="p-4 bg-blue-50 rounded-lg">
                                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                                     <CreditCard className="w-4 h-4" />
@@ -336,21 +337,21 @@ export function BookingSuccessDialog({
                                 <div className="text-center">
                                     <div className="flex justify-center">
                                         <QRCode
-                                            value={bookingData.qrCode}
+                                            value={preOrderData.qrCode}
                                             size={200}
                                         />
                                     </div>
                                     <p className="text-sm text-gray-600 mt-2">
                                         Scan QR code to pay via banking
                                     </p>
-                                    {bookingData.paymentUrl && (
+                                    {preOrderData.paymentUrl && (
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             className="mt-2"
                                             onClick={() =>
                                                 window.open(
-                                                    bookingData.paymentUrl,
+                                                    preOrderData.paymentUrl,
                                                     '_blank'
                                                 )
                                             }
@@ -483,58 +484,73 @@ export function BookingSuccessDialog({
                 <div ref={printRef} className="hidden">
                     <div className="receipt">
                         <div className="header">
-                            <h2>BOOKING RECEIPT</h2>
-                            <p>Booking ID: #{bookingData.bookingId}</p>
+                            <h2>PRE-ORDER RECEIPT</h2>
+                            <p>Order ID: #{preOrderData.preOrderId}</p>
                         </div>
 
                         <div className="info-row">
                             <span>Customer:</span>
-                            <span>{bookingData.customerName}</span>
+                            <span>{preOrderData.customerName}</span>
                         </div>
                         <div className="info-row">
                             <span>Phone:</span>
-                            <span>{bookingData.customerPhone}</span>
+                            <span>{preOrderData.customerPhone}</span>
                         </div>
                         <div className="info-row">
                             <span>Date & Time:</span>
                             <span>
-                                {new Date(bookingData.startTime).toLocaleString(
+                                {new Date(preOrderData.time).toLocaleString(
                                     'vi-VN'
                                 )}
                             </span>
                         </div>
                         <div className="info-row">
-                            <span>Guests:</span>
-                            <span>{bookingData.guests}</span>
-                        </div>
-
-                        <br />
-                        <strong>Reserved Tables:</strong>
-                        {bookingData.bookedTables.map((table) => (
-                            <div key={table.tableId} className="info-row">
-                                <span>
-                                    {table.tableName} ({table.tableType})
-                                </span>
-                                <span>{formatCurrency(table.deposit)}</span>
-                            </div>
-                        ))}
-
-                        <div className="info-row total">
-                            <span>Total Deposit:</span>
-                            <span>
-                                {formatCurrency(bookingData.totalDeposit)}
+                            <span>Type:</span>
+                            <span className="capitalize">
+                                {preOrderData.type}
                             </span>
                         </div>
 
-                        {bookingData.qrCode && (
+                        <br />
+                        <strong>Ordered Items:</strong>
+                        {preOrderData.orderItemsSummary.map((item) => (
+                            <div
+                                key={`${item.itemType}-${item.itemId}`}
+                                className="info-row"
+                            >
+                                <span>
+                                    {item.itemName} x{item.quantity}
+                                </span>
+                                <span>{formatCurrency(item.totalPrice)}</span>
+                            </div>
+                        ))}
+
+                        <div className="info-row">
+                            <span>Total Amount:</span>
+                            <span>
+                                {formatCurrency(preOrderData.totalAmount)}
+                            </span>
+                        </div>
+
+                        <div className="info-row total">
+                            <span>Required Deposit:</span>
+                            <span>
+                                {formatCurrency(preOrderData.totalDeposit)}
+                            </span>
+                        </div>
+
+                        {preOrderData.qrCode && (
                             <div className="qr-section">
-                                <QRCode value={bookingData.qrCode} size={150} />
+                                <QRCode
+                                    value={preOrderData.qrCode}
+                                    size={150}
+                                />
                                 <p>Scan to pay</p>
                             </div>
                         )}
 
                         <div className="footer">
-                            <p>Thank you for your booking!</p>
+                            <p>Thank you for your order!</p>
                             <p>
                                 Generated: {new Date().toLocaleString('vi-VN')}
                             </p>

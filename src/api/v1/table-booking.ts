@@ -252,7 +252,12 @@ export function useMyBookings(params: GetMyBookingsParams) {
 
 // ===== NEW BOOKING STATUS API =====
 export interface BookingStatusResponse {
-    bookingStatus: 'PENDING' | 'BOOKED' | 'DEPOSIT_PAID' | 'CANCELLED' | 'COMPLETED';
+    bookingStatus:
+        | 'PENDING'
+        | 'BOOKED'
+        | 'DEPOSIT_PAID'
+        | 'CANCELLED'
+        | 'COMPLETED';
 }
 
 const getBookingStatus = async (
@@ -294,7 +299,10 @@ export interface CashPaymentResponse {
 const processCashPayment = async (
     request: CashPaymentRequest
 ): Promise<BaseResponse<CashPaymentResponse>> => {
-    const response = await apiClient.post('/booking-table/cash-payment', request);
+    const response = await apiClient.post(
+        '/booking-table/cash-payment',
+        request
+    );
     return response.data;
 };
 
