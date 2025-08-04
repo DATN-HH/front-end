@@ -9,6 +9,7 @@ import {
     useCreateBooking,
     useCreateAdminBooking,
     CreateBookingResponse,
+    EnhancedCreateBookingResponse,
 } from '@/api/v1/table-booking';
 import { useFloorTablesStatus, TableStatus } from '@/api/v1/table-status';
 import { formatCurrency } from '@/api/v1/table-types';
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/card';
 import { BookingConfirmDialog } from '@/features/booking/components/table-booking/BookingConfirmDialog';
 import { BookingForm } from '@/features/booking/components/table-booking/BookingForm';
+import { BookingSuccessDialog } from '@/features/booking/components/table-booking/BookingSuccessDialog';
 import { DateTimeSelector } from '@/features/booking/components/table-booking/DateTimeSelector';
 import { LocationSelector } from '@/features/booking/components/table-booking/LocationSelector';
 import { MultiSelectFloorCanvas } from '@/features/booking/components/table-booking/MultiSelectFloorCanvas';
@@ -94,6 +96,11 @@ export default function TableBookingWrapper({
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [createdBooking, setCreatedBooking] =
         useState<CreateBookingResponse | null>(null);
+
+    // Admin booking states
+    const [showAdminSuccessDialog, setShowAdminSuccessDialog] = useState(false);
+    const [adminBookingData, setAdminBookingData] =
+        useState<EnhancedCreateBookingResponse | null>(null);
 
     const { success, error: showError } = useCustomToast();
 
@@ -244,32 +251,15 @@ export default function TableBookingWrapper({
                     if (response.success && response.payload) {
                         success('Success', 'Reservation created successfully!');
 
-                        // Call the completion callback
-                        const adminBookingData: BookingData = {
-                            startTime: selectedDateTime,
-                            duration, // Use dynamic duration
-                            guests: bookingData.guests,
-                            notes: bookingData.notes,
-                            branchId: selectedBranch!,
-                            floorId: selectedFloor!,
-                            tableIds: Array.isArray(selectedTables)
-                                ? selectedTables.map((t) => t.id)
-                                : [],
-                            customerName: bookingData.customerName.trim(),
-                            customerPhone: bookingData.customerPhone.trim(),
-                            customerEmail: bookingData.customerEmail.trim(),
-                            paymentType: bookingData.paymentType,
-                        };
-
-                        onBookingComplete?.(adminBookingData);
+                        // Set admin booking data and show success dialog
+                        setAdminBookingData(response.payload as EnhancedCreateBookingResponse);
+                        setShowAdminSuccessDialog(true);
                     } else {
-                        // showError("Error", response.error?.message || "Failed to create reservation")
-                        showError('Error', 'Chưa có APIIIIIIIII');
+                        showError('Error', response.message || 'Failed to create reservation');
                     }
                 } catch (error: any) {
                     console.error('Admin booking creation error:', error);
-                    // showError("Error", error?.response?.data?.message || "Failed to create reservation")
-                    showError('Error', 'Chưa có APIIIIIIIII');
+                    showError('Error', error?.response?.data?.message || 'Failed to create reservation');
                 }
                 return;
             }
@@ -327,6 +317,38 @@ export default function TableBookingWrapper({
             showError,
         ]
     );
+
+    // Handle admin booking payment success
+    const handleAdminPaymentSuccess = useCallback(() => {
+        if (adminBookingData) {
+            const completedBookingData: BookingData = {
+                startTime: selectedDateTime,
+                duration,
+                guests: bookingData.guests,
+                notes: bookingData.notes,
+                branchId: selectedBranch!,
+                floorId: selectedFloor!,
+                tableIds: Array.isArray(selectedTables)
+                    ? selectedTables.map((t) => t.id)
+                    : [],
+                customerName: bookingData.customerName.trim(),
+                customerPhone: bookingData.customerPhone.trim(),
+                customerEmail: bookingData.customerEmail.trim(),
+                paymentType: bookingData.paymentType,
+            };
+
+            onBookingComplete?.(completedBookingData);
+        }
+    }, [
+        adminBookingData,
+        selectedDateTime,
+        duration,
+        bookingData,
+        selectedBranch,
+        selectedFloor,
+        selectedTables,
+        onBookingComplete,
+    ]);
 
     // Calculate total cost
     const totalCost = useMemo(() => {
@@ -529,6 +551,20 @@ export default function TableBookingWrapper({
                         onPaymentSuccess={() => {
                             setShowConfirmDialog(false);
                             // Reset form or redirect
+                        }}
+                    />
+                )}
+
+                {/* Admin mode booking success dialog */}
+                {mode === 'admin' && (
+                    <BookingSuccessDialog
+                        open={showAdminSuccessDialog}
+                        onOpenChange={setShowAdminSuccessDialog}
+                        bookingData={adminBookingData}
+                        onPaymentSuccess={handleAdminPaymentSuccess}
+                        onClose={() => {
+                            setShowAdminSuccessDialog(false);
+                            setAdminBookingData(null);
                         }}
                     />
                 )}
