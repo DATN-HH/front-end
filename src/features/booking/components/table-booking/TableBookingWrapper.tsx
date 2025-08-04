@@ -252,14 +252,23 @@ export default function TableBookingWrapper({
                         success('Success', 'Reservation created successfully!');
 
                         // Set admin booking data and show success dialog
-                        setAdminBookingData(response.payload as EnhancedCreateBookingResponse);
+                        setAdminBookingData(
+                            response.payload as EnhancedCreateBookingResponse
+                        );
                         setShowAdminSuccessDialog(true);
                     } else {
-                        showError('Error', response.message || 'Failed to create reservation');
+                        showError(
+                            'Error',
+                            response.message || 'Failed to create reservation'
+                        );
                     }
                 } catch (error: any) {
                     console.error('Admin booking creation error:', error);
-                    showError('Error', error?.response?.data?.message || 'Failed to create reservation');
+                    showError(
+                        'Error',
+                        error?.response?.data?.message ||
+                            'Failed to create reservation'
+                    );
                 }
                 return;
             }

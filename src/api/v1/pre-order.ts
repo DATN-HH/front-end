@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { apiClient } from '@/services/api-client';
 
@@ -39,6 +39,16 @@ export interface PreOrderResponseItem {
     note?: string;
 }
 
+export interface OrderItemSummary {
+    itemType: 'foodCombo' | string;
+    itemId: number;
+    itemName: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    note: string;
+}
+
 export interface PreOrderResponse {
     id: number;
     type: 'dine-in' | 'takeaway';
@@ -72,5 +82,72 @@ const createPreOrder = async (
 export const useCreatePreOrder = () => {
     return useMutation({
         mutationFn: createPreOrder,
+    });
+};
+
+// ===== NEW PRE-ORDER PAYMENT API =====
+export interface PreOrderStatusResponse {
+    bookingStatus:
+        | 'PENDING'
+        | 'BOOKED'
+        | 'DEPOSIT_PAID'
+        | 'CANCELLED'
+        | 'COMPLETED';
+}
+
+const getPreOrderStatus = async (
+    preOrderId: number
+): Promise<BaseResponse<PreOrderStatusResponse>> => {
+    const response = await apiClient.get(
+        `/booking-table/pre-order/status/${preOrderId}`
+    );
+    return response.data;
+};
+
+export const usePreOrderStatus = (
+    preOrderId: number,
+    enabled: boolean = true,
+    refetchInterval: number = 5000
+) => {
+    return useQuery({
+        queryKey: ['pre-order-status', preOrderId],
+        queryFn: () => getPreOrderStatus(preOrderId),
+        enabled: enabled && !!preOrderId,
+        refetchInterval,
+    });
+};
+
+// ===== CASH PAYMENT API =====
+export interface PreOrderCashPaymentRequest {
+    preOrderId: number;
+    requiredAmount: number;
+    givenAmount: number;
+}
+
+export interface PreOrderCashPaymentResponse {
+    preOrderId: number;
+    bookingStatus: string;
+    message: string;
+    requiredAmount: number;
+    givenAmount: number;
+    changeAmount: number;
+}
+
+const processPreOrderCashPayment = async (
+    request: PreOrderCashPaymentRequest
+): Promise<BaseResponse<PreOrderCashPaymentResponse>> => {
+    const response = await apiClient.post(
+        '/booking-table/pre-order/cash-payment',
+        request
+    );
+    return response.data;
+};
+
+export const usePreOrderCashPayment = () => {
+    return useMutation({
+        mutationFn: processPreOrderCashPayment,
+        onError: (error: unknown) => {
+            console.error('Cash payment processing failed:', error);
+        },
     });
 };

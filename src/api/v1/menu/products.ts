@@ -110,6 +110,7 @@ export interface ProductResponse {
 export interface ProductVariantResponse {
     id: number;
     name: string;
+    displayName?: string;
     price?: number;
     attributes?: string;
     status: Status;
