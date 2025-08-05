@@ -25,7 +25,7 @@ interface POSTablesViewProps {
     selectedFloor: FloorResponse | null;
     isLoading: boolean;
     onFloorChange: (floor: FloorResponse) => void;
-    onTableSelect: (tableId: number) => void;
+    onTableSelect: (tableId: number, tableName?: string) => void;
     onNewOrder: () => void;
     selectedBranch?: BranchResponseDto | null;
     onBranchSelect?: (branch: BranchResponseDto) => void;
@@ -218,7 +218,7 @@ function FloorPlanWithBackground({
     onTableSelect,
 }: {
     floor: FloorResponse;
-    onTableSelect: (tableId: number) => void;
+    onTableSelect: (tableId: number, tableName?: string) => void;
 }) {
     // Fetch tables for the selected floor
     const { data: floorData, isLoading } = useTablesByFloor(floor.id);
@@ -226,7 +226,7 @@ function FloorPlanWithBackground({
     // Handle table selection for POS
     const handleTableSelect = (table: TableResponse | null) => {
         if (table) {
-            onTableSelect(table.id);
+            onTableSelect(table.id, table.tableName);
         }
     };
 
