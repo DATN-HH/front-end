@@ -9,6 +9,16 @@ import { Card } from '@/components/ui/card';
 import { POSKitchenNotesModal } from './POSKitchenNotesModal';
 import { POSOrderItem } from './POSRegisterView';
 
+// Helper function to format currency to VND
+const formatVND = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
+};
+
 interface POSOrderSummaryProps {
     items: POSOrderItem[];
     onQuantityChange: (itemId: string, newQuantity: number) => void;
@@ -73,19 +83,19 @@ export function POSOrderSummary({
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Subtotal</span>
                             <span className="font-medium">
-                                ${subtotal.toFixed(2)}
+                                {formatVND(subtotal)}
                             </span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Tax (10%)</span>
                             <span className="font-medium">
-                                ${tax.toFixed(2)}
+                                {formatVND(tax)}
                             </span>
                         </div>
                         <div className="border-t border-gray-200 pt-2">
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Total</span>
-                                <span>${total.toFixed(2)}</span>
+                                <span>{formatVND(total)}</span>
                             </div>
                         </div>
                     </div>
@@ -130,12 +140,12 @@ function OrderItemCard({
                             {item.quantity.toFixed(2)}
                         </span>
                         <span>x</span>
-                        <span>${item.unitPrice.toFixed(2)} / Units</span>
+                        <span>{formatVND(item.unitPrice)} / Units</span>
                     </div>
                 </div>
                 <div className="text-right">
                     <div className="text-lg font-semibold text-gray-900">
-                        ${item.totalPrice.toFixed(2)}
+                        {formatVND(item.totalPrice)}
                     </div>
                 </div>
             </div>

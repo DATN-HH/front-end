@@ -104,6 +104,69 @@ export interface POSOrderPaymentRequest {
     reference?: string;
 }
 
+// New interface for create-or-update API v2
+export interface POSOrderCreateOrUpdateRequest {
+    orderId?: number; // Optional: for updating existing order
+    items: {
+        orderItemId?: number | null; // Optional: for updating specific existing items (renamed from posOrderItemId)
+        productId?: number; // Required if product item
+        variantId?: number | null; // Required if variant item
+        comboId?: number | null; // Required if combo item
+        quantity: number; // Required: positive integer
+        notes?: string; // Optional: item notes
+        attributeCombination?: string; // Optional: variant display
+    }[];
+    tableIds?: number[]; // Optional: list of table IDs (can be empty for takeout)
+    customerName?: string; // Optional: customer information
+    customerPhone?: string; // Optional: customer phone
+    notes?: string; // Optional: order notes
+    orderType?: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY'; // Optional: DINE_IN (default), TAKEOUT, DELIVERY
+}
+
+export interface POSOrderTable {
+    id: number;
+    tableId: number;
+    tableName: string;
+    isPrimary: boolean;
+    notes: string | null;
+}
+
+export interface POSOrderCreateOrUpdateResponse {
+    id: number;
+    orderNumber: string;
+    tables: POSOrderTable[];
+    status: string;
+    orderStatus: string;
+    orderType: string;
+    items: {
+        id: number;
+        productId: number | null;
+        productName: string | null;
+        variantId: number | null;
+        variantName: string | null;
+        quantity: number;
+        unitPrice: number;
+        totalPrice: number;
+        notes: string | null;
+        attributeCombination: string | null;
+        itemStatus: string;
+        isCombo: boolean;
+        foodComboId: number | null;
+        comboName: string | null;
+        promotionPrice: number | null;
+    }[];
+    subtotal: number;
+    tax: number;
+    total: number;
+    customerName: string | null;
+    customerPhone: string | null;
+    notes: string | null;
+    payments: any[];
+    createdAt: string;
+    updatedAt: string | null;
+    createdBy: string;
+}
+
 // API response interface for POS endpoints (different from KDS)
 interface POSApiResponse<T> {
     success: boolean;
@@ -200,6 +263,25 @@ const updateOrderItemStatus = async (
     const response = await apiClient.patch<POSApiResponse<POSOrder>>(
         `/api/pos/orders/${orderId}/items/${itemId}/status?status=${status}`
     );
+    return response.data.data;
+};
+
+// Create or Update POS Order API function
+const createOrUpdatePOSOrder = async (
+    data: POSOrderCreateOrUpdateRequest
+): Promise<POSOrderCreateOrUpdateResponse> => {
+    const response = await apiClient.post<{
+        success: boolean;
+        message: string;
+        data: POSOrderCreateOrUpdateResponse;
+    }>('/api/pos/orders/create-or-update', data);
+
+    if (!response.data.success) {
+        throw new Error(
+            response.data.message || 'Failed to create/update order'
+        );
+    }
+
     return response.data.data;
 };
 
@@ -312,5 +394,18 @@ export const useUpdateOrderItemStatus = () => {
 export const useCreateVietQRPaymentLink = () => {
     return useMutation({
         mutationFn: createVietQRPaymentLink,
+    });
+};
+
+export const useCreateOrUpdatePOSOrder = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: createOrUpdatePOSOrder,
+        onSuccess: (data) => {
+            // Invalidate orders queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['pos-order', data.id] });
+            queryClient.invalidateQueries({ queryKey: ['pos-orders'] });
+        },
     });
 };

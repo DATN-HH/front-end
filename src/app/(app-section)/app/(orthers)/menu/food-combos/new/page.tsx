@@ -482,9 +482,7 @@ export default function NewFoodComboPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="price">
-                                    Override Price (VND)
-                                </Label>
+                                <Label htmlFor="price">Price (VND)</Label>
                                 <Input
                                     id="price"
                                     type="number"
@@ -495,11 +493,12 @@ export default function NewFoodComboPage() {
                                             price: e.target.value,
                                         })
                                     }
-                                    placeholder="Auto-calculated"
+                                    placeholder="Enter price"
+                                    required
                                 />
-                                <p className="text-xs text-gray-500">
+                                {/* <p className="text-xs text-gray-500">
                                     Leave empty to auto-calculate from items
-                                </p>
+                                </p> */}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="estimateTime">
