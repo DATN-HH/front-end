@@ -34,7 +34,6 @@ interface POSTablesViewProps {
 export function POSTablesView({
     floors,
     selectedFloor,
-    isLoading,
     onFloorChange,
     onTableSelect,
     onNewOrder,

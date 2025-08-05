@@ -400,6 +400,7 @@ export function FoodComboEditModal({
                                         })
                                     }
                                     placeholder="Enter price"
+                                    required
                                 />
                             </div>
                             <div className="space-y-2">

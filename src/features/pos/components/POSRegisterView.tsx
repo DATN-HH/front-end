@@ -12,13 +12,11 @@ import { useState, useEffect } from 'react';
 
 import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
 import {
-    useCreatePOSOrder,
-    useUpdatePOSOrder,
+    useCreateOrUpdatePOSOrder,
     useCreatePOSOrderPayment,
     useSendOrderToKitchen,
     usePOSOrder,
-    POSOrderCreateRequest,
-    POSOrderUpdateRequest,
+    POSOrderCreateOrUpdateRequest,
     POSOrderPaymentRequest,
     POSPaymentMethod,
 } from '@/api/v1/pos-orders';
@@ -33,11 +31,24 @@ import { POSOrderSummary } from './POSOrderSummary';
 import { POSProductGrid } from './POSProductGrid';
 import { POSProductVariantModal } from './POSProductVariantModal';
 
+// Helper function to format currency to VND
+const formatVND = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
+};
+
 // Types for order management
 export interface POSOrderItem {
-    id: string;
+    id: string; // Local unique ID for frontend
+    orderItemId?: number; // Backend item ID for updates
     productId: number;
     variantId?: number;
+    isCombo?: boolean;
+    comboId?: number;
     name: string;
     description?: string;
     quantity: number;
@@ -45,6 +56,7 @@ export interface POSOrderItem {
     totalPrice: number;
     attributes?: string;
     notes?: string[];
+    itemStatus?: string; // RECEIVED, PREPARING, READY, COMPLETED
 }
 
 interface POSRegisterViewProps {
@@ -71,8 +83,7 @@ export function POSRegisterView({
     >('dine-in');
 
     // API hooks
-    const createOrderMutation = useCreatePOSOrder();
-    const updateOrderMutation = useUpdatePOSOrder();
+    const createOrderMutation = useCreateOrUpdatePOSOrder();
     const createPaymentMutation = useCreatePOSOrderPayment();
     const sendToKitchenMutation = useSendOrderToKitchen();
     const createKDSOrderMutation = useCreateKDSOrder();
@@ -85,21 +96,21 @@ export function POSRegisterView({
     // Effect to load editing order data
     useEffect(() => {
         if (editingOrder && editingOrderId) {
-            console.log('Loading editing order:', editingOrder);
-
             // Convert order items to local POSOrderItem format
             const convertedItems: POSOrderItem[] = editingOrder.items.map(
                 (item: any) => ({
                     id: `${item.id}`,
-                    productId: item.productId,
+                    orderItemId: item.id, // Track backend ID for updates
+                    productId: item.productId || item.foodComboId, // Use comboId if it's a combo
                     variantId: item.variantId,
-                    name: item.productName,
-                    description: item.attributeCombination || item.notes,
+                    name: item.productName || item.comboName || 'Unknown Item',
+                    description: item.attributeCombination || undefined,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     attributes: item.attributeCombination,
                     notes: item.notes ? [item.notes] : [],
+                    itemStatus: item.itemStatus || 'RECEIVED', // Default to RECEIVED if not specified
                 })
             );
 
@@ -108,10 +119,12 @@ export function POSRegisterView({
         }
     }, [editingOrder, editingOrderId]);
 
-    // Calculate order totals
-    const subtotal = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
-    const tax = subtotal * 0.1; // 10% tax
-    const total = subtotal + tax;
+    // Calculate order totals from current order or local items
+    const subtotal =
+        currentOrder?.subtotal ||
+        orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const tax = currentOrder?.tax || subtotal * 0.1; // 10% tax
+    const total = currentOrder?.total || subtotal + tax;
 
     // Helper function to create or update order when items change
     const createOrUpdateOrder = async (items: POSOrderItem[]) => {
@@ -122,72 +135,76 @@ export function POSRegisterView({
         }
 
         try {
-            if (!currentOrder) {
-                // Create new order if none exists
-                console.log('Creating new order...');
-                const orderRequest: POSOrderCreateRequest = {
-                    tableId: selectedTableId || undefined,
-                    items: items.map((item) => ({
-                        productId: item.productId,
-                        productName: item.name,
-                        variantId: item.variantId,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice,
-                        notes: item.description,
-                        modifiers: [],
-                        isCombo:
-                            item.name.toLowerCase().includes('combo') ||
-                            item.name.toLowerCase().includes('special'),
-                        attributeCombination: item.attributes,
-                    })),
-                    customerName: undefined,
-                    customerPhone: undefined,
-                    notes: undefined,
-                };
+            // Convert items to new API format with orderItemId
+            const apiItems = items.map((item) => ({
+                orderItemId: item.orderItemId || undefined,
+                productId: item.isCombo ? undefined : item.productId,
+                variantId: item.variantId || undefined,
+                comboId: item.comboId || undefined,
+                quantity: item.quantity,
+                notes: item.notes?.join(', '),
+                attributeCombination: item.attributes,
+            }));
 
-                const newOrder =
-                    await createOrderMutation.mutateAsync(orderRequest);
-                console.log('Order created:', newOrder);
-                setCurrentOrder(newOrder);
+            const orderRequest: POSOrderCreateOrUpdateRequest = {
+                orderId: currentOrder?.id, // If exists, this will update; if not, will create
+                tableIds: selectedTableId ? [selectedTableId] : [],
+                items: apiItems,
+                customerName: undefined,
+                customerPhone: undefined,
+                notes: undefined,
+                orderType: 'DINE_IN',
+            };
 
-                // Notify parent that order was created (this will update table status)
-                if (newOrder?.id) {
-                    onOrderCreated(newOrder.id);
-                }
-            } else {
-                // Update existing order
-                console.log('Updating existing order...');
-                const updateRequest: POSOrderUpdateRequest = {
-                    id: currentOrder.id,
-                    tableId: selectedTableId || undefined,
-                    items: items.map((item) => ({
-                        productId: item.productId,
-                        productName: item.name,
-                        variantId: item.variantId,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice,
-                        notes: item.description,
-                        modifiers: [],
-                        isCombo:
-                            item.name.toLowerCase().includes('combo') ||
-                            item.name.toLowerCase().includes('special'),
-                        attributeCombination: item.attributes,
-                    })),
-                    customerName: undefined,
-                    customerPhone: undefined,
-                    notes: undefined,
-                };
+            const result = await createOrderMutation.mutateAsync(orderRequest);
+            console.log('Order result:', result);
 
-                const updatedOrder =
-                    await updateOrderMutation.mutateAsync(updateRequest);
-                console.log('Order updated:', updatedOrder);
-                setCurrentOrder(updatedOrder);
+            // Update local state from API response
+            const updatedItems: POSOrderItem[] = result.items.map(
+                (apiItem: any) => ({
+                    id: `${apiItem.id}`, // Use API item ID as local ID
+                    orderItemId: apiItem.id, // Track backend ID for updates
+                    productId: apiItem.productId || apiItem.foodComboId,
+                    variantId: apiItem.variantId,
+                    name:
+                        apiItem.productName ||
+                        apiItem.comboName ||
+                        'Unknown Item',
+                    description: apiItem.attributeCombination,
+                    quantity: apiItem.quantity,
+                    unitPrice: apiItem.unitPrice,
+                    totalPrice: apiItem.totalPrice,
+                    attributes: apiItem.attributeCombination,
+                    notes: apiItem.notes ? [apiItem.notes] : [],
+                    itemStatus: apiItem.itemStatus,
+                })
+            );
+
+            // Update local order items with API response data
+            setOrderItems(updatedItems);
+            setCurrentOrder(result);
+
+            // Notify parent that order was created/updated (don't jump to Orders tab)
+            if (result?.id && !currentOrder) {
+                // Only call onOrderCreated for the first time, not on updates
+                // This prevents jumping to Orders tab on every item addition
             }
         } catch (error) {
             console.error('Error creating/updating order:', error);
         }
+    };
+
+    // Handle notes changes
+    const handleNotesChange = async (itemId: string, notes: string[]) => {
+        const newOrderItems = orderItems.map((item) =>
+            item.id === itemId ? { ...item, notes } : item
+        );
+
+        // Update local state
+        setOrderItems(newOrderItems);
+
+        // Update the order in the backend
+        await createOrUpdateOrder(newOrderItems);
     };
 
     // Helper function to send order to KDS
@@ -205,12 +222,19 @@ export function POSRegisterView({
                 return;
             }
 
+            // Get table info from new structure
+            const primaryTable =
+                posOrder.tables?.find((t: any) => t.isPrimary) ||
+                posOrder.tables?.[0];
+            const tableId = primaryTable?.tableId || selectedTableId;
+            const tableName =
+                primaryTable?.tableName ||
+                (tableId ? `T${tableId}` : undefined);
+
             const kdsOrderRequest: KDSOrderCreateRequest = {
                 orderNumber: posOrder.orderNumber || `POS-${posOrder.id}`,
-                tableId: posOrder.tableId,
-                tableName: posOrder.tableId
-                    ? `T${posOrder.tableId}`
-                    : undefined,
+                tableId,
+                tableName,
                 customerName: posOrder.customerName,
                 notes: posOrder.notes,
                 estimatedTime: 20, // Default 20 minutes
@@ -240,15 +264,18 @@ export function POSRegisterView({
 
     // Handle product selection - add variant directly to order or increase quantity
     const handleProductSelect = async (product: any) => {
-        // Check if this variant already exists in the order
+        // Check if this variant already exists in the order with RECEIVED status
         const existingItemIndex = orderItems.findIndex(
-            (item) => item.variantId === product.variantId
+            (item) =>
+                item.variantId === product.variantId &&
+                item.productId === product.id &&
+                item.itemStatus === 'RECEIVED'
         );
 
         let newOrderItems: POSOrderItem[];
 
         if (existingItemIndex >= 0) {
-            // If item exists, increase quantity
+            // If RECEIVED item exists, increase quantity
             newOrderItems = orderItems.map((item, index) =>
                 index === existingItemIndex
                     ? {
@@ -259,11 +286,14 @@ export function POSRegisterView({
                     : item
             );
         } else {
-            // If item doesn't exist, add new item
+            // If item doesn't exist or not RECEIVED, add new item
             const newItem: POSOrderItem = {
-                id: `${product.variantId}-${Date.now()}`,
-                productId: product.id,
+                id: `${product.id}-${product.variantId || 'base'}-${Date.now()}`,
+                orderItemId: undefined, // New item, no backend ID yet
+                productId: product.isCombo ? null : product.id,
                 variantId: product.variantId,
+                isCombo: product.isCombo || false,
+                comboId: product.isCombo ? product.id : null,
                 name: product.displayName || product.productTemplateName,
                 description:
                     product.description || product.attributeCombination,
@@ -271,9 +301,10 @@ export function POSRegisterView({
                 unitPrice: product.price || product.effectivePrice || 0,
                 totalPrice: product.price || product.effectivePrice || 0,
                 attributes: product.attributeCombination,
-                notes: [],
+                notes: [], // Start with empty notes - let user add their own
+                itemStatus: 'RECEIVED', // New items start as RECEIVED
             };
-
+            console.log('newItem', newItem);
             newOrderItems = [...orderItems, newItem];
         }
 
@@ -323,17 +354,44 @@ export function POSRegisterView({
         let newOrderItems: POSOrderItem[];
 
         if (newQuantity <= 0) {
+            // Remove item if quantity is 0 or less
             newOrderItems = orderItems.filter((item) => item.id !== itemId);
         } else {
-            newOrderItems = orderItems.map((item) =>
-                item.id === itemId
-                    ? {
-                          ...item,
-                          quantity: newQuantity,
-                          totalPrice: item.unitPrice * newQuantity,
-                      }
-                    : item
-            );
+            const targetItem = orderItems.find((item) => item.id === itemId);
+
+            if (!targetItem) return;
+
+            // Only allow direct quantity update for RECEIVED items
+            if (targetItem.itemStatus === 'RECEIVED') {
+                // Update existing item quantity
+                newOrderItems = orderItems.map((item) =>
+                    item.id === itemId
+                        ? {
+                              ...item,
+                              quantity: newQuantity,
+                              totalPrice: item.unitPrice * newQuantity,
+                          }
+                        : item
+                );
+            } else {
+                // For non-RECEIVED items, create a new item instead of updating
+                const newItem: POSOrderItem = {
+                    id: `${targetItem.productId}-${targetItem.variantId || 'base'}-${Date.now()}`,
+                    orderItemId: undefined, // New item, no backend ID yet
+                    productId: targetItem.productId,
+                    variantId: targetItem.variantId,
+                    name: targetItem.name,
+                    description: targetItem.description,
+                    quantity: newQuantity,
+                    unitPrice: targetItem.unitPrice,
+                    totalPrice: targetItem.unitPrice * newQuantity,
+                    attributes: targetItem.attributes,
+                    notes: [], // Start with empty notes for new item
+                    itemStatus: 'RECEIVED', // New items start as RECEIVED
+                };
+
+                newOrderItems = [...orderItems, newItem];
+            }
         }
 
         // Update local state
@@ -343,37 +401,44 @@ export function POSRegisterView({
         await createOrUpdateOrder(newOrderItems);
     };
 
-    // Handle notes changes
-    const handleNotesChange = (itemId: string, notes: string[]) => {
-        setOrderItems((prev) =>
-            prev.map((item) => (item.id === itemId ? { ...item, notes } : item))
-        );
-    };
-
     // Handle order submission
     const handleSubmitOrder = async () => {
         try {
-            const orderRequest: POSOrderCreateRequest = {
-                tableId: selectedTableId || undefined,
-                items: orderItems.map((item) => ({
-                    productId: item.productId,
-                    productName: item.name,
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    totalPrice: item.totalPrice,
-                    notes: item.description,
-                    modifiers: [],
-                })),
+            // Convert items to new API format
+            const apiItems = orderItems.map((item) => ({
+                productId:
+                    !item.variantId &&
+                    !item.name.toLowerCase().includes('combo')
+                        ? item.productId
+                        : undefined,
+                variantId: item.variantId || null,
+                comboId:
+                    item.name.toLowerCase().includes('combo') ||
+                    item.name.toLowerCase().includes('special')
+                        ? item.productId
+                        : null,
+                quantity: item.quantity,
+                notes: item.description || undefined,
+                attributeCombination: item.attributes || undefined,
+            }));
+
+            const orderRequest: POSOrderCreateOrUpdateRequest = {
+                orderId: currentOrder?.id, // If exists, this will update; if not, will create
+                tableIds: selectedTableId ? [selectedTableId] : [],
+                items: apiItems,
                 customerName: undefined,
                 customerPhone: undefined,
                 notes: undefined,
+                orderType: 'DINE_IN',
             };
 
             // Create the order with enhanced error handling
             let order;
             try {
-                console.log('Creating order with request:', orderRequest);
+                console.log(
+                    'Creating/updating order with request:',
+                    orderRequest
+                );
                 order = await createOrderMutation.mutateAsync(orderRequest);
                 console.log('Raw order response:', order);
 
@@ -383,15 +448,19 @@ export function POSRegisterView({
                     // Create a mock order for testing purposes
                     order = {
                         id: Date.now(), // Use timestamp as temporary ID
-                        tableId: orderRequest.tableId,
+                        tables: selectedTableId
+                            ? [
+                                  {
+                                      tableId: selectedTableId,
+                                      tableName: `Table ${selectedTableId}`,
+                                  },
+                              ]
+                            : [],
                         items: orderRequest.items,
                         status: 'PENDING',
                     };
                     console.log('Using mock order:', order);
                 }
-
-                // The API should return the order directly
-                // If there are any response format issues, they will be handled by the API layer
 
                 // Final validation
                 if (!order || typeof order !== 'object') {
@@ -411,7 +480,14 @@ export function POSRegisterView({
                 // For testing purposes, create a mock order instead of failing
                 order = {
                     id: Date.now(),
-                    tableId: orderRequest.tableId,
+                    tables: selectedTableId
+                        ? [
+                              {
+                                  tableId: selectedTableId,
+                                  tableName: `Table ${selectedTableId}`,
+                              },
+                          ]
+                        : [],
                     items: orderRequest.items,
                     status: 'PENDING',
                 };
@@ -456,22 +532,32 @@ export function POSRegisterView({
         change: number;
     }) => {
         try {
-            // First create the order
-            const orderRequest: POSOrderCreateRequest = {
-                tableId: selectedTableId || undefined,
-                items: orderItems.map((item) => ({
-                    productId: item.productId,
-                    productName: item.name,
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    totalPrice: item.totalPrice,
-                    notes: item.description,
-                    modifiers: [],
-                })),
+            // Convert items to new API format
+            const apiItems = orderItems.map((item) => ({
+                productId:
+                    !item.variantId &&
+                    !item.name.toLowerCase().includes('combo')
+                        ? item.productId
+                        : undefined,
+                variantId: item.variantId || null,
+                comboId:
+                    item.name.toLowerCase().includes('combo') ||
+                    item.name.toLowerCase().includes('special')
+                        ? item.productId
+                        : null,
+                quantity: item.quantity,
+                notes: item.notes?.join(', ') || undefined,
+                attributeCombination: item.attributes || undefined,
+            }));
+
+            const orderRequest: POSOrderCreateOrUpdateRequest = {
+                orderId: currentOrder?.id, // If exists, this will update; if not, will create
+                tableIds: selectedTableId ? [selectedTableId] : [],
+                items: apiItems,
                 customerName: undefined,
                 customerPhone: undefined,
                 notes: undefined,
+                orderType: 'DINE_IN',
             };
 
             const order = await createOrderMutation.mutateAsync(orderRequest);

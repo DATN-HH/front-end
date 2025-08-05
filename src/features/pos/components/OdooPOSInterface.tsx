@@ -1,12 +1,11 @@
 'use client';
 
-import { Settings, MoreHorizontal, Search } from 'lucide-react';
+import { Settings, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
 import { type BranchResponseDto } from '@/api/v1/branches';
 import { type FloorResponse } from '@/api/v1/floors';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 // Import POS components
 import { POSOrdersView } from './POSOrdersView';
@@ -110,17 +109,6 @@ export function OdooPOSInterface({
                     {selectedTableId && activeTab === POSTab.REGISTER && (
                         <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold text-lg">
                             Table {selectedTableId}
-                        </div>
-                    )}
-
-                    {/* Center: Search (when in register mode) */}
-                    {activeTab === POSTab.REGISTER && !selectedTableId && (
-                        <div className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-2">
-                            <Search className="w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search products..."
-                                className="border-0 bg-transparent focus:ring-0 focus:outline-none"
-                            />
                         </div>
                     )}
 
