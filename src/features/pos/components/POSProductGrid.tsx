@@ -42,7 +42,8 @@ interface Category {
 }
 
 interface POSProductGridProps {
-    onProductSelect: (product: POSProduct) => void;
+    onProductSelect: (product: any) => void;
+    disabled?: boolean;
 }
 
 // Helper function to format Vietnamese currency

@@ -36,19 +36,27 @@ export function OdooPOSInterface({
     const [selectedFloor, setSelectedFloor] = useState<FloorResponse | null>(
         floors.length > 0 ? floors[0] : null
     );
-    const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
+    const [selectedTables, setSelectedTables] = useState<
+        Array<{ id: number; name: string; status: string }>
+    >([]);
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null);
     const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
     // Handle table selection - switches to register view
-    const handleTableSelect = (tableId: number) => {
-        setSelectedTableId(tableId);
+    const handleTableSelect = (tableId: number, tableName?: string) => {
+        // Create table object with proper name
+        const table = {
+            id: tableId,
+            name: tableName || `Table ${tableId}`,
+            status: 'OCCUPIED',
+        };
+        setSelectedTables([table]);
         setActiveTab(POSTab.REGISTER);
     };
 
     // Handle new order (direct sale)
     const handleNewOrder = () => {
-        setSelectedTableId(null);
+        setSelectedTables([]);
         setActiveTab(POSTab.REGISTER);
     };
 
@@ -105,13 +113,6 @@ export function OdooPOSInterface({
                         ))}
                     </div>
 
-                    {/* Center: Table Indicator (when table selected) */}
-                    {selectedTableId && activeTab === POSTab.REGISTER && (
-                        <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold text-lg">
-                            Table {selectedTableId}
-                        </div>
-                    )}
-
                     {/* Right: Controls */}
                     <div className="flex items-center space-x-2">
                         <Button variant="ghost" size="sm">
@@ -141,16 +142,12 @@ export function OdooPOSInterface({
 
                 {activeTab === POSTab.REGISTER && (
                     <POSRegisterView
-                        selectedTableId={selectedTableId}
+                        selectedTables={selectedTables}
                         editingOrderId={editingOrderId}
                         onOrderCreated={(orderId) => {
                             setCurrentOrderId(orderId);
                             setEditingOrderId(null); // Clear editing state
                             setActiveTab(POSTab.ORDERS);
-                        }}
-                        onBackToTables={() => {
-                            setEditingOrderId(null); // Clear editing state
-                            setActiveTab(POSTab.TABLES);
                         }}
                     />
                 )}

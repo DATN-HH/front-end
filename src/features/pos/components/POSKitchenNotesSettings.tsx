@@ -17,6 +17,9 @@ import { Label } from '@/components/ui/label';
 interface POSKitchenNotesSettingsProps {
     isOpen: boolean;
     onClose: () => void;
+    currentNotes?: string;
+    onSave: (notes: string) => void;
+    disabled?: boolean;
 }
 
 // Default common notes
@@ -38,6 +41,9 @@ const DEFAULT_NOTES = [
 export function POSKitchenNotesSettings({
     isOpen,
     onClose,
+    currentNotes = '',
+    onSave,
+    disabled = false,
 }: POSKitchenNotesSettingsProps) {
     const [notes, setNotes] = useState<string[]>(DEFAULT_NOTES);
     const [newNote, setNewNote] = useState('');

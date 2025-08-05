@@ -1,45 +1,29 @@
 'use client';
 
-import {
-    ArrowLeft,
-    User,
-    FileText,
-    UtensilsCrossed,
-    MoreHorizontal,
-    Settings,
-} from 'lucide-react';
+import { User, FileText, UtensilsCrossed, Plus, Table } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
+import { ProductDetailResponse } from '@/api/v1/menu/products';
 import {
     useCreateOrUpdatePOSOrder,
-    useCreatePOSOrderPayment,
-    useSendOrderToKitchen,
     usePOSOrder,
     POSOrderCreateOrUpdateRequest,
-    POSOrderPaymentRequest,
-    POSPaymentMethod,
+    POSOrderCreateOrUpdateResponse,
 } from '@/api/v1/pos-orders';
 import { Button } from '@/components/ui/button';
-
-// Import API hooks
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/auth-context';
+import { useAllTables, Table as TableType } from '@/hooks/use-all-tables';
+import { formatVND } from '@/lib/format-currency';
 
 // Import POS components
-import { POSCashPayment } from './POSCashPayment';
-import { POSKitchenNotesSettings } from './POSKitchenNotesSettings';
+import { POSOrderNotes } from './POSOrderNotes';
 import { POSOrderSummary } from './POSOrderSummary';
 import { POSProductGrid } from './POSProductGrid';
 import { POSProductVariantModal } from './POSProductVariantModal';
-
-// Helper function to format currency to VND
-const formatVND = (amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount);
-};
+import { POSTableSelector } from './POSTableSelector';
 
 // Types for order management
 export interface POSOrderItem {
@@ -60,32 +44,76 @@ export interface POSOrderItem {
 }
 
 interface POSRegisterViewProps {
-    selectedTableId: number | null;
+    selectedTables: TableType[];
+    onOrderCreated?: (orderId: number) => void;
     editingOrderId?: number | null;
-    onOrderCreated: (orderId: number) => void;
-    onBackToTables: () => void;
 }
 
+type OrderType = 'DINE_IN' | 'TAKEOUT';
+
 export function POSRegisterView({
-    selectedTableId,
-    editingOrderId,
-    onOrderCreated,
-    onBackToTables,
+    selectedTables: initialSelectedTables = [],
+    editingOrderId = null,
 }: POSRegisterViewProps) {
+    const { user } = useAuth();
+
+    // State
     const [orderItems, setOrderItems] = useState<POSOrderItem[]>([]);
-    const [currentOrder, setCurrentOrder] = useState<any>(null); // Track the active order
-    const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [currentOrder, setCurrentOrder] =
+        useState<POSOrderCreateOrUpdateResponse | null>(null);
+    const [selectedProduct, setSelectedProduct] =
+        useState<ProductDetailResponse | null>(null);
     const [showVariantModal, setShowVariantModal] = useState(false);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [showSettingsModal, setShowSettingsModal] = useState(false);
-    const [orderType, setOrderType] = useState<
-        'dine-in' | 'takeout' | 'delivery'
-    >('dine-in');
+    const [showNotesModal, setShowNotesModal] = useState(false);
+    const [orderType, setOrderType] = useState<OrderType>('DINE_IN');
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [orderNotes, setOrderNotes] = useState('');
+
+    // Table management state
+    const [selectedTables, setSelectedTables] = useState<TableType[]>(
+        initialSelectedTables
+    );
+    const [showTableSelector, setShowTableSelector] = useState(false);
+
+    // Get branch ID from user
+    const branchId = user?.branch?.id;
+
+    // Fetch tables from all floors
+    const { tables: allTables, isLoading: tablesLoading } = useAllTables(
+        branchId || 0
+    );
+
+    // Add function to handle new order
+    const handleNewOrder = () => {
+        setOrderItems([]);
+        setCurrentOrder(null);
+        setCustomerName('');
+        setCustomerPhone('');
+        setOrderNotes('');
+        setOrderType('DINE_IN');
+        // Reset selected tables for new order
+        setSelectedTables([]);
+    };
+
+    // Handle table selection
+    const handleTableSelection = (tables: TableType[]) => {
+        setShowTableSelector(false);
+
+        // If we have an existing order, update it with new tables
+        if (currentOrder && orderItems.length > 0) {
+            createOrUpdateOrder(orderItems, tables);
+        } else {
+            // If no existing order, just update selected tables
+            setSelectedTables(tables);
+        }
+    };
+
+    // Use tables from all floors
+    const tables = allTables;
 
     // API hooks
     const createOrderMutation = useCreateOrUpdatePOSOrder();
-    const createPaymentMutation = useCreatePOSOrderPayment();
-    const sendToKitchenMutation = useSendOrderToKitchen();
     const createKDSOrderMutation = useCreateKDSOrder();
 
     // Fetch editing order if editingOrderId is provided
@@ -100,9 +128,11 @@ export function POSRegisterView({
             const convertedItems: POSOrderItem[] = editingOrder.items.map(
                 (item: any) => ({
                     id: `${item.id}`,
-                    orderItemId: item.id, // Track backend ID for updates
-                    productId: item.productId || item.foodComboId, // Use comboId if it's a combo
+                    orderItemId: item.id,
+                    productId: item.productId || item.foodComboId,
                     variantId: item.variantId,
+                    isCombo: item.isCombo,
+                    comboId: item.foodComboId,
                     name: item.productName || item.comboName || 'Unknown Item',
                     description: item.attributeCombination || undefined,
                     quantity: item.quantity,
@@ -110,14 +140,88 @@ export function POSRegisterView({
                     totalPrice: item.totalPrice,
                     attributes: item.attributeCombination,
                     notes: item.notes ? [item.notes] : [],
-                    itemStatus: item.itemStatus || 'RECEIVED', // Default to RECEIVED if not specified
+                    itemStatus: item.itemStatus || 'RECEIVED',
                 })
             );
 
             setOrderItems(convertedItems);
-            setCurrentOrder(editingOrder);
+            // Convert POSOrder to POSOrderCreateOrUpdateResponse format
+            const tables =
+                editingOrder.tableId && editingOrder.tableName
+                    ? [
+                          {
+                              id: 1, // Mock ID since POSOrder doesn't have table object structure
+                              tableId: editingOrder.tableId,
+                              tableName: editingOrder.tableName,
+                              isPrimary: true,
+                              notes: null,
+                          },
+                      ]
+                    : [];
+
+            // Convert items to the expected format for order response
+            const responseItems = editingOrder.items.map((item: any) => ({
+                id: item.id,
+                productId: item.productId,
+                productName: item.productName || null,
+                variantId: item.variantId || null,
+                variantName: null, // Not available in POSOrderItem
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                notes: item.notes || null,
+                attributeCombination: item.attributeCombination || null,
+                itemStatus: item.itemStatus || 'RECEIVED',
+                isCombo: item.isCombo || false,
+                foodComboId: item.foodComboId || null,
+                comboName: item.comboName || null,
+                promotionPrice: null, // Not available in POSOrderItem
+            }));
+
+            const convertedOrder: POSOrderCreateOrUpdateResponse = {
+                id: editingOrder.id,
+                orderNumber: editingOrder.orderNumber,
+                tables,
+                status: editingOrder.status,
+                orderStatus: editingOrder.status,
+                orderType: 'DINE_IN', // Default since POSOrder doesn't have this field
+                items: responseItems,
+                subtotal: editingOrder.subtotal,
+                tax: editingOrder.tax,
+                total: editingOrder.total,
+                customerName: editingOrder.customerName || null,
+                customerPhone: editingOrder.customerPhone || null,
+                notes: editingOrder.notes || null,
+                payments: editingOrder.payments,
+                createdAt: editingOrder.createdAt,
+                updatedAt: editingOrder.updatedAt,
+                createdBy: editingOrder.createdBy,
+            };
+            setCurrentOrder(convertedOrder);
+            setCustomerName(editingOrder.customerName || '');
+            setCustomerPhone(editingOrder.customerPhone || '');
+            setOrderNotes(editingOrder.notes || '');
+            // Set default order type since POSOrder doesn't have orderType field
+            setOrderType(editingOrder.tableId ? 'DINE_IN' : 'TAKEOUT');
+
+            // Load tables from editing order
+            if (editingOrder.tableId && editingOrder.tableName) {
+                const orderTable: TableType = {
+                    id: editingOrder.tableId,
+                    name: editingOrder.tableName,
+                    status: 'OCCUPIED', // Assume occupied since it has an order
+                };
+                setSelectedTables([orderTable]);
+            }
         }
     }, [editingOrder, editingOrderId]);
+
+    // Effect to sync initial selected tables
+    useEffect(() => {
+        if (initialSelectedTables.length > 0 && !editingOrderId) {
+            setSelectedTables(initialSelectedTables);
+        }
+    }, [initialSelectedTables, editingOrderId]);
 
     // Calculate order totals from current order or local items
     const subtotal =
@@ -127,7 +231,16 @@ export function POSRegisterView({
     const total = currentOrder?.total || subtotal + tax;
 
     // Helper function to create or update order when items change
-    const createOrUpdateOrder = async (items: POSOrderItem[]) => {
+    const createOrUpdateOrder = async (
+        items: POSOrderItem[],
+        customTables?: TableType[]
+    ) => {
+        const tablesToUse = customTables || selectedTables;
+
+        // If customTables is provided, update selectedTables immediately to prevent race conditions
+        if (customTables) {
+            setSelectedTables(customTables);
+        }
         if (items.length === 0) {
             // If no items, clear current order
             setCurrentOrder(null);
@@ -147,13 +260,13 @@ export function POSRegisterView({
             }));
 
             const orderRequest: POSOrderCreateOrUpdateRequest = {
-                orderId: currentOrder?.id, // If exists, this will update; if not, will create
-                tableIds: selectedTableId ? [selectedTableId] : [],
+                orderId: currentOrder?.id,
+                tableIds: tablesToUse?.map((table) => table.id) || [],
                 items: apiItems,
-                customerName: undefined,
-                customerPhone: undefined,
-                notes: undefined,
-                orderType: 'DINE_IN',
+                customerName: customerName || undefined,
+                customerPhone: customerPhone || undefined,
+                notes: orderNotes || undefined,
+                orderType: orderType === 'DINE_IN' ? 'DINE_IN' : 'TAKEOUT',
             };
 
             const result = await createOrderMutation.mutateAsync(orderRequest);
@@ -162,10 +275,12 @@ export function POSRegisterView({
             // Update local state from API response
             const updatedItems: POSOrderItem[] = result.items.map(
                 (apiItem: any) => ({
-                    id: `${apiItem.id}`, // Use API item ID as local ID
-                    orderItemId: apiItem.id, // Track backend ID for updates
+                    id: `${apiItem.id}`,
+                    orderItemId: apiItem.id,
                     productId: apiItem.productId || apiItem.foodComboId,
                     variantId: apiItem.variantId,
+                    isCombo: apiItem.isCombo,
+                    comboId: apiItem.foodComboId,
                     name:
                         apiItem.productName ||
                         apiItem.comboName ||
@@ -184,10 +299,16 @@ export function POSRegisterView({
             setOrderItems(updatedItems);
             setCurrentOrder(result);
 
-            // Notify parent that order was created/updated (don't jump to Orders tab)
-            if (result?.id && !currentOrder) {
-                // Only call onOrderCreated for the first time, not on updates
-                // This prevents jumping to Orders tab on every item addition
+            // Update selected tables from API response
+            if (result.tables && result.tables.length > 0) {
+                const responseTables: TableType[] = result.tables.map(
+                    (table: any) => ({
+                        id: table.tableId,
+                        name: table.tableName,
+                        status: 'OCCUPIED', // Assume occupied since it has an order
+                    })
+                );
+                setSelectedTables(responseTables);
             }
         } catch (error) {
             console.error('Error creating/updating order:', error);
@@ -226,10 +347,12 @@ export function POSRegisterView({
             const primaryTable =
                 posOrder.tables?.find((t: any) => t.isPrimary) ||
                 posOrder.tables?.[0];
-            const tableId = primaryTable?.tableId || selectedTableId;
+            const tableId = primaryTable?.tableId || selectedTables[0]?.id;
             const tableName =
                 primaryTable?.tableName ||
-                (tableId ? `T${tableId}` : undefined);
+                (tableId
+                    ? selectedTables.find((t) => t.id === tableId)?.name
+                    : undefined);
 
             const kdsOrderRequest: KDSOrderCreateRequest = {
                 orderNumber: posOrder.orderNumber || `POS-${posOrder.id}`,
@@ -317,6 +440,8 @@ export function POSRegisterView({
 
     // Handle variant selection and add to order
     const handleVariantSelect = (variant: any) => {
+        if (!selectedProduct) return;
+
         const newItem: POSOrderItem = {
             id: `${variant.id}-${Date.now()}`,
             productId: selectedProduct.id,
@@ -329,13 +454,11 @@ export function POSRegisterView({
             unitPrice:
                 variant.effectivePrice ||
                 variant.price ||
-                selectedProduct.defaultPrice ||
                 selectedProduct.price ||
                 0,
             totalPrice:
                 variant.effectivePrice ||
                 variant.price ||
-                selectedProduct.defaultPrice ||
                 selectedProduct.price ||
                 0,
             attributes: variant.attributeCombination,
@@ -401,225 +524,135 @@ export function POSRegisterView({
         await createOrUpdateOrder(newOrderItems);
     };
 
-    // Handle order submission
-    const handleSubmitOrder = async () => {
-        try {
-            // Convert items to new API format
-            const apiItems = orderItems.map((item) => ({
-                productId:
-                    !item.variantId &&
-                    !item.name.toLowerCase().includes('combo')
-                        ? item.productId
-                        : undefined,
-                variantId: item.variantId || null,
-                comboId:
-                    item.name.toLowerCase().includes('combo') ||
-                    item.name.toLowerCase().includes('special')
-                        ? item.productId
-                        : null,
-                quantity: item.quantity,
-                notes: item.description || undefined,
-                attributeCombination: item.attributes || undefined,
-            }));
-
-            const orderRequest: POSOrderCreateOrUpdateRequest = {
-                orderId: currentOrder?.id, // If exists, this will update; if not, will create
-                tableIds: selectedTableId ? [selectedTableId] : [],
-                items: apiItems,
-                customerName: undefined,
-                customerPhone: undefined,
-                notes: undefined,
-                orderType: 'DINE_IN',
-            };
-
-            // Create the order with enhanced error handling
-            let order;
-            try {
-                console.log(
-                    'Creating/updating order with request:',
-                    orderRequest
-                );
-                order = await createOrderMutation.mutateAsync(orderRequest);
-                console.log('Raw order response:', order);
-
-                // Handle different response formats that might be returned
-                if (!order) {
-                    console.error('Order creation returned null/undefined');
-                    // Create a mock order for testing purposes
-                    order = {
-                        id: Date.now(), // Use timestamp as temporary ID
-                        tables: selectedTableId
-                            ? [
-                                  {
-                                      tableId: selectedTableId,
-                                      tableName: `Table ${selectedTableId}`,
-                                  },
-                              ]
-                            : [],
-                        items: orderRequest.items,
-                        status: 'PENDING',
-                    };
-                    console.log('Using mock order:', order);
-                }
-
-                // Final validation
-                if (!order || typeof order !== 'object') {
-                    throw new Error(
-                        `Invalid order object: ${JSON.stringify(order)}`
-                    );
-                }
-
-                if (!order.id) {
-                    console.error('Order missing ID, using fallback');
-                    order.id = Date.now(); // Fallback ID
-                }
-
-                console.log('Final order object:', order);
-            } catch (error) {
-                console.error('Error creating order:', error);
-                // For testing purposes, create a mock order instead of failing
-                order = {
-                    id: Date.now(),
-                    tables: selectedTableId
-                        ? [
-                              {
-                                  tableId: selectedTableId,
-                                  tableName: `Table ${selectedTableId}`,
-                              },
-                          ]
-                        : [],
-                    items: orderRequest.items,
-                    status: 'PENDING',
-                };
-                console.log('Using fallback mock order due to error:', order);
-            }
-
-            // Send order to kitchen (this will update table status to occupied)
-            try {
-                await sendToKitchenMutation.mutateAsync(order.id);
-                console.log('Order sent to kitchen successfully');
-            } catch (error) {
-                console.error('Error sending to kitchen:', error);
-                // Continue with KDS even if kitchen fails
-            }
-
-            // Send order to KDS system
-            try {
-                await sendOrderToKDS(order);
-                console.log('Order sent to KDS successfully');
-            } catch (error) {
-                console.error('Error sending to KDS:', error);
-                // Continue even if KDS fails
-            }
-
-            // Clear order items and navigate
-            setOrderItems([]);
-            onOrderCreated(order.id);
-        } catch (error) {
-            console.error('Failed to create order:', error);
-        }
-    };
-
-    // Handle payment
-    const handlePayment = () => {
-        setShowPaymentModal(true);
-    };
-
-    // Handle payment completion
-    const handlePaymentComplete = async (paymentData: {
-        method: 'CASH';
-        amountReceived: number;
-        change: number;
-    }) => {
-        try {
-            // Convert items to new API format
-            const apiItems = orderItems.map((item) => ({
-                productId:
-                    !item.variantId &&
-                    !item.name.toLowerCase().includes('combo')
-                        ? item.productId
-                        : undefined,
-                variantId: item.variantId || null,
-                comboId:
-                    item.name.toLowerCase().includes('combo') ||
-                    item.name.toLowerCase().includes('special')
-                        ? item.productId
-                        : null,
-                quantity: item.quantity,
-                notes: item.notes?.join(', ') || undefined,
-                attributeCombination: item.attributes || undefined,
-            }));
-
-            const orderRequest: POSOrderCreateOrUpdateRequest = {
-                orderId: currentOrder?.id, // If exists, this will update; if not, will create
-                tableIds: selectedTableId ? [selectedTableId] : [],
-                items: apiItems,
-                customerName: undefined,
-                customerPhone: undefined,
-                notes: undefined,
-                orderType: 'DINE_IN',
-            };
-
-            const order = await createOrderMutation.mutateAsync(orderRequest);
-
-            // Send order to KDS system
-            await sendOrderToKDS(order);
-
-            // Then process the payment
-            const paymentRequest: POSOrderPaymentRequest = {
-                orderId: order.id,
-                method: POSPaymentMethod.CASH,
-                amount: total,
-                reference: `CASH-${Date.now()}`,
-            };
-
-            await createPaymentMutation.mutateAsync(paymentRequest);
-
-            // Clear order and navigate
-            setOrderItems([]);
-            setShowPaymentModal(false);
-            onOrderCreated(order.id);
-        } catch (error) {
-            console.error('Failed to process payment:', error);
-        }
-    };
-
+    // Update header section JSX
     return (
         <div className="flex h-full bg-gray-50">
             {/* Left Panel - Order Summary */}
-            <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+            <div className="w-[480px] bg-white border-r border-gray-200 flex flex-col">
                 {/* Order Header */}
                 <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={onBackToTables}
-                            className="text-gray-600 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Tables
-                        </Button>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowSettingsModal(true)}
-                                className="text-gray-600 hover:text-gray-900"
-                            >
-                                <Settings className="w-4 h-4" />
-                            </Button>
-                            {selectedTableId && (
-                                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-medium">
-                                    Table {selectedTableId}
+                    {/* Order ID Display */}
+                    {(currentOrder?.id || selectedTables.length > 0) && (
+                        <div className="mb-4 px-3 py-2 bg-blue-50 rounded-lg">
+                            {currentOrder?.id && (
+                                <div className="text-sm font-medium text-blue-800">
+                                    Order #{currentOrder.id}
                                 </div>
                             )}
+                            {selectedTables.length > 0 && (
+                                <div className="text-sm text-blue-600 mt-1">
+                                    Tables:{' '}
+                                    {selectedTables
+                                        .map((table) => table.name)
+                                        .join(', ')}
+                                </div>
+                            )}
+                            {selectedTables.length === 0 &&
+                                orderType === 'DINE_IN' && (
+                                    <div className="text-sm text-orange-600 mt-1">
+                                        No tables selected - Click "Tables" to
+                                        select
+                                    </div>
+                                )}
+                        </div>
+                    )}
+
+                    {/* Order Controls */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {/* Order Type Toggle */}
+                        <div className="flex bg-gray-100 rounded-lg p-1">
+                            <Button
+                                variant={
+                                    orderType === 'DINE_IN'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
+                                size="sm"
+                                className="h-7 px-3 text-xs"
+                                onClick={() => setOrderType('DINE_IN')}
+                                disabled={createOrderMutation.isPending}
+                            >
+                                <UtensilsCrossed className="w-3 h-3 mr-1" />
+                                Dine In
+                            </Button>
+                            <Button
+                                variant={
+                                    orderType === 'TAKEOUT'
+                                        ? 'default'
+                                        : 'ghost'
+                                }
+                                size="sm"
+                                className="h-7 px-3 text-xs"
+                                onClick={() => setOrderType('TAKEOUT')}
+                                disabled={createOrderMutation.isPending}
+                            >
+                                <User className="w-3 h-3 mr-1" />
+                                Take Away
+                            </Button>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => setShowTableSelector(true)}
+                            disabled={createOrderMutation.isPending}
+                        >
+                            <Table className="w-3 h-3 mr-1" />
+                            Tables ({selectedTables.length})
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => setShowNotesModal(true)}
+                            disabled={createOrderMutation.isPending}
+                        >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Note
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={handleNewOrder}
+                            disabled={createOrderMutation.isPending}
+                        >
+                            <Plus className="w-3 h-3 mr-1" />
+                            New
+                        </Button>
+                    </div>
+
+                    {/* Customer Information */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <Label htmlFor="customerPhone">Phone</Label>
+                            <Input
+                                id="customerPhone"
+                                value={customerPhone}
+                                onChange={(e) =>
+                                    setCustomerPhone(e.target.value)
+                                }
+                                placeholder="Phone number"
+                                disabled={createOrderMutation.isPending}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="customerName">Name</Label>
+                            <Input
+                                id="customerName"
+                                value={customerName}
+                                onChange={(e) =>
+                                    setCustomerName(e.target.value)
+                                }
+                                placeholder="Customer name"
+                                disabled={createOrderMutation.isPending}
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* Order Items */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)]">
                     <POSOrderSummary
                         items={orderItems}
                         onQuantityChange={handleQuantityChange}
@@ -627,78 +660,44 @@ export function POSRegisterView({
                         subtotal={subtotal}
                         tax={tax}
                         total={total}
+                        disabled={createOrderMutation.isPending}
                     />
                 </div>
 
-                {/* Order Controls */}
-                <div className="p-4 border-t border-gray-200 space-y-3">
-                    {/* Order Type and Options */}
-                    <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm">
-                            <User className="w-4 h-4 mr-2" />
-                            Customer
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <FileText className="w-4 h-4 mr-2" />
-                            Note
-                        </Button>
-                        <Button
-                            variant={
-                                orderType === 'dine-in' ? 'default' : 'outline'
-                            }
-                            size="sm"
-                            onClick={() => setOrderType('dine-in')}
-                        >
-                            <UtensilsCrossed className="w-4 h-4 mr-2" />
-                            Dine In
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                        <Button
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
-                            onClick={handleSubmitOrder}
-                            disabled={
-                                orderItems.length === 0 ||
-                                createOrderMutation.isPending ||
-                                sendToKitchenMutation.isPending
-                            }
-                        >
-                            <div className="text-center">
-                                <div className="font-medium">
-                                    {createOrderMutation.isPending ||
-                                    sendToKitchenMutation.isPending
-                                        ? 'Sending...'
-                                        : 'Order'}
-                                </div>
-                                <div className="text-xs opacity-90">
-                                    {orderType === 'dine-in' ? 'Food' : 'Items'}{' '}
-                                    {orderItems.length}
-                                </div>
+                {/* Order Total - Sticky Bottom */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Subtotal</span>
+                            <span className="font-medium">
+                                {formatVND(subtotal)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Tax (10%)</span>
+                            <span className="font-medium">
+                                {formatVND(tax)}
+                            </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2">
+                            <div className="flex justify-between text-lg font-bold">
+                                <span>Total</span>
+                                <span>{formatVND(total)}</span>
                             </div>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="flex-1"
-                            disabled={orderItems.length === 0}
-                            onClick={handlePayment}
-                        >
-                            Payment
-                        </Button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Right Panel - Product Grid */}
             <div className="flex-1 bg-gray-50">
-                <POSProductGrid onProductSelect={handleProductSelect} />
+                <POSProductGrid
+                    onProductSelect={handleProductSelect}
+                    disabled={createOrderMutation.isPending}
+                />
             </div>
 
-            {/* Product Variant Selection Modal */}
+            {/* Modals */}
             {showVariantModal && selectedProduct && (
                 <POSProductVariantModal
                     product={selectedProduct}
@@ -710,18 +709,26 @@ export function POSRegisterView({
                 />
             )}
 
-            {/* Cash Payment Modal */}
-            <POSCashPayment
-                isOpen={showPaymentModal}
-                orderTotal={total}
-                onPaymentComplete={handlePaymentComplete}
-                onClose={() => setShowPaymentModal(false)}
+            <POSOrderNotes
+                isOpen={showNotesModal}
+                onClose={() => setShowNotesModal(false)}
+                notes={orderNotes}
+                onSave={(notes) => {
+                    setOrderNotes(notes);
+                    setShowNotesModal(false);
+                    createOrUpdateOrder(orderItems);
+                }}
+                disabled={createOrderMutation.isPending}
             />
 
-            {/* Kitchen Notes Settings Modal */}
-            <POSKitchenNotesSettings
-                isOpen={showSettingsModal}
-                onClose={() => setShowSettingsModal(false)}
+            <POSTableSelector
+                isOpen={showTableSelector}
+                onClose={() => setShowTableSelector(false)}
+                tables={tables}
+                selectedTables={selectedTables}
+                onTablesChange={handleTableSelection}
+                disabled={createOrderMutation.isPending}
+                isEditMode={!!editingOrderId || !!currentOrder}
             />
         </div>
     );
