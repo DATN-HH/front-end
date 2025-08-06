@@ -1,7 +1,7 @@
 'use client';
 
 import { Settings, MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { type BranchResponseDto } from '@/api/v1/branches';
 import { type FloorResponse } from '@/api/v1/floors';
@@ -90,6 +90,9 @@ export function OdooPOSInterface({
         },
     ];
 
+    useEffect(() => {
+        setSelectedTables([]);
+    }, [activeTab]);
     return (
         <div className="h-screen bg-gray-100 flex flex-col">
             {/* Header - Odoo Style */}
@@ -143,6 +146,7 @@ export function OdooPOSInterface({
                 {activeTab === POSTab.REGISTER && (
                     <POSRegisterView
                         selectedTables={selectedTables}
+                        setSelectedTables={setSelectedTables}
                         editingOrderId={editingOrderId}
                         onOrderCreated={(orderId) => {
                             setCurrentOrderId(orderId);
@@ -156,7 +160,6 @@ export function OdooPOSInterface({
                     <POSOrdersView
                         currentOrderId={currentOrderId}
                         onOrderSelect={(orderId) => setCurrentOrderId(orderId)}
-                        onBackToRegister={() => setActiveTab(POSTab.REGISTER)}
                         onEditOrder={handleEditOrder}
                     />
                 )}

@@ -95,7 +95,12 @@ export function POSCashPayment({
                                 Order Total
                             </div>
                             <div className="text-2xl font-bold text-blue-900">
-                                ${orderTotal.toFixed(2)}
+                                {new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND',
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                }).format(orderTotal)}
                             </div>
                         </div>
                     </Card>
@@ -131,7 +136,12 @@ export function POSCashPayment({
                                     onClick={() => handleQuickAmount(amount)}
                                     className="text-sm"
                                 >
-                                    ${amount.toFixed(2)}
+                                    {new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                    }).format(amount)}
                                 </Button>
                             ))}
                         </div>
@@ -171,7 +181,12 @@ export function POSCashPayment({
                                             : 'text-red-900'
                                     }`}
                                 >
-                                    ${Math.abs(change).toFixed(2)}
+                                    {new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                    }).format(Math.abs(change))}
                                 </div>
                             </div>
                         </Card>

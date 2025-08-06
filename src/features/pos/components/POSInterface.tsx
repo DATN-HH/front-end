@@ -33,16 +33,11 @@ export function POSInterface() {
         setEditingOrderId(orderId);
     };
 
-    const handleBackToTables = () => {
-        setIsRegisterView(false);
-        setSelectedTables([]);
-        setEditingOrderId(null);
-    };
-
     if (isRegisterView) {
         return (
             <POSRegisterView
                 selectedTables={selectedTables}
+                setSelectedTables={setSelectedTables}
                 onOrderCreated={handleOrderCreated}
                 editingOrderId={editingOrderId}
             />

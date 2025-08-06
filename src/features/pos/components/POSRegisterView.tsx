@@ -1,9 +1,8 @@
 'use client';
 
 import { User, FileText, UtensilsCrossed, Plus, Table } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { useCreateKDSOrder, KDSOrderCreateRequest } from '@/api/v1/kds-orders';
 import { ProductDetailResponse } from '@/api/v1/menu/products';
 import {
     useCreateOrUpdatePOSOrder,
@@ -45,6 +44,7 @@ export interface POSOrderItem {
 
 interface POSRegisterViewProps {
     selectedTables: TableType[];
+    setSelectedTables: (tables: TableType[]) => void;
     onOrderCreated?: (orderId: number) => void;
     editingOrderId?: number | null;
 }
@@ -52,7 +52,8 @@ interface POSRegisterViewProps {
 type OrderType = 'DINE_IN' | 'TAKEOUT';
 
 export function POSRegisterView({
-    selectedTables: initialSelectedTables = [],
+    selectedTables = [],
+    setSelectedTables,
     editingOrderId = null,
 }: POSRegisterViewProps) {
     const { user } = useAuth();
@@ -70,22 +71,19 @@ export function POSRegisterView({
     const [customerPhone, setCustomerPhone] = useState('');
     const [orderNotes, setOrderNotes] = useState('');
 
-    // Table management state
-    const [selectedTables, setSelectedTables] = useState<TableType[]>(
-        initialSelectedTables
-    );
     const [showTableSelector, setShowTableSelector] = useState(false);
 
     // Get branch ID from user
     const branchId = user?.branch?.id;
 
     // Fetch tables from all floors
-    const { tables: allTables, isLoading: tablesLoading } = useAllTables(
-        branchId || 0
-    );
+    const { tables: allTables } = useAllTables(branchId || 0);
 
     // Add function to handle new order
-    const handleNewOrder = () => {
+    const handleNewOrder = async () => {
+        if (orderItems.length > 0) {
+            await createOrUpdateOrder(orderItems);
+        }
         setOrderItems([]);
         setCurrentOrder(null);
         setCustomerName('');
@@ -101,7 +99,7 @@ export function POSRegisterView({
         setShowTableSelector(false);
 
         // If we have an existing order, update it with new tables
-        if (currentOrder && orderItems.length > 0) {
+        if (currentOrder) {
             createOrUpdateOrder(orderItems, tables);
         } else {
             // If no existing order, just update selected tables
@@ -114,7 +112,6 @@ export function POSRegisterView({
 
     // API hooks
     const createOrderMutation = useCreateOrUpdatePOSOrder();
-    const createKDSOrderMutation = useCreateKDSOrder();
 
     // Fetch editing order if editingOrderId is provided
     const { data: editingOrder } = usePOSOrder(
@@ -146,18 +143,21 @@ export function POSRegisterView({
 
             setOrderItems(convertedItems);
             // Convert POSOrder to POSOrderCreateOrUpdateResponse format
+            // Use the new tables array from API response, or fallback to old single table format
             const tables =
-                editingOrder.tableId && editingOrder.tableName
-                    ? [
-                          {
-                              id: 1, // Mock ID since POSOrder doesn't have table object structure
-                              tableId: editingOrder.tableId,
-                              tableName: editingOrder.tableName,
-                              isPrimary: true,
-                              notes: null,
-                          },
-                      ]
-                    : [];
+                editingOrder.tables && editingOrder.tables.length > 0
+                    ? editingOrder.tables
+                    : editingOrder.tableId && editingOrder.tableName
+                      ? [
+                            {
+                                id: 1, // Mock ID for backward compatibility
+                                tableId: editingOrder.tableId,
+                                tableName: editingOrder.tableName,
+                                isPrimary: true,
+                                notes: null,
+                            },
+                        ]
+                      : [];
 
             // Convert items to the expected format for order response
             const responseItems = editingOrder.items.map((item: any) => ({
@@ -184,7 +184,9 @@ export function POSRegisterView({
                 tables,
                 status: editingOrder.status,
                 orderStatus: editingOrder.status,
-                orderType: 'DINE_IN', // Default since POSOrder doesn't have this field
+                orderType:
+                    editingOrder.orderType ||
+                    (editingOrder.tableId ? 'DINE_IN' : 'TAKEOUT'),
                 items: responseItems,
                 subtotal: editingOrder.subtotal,
                 tax: editingOrder.tax,
@@ -201,27 +203,112 @@ export function POSRegisterView({
             setCustomerName(editingOrder.customerName || '');
             setCustomerPhone(editingOrder.customerPhone || '');
             setOrderNotes(editingOrder.notes || '');
-            // Set default order type since POSOrder doesn't have orderType field
-            setOrderType(editingOrder.tableId ? 'DINE_IN' : 'TAKEOUT');
 
-            // Load tables from editing order
-            if (editingOrder.tableId && editingOrder.tableName) {
+            // Use the existing orderType from the order, or fallback to logic based on tables
+            if (
+                editingOrder.orderType &&
+                ['DINE_IN', 'TAKEOUT', 'DELIVERY'].includes(
+                    editingOrder.orderType
+                )
+            ) {
+                setOrderType(editingOrder.orderType as OrderType);
+            } else {
+                // Fallback logic for orders without orderType field
+                setOrderType(editingOrder.tableId ? 'DINE_IN' : 'TAKEOUT');
+            }
+
+            // Load tables from editing order - handle both new tables array and old single table format
+            if (editingOrder.tables && editingOrder.tables.length > 0) {
+                // Use new tables array format
+                const orderTables: TableType[] = editingOrder.tables.map(
+                    (table: any) => ({
+                        id: table.tableId,
+                        name: table.tableName,
+                        status: 'OCCUPIED', // Assume occupied since it has an order
+                    })
+                );
+                setSelectedTables(orderTables);
+            } else if (editingOrder.tableId && editingOrder.tableName) {
+                // Fallback to old single table format
                 const orderTable: TableType = {
                     id: editingOrder.tableId,
                     name: editingOrder.tableName,
                     status: 'OCCUPIED', // Assume occupied since it has an order
                 };
                 setSelectedTables([orderTable]);
+            } else {
+                // No tables (e.g., takeout or delivery orders)
+                setSelectedTables([]);
             }
         }
     }, [editingOrder, editingOrderId]);
 
+    // Debounce timer for customer info updates
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Keep track of previous customer info to avoid unnecessary API calls
+    const prevCustomerInfoRef = useRef<{ phone: string; name: string }>({
+        phone: '',
+        name: '',
+    });
+
+    // Effect for order type changes (immediate)
+    useEffect(() => {
+        if (orderType === 'TAKEOUT') {
+            setSelectedTables([]);
+        }
+        if (currentOrder?.id != null) {
+            createOrUpdateOrder(orderItems);
+        }
+    }, [orderType]);
+
+    // Debounced function for customer info updates
+    const debouncedUpdateCustomerInfo = useCallback(
+        (phone: string, name: string) => {
+            // Clear existing timer
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+
+            // Check if customer info actually changed
+            const prevInfo = prevCustomerInfoRef.current;
+            const hasChanged =
+                prevInfo.phone !== phone || prevInfo.name !== name;
+
+            // Only update if we have an existing order and customer info has actually changed
+            if (currentOrder?.id != null && hasChanged) {
+                debounceTimerRef.current = setTimeout(async () => {
+                    // Update the previous values
+                    prevCustomerInfoRef.current = {
+                        phone,
+                        name,
+                    };
+
+                    await createOrUpdateOrder(orderItems);
+                }, 2000); // 1 second delay
+            }
+        },
+        [currentOrder?.id, orderItems]
+    );
+
+    // Effect for customer info updates
+    useEffect(() => {
+        debouncedUpdateCustomerInfo(customerPhone, customerName);
+
+        // Cleanup function
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [customerPhone, customerName, debouncedUpdateCustomerInfo]);
+
     // Effect to sync initial selected tables
     useEffect(() => {
-        if (initialSelectedTables.length > 0 && !editingOrderId) {
-            setSelectedTables(initialSelectedTables);
+        if (selectedTables.length > 0 && !editingOrderId) {
+            setSelectedTables(selectedTables);
         }
-    }, [initialSelectedTables, editingOrderId]);
+    }, [editingOrderId]);
 
     // Calculate order totals from current order or local items
     const subtotal =
@@ -240,11 +327,6 @@ export function POSRegisterView({
         // If customTables is provided, update selectedTables immediately to prevent race conditions
         if (customTables) {
             setSelectedTables(customTables);
-        }
-        if (items.length === 0) {
-            // If no items, clear current order
-            setCurrentOrder(null);
-            return;
         }
 
         try {
@@ -266,11 +348,10 @@ export function POSRegisterView({
                 customerName: customerName || undefined,
                 customerPhone: customerPhone || undefined,
                 notes: orderNotes || undefined,
-                orderType: orderType === 'DINE_IN' ? 'DINE_IN' : 'TAKEOUT',
+                orderType,
             };
 
             const result = await createOrderMutation.mutateAsync(orderRequest);
-            console.log('Order result:', result);
 
             // Update local state from API response
             const updatedItems: POSOrderItem[] = result.items.map(
@@ -328,63 +409,6 @@ export function POSRegisterView({
         await createOrUpdateOrder(newOrderItems);
     };
 
-    // Helper function to send order to KDS
-    const sendOrderToKDS = async (posOrder: any) => {
-        try {
-            console.log('sendOrderToKDS received order:', posOrder);
-            console.log('Order ID:', posOrder?.id);
-            console.log('Order structure:', Object.keys(posOrder || {}));
-
-            if (!posOrder?.id) {
-                console.error(
-                    'Invalid order object passed to sendOrderToKDS:',
-                    posOrder
-                );
-                return;
-            }
-
-            // Get table info from new structure
-            const primaryTable =
-                posOrder.tables?.find((t: any) => t.isPrimary) ||
-                posOrder.tables?.[0];
-            const tableId = primaryTable?.tableId || selectedTables[0]?.id;
-            const tableName =
-                primaryTable?.tableName ||
-                (tableId
-                    ? selectedTables.find((t) => t.id === tableId)?.name
-                    : undefined);
-
-            const kdsOrderRequest: KDSOrderCreateRequest = {
-                orderNumber: posOrder.orderNumber || `POS-${posOrder.id}`,
-                tableId,
-                tableName,
-                customerName: posOrder.customerName,
-                notes: posOrder.notes,
-                estimatedTime: 20, // Default 20 minutes
-                priority: 'normal',
-                staffName: 'POS Staff', // TODO: Get from current user
-                branchId: 5, // Fixed to match the branch ID that KDS queries for
-                items:
-                    posOrder.items?.map((item: any, index: number) => ({
-                        id: `${posOrder.id}-${index + 1}`,
-                        productId: item.productId,
-                        productName: item.productName,
-                        variantId: item.variantId,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice,
-                        notes: item.notes,
-                        modifiers: item.modifiers || [],
-                    })) || [],
-            };
-
-            await createKDSOrderMutation.mutateAsync(kdsOrderRequest);
-            console.log('Order sent to KDS successfully');
-        } catch (error) {
-            console.error('Failed to send order to KDS:', error);
-        }
-    };
-
     // Handle product selection - add variant directly to order or increase quantity
     const handleProductSelect = async (product: any) => {
         // Check if this variant already exists in the order with RECEIVED status
@@ -427,7 +451,6 @@ export function POSRegisterView({
                 notes: [], // Start with empty notes - let user add their own
                 itemStatus: 'RECEIVED', // New items start as RECEIVED
             };
-            console.log('newItem', newItem);
             newOrderItems = [...orderItems, newItem];
         }
 

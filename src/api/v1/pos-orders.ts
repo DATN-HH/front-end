@@ -65,7 +65,10 @@ export interface POSOrder {
     orderNumber: string;
     tableId?: number;
     tableName?: string;
+    tables?: POSOrderTable[]; // New field from API response
     status: POSOrderStatus;
+    orderStatus?: string; // New field from API response
+    orderType?: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY'; // New field from API response
     items: POSOrderItem[];
     subtotal: number;
     tax: number;
@@ -230,10 +233,17 @@ const getPOSOrder = async (id: number): Promise<POSOrder> => {
     return response.data.data;
 };
 
-const getPOSOrders = async (status?: POSOrderStatus): Promise<POSOrder[]> => {
+const getPOSOrders = async (
+    status?: POSOrderStatus,
+    orderType?: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY'
+): Promise<POSOrder[]> => {
+    const params: any = {};
+    if (status) params.orderStatus = status;
+    if (orderType) params.orderType = orderType;
+
     const response = await apiClient.get<POSApiResponse<POSOrder[]>>(
         '/api/pos/orders',
-        { params: { status } }
+        { params }
     );
     return response.data.data;
 };
@@ -340,10 +350,13 @@ export const usePOSOrder = (id: number) => {
     });
 };
 
-export const usePOSOrders = (status?: POSOrderStatus) => {
+export const usePOSOrders = (
+    status?: POSOrderStatus,
+    orderType?: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY'
+) => {
     return useQuery({
-        queryKey: ['pos-orders', status],
-        queryFn: () => getPOSOrders(status),
+        queryKey: ['pos-orders', status, orderType],
+        queryFn: () => getPOSOrders(status, orderType),
     });
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
@@ -14,14 +14,12 @@ import PaymentModal from './PaymentModal';
 interface POSOrdersViewProps {
     currentOrderId: number | null;
     onOrderSelect: (orderId: number) => void;
-    onBackToRegister: () => void;
     onEditOrder?: (orderId: number) => void;
 }
 
 export function POSOrdersView({
     currentOrderId,
     onOrderSelect,
-    onBackToRegister,
     onEditOrder,
 }: POSOrdersViewProps) {
     const [selectedOrderType, setSelectedOrderType] = useState<
@@ -33,27 +31,60 @@ export function POSOrdersView({
     >('active');
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
-    // Fetch orders based on filters
+    // Fetch orders based on filters with orderType support
     const { data: orders = [], isLoading } = usePOSOrders(
-        statusFilter === 'active' ? undefined : (statusFilter as POSOrderStatus)
+        statusFilter === 'active'
+            ? undefined
+            : (statusFilter as POSOrderStatus),
+        selectedOrderType.toUpperCase().replace('-', '_') as
+            | 'DINE_IN'
+            | 'TAKEOUT'
+            | 'DELIVERY'
     );
+
+    // Helper function to format Vietnamese currency
+    const formatVND = (amount: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
+
+    // Helper function to get order display name (ID + Table Names)
+    const getOrderDisplayName = (order: any) => {
+        // Handle multiple tables from new API structure
+        if (order.tables && order.tables.length > 0) {
+            const tableNames = order.tables
+                .map((t: any) => t.tableName)
+                .join(', ');
+            return `#${order.id} - ${tableNames}`;
+        }
+
+        // Fallback to single table name for backward compatibility
+        if (order.tableName) {
+            return `#${order.id} - ${order.tableName}`;
+        }
+
+        return `#${order.id} - Direct Sale`;
+    };
 
     // Filter orders based on search and type
     const filteredOrders = orders.filter((order) => {
+        const orderDisplayName = getOrderDisplayName(order);
         const matchesSearch =
             !searchQuery ||
             order.orderNumber
                 .toLowerCase()
                 .includes(searchQuery.toLowerCase()) ||
-            order.tableName
-                ?.toLowerCase()
+            orderDisplayName
+                .toLowerCase()
                 .includes(searchQuery.toLowerCase()) ||
             order.customerName
                 ?.toLowerCase()
                 .includes(searchQuery.toLowerCase());
 
-        // For now, assume all orders are dine-in type
-        // This would be enhanced with actual order type field
         return matchesSearch;
     });
 
@@ -160,35 +191,50 @@ export function POSOrdersView({
                         )}
                     </div>
 
-                    {/* Search and Filter */}
-                    <div className="flex items-center space-x-4">
-                        <div className="flex-1 relative">
+                    {/* Enhanced Search and Filter */}
+                    <div className="space-y-3">
+                        <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="Search Orders..."
+                                placeholder="Search by order number, table, or customer..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                             />
                         </div>
-                        <Badge variant="secondary" className="px-3 py-1">
-                            Active
-                        </Badge>
-                    </div>
 
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>
-                            {filteredOrders.length > 0 ? '1' : '0'}-
-                            {filteredOrders.length} / {filteredOrders.length}
-                        </span>
-                        <div className="flex items-center space-x-1">
-                            <Button variant="ghost" size="sm" disabled>
-                                <ChevronLeft className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" disabled>
-                                <ChevronRight className="w-4 h-4" />
-                            </Button>
+                        {/* Status Filter Pills */}
+                        <div className="flex flex-wrap gap-2">
+                            {(
+                                [
+                                    'active',
+                                    POSOrderStatus.COMPLETED,
+                                    POSOrderStatus.CANCELLED,
+                                    POSOrderStatus.PREPARING,
+                                    POSOrderStatus.READY,
+                                ] as const
+                            ).map((status) => (
+                                <Button
+                                    key={status}
+                                    variant={
+                                        statusFilter === status
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    size="sm"
+                                    className={`px-3 py-1 text-xs rounded-full transition-all ${
+                                        statusFilter === status
+                                            ? 'bg-blue-600 text-white shadow-md'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                    }`}
+                                    onClick={() => setStatusFilter(status)}
+                                >
+                                    {status === 'active'
+                                        ? 'Active Orders'
+                                        : status.charAt(0) +
+                                          status.slice(1).toLowerCase()}
+                                </Button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -218,63 +264,78 @@ export function POSOrdersView({
                             </div>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-200">
+                        <div className="space-y-3 p-4">
                             {filteredOrders.map((order) => (
-                                <div
+                                <Card
                                     key={order.id}
-                                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                                    className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                                         selectedOrder?.id === order.id
-                                            ? 'bg-blue-50 border-l-4 border-blue-500'
-                                            : ''
+                                            ? 'ring-2 ring-blue-500 bg-blue-50 shadow-lg'
+                                            : 'hover:bg-gray-50'
                                     }`}
                                     onClick={() => onOrderSelect(order.id)}
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center space-x-3 mb-1">
-                                                <span className="text-sm text-gray-500">
-                                                    {new Date(
-                                                        order.createdAt
-                                                    ).toLocaleDateString()}{' '}
-                                                    {new Date(
-                                                        order.createdAt
-                                                    ).toLocaleTimeString([], {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center space-x-3 mb-1">
-                                                <span className="font-medium">
-                                                    {order.tableName
-                                                        ? `T ${order.tableName}`
-                                                        : 'Direct Sale'}
-                                                </span>
-                                                <span className="text-sm text-gray-600">
-                                                    {order.orderNumber}
-                                                </span>
-                                            </div>
-                                            <div className="text-sm text-gray-600">
-                                                {selectedOrderType.replace(
-                                                    '-',
-                                                    ' '
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-2 mb-2">
+                                                    <span className="font-bold text-lg text-blue-600">
+                                                        {getOrderDisplayName(
+                                                            order
+                                                        )}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                                        {order.orderNumber}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                                    <span className="flex items-center">
+                                                        <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                                        {order.orderType
+                                                            ?.replace('_', ' ')
+                                                            .toLowerCase() ||
+                                                            'dine in'}
+                                                    </span>
+                                                    <span>
+                                                        {new Date(
+                                                            order.createdAt
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            }
+                                                        )}
+                                                    </span>
+                                                    <span>
+                                                        {order.items?.length ||
+                                                            0}{' '}
+                                                        items
+                                                    </span>
+                                                </div>
+                                                {order.customerName && (
+                                                    <div className="text-sm text-gray-600 mt-1">
+                                                        Customer:{' '}
+                                                        {order.customerName}
+                                                    </div>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-medium text-lg mb-1">
-                                                ${order.total.toFixed(2)}
+                                            <div className="text-right ml-4">
+                                                <div className="font-bold text-xl text-green-600 mb-2">
+                                                    {formatVND(order.total)}
+                                                </div>
+                                                <Badge
+                                                    className={`${getStatusColor(order.status)} text-xs`}
+                                                >
+                                                    {getStatusLabel(
+                                                        order?.status ||
+                                                            POSOrderStatus.DRAFT
+                                                    )}
+                                                </Badge>
                                             </div>
-                                            <Badge
-                                                className={getStatusColor(
-                                                    order.status
-                                                )}
-                                            >
-                                                {getStatusLabel(order.status)}
-                                            </Badge>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     )}
@@ -287,21 +348,51 @@ export function POSOrdersView({
                     <>
                         {/* Order Details Header */}
                         <div className="p-4 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold mb-2">
-                                Order Details
+                            <h3 className="text-xl font-bold text-blue-600 mb-3">
+                                {getOrderDisplayName(selectedOrder)}
                             </h3>
-                            <div className="space-y-1 text-sm text-gray-600">
-                                <div>Order: {selectedOrder.orderNumber}</div>
-                                <div>
-                                    Table:{' '}
-                                    {selectedOrder.tableName || 'Direct Sale'}
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                        Order Number:
+                                    </span>
+                                    <span className="font-medium bg-gray-100 px-2 py-1 rounded text-xs">
+                                        {selectedOrder.orderNumber}
+                                    </span>
                                 </div>
-                                <div>
-                                    Time:{' '}
-                                    {new Date(
-                                        selectedOrder.createdAt
-                                    ).toLocaleTimeString()}
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                        Order Type:
+                                    </span>
+                                    <span className="font-medium capitalize">
+                                        {selectedOrder.orderType
+                                            ?.replace('_', ' ')
+                                            .toLowerCase() || 'Dine In'}
+                                    </span>
                                 </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">
+                                        Created:
+                                    </span>
+                                    <span className="font-medium">
+                                        {new Date(
+                                            selectedOrder.createdAt
+                                        ).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </span>
+                                </div>
+                                {selectedOrder.customerName && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">
+                                            Customer:
+                                        </span>
+                                        <span className="font-medium">
+                                            {selectedOrder.customerName}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -343,7 +434,7 @@ export function POSOrdersView({
                                                 )}
                                             </div>
                                             <div className="text-sm font-medium">
-                                                ${item.totalPrice.toFixed(2)}
+                                                {formatVND(item.totalPrice)}
                                             </div>
                                         </div>
                                     </Card>
@@ -356,21 +447,20 @@ export function POSOrdersView({
                                     <div className="flex justify-between text-sm">
                                         <span>Subtotal</span>
                                         <span>
-                                            ${selectedOrder.subtotal.toFixed(2)}
+                                            {formatVND(selectedOrder.subtotal)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span>Tax</span>
                                         <span>
-                                            ${selectedOrder.tax.toFixed(2)}
+                                            {formatVND(selectedOrder.tax)}
                                         </span>
                                     </div>
                                     <div className="border-t pt-2">
                                         <div className="flex justify-between font-bold">
                                             <span>Total</span>
                                             <span>
-                                                $
-                                                {selectedOrder.total.toFixed(2)}
+                                                {formatVND(selectedOrder.total)}
                                             </span>
                                         </div>
                                     </div>
@@ -380,14 +470,6 @@ export function POSOrdersView({
 
                         {/* Order Actions */}
                         <div className="p-4 border-t border-gray-200 space-y-2">
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={onBackToRegister}
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Go Back
-                            </Button>
                             {onEditOrder && (
                                 <Button
                                     className="w-full bg-blue-600 hover:bg-blue-700"
