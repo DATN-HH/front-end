@@ -41,6 +41,7 @@ export function OdooPOSInterface({
     >([]);
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null);
     const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
+    const [isClearOrder, setIsClearOrder] = useState(true);
 
     // Handle table selection - switches to register view
     const handleTableSelect = (tableId: number, tableName?: string) => {
@@ -68,6 +69,7 @@ export function OdooPOSInterface({
     // Handle edit order - navigate to register with order data
     const handleEditOrder = (orderId: number) => {
         setEditingOrderId(orderId);
+        setIsClearOrder(false);
         setActiveTab(POSTab.REGISTER);
     };
 
@@ -92,6 +94,11 @@ export function OdooPOSInterface({
 
     useEffect(() => {
         setSelectedTables([]);
+        if (isClearOrder) {
+            setCurrentOrderId(null);
+            setEditingOrderId(null);
+        }
+        setIsClearOrder(true);
     }, [activeTab]);
     return (
         <div className="h-screen bg-gray-100 flex flex-col">
@@ -148,10 +155,9 @@ export function OdooPOSInterface({
                         selectedTables={selectedTables}
                         setSelectedTables={setSelectedTables}
                         editingOrderId={editingOrderId}
-                        onOrderCreated={(orderId) => {
-                            setCurrentOrderId(orderId);
-                            setEditingOrderId(null); // Clear editing state
-                            setActiveTab(POSTab.ORDERS);
+                        onOrderCreated={() => {
+                            setCurrentOrderId(null);
+                            setEditingOrderId(null);
                         }}
                     />
                 )}

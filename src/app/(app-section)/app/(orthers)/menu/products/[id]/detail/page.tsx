@@ -628,12 +628,13 @@ export default function ProductDetailPage() {
             />
 
             <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="sales">Sales</TabsTrigger>
-                    <TabsTrigger value="inventory">Inventory</TabsTrigger>
                     <TabsTrigger value="variants">Variants</TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                    <TabsTrigger value="sales" disabled>
+                        Sales
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general" className="space-y-6">
@@ -710,22 +711,6 @@ export default function ProductDetailPage() {
                                                 No category
                                             </span>
                                         )}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                        Size
-                                    </label>
-                                    <div className="mt-1">
-                                        {product.size || '-'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                        Group
-                                    </label>
-                                    <div className="mt-1">
-                                        {product.groupName || '-'}
                                     </div>
                                 </div>
                             </CardContent>
@@ -1039,200 +1024,6 @@ export default function ProductDetailPage() {
                             ) : (
                                 <p className="text-gray-500">
                                     No POS information available.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="inventory" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Package2 className="h-5 w-5" />
-                                Inventory Information
-                            </CardTitle>
-                            <CardDescription>
-                                Inventory and stock management settings.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {product.inventoryInfo ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Route
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo.route || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Inventory Rule
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo
-                                                .inventoryRule || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Weight
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo.weight
-                                                ? `${product.inventoryInfo.weight} kg`
-                                                : '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Volume
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo.volume
-                                                ? `${product.inventoryInfo.volume} m³`
-                                                : '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Stock Quantity
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo
-                                                .stockQuantity !== undefined ? (
-                                                <Badge
-                                                    variant={
-                                                        product.inventoryInfo
-                                                            .stockThreshold &&
-                                                        product.inventoryInfo
-                                                            .stockQuantity <=
-                                                            product
-                                                                .inventoryInfo
-                                                                .stockThreshold
-                                                            ? 'destructive'
-                                                            : 'default'
-                                                    }
-                                                >
-                                                    {
-                                                        product.inventoryInfo
-                                                            .stockQuantity
-                                                    }
-                                                </Badge>
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Stock Threshold
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.inventoryInfo
-                                                .stockThreshold || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">
-                                    No inventory information available.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Purchase Information */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Purchase Information</CardTitle>
-                            <CardDescription>
-                                Purchase and supplier related settings.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {product.purchaseInfo ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Purchase Description
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.purchaseInfo
-                                                .purchaseDescription || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Vendor Lead Time
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.purchaseInfo
-                                                .vendorLeadTime || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Minimum Quantity
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.purchaseInfo
-                                                .minimumQuantity || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">
-                                    No purchase information available.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Accounting Information */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Accounting Information</CardTitle>
-                            <CardDescription>
-                                Accounting and financial settings.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {product.accountingInfo ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Revenue Account
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.accountingInfo
-                                                .revenueAccount || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Expense Account
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.accountingInfo
-                                                .expenseAccount || '-'}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">
-                                            Tax Category
-                                        </label>
-                                        <div className="mt-1">
-                                            {product.accountingInfo
-                                                .taxCategory || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">
-                                    No accounting information available.
                                 </p>
                             )}
                         </CardContent>

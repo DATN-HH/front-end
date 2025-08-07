@@ -1,8 +1,16 @@
 'use client';
 
-import { User, FileText, UtensilsCrossed, Plus, Table } from 'lucide-react';
+import {
+    User,
+    FileText,
+    UtensilsCrossed,
+    Plus,
+    Table,
+    ChefHat,
+} from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import { useSendOrderToKitchen } from '@/api/v1/kds';
 import { ProductDetailResponse } from '@/api/v1/menu/products';
 import {
     useCreateOrUpdatePOSOrder,
@@ -54,6 +62,7 @@ type OrderType = 'DINE_IN' | 'TAKEOUT';
 export function POSRegisterView({
     selectedTables = [],
     setSelectedTables,
+    onOrderCreated,
     editingOrderId = null,
 }: POSRegisterViewProps) {
     const { user } = useAuth();
@@ -92,6 +101,8 @@ export function POSRegisterView({
         setOrderType('DINE_IN');
         // Reset selected tables for new order
         setSelectedTables([]);
+        setCurrentOrder(null);
+        onOrderCreated?.(0); // Pass 0 to indicate a new order
     };
 
     // Handle table selection
@@ -112,6 +123,7 @@ export function POSRegisterView({
 
     // API hooks
     const createOrderMutation = useCreateOrUpdatePOSOrder();
+    const sendToKitchenMutation = useSendOrderToKitchen();
 
     // Fetch editing order if editingOrderId is provided
     const { data: editingOrder } = usePOSOrder(
@@ -258,7 +270,10 @@ export function POSRegisterView({
             setSelectedTables([]);
         }
         if (currentOrder?.id != null) {
-            createOrUpdateOrder(orderItems);
+            createOrUpdateOrder(
+                orderItems,
+                orderType == 'DINE_IN' ? selectedTables : []
+            );
         }
     }, [orderType]);
 
@@ -316,6 +331,24 @@ export function POSRegisterView({
         orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const tax = currentOrder?.tax || subtotal * 0.1; // 10% tax
     const total = currentOrder?.total || subtotal + tax;
+
+    // Helper function to check if order has items with RECEIVED status
+    const hasReceivedItems = () => {
+        return orderItems.some((item) => item.itemStatus === 'RECEIVED');
+    };
+
+    // Handle send to kitchen
+    const handleSendToKitchen = async () => {
+        if (!currentOrder?.id) return;
+
+        try {
+            await sendToKitchenMutation.mutateAsync(currentOrder.id);
+            // Success feedback could be added here
+        } catch (error) {
+            console.error('Failed to send order to kitchen:', error);
+            // Error feedback could be added here
+        }
+    };
 
     // Helper function to create or update order when items change
     const createOrUpdateOrder = async (
@@ -379,6 +412,11 @@ export function POSRegisterView({
             // Update local order items with API response data
             setOrderItems(updatedItems);
             setCurrentOrder(result);
+
+            // Call onOrderCreated with the order ID if this is a new order
+            if (!currentOrder?.id && result.id) {
+                onOrderCreated?.(result.id);
+            }
 
             // Update selected tables from API response
             if (result.tables && result.tables.length > 0) {
@@ -643,6 +681,22 @@ export function POSRegisterView({
                             <Plus className="w-3 h-3 mr-1" />
                             New
                         </Button>
+
+                        {/* Send to Kitchen button - only show when order has RECEIVED items */}
+                        {hasReceivedItems() && currentOrder && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+                                onClick={handleSendToKitchen}
+                                disabled={sendToKitchenMutation.isPending}
+                            >
+                                <ChefHat className="w-3 h-3 mr-1" />
+                                {sendToKitchenMutation.isPending
+                                    ? 'Sending...'
+                                    : 'Send to Kitchen'}
+                            </Button>
+                        )}
                     </div>
 
                     {/* Customer Information */}

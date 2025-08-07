@@ -207,11 +207,11 @@ export function POSOrdersView({
                         <div className="flex flex-wrap gap-2">
                             {(
                                 [
-                                    'active',
+                                    POSOrderStatus.DRAFT,
+                                    POSOrderStatus.PREPARING,
                                     POSOrderStatus.COMPLETED,
                                     POSOrderStatus.CANCELLED,
-                                    POSOrderStatus.PREPARING,
-                                    POSOrderStatus.READY,
+                                    'active',
                                 ] as const
                             ).map((status) => (
                                 <Button
@@ -230,7 +230,7 @@ export function POSOrdersView({
                                     onClick={() => setStatusFilter(status)}
                                 >
                                     {status === 'active'
-                                        ? 'Active Orders'
+                                        ? 'All Orders'
                                         : status.charAt(0) +
                                           status.slice(1).toLowerCase()}
                                 </Button>
@@ -408,7 +408,9 @@ export function POSOrdersView({
                                                         {item.quantity}
                                                     </span>
                                                     <span className="font-medium text-sm">
-                                                        {item.productName}
+                                                        {item.productName
+                                                            ? item.productName
+                                                            : item.comboName}
                                                     </span>
                                                     {/* Item Status Badge */}
                                                     <Badge
@@ -480,6 +482,7 @@ export function POSOrdersView({
                                     Load Order
                                 </Button>
                             )}
+
                             {/* Payment button - only show when all items are completed */}
                             {selectedOrder.items.every(
                                 (item) => item.itemStatus === 'COMPLETED'

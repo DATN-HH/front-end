@@ -49,6 +49,7 @@ interface AuthContextType {
     isAuthenticated: () => boolean;
     hasRole: (role: Role | Role[]) => boolean;
     hasPermission: (permission: Permission | Permission[]) => boolean;
+    getDefaultRedirectByRole: (role: RoleResponseDto) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -316,6 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         hasRole,
         hasPermission,
+        getDefaultRedirectByRole,
     };
 
     return (

@@ -34,6 +34,7 @@ export interface POSOrderItem {
     id: number;
     productId: number;
     productName: string;
+    comboName?: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
