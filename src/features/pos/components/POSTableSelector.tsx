@@ -136,20 +136,35 @@ export function POSTableSelector({
             }
         });
         return occupancyMap;
-    }, [floor1Occupancy, floor2Occupancy, floor3Occupancy, floor4Occupancy, floor5Occupancy]);
+    }, [
+        floor1Occupancy,
+        floor2Occupancy,
+        floor3Occupancy,
+        floor4Occupancy,
+        floor5Occupancy,
+    ]);
 
     // Check if any API calls are loading
     const isLoading = [
-        floor1Status, floor2Status, floor3Status, floor4Status, floor5Status,
-        floor1Occupancy, floor2Occupancy, floor3Occupancy, floor4Occupancy, floor5Occupancy
-    ].some(query => query.isLoading);
+        floor1Status,
+        floor2Status,
+        floor3Status,
+        floor4Status,
+        floor5Status,
+        floor1Occupancy,
+        floor2Occupancy,
+        floor3Occupancy,
+        floor4Occupancy,
+        floor5Occupancy,
+    ].some((query) => query.isLoading);
 
     const handleTableClick = (table: Table) => {
         if (disabled) return;
 
         const tableStatus = allTableStatuses.get(table.id);
         const isSelected = selectedTables.some((t) => t.id === table.id);
-        const isOccupied = tableStatus && shouldDisableTable(tableStatus.currentStatus);
+        const isOccupied =
+            tableStatus && shouldDisableTable(tableStatus.currentStatus);
 
         // Only allow selection of:
         // 1. Available tables
@@ -175,19 +190,31 @@ export function POSTableSelector({
                             <span>Total: {tables.length}</span>
                             <span className="flex items-center gap-1">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                Available: {tables.filter(table => {
-                                    const tableStatus = allTableStatuses.get(table.id);
-                                    const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                    return isTableAvailable(status);
-                                }).length}
+                                Available:{' '}
+                                {
+                                    tables.filter((table) => {
+                                        const tableStatus =
+                                            allTableStatuses.get(table.id);
+                                        const status =
+                                            tableStatus?.currentStatus ||
+                                            POSTableStatus.AVAILABLE;
+                                        return isTableAvailable(status);
+                                    }).length
+                                }
                             </span>
                             <span className="flex items-center gap-1">
                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                Occupied: {tables.filter(table => {
-                                    const tableStatus = allTableStatuses.get(table.id);
-                                    const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                    return !isTableAvailable(status);
-                                }).length}
+                                Occupied:{' '}
+                                {
+                                    tables.filter((table) => {
+                                        const tableStatus =
+                                            allTableStatuses.get(table.id);
+                                        const status =
+                                            tableStatus?.currentStatus ||
+                                            POSTableStatus.AVAILABLE;
+                                        return !isTableAvailable(status);
+                                    }).length
+                                }
                             </span>
                         </div>
                     )}
@@ -197,94 +224,126 @@ export function POSTableSelector({
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                                <p className="text-sm text-muted-foreground">Loading table status...</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Loading table status...
+                                </p>
                             </div>
                         </div>
                     ) : (
                         <div className="grid grid-cols-4 gap-4">
-                        {tables.map((table) => {
-                            const isSelected = selectedTables.some(
-                                (t) => t.id === table.id
-                            );
+                            {tables.map((table) => {
+                                const isSelected = selectedTables.some(
+                                    (t) => t.id === table.id
+                                );
 
-                            // Get real-time table status and occupancy
-                            const tableStatus = allTableStatuses.get(table.id);
-                            const occupancyInfo = allTableOccupancy.get(table.id);
-                            const realTimeStatus =
-                                tableStatus?.currentStatus ||
-                                POSTableStatus.AVAILABLE;
-                            const isOccupied = shouldDisableTable(realTimeStatus);
+                                // Get real-time table status and occupancy
+                                const tableStatus = allTableStatuses.get(
+                                    table.id
+                                );
+                                const occupancyInfo = allTableOccupancy.get(
+                                    table.id
+                                );
+                                const realTimeStatus =
+                                    tableStatus?.currentStatus ||
+                                    POSTableStatus.AVAILABLE;
+                                const isOccupied =
+                                    shouldDisableTable(realTimeStatus);
 
-                            // Can select if: available OR already selected (to allow deselection)
-                            const canSelect = !isOccupied || isSelected;
+                                // Can select if: available OR already selected (to allow deselection)
+                                const canSelect = !isOccupied || isSelected;
 
-                            // Get detailed status text
-                            let statusText = table.status;
-                            if (isOccupied && occupancyInfo?.occupancyDetails) {
-                                const details = occupancyInfo.occupancyDetails;
-                                if (details.occupationType === 'POS_ORDER') {
-                                    statusText = `OD #${details.orderId}`;
-                                } else if (
-                                    details.occupationType === 'BOOKING_TABLE' ||
-                                    details.occupationType === 'UPCOMING_BOOKING'
+                                // Get detailed status text
+                                let statusText = table.status;
+                                if (
+                                    isOccupied &&
+                                    occupancyInfo?.occupancyDetails
                                 ) {
-                                    const startTime = details.startTime
-                                        ? new Date(details.startTime).toLocaleTimeString([], {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })
-                                        : '';
-                                    const endTime = details.endTime
-                                        ? new Date(details.endTime).toLocaleTimeString([], {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })
-                                        : '';
-                                    const timeRange = startTime && endTime ? ` (${startTime}-${endTime})` : '';
-                                    statusText = `BT #${details.bookingId}${timeRange}`;
-                                } else {
-                                    statusText = getTableStatusText(realTimeStatus);
+                                    const details =
+                                        occupancyInfo.occupancyDetails;
+                                    if (
+                                        details.occupationType === 'POS_ORDER'
+                                    ) {
+                                        statusText = `OD #${details.orderId}`;
+                                    } else if (
+                                        details.occupationType ===
+                                            'BOOKING_TABLE' ||
+                                        details.occupationType ===
+                                            'UPCOMING_BOOKING'
+                                    ) {
+                                        const startTime = details.startTime
+                                            ? new Date(
+                                                  details.startTime
+                                              ).toLocaleTimeString([], {
+                                                  hour: '2-digit',
+                                                  minute: '2-digit',
+                                              })
+                                            : '';
+                                        const endTime = details.endTime
+                                            ? new Date(
+                                                  details.endTime
+                                              ).toLocaleTimeString([], {
+                                                  hour: '2-digit',
+                                                  minute: '2-digit',
+                                              })
+                                            : '';
+                                        const timeRange =
+                                            startTime && endTime
+                                                ? ` (${startTime}-${endTime})`
+                                                : '';
+                                        statusText = `BT #${details.bookingId}${timeRange}`;
+                                    } else {
+                                        statusText =
+                                            getTableStatusText(realTimeStatus);
+                                    }
+                                } else if (isOccupied) {
+                                    statusText =
+                                        getTableStatusText(realTimeStatus);
                                 }
-                            } else if (isOccupied) {
-                                statusText = getTableStatusText(realTimeStatus);
-                            }
 
-                            return (
-                                <Button
-                                    key={table.id}
-                                    variant="outline"
-                                    className={cn(
-                                        'h-28 flex flex-col items-center justify-center gap-1 p-3 text-black',
-                                        !canSelect && 'opacity-50 grayscale cursor-not-allowed',
-                                        disabled && 'cursor-not-allowed',
-                                        isOccupied && !isSelected && 'border-red-300 bg-red-50',
-                                        isSelected && 'border-green-500 bg-green-100 shadow-md ring-2 ring-green-200'
-                                    )}
-                                    onClick={() => handleTableClick(table)}
-                                    disabled={disabled || !canSelect}
-                                >
-                                    <span className="text-lg font-semibold text-black">
-                                        {table.name}
-                                    </span>
-                                    {table.floorName && (
-                                        <span className="text-xs text-black opacity-70">
-                                            {table.floorName}
+                                return (
+                                    <Button
+                                        key={table.id}
+                                        variant="outline"
+                                        className={cn(
+                                            'h-28 flex flex-col items-center justify-center gap-1 p-3 text-black',
+                                            !canSelect &&
+                                                'opacity-50 grayscale cursor-not-allowed',
+                                            disabled && 'cursor-not-allowed',
+                                            isOccupied &&
+                                                !isSelected &&
+                                                'border-red-300 bg-red-50',
+                                            isSelected &&
+                                                'border-green-500 bg-green-100 shadow-md ring-2 ring-green-200'
+                                        )}
+                                        onClick={() => handleTableClick(table)}
+                                        disabled={disabled || !canSelect}
+                                    >
+                                        <span className="text-lg font-semibold text-black">
+                                            {table.name}
                                         </span>
-                                    )}
-                                    <span className={cn(
-                                        "text-xs text-center leading-tight text-black",
-                                        isOccupied ? "font-medium" : "opacity-70"
-                                    )}>
-                                        {statusText}
-                                    </span>
-                                    {!canSelect && (
-                                        <span className="text-xs text-red-600 font-medium">
-                                            Unavailable
+                                        {table.floorName && (
+                                            <span className="text-xs text-black opacity-70">
+                                                {table.floorName}
+                                            </span>
+                                        )}
+                                        <span
+                                            className={cn(
+                                                'text-xs text-center leading-tight text-black',
+                                                isOccupied
+                                                    ? 'font-medium'
+                                                    : 'opacity-70'
+                                            )}
+                                        >
+                                            {statusText}
                                         </span>
-                                    )}
-                                </Button>
-                            );
-                        })}
+                                        {!canSelect && (
+                                            <span className="text-xs text-red-600 font-medium">
+                                                Unavailable
+                                            </span>
+                                        )}
+                                    </Button>
+                                );
+                            })}
                         </div>
                     )}
                 </ScrollArea>

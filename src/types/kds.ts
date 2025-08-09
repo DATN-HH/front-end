@@ -79,7 +79,7 @@ export const STATUS_TRANSITIONS: Record<KdsItemStatus, any[]> = {
         KdsItemStatus.COMPLETED,
         KdsItemStatus.COOKING,
     ],
-    [KdsItemStatus.COMPLETED]: [ null, KdsItemStatus.READY_TO_SERVE],
+    [KdsItemStatus.COMPLETED]: [null, KdsItemStatus.READY_TO_SERVE],
 };
 
 // Get next status

@@ -119,6 +119,29 @@ export function POSOrderSummary({
     );
 }
 
+// Helper function to get status color
+const getStatusColor = (status?: string) => {
+    switch (status) {
+        case 'RECEIVED':
+            return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'SEND_TO_KITCHEN':
+            return 'bg-orange-100 text-orange-800 border-orange-200';
+        case 'COOKING':
+            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        case 'READY_TO_SERVE':
+            return 'bg-green-100 text-green-800 border-green-200';
+        case 'COMPLETED':
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+        default:
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+};
+
+// Helper function to check if item can be deleted
+const canDeleteItem = (status?: string) => {
+    return status === 'RECEIVED' || status === 'SEND_TO_KITCHEN';
+};
+
 // Order Item Card Component
 function OrderItemCard({
     item,
@@ -131,14 +154,24 @@ function OrderItemCard({
     onAddNotes: () => void;
     disabled: boolean;
 }) {
+    const canDelete = canDeleteItem(item.itemStatus);
     return (
         <div className="border-l-4 border-l-green-500 bg-white p-2 mb-2 shadow-sm">
             {/* Item Header */}
             <div className="flex items-start justify-between">
                 <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 text-sm truncate">
-                        {item.name}
-                    </h4>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-gray-900 text-sm truncate">
+                            {item.name}
+                        </h4>
+                        {item.itemStatus && (
+                            <span
+                                className={`px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(item.itemStatus)}`}
+                            >
+                                {item.itemStatus}
+                            </span>
+                        )}
+                    </div>
                     <div className="flex items-center gap-1 text-xs text-gray-600">
                         <span>
                             {formatVND(item.unitPrice)} × {item.quantity}
@@ -188,7 +221,12 @@ function OrderItemCard({
                         size="sm"
                         className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => onQuantityChange(item.id, 0)}
-                        disabled={disabled}
+                        disabled={disabled || !canDelete}
+                        title={
+                            !canDelete
+                                ? 'Can only delete items with RECEIVED or SEND_TO_KITCHEN status'
+                                : 'Delete item'
+                        }
                     >
                         <Trash2 className="w-3 h-3" />
                     </Button>

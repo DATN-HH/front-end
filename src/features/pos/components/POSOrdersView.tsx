@@ -1,6 +1,6 @@
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
@@ -28,11 +28,15 @@ export function POSOrdersView({
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<
         POSOrderStatus | 'active' | null
-    >('active');
+    >(POSOrderStatus.DRAFT);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     // Fetch orders based on filters with orderType support
-    const { data: orders = [], isLoading } = usePOSOrders(
+    const {
+        data: orders = [],
+        isLoading,
+        refetch,
+    } = usePOSOrders(
         statusFilter === 'active'
             ? undefined
             : (statusFilter as POSOrderStatus),
@@ -134,15 +138,17 @@ export function POSOrdersView({
     const getItemStatusColor = (status: string) => {
         switch (status) {
             case 'RECEIVED':
-                return 'bg-gray-100 text-gray-800';
-            case 'PREPARING':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'READY':
-                return 'bg-green-100 text-green-800';
+                return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'SEND_TO_KITCHEN':
+                return 'bg-orange-100 text-orange-800 border-orange-200';
+            case 'COOKING':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'READY_TO_SERVE':
+                return 'bg-green-100 text-green-800 border-green-200';
             case 'COMPLETED':
-                return 'bg-blue-100 text-blue-800';
+                return 'bg-gray-100 text-gray-800 border-gray-200';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
@@ -150,15 +156,34 @@ export function POSOrdersView({
         switch (status) {
             case 'RECEIVED':
                 return 'Received';
-            case 'PREPARING':
-                return 'Preparing';
-            case 'READY':
-                return 'Ready';
+            case 'SEND_TO_KITCHEN':
+                return 'Sent to Kitchen';
+            case 'COOKING':
+                return 'Cooking';
+            case 'READY_TO_SERVE':
+                return 'Ready to Serve';
             case 'COMPLETED':
                 return 'Completed';
             default:
                 return status;
         }
+    };
+
+    // Helper function to get order status (check both status and orderStatus fields)
+    const getOrderStatus = (order: any): string => {
+        return order.orderStatus ?? order.status;
+    };
+
+    // Helper function to check if order can be loaded
+    const canLoadOrder = (order: any): boolean => {
+        const status = getOrderStatus(order);
+        return status === 'DRAFT' || status === 'PREPARING';
+    };
+
+    // Helper function to check if order can process payment
+    const canProcessPayment = (order: any): boolean => {
+        const status = getOrderStatus(order);
+        return status === 'PREPARING';
     };
 
     return (
@@ -193,14 +218,30 @@ export function POSOrdersView({
 
                     {/* Enhanced Search and Filter */}
                     <div className="space-y-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search by order number, table, or customer..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            />
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search by order number, table, or customer..."
+                                    value={searchQuery}
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
+                                    className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                />
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-10 w-10 p-0"
+                                onClick={() => refetch()}
+                                disabled={isLoading}
+                                title="Reload orders"
+                            >
+                                <RefreshCw
+                                    className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                                />
+                            </Button>
                         </div>
 
                         {/* Status Filter Pills */}
@@ -328,7 +369,7 @@ export function POSOrdersView({
                                                     className={`${getStatusColor(order.status)} text-xs`}
                                                 >
                                                     {getStatusLabel(
-                                                        order?.status ||
+                                                        (order?.orderStatus as POSOrderStatus) ||
                                                             POSOrderStatus.DRAFT
                                                     )}
                                                 </Badge>
@@ -472,7 +513,8 @@ export function POSOrdersView({
 
                         {/* Order Actions */}
                         <div className="p-4 border-t border-gray-200 space-y-2">
-                            {onEditOrder && (
+                            {/* Load Order button - only show for DRAFT and PREPARING orders */}
+                            {onEditOrder && canLoadOrder(selectedOrder) && (
                                 <Button
                                     className="w-full bg-blue-600 hover:bg-blue-700"
                                     onClick={() =>
@@ -483,13 +525,17 @@ export function POSOrdersView({
                                 </Button>
                             )}
 
-                            {/* Payment button - only show when all items are completed */}
-                            {selectedOrder.items.every(
-                                (item) => item.itemStatus === 'COMPLETED'
-                            ) && (
+                            {/* Payment button - only show for PREPARING orders */}
+                            {canProcessPayment(selectedOrder) && (
                                 <Button
                                     className="w-full bg-green-600 hover:bg-green-700"
                                     onClick={() => setPaymentModalOpen(true)}
+                                    disabled={
+                                        !selectedOrder.items.every(
+                                            (item) =>
+                                                item.itemStatus === 'COMPLETED'
+                                        )
+                                    }
                                 >
                                     Process Payment
                                 </Button>

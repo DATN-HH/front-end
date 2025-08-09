@@ -55,6 +55,7 @@ interface POSRegisterViewProps {
     setSelectedTables: (tables: TableType[]) => void;
     onOrderCreated?: (orderId: number) => void;
     editingOrderId?: number | null;
+    setEditingOrderId: (orderId: number | null) => void;
 }
 
 type OrderType = 'DINE_IN' | 'TAKEOUT';
@@ -64,6 +65,7 @@ export function POSRegisterView({
     setSelectedTables,
     onOrderCreated,
     editingOrderId = null,
+    setEditingOrderId,
 }: POSRegisterViewProps) {
     const { user } = useAuth();
 
@@ -86,7 +88,7 @@ export function POSRegisterView({
     const branchId = user?.branch?.id;
 
     // Fetch tables from all floors
-    const { tables: allTables } = useAllTables(branchId || 0);
+    const { tables: allTables } = useAllTables(branchId ?? 0);
 
     // Add function to handle new order
     const handleNewOrder = async () => {
@@ -94,7 +96,7 @@ export function POSRegisterView({
             await createOrUpdateOrder(orderItems);
         }
         setOrderItems([]);
-        setCurrentOrder(null);
+        setEditingOrderId(null);
         setCustomerName('');
         setCustomerPhone('');
         setOrderNotes('');
@@ -126,30 +128,30 @@ export function POSRegisterView({
     const sendToKitchenMutation = useSendOrderToKitchen();
 
     // Fetch editing order if editingOrderId is provided
-    const { data: editingOrder } = usePOSOrder(
-        editingOrderId ? editingOrderId : -1
+    const { data: editingOrder, refetch: refetchOrder } = usePOSOrder(
+        editingOrderId ?? currentOrder?.id ?? -1
     );
 
     // Effect to load editing order data
     useEffect(() => {
-        if (editingOrder && editingOrderId) {
+        if (editingOrder) {
             // Convert order items to local POSOrderItem format
             const convertedItems: POSOrderItem[] = editingOrder.items.map(
                 (item: any) => ({
                     id: `${item.id}`,
                     orderItemId: item.id,
-                    productId: item.productId || item.foodComboId,
+                    productId: item.productId ?? item.foodComboId,
                     variantId: item.variantId,
                     isCombo: item.isCombo,
                     comboId: item.foodComboId,
-                    name: item.productName || item.comboName || 'Unknown Item',
-                    description: item.attributeCombination || undefined,
+                    name: item.productName ?? item.comboName ?? 'Unknown Item',
+                    description: item.attributeCombination ?? undefined,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice,
                     attributes: item.attributeCombination,
                     notes: item.notes ? [item.notes] : [],
-                    itemStatus: item.itemStatus || 'RECEIVED',
+                    itemStatus: item.itemStatus ?? 'RECEIVED',
                 })
             );
 
@@ -175,18 +177,18 @@ export function POSRegisterView({
             const responseItems = editingOrder.items.map((item: any) => ({
                 id: item.id,
                 productId: item.productId,
-                productName: item.productName || null,
-                variantId: item.variantId || null,
+                productName: item.productName ?? null,
+                variantId: item.variantId ?? null,
                 variantName: null, // Not available in POSOrderItem
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
-                notes: item.notes || null,
-                attributeCombination: item.attributeCombination || null,
-                itemStatus: item.itemStatus || 'RECEIVED',
-                isCombo: item.isCombo || false,
-                foodComboId: item.foodComboId || null,
-                comboName: item.comboName || null,
+                notes: item.notes ?? null,
+                attributeCombination: item.attributeCombination ?? null,
+                itemStatus: item.itemStatus ?? 'RECEIVED',
+                isCombo: item.isCombo ?? false,
+                foodComboId: item.foodComboId ?? null,
+                comboName: item.comboName ?? null,
                 promotionPrice: null, // Not available in POSOrderItem
             }));
 
@@ -197,24 +199,25 @@ export function POSRegisterView({
                 status: editingOrder.status,
                 orderStatus: editingOrder.status,
                 orderType:
-                    editingOrder.orderType ||
+                    editingOrder.orderType ??
                     (editingOrder.tableId ? 'DINE_IN' : 'TAKEOUT'),
                 items: responseItems,
                 subtotal: editingOrder.subtotal,
                 tax: editingOrder.tax,
                 total: editingOrder.total,
-                customerName: editingOrder.customerName || null,
-                customerPhone: editingOrder.customerPhone || null,
-                notes: editingOrder.notes || null,
+                customerName: editingOrder.customerName ?? null,
+                customerPhone: editingOrder.customerPhone ?? null,
+                notes: editingOrder.notes ?? null,
                 payments: editingOrder.payments,
                 createdAt: editingOrder.createdAt,
                 updatedAt: editingOrder.updatedAt,
                 createdBy: editingOrder.createdBy,
             };
             setCurrentOrder(convertedOrder);
-            setCustomerName(editingOrder.customerName || '');
-            setCustomerPhone(editingOrder.customerPhone || '');
-            setOrderNotes(editingOrder.notes || '');
+            setEditingOrderId(convertedOrder.id);
+            setCustomerName(editingOrder.customerName ?? '');
+            setCustomerPhone(editingOrder.customerPhone ?? '');
+            setOrderNotes(editingOrder.notes ?? '');
 
             // Use the existing orderType from the order, or fallback to logic based on tables
             if (
@@ -253,7 +256,7 @@ export function POSRegisterView({
                 setSelectedTables([]);
             }
         }
-    }, [editingOrder, editingOrderId]);
+    }, [editingOrder, editingOrderId, setEditingOrderId, setSelectedTables]);
 
     // Debounce timer for customer info updates
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -332,9 +335,14 @@ export function POSRegisterView({
     const tax = currentOrder?.tax || subtotal * 0.1; // 10% tax
     const total = currentOrder?.total || subtotal + tax;
 
-    // Helper function to check if order has items with RECEIVED status
+    // Helper function to check if order has items with RECEIVED status or new items
     const hasReceivedItems = () => {
         return orderItems.some((item) => item.itemStatus === 'RECEIVED');
+    };
+
+    // Helper function to check if Send To Kitchen button should be enabled
+    const canSendToKitchen = () => {
+        return currentOrder?.id && hasReceivedItems();
     };
 
     // Handle send to kitchen
@@ -343,6 +351,8 @@ export function POSRegisterView({
 
         try {
             await sendToKitchenMutation.mutateAsync(currentOrder.id);
+            refetchOrder();
+
             // Success feedback could be added here
         } catch (error) {
             console.error('Failed to send order to kitchen:', error);
@@ -412,6 +422,7 @@ export function POSRegisterView({
             // Update local order items with API response data
             setOrderItems(updatedItems);
             setCurrentOrder(result);
+            setEditingOrderId(result.id);
 
             // Call onOrderCreated with the order ID if this is a new order
             if (!currentOrder?.id && result.id) {
@@ -681,22 +692,6 @@ export function POSRegisterView({
                             <Plus className="w-3 h-3 mr-1" />
                             New
                         </Button>
-
-                        {/* Send to Kitchen button - only show when order has RECEIVED items */}
-                        {hasReceivedItems() && currentOrder && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
-                                onClick={handleSendToKitchen}
-                                disabled={sendToKitchenMutation.isPending}
-                            >
-                                <ChefHat className="w-3 h-3 mr-1" />
-                                {sendToKitchenMutation.isPending
-                                    ? 'Sending...'
-                                    : 'Send to Kitchen'}
-                            </Button>
-                        )}
                     </div>
 
                     {/* Customer Information */}
@@ -743,25 +738,42 @@ export function POSRegisterView({
 
                 {/* Order Total - Sticky Bottom */}
                 <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Subtotal</span>
-                            <span className="font-medium">
-                                {formatVND(subtotal)}
-                            </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Tax (10%)</span>
-                            <span className="font-medium">
-                                {formatVND(tax)}
-                            </span>
-                        </div>
-                        <div className="border-t border-gray-200 pt-2">
-                            <div className="flex justify-between text-lg font-bold">
-                                <span>Total</span>
-                                <span>{formatVND(total)}</span>
+                    <div className="space-y-3">
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Subtotal</span>
+                                <span className="font-medium">
+                                    {formatVND(subtotal)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Tax (10%)</span>
+                                <span className="font-medium">
+                                    {formatVND(tax)}
+                                </span>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2">
+                                <div className="flex justify-between text-lg font-bold">
+                                    <span>Total</span>
+                                    <span>{formatVND(total)}</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Send to Kitchen button - always show */}
+                        <Button
+                            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300"
+                            onClick={handleSendToKitchen}
+                            disabled={
+                                !canSendToKitchen() ||
+                                sendToKitchenMutation.isPending
+                            }
+                        >
+                            <ChefHat className="w-4 h-4 mr-2" />
+                            {sendToKitchenMutation.isPending
+                                ? 'Sending...'
+                                : 'Send to Kitchen'}
+                        </Button>
                     </div>
                 </div>
             </div>

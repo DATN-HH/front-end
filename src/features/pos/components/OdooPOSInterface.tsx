@@ -156,6 +156,7 @@ export function OdooPOSInterface({
                         selectedTables={selectedTables}
                         setSelectedTables={setSelectedTables}
                         editingOrderId={editingOrderId}
+                        setEditingOrderId={setEditingOrderId}
                         onOrderCreated={() => {
                             setCurrentOrderId(null);
                             setEditingOrderId(null);

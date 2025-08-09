@@ -19,7 +19,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useBookingTableDetail, BookingStatus } from '@/api/v1/table-booking';
 import { PageTitle } from '@/components/layouts/app-section/page-title';
 import { ProtectedRoute } from '@/components/protected-component';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -30,7 +29,6 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Role } from '@/lib/rbac';
 
 function BookingDetailPage() {
     const params = useParams();

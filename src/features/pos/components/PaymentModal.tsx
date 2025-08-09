@@ -99,6 +99,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             setCashReceived('');
             setVietQRData(null);
             setIsProcessing(false);
+
+            // Auto-generate QR code when modal opens
+            handleVietQRPaymentGeneration();
         }
     }, [open, order.id]);
 
@@ -172,25 +175,48 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         }
     };
 
-    const handleVietQRPayment = async () => {
-        setIsProcessing(true);
+    // Auto-generate QR code without user interaction
+    const handleVietQRPaymentGeneration = async () => {
         try {
             const paymentData = await createVietQRPayment.mutateAsync(order.id);
             setVietQRData(paymentData);
-            setIsPolling(true); // Start polling for payment status
-
-            success(
-                'QR Code Generated',
-                'VietQR payment QR code is displayed below. Payment status will be checked automatically.'
-            );
+            // Don't start polling automatically, only when user selects VietQR
         } catch (error) {
             console.error('Error creating VietQR payment:', error);
-            showError(
-                'Error',
-                'Error occurred while creating VietQR payment link!'
+            // Don't show error toast for auto-generation
+        }
+    };
+
+    const handleVietQRPayment = async () => {
+        if (!vietQRData) {
+            setIsProcessing(true);
+            try {
+                const paymentData = await createVietQRPayment.mutateAsync(
+                    order.id
+                );
+                setVietQRData(paymentData);
+                setIsPolling(true); // Start polling for payment status
+
+                success(
+                    'QR Code Generated',
+                    'VietQR payment QR code is displayed below. Payment status will be checked automatically.'
+                );
+            } catch (error) {
+                console.error('Error creating VietQR payment:', error);
+                showError(
+                    'Error',
+                    'Error occurred while creating VietQR payment link!'
+                );
+            } finally {
+                setIsProcessing(false);
+            }
+        } else {
+            // QR code already exists, just start polling
+            setIsPolling(true);
+            success(
+                'VietQR Payment Selected',
+                'Payment status will be checked automatically.'
             );
-        } finally {
-            setIsProcessing(false);
         }
     };
 
@@ -208,8 +234,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 .header { text-align: center; margin-bottom: 20px; }
                                 .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
                                 .qr-section { text-align: center; margin: 20px 0; }
+                                .qr-section p { margin: 10px 0 0 0; font-size: 14px; font-weight: bold; }
                                 .total { font-weight: bold; font-size: 18px; border-top: 1px solid #ccc; padding-top: 10px; }
                                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                                svg { display: block; margin: 0 auto; }
                             </style>
                         </head>
                         <body>
@@ -563,22 +591,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                 <CardContent className="space-y-4">
                                     <div className="text-center space-y-2">
                                         <div className="text-sm text-gray-600">
-                                            Generate QR code for customer
-                                            payment
+                                            Scan QR code for payment
                                         </div>
                                         <div className="text-lg font-semibold">
                                             Amount: {formatCurrency(orderTotal)}
                                         </div>
                                     </div>
 
-                                    {vietQRData && (
+                                    {vietQRData ? (
                                         <div className="p-4 bg-blue-50 rounded-lg space-y-4">
                                             <div className="text-center">
                                                 <Badge
                                                     variant="default"
                                                     className="bg-blue-600"
                                                 >
-                                                    QR Code Generated
+                                                    QR Code Ready
                                                 </Badge>
                                             </div>
 
@@ -621,19 +648,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                 </div>
                                             )}
                                         </div>
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 rounded-lg text-center">
+                                            <div className="text-sm text-gray-600">
+                                                Generating QR code...
+                                            </div>
+                                        </div>
                                     )}
 
                                     <Button
                                         onClick={handleVietQRPayment}
-                                        disabled={isProcessing || !!vietQRData}
+                                        disabled={
+                                            isProcessing ||
+                                            !vietQRData ||
+                                            isPolling
+                                        }
                                         className="w-full"
                                         size="lg"
                                     >
-                                        {isProcessing
-                                            ? 'Generating QR Code...'
-                                            : vietQRData
-                                              ? 'QR Code Generated'
-                                              : 'Generate QR Code'}
+                                        {isPolling
+                                            ? 'Monitoring Payment...'
+                                            : !vietQRData
+                                              ? 'Generating QR Code...'
+                                              : 'Start Payment Monitoring'}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -734,7 +771,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         {vietQRData?.qrCode && (
                             <div className="qr-section">
                                 <QRCode value={vietQRData.qrCode} size={150} />
-                                <p>Scan to pay</p>
+                                <p>Scan QR Code to Pay</p>
+                                <div
+                                    style={{
+                                        fontSize: '12px',
+                                        marginTop: '10px',
+                                    }}
+                                >
+                                    <div>
+                                        Order Code: {vietQRData.orderCode}
+                                    </div>
+                                    <div>Account: {vietQRData.accountName}</div>
+                                </div>
                             </div>
                         )}
 

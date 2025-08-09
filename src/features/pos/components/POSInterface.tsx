@@ -40,6 +40,7 @@ export function POSInterface() {
                 setSelectedTables={setSelectedTables}
                 onOrderCreated={handleOrderCreated}
                 editingOrderId={editingOrderId}
+                setEditingOrderId={setEditingOrderId}
             />
         );
     }
