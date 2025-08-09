@@ -5,7 +5,6 @@ import React from 'react';
 import { KdsItem } from '@/api/v1/kds';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { KANBAN_COLUMNS, KdsItemStatus } from '@/types/kds';
 
 import { KDSItemCard } from './KDSItemCard';
@@ -29,29 +28,30 @@ export function KDSKanbanView({
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
                 {KANBAN_COLUMNS.map((column) => (
-                    <Card
-                        key={column.id}
-                        className={`${column.color} h-full flex flex-col`}
-                    >
-                        <CardHeader className="pb-3 flex-shrink-0">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-lg">
-                                    {column.title}
-                                </h3>
-                                <Badge variant="secondary">-</Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                            <div className="space-y-3">
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="h-24 bg-gray-200 rounded-lg animate-pulse"
-                                    />
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <div key={column.id} className="h-full flex flex-col">
+                        <Card
+                            className={`${column.color} h-full flex flex-col`}
+                        >
+                            <CardHeader className="pb-3 flex-shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold text-lg">
+                                        {column.title}
+                                    </h3>
+                                    <Badge variant="secondary">-</Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-1 overflow-hidden p-3">
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="h-24 bg-gray-200 rounded-lg animate-pulse"
+                                        />
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 ))}
             </div>
         );
@@ -63,41 +63,45 @@ export function KDSKanbanView({
                 const columnItems = getItemsByStatus(column.status);
 
                 return (
-                    <Card
-                        key={column.id}
-                        className={`${column.color} h-full flex flex-col`}
-                    >
-                        <CardHeader className="pb-3 flex-shrink-0">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-lg">
-                                    {column.title}
-                                </h3>
-                                <Badge variant="secondary">
-                                    {columnItems.length}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1 overflow-hidden">
-                            <ScrollArea className="h-full">
-                                <div className="space-y-3 pr-4">
-                                    {columnItems.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <p>No items</p>
-                                        </div>
-                                    ) : (
-                                        columnItems.map((item) => (
-                                            <KDSItemCard
-                                                key={`${item.id}-${refreshKey}`}
-                                                item={item}
-                                                showActions={true}
-                                                compact={true}
-                                            />
-                                        ))
-                                    )}
+                    <div key={column.id} className="h-[90%] flex flex-col">
+                        <Card
+                            className={`${column.color} h-full flex flex-col`}
+                        >
+                            <CardHeader className="pb-3 flex-shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold text-lg">
+                                        {column.title}
+                                    </h3>
+                                    <Badge variant="secondary">
+                                        {columnItems.length}
+                                    </Badge>
                                 </div>
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
+                            </CardHeader>
+                            <CardContent className="flex-1 p-0 overflow-hidden">
+                                <div
+                                    className="h-full overflow-y-auto px-3"
+                                    style={{ maxHeight: 'calc(100vh - 300px)' }}
+                                >
+                                    <div className="space-y-3 py-3">
+                                        {columnItems.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-500">
+                                                <p>No items</p>
+                                            </div>
+                                        ) : (
+                                            columnItems.map((item) => (
+                                                <KDSItemCard
+                                                    key={`${item.id}-${refreshKey}`}
+                                                    item={item}
+                                                    showActions={true}
+                                                    compact={true}
+                                                />
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 );
             })}
         </div>

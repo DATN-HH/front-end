@@ -146,12 +146,6 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
                                 Wait:{' '}
                                 {formatWaitingTime(item.waitingTimeMinutes)}
                             </span>
-                            {item.estimateTime && (
-                                <>
-                                    <span>•</span>
-                                    <span>Est: {item.estimateTime}m</span>
-                                </>
-                            )}
                         </div>
 
                         {item.assignedUserName && (
@@ -202,7 +196,7 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
                         <div className="flex gap-1 mt-auto pt-2">
                             {previousStatus && (
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="sm"
                                     onClick={handlePreviousStatus}
                                     disabled={updateStatusMutation.isPending}

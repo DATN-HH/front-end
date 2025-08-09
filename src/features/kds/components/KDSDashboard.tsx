@@ -163,7 +163,7 @@ export function KDSDashboard() {
                     </TabsList>
 
                     {/* All Tab - Kanban View */}
-                    <TabsContent value="all" className="mt-0 flex-1">
+                    <TabsContent value="all" className="mt-0 flex-1 min-h-0">
                         <KDSKanbanView
                             items={allItemsData?.items || []}
                             isLoading={isLoading}
@@ -176,7 +176,7 @@ export function KDSDashboard() {
                         <TabsContent
                             key={tab.id}
                             value={tab.id}
-                            className="mt-0 flex-1"
+                            className="mt-0 flex-1 min-h-0"
                         >
                             <KDSCardView
                                 status={tab.status!}
