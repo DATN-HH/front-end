@@ -105,7 +105,7 @@ export default function PreOrderDetailPage() {
                 </div>
                 <Button variant="outline" onClick={() => router.back()}>
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Back to List
+                    Back
                 </Button>
             </div>
 

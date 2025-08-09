@@ -117,10 +117,13 @@ export function PreOrderTableColumns({
                                 ? 'Dine In'
                                 : 'Takeaway'}
                         </Badge>
-                        {preOrder.tableName && (
-                            <span className="text-xs text-gray-500">
-                                Table: {preOrder.tableName}
-                            </span>
+                        {preOrder.tableName && preOrder.bookingTableId && (
+                            <Link
+                                href={`/app/reservation/table-reservation/${preOrder.bookingTableId}`}
+                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                                Table: #{preOrder.bookingTableId}
+                            </Link>
                         )}
                     </div>
                 );

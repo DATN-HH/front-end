@@ -20,6 +20,7 @@ export interface BookingTableResponseDto {
     createdAt: string;
     updatedAt: string;
     bookedTables: BookedTableDto[];
+    preOrderIds: number[];
 }
 
 export interface BookedTableDto {
@@ -224,6 +225,7 @@ export interface MyBookingResponse {
     expireTime: string;
     status: Status;
     bookedTables: BookedTable[];
+    preOrderIds: number[];
     createdAt: string;
     createdBy: number;
     updatedAt: string;
@@ -249,6 +251,23 @@ export function useMyBookings(params: GetMyBookingsParams) {
         },
     });
 }
+
+const getBookingTableDetail = async (
+    bookingId: number
+): Promise<BookingTableResponseDto> => {
+    const response = await apiClient.get<BaseResponse<BookingTableResponseDto>>(
+        `/booking-table/${bookingId}`
+    );
+    return response.data.payload;
+};
+
+export const useBookingTableDetail = (bookingId: number) => {
+    return useQuery({
+        queryKey: ['booking-table-detail', bookingId],
+        queryFn: () => getBookingTableDetail(bookingId),
+        enabled: !!bookingId,
+    });
+};
 
 // ===== NEW BOOKING STATUS API =====
 export interface BookingStatusResponse {

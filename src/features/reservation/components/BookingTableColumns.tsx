@@ -10,7 +10,9 @@ import {
     User,
     MapPin,
     DollarSign,
+    Receipt,
 } from 'lucide-react';
+import Link from 'next/link';
 
 import { BookingTableResponseDto, BookingStatus } from '@/api/v1/table-booking';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +23,12 @@ export const BookingTableColumns = (): ColumnDef<BookingTableResponseDto>[] => [
         header: 'Booking ID',
         cell: ({ row }) => (
             <div className="flex items-center gap-2 min-w-[80px]">
-                <span className="font-medium text-foreground">
+                <Link
+                    href={`/app/reservation/table-reservation/${row.original.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                >
                     #{row.original.id}
-                </span>
+                </Link>
             </div>
         ),
     },
@@ -97,6 +102,28 @@ export const BookingTableColumns = (): ColumnDef<BookingTableResponseDto>[] => [
                         {table.tableName} ({table.tableType})
                     </Badge>
                 ))}
+            </div>
+        ),
+    },
+    {
+        id: 'preOrders',
+        header: 'Pre-Orders',
+        cell: ({ row }) => (
+            <div className="flex flex-wrap gap-1 min-w-[120px]">
+                {row.original.preOrderIds &&
+                row.original.preOrderIds.length > 0 ? (
+                    row.original.preOrderIds.map((preOrderId) => (
+                        <Link
+                            key={preOrderId}
+                            href={`/app/reservation/pre-order/${preOrderId}`}
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                        >
+                            <Receipt className="h-3 w-3" />#{preOrderId}
+                        </Link>
+                    ))
+                ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                )}
             </div>
         ),
     },

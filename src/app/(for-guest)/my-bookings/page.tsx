@@ -1,6 +1,7 @@
 'use client';
 
 import { addDays, startOfDay, endOfDay, format, parseISO } from 'date-fns';
+import Link from 'next/link';
 import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
 
@@ -113,8 +114,10 @@ export default function MyBookingsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Booking ID</TableHead>
                                 <TableHead>Booking Time</TableHead>
                                 <TableHead>Tables</TableHead>
+                                <TableHead>Pre-Orders</TableHead>
                                 <TableHead>Guest Count</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Total Deposit</TableHead>
@@ -125,7 +128,7 @@ export default function MyBookingsPage() {
                             {!bookings?.data?.length ? (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={6}
+                                        colSpan={8}
                                         className="text-center"
                                     >
                                         No bookings found
@@ -135,6 +138,14 @@ export default function MyBookingsPage() {
                                 bookings.data.map(
                                     (booking: MyBookingResponse) => (
                                         <TableRow key={booking.id}>
+                                            <TableCell>
+                                                <Link
+                                                    href={`/my-bookings/${booking.id}`}
+                                                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                                >
+                                                    #{booking.id}
+                                                </Link>
+                                            </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-col gap-1">
                                                     <span>
@@ -188,6 +199,32 @@ export default function MyBookingsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
+                                                <div className="flex flex-col gap-1">
+                                                    {booking.preOrderIds &&
+                                                    booking.preOrderIds.length >
+                                                        0 ? (
+                                                        booking.preOrderIds.map(
+                                                            (preOrderId) => (
+                                                                <Link
+                                                                    key={
+                                                                        preOrderId
+                                                                    }
+                                                                    href={`/my-pre-orders/${preOrderId}`}
+                                                                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                                                                >
+                                                                    #
+                                                                    {preOrderId}
+                                                                </Link>
+                                                            )
+                                                        )
+                                                    ) : (
+                                                        <span className="text-gray-500">
+                                                            -
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
                                                 {booking.guestCount}
                                             </TableCell>
                                             <TableCell>
@@ -233,7 +270,12 @@ export default function MyBookingsPage() {
                             <CardHeader className="pb-4">
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-base">
-                                        Booking #{booking.id}
+                                        <Link
+                                            href={`/my-bookings/${booking.id}`}
+                                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            Booking #{booking.id}
+                                        </Link>
                                     </CardTitle>
                                     <Badge
                                         className={`${getStatusColor(booking.bookingStatus)} text-white`}
@@ -275,6 +317,27 @@ export default function MyBookingsPage() {
                                         ))}
                                     </div>
                                 </div>
+                                {booking.preOrderIds &&
+                                    booking.preOrderIds.length > 0 && (
+                                        <div>
+                                            <div className="text-gray-500 mb-1">
+                                                Pre-Orders
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {booking.preOrderIds.map(
+                                                    (preOrderId) => (
+                                                        <Link
+                                                            key={preOrderId}
+                                                            href={`/my-pre-orders/${preOrderId}`}
+                                                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                                                        >
+                                                            #{preOrderId}
+                                                        </Link>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <div className="text-gray-500">

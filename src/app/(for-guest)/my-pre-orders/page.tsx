@@ -2,6 +2,7 @@
 
 import { format, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -135,7 +136,17 @@ export default function MyPreOrdersPage() {
                                             {order.branchName}
                                         </TableCell>
                                         <TableCell>
-                                            {order.tableName || '-'}
+                                            {order.tableName &&
+                                            order.bookingTableId ? (
+                                                <Link
+                                                    href={`/my-bookings/${order.bookingTableId}`}
+                                                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                                                >
+                                                    #{order.bookingTableId}
+                                                </Link>
+                                            ) : (
+                                                '-'
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             {order.totalItems} items
@@ -229,12 +240,17 @@ export default function MyPreOrdersPage() {
                                     </span>
                                     <span>{order.branchName}</span>
                                 </div>
-                                {order.tableName && (
+                                {order.tableName && order.bookingTableId && (
                                     <div className="grid grid-cols-2 gap-1">
                                         <span className="text-gray-500">
                                             Table
                                         </span>
-                                        <span>{order.tableName}</span>
+                                        <Link
+                                            href={`/my-bookings/${order.bookingTableId}`}
+                                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            #{order.bookingTableId}
+                                        </Link>
                                     </div>
                                 )}
                                 <div className="grid grid-cols-2 gap-1">
