@@ -805,7 +805,6 @@ export function POSRegisterView({
                 selectedTables={selectedTables}
                 onTablesChange={handleTableSelection}
                 disabled={createOrderMutation.isPending}
-                isEditMode={!!editingOrderId || !!currentOrder}
             />
         </div>
     );

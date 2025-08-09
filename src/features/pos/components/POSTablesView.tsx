@@ -11,11 +11,17 @@ import { useState } from 'react';
 
 import { type BranchResponseDto } from '@/api/v1/branches';
 import { type FloorResponse } from '@/api/v1/floors';
+import {
+    usePOSTableStatus,
+    usePOSTableOccupancy,
+    POSTableStatus,
+    isTableAvailable,
+} from '@/api/v1/pos-table-status';
 import { useTablesByFloor, type TableResponse } from '@/api/v1/tables';
 import { Button } from '@/components/ui/button';
 
 // Import existing floor management components
-import { FloorCanvas } from '@/features/booking/components/floor-management/[floorId]/FloorCanvas';
+import { FloorCanvasForPos } from '@/features/booking/components/floor-management/[floorId]/FloorCanvasForPos';
 
 import { BranchSelector } from './BranchSelector';
 import { QuickTableNavigation } from './QuickTableNavigation';
@@ -26,6 +32,7 @@ interface POSTablesViewProps {
     isLoading: boolean;
     onFloorChange: (floor: FloorResponse) => void;
     onTableSelect: (tableId: number, tableName?: string) => void;
+    onEditOrder: (orderId: number) => void;
     onNewOrder: () => void;
     selectedBranch?: BranchResponseDto | null;
     onBranchSelect?: (branch: BranchResponseDto) => void;
@@ -36,6 +43,7 @@ export function POSTablesView({
     selectedFloor,
     onFloorChange,
     onTableSelect,
+    onEditOrder,
     onNewOrder,
     selectedBranch,
     onBranchSelect,
@@ -192,6 +200,7 @@ export function POSTablesView({
                     <FloorPlanWithBackground
                         floor={selectedFloor}
                         onTableSelect={onTableSelect}
+                        onEditOrder={onEditOrder}
                     />
                 ) : (
                     <div className="flex items-center justify-center h-full">
@@ -216,17 +225,46 @@ export function POSTablesView({
 function FloorPlanWithBackground({
     floor,
     onTableSelect,
+    onEditOrder,
 }: {
     floor: FloorResponse;
     onTableSelect: (tableId: number, tableName?: string) => void;
+    onEditOrder: (orderId: number) => void;
 }) {
     // Fetch tables for the selected floor
-    const { data: floorData, isLoading } = useTablesByFloor(floor.id);
+    const { data: floorData, isLoading: tablesLoading } = useTablesByFloor(
+        floor.id
+    );
+
+    // Fetch real-time table status and occupancy
+    const { data: tableStatusData, isLoading: statusLoading } =
+        usePOSTableStatus(floor.id);
+    const { data: occupancyData } = usePOSTableOccupancy(floor.id);
+
+    const isLoading = tablesLoading || statusLoading;
 
     // Handle table selection for POS
     const handleTableSelect = (table: TableResponse | null) => {
         if (table) {
-            onTableSelect(table.id, table.tableName);
+            const tableStatus = tableStatusData?.payload?.tables?.find(
+                (t) => t.tableId === table.id
+            );
+            const occupancyInfo = occupancyData?.payload?.tables?.find(
+                (t) => t.tableId === table.id
+            );
+
+            if (tableStatus && isTableAvailable(tableStatus.currentStatus)) {
+                // Available table - create new order
+                onTableSelect(table.id, table.tableName);
+            } else if (
+                occupancyInfo?.occupancyDetails?.occupationType ===
+                    'POS_ORDER' &&
+                occupancyInfo.occupancyDetails.orderId
+            ) {
+                // Occupied table with order - edit existing order
+                onEditOrder(occupancyInfo.occupancyDetails.orderId);
+            }
+            // For booking tables, do nothing (they can't be selected)
         }
     };
 
@@ -255,11 +293,42 @@ function FloorPlanWithBackground({
         );
     }
 
+    // Create enhanced tables with status information
+    const tablesWithStatus =
+        floorData?.tables?.map((table) => {
+            const tableStatus = tableStatusData?.payload?.tables?.find(
+                (t) => t.tableId === table.id
+            );
+            const occupancyInfo = occupancyData?.payload?.tables?.find(
+                (t) => t.tableId === table.id
+            );
+
+            const currentStatus =
+                tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
+            const isAvailable = isTableAvailable(currentStatus);
+            const hasOrder =
+                occupancyInfo?.occupancyDetails?.occupationType === 'POS_ORDER';
+
+            // Tables are unable (grayed out) if they're occupied but don't have an order
+            // Tables with orders should be clickable for editing
+            const isUnable = !isAvailable && !hasOrder;
+
+            return {
+                ...table,
+                posStatus: currentStatus,
+                unable: isUnable,
+                estimatedAvailableTime: tableStatus?.estimatedAvailableTime,
+                occupancyDetails: occupancyInfo?.occupancyDetails,
+            };
+        }) || [];
+
+    // No need for selectableTables prop - use unable property from table data instead
+
     return (
         <div className="h-full w-full overflow-hidden">
             {/* Use existing FloorCanvas with background image support */}
             <div className="h-full">
-                <FloorCanvas
+                <FloorCanvasForPos
                     floor={{
                         id: floor.id,
                         name: floor.name,
@@ -269,7 +338,7 @@ function FloorPlanWithBackground({
                         createdAt: floor.createdAt,
                         updatedAt: floor.updatedAt,
                     }}
-                    tables={floorData.tables}
+                    tables={tablesWithStatus}
                     selectedTable={null}
                     onTableSelect={handleTableSelect}
                     onTableDrop={() => {}} // No-op for POS view

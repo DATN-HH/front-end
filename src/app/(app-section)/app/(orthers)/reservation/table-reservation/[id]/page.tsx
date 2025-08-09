@@ -127,7 +127,6 @@ function BookingDetailPage() {
             <PageTitle
                 icon={Calendar}
                 title={`Booking #${booking.id}`}
-                description={`${booking.customerName} - ${dayjs(booking.timeStart).format('DD/MM/YYYY HH:mm')}`}
                 left={
                     <Link href="/app/reservation/table-reservation">
                         <Button variant="outline">
@@ -135,13 +134,6 @@ function BookingDetailPage() {
                             Back to List
                         </Button>
                     </Link>
-                }
-                right={
-                    <Badge
-                        className={`${getStatusColor(booking.bookingStatus)} font-medium`}
-                    >
-                        {booking.bookingStatus.replace('_', ' ')}
-                    </Badge>
                 }
             />
 
@@ -381,7 +373,7 @@ function BookingDetailPage() {
 
 export default function ProtectedBookingDetailPage() {
     return (
-        <ProtectedRoute allowedRoles={[Role.ADMIN, Role.MANAGER, Role.STAFF]}>
+        <ProtectedRoute>
             <BookingDetailPage />
         </ProtectedRoute>
     );

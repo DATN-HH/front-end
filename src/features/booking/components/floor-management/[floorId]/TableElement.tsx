@@ -1,10 +1,14 @@
 'use client';
 
+import { POSTableStatus } from '@/api/v1/pos-table-status';
 import { TableResponse, TableShape } from '@/api/v1/tables';
 import { getIconByName } from '@/lib/icon-utils';
 
 interface TableElementProps {
-    table: TableResponse;
+    table: TableResponse & {
+        posStatus?: POSTableStatus;
+        estimatedAvailableTime?: string;
+    };
     isSelected: boolean;
     onClick: (e: React.MouseEvent) => void;
     isDragging: boolean;
@@ -39,7 +43,9 @@ export function TableElement({
 
     const renderTableShape = () => {
         const tableTypeInfo = getTableTypeDisplay(table.tableType);
-        const color = unable ? '#9ca3af' : tableTypeInfo.color; // Gray color when unable
+
+        // Keep original table type color, only gray out when unable
+        const color = unable ? '#9ca3af' : tableTypeInfo.color;
         const icon = renderIcon(tableTypeInfo.icon);
 
         const commonClasses = `

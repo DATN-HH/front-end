@@ -144,6 +144,7 @@ export function OdooPOSInterface({
                         isLoading={isLoading}
                         onFloorChange={handleFloorChange}
                         onTableSelect={handleTableSelect}
+                        onEditOrder={handleEditOrder}
                         onNewOrder={handleNewOrder}
                         selectedBranch={selectedBranch}
                         onBranchSelect={onBranchSelect}
