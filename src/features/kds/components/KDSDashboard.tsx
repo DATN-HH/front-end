@@ -131,16 +131,16 @@ export function KDSDashboard() {
                 </div>
             </div>
 
-            {/* Statistics */}
+            {/* Statistics
             <div className="px-6 py-4 flex-shrink-0">
                 <KDSStatistics
                     statistics={statisticsData || allItemsData?.statistics}
                     isLoading={isLoading}
                 />
-            </div>
+            </div> */}
 
             {/* Main Content */}
-            <div className="px-6 pb-6 flex-1 flex flex-col">
+            <div className="px-6 p-6 flex-1 flex flex-col">
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}

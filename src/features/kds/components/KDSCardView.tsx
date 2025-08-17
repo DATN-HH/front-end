@@ -4,7 +4,6 @@ import React from 'react';
 
 import { useKdsItems } from '@/api/v1/kds';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { KdsItemStatus } from '@/types/kds';
 
 import { KDSItemCard } from './KDSItemCard';
@@ -67,13 +66,13 @@ export function KDSCardView({ status, title, refreshKey }: KDSCardViewProps) {
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+                <div className="h-full overflow-y-auto" style={{ maxHeight: 'calc(100vh - 250px)' }}>
                     {items.length === 0 ? (
                         <div className="text-center py-12 text-gray-500">
                             <p>No items in this status</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pr-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3 py-3">
                             {items.map((item) => (
                                 <KDSItemCard
                                     key={`${item.id}-${refreshKey}`}
@@ -84,7 +83,7 @@ export function KDSCardView({ status, title, refreshKey }: KDSCardViewProps) {
                             ))}
                         </div>
                     )}
-                </ScrollArea>
+                </div>
             </CardContent>
         </Card>
     );

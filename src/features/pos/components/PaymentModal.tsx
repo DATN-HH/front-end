@@ -375,7 +375,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                     >
                                         <div>
                                             <span className="font-medium">
-                                                {item.productName}
+                                                {item.productName ||
+                                                    item.comboName}
                                             </span>
                                             <span className="text-sm text-gray-500 ml-2">
                                                 x{item.quantity}

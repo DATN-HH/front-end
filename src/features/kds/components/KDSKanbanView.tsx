@@ -20,8 +20,20 @@ export function KDSKanbanView({
     isLoading,
     refreshKey,
 }: KDSKanbanViewProps) {
-    const getItemsByStatus = (status: KdsItemStatus): KdsItem[] => {
-        return items.filter((item) => item.itemStatus === status);
+    const getItemsByStatus = (status: KdsItemStatus) => {
+        const filteredItems = items.filter((item) => item.itemStatus === status);
+
+        // Sort by priority for SEND_TO_KITCHEN status (To Do column)
+        if (status === KdsItemStatus.SEND_TO_KITCHEN) {
+            return filteredItems.sort((a, b) => {
+                // Handle null/undefined priority values
+                const priorityA = a.priority || 0;
+                const priorityB = b.priority || 0;
+                return priorityA - priorityB; // Sort ascending (small to large)
+            });
+        }
+
+        return filteredItems;
     };
 
     if (isLoading) {
@@ -63,7 +75,7 @@ export function KDSKanbanView({
                 const columnItems = getItemsByStatus(column.status);
 
                 return (
-                    <div key={column.id} className="h-[90%] flex flex-col">
+                    <div key={column.id} className="h-[100%] flex flex-col">
                         <Card
                             className={`${column.color} h-full flex flex-col`}
                         >
@@ -80,7 +92,7 @@ export function KDSKanbanView({
                             <CardContent className="flex-1 p-0 overflow-hidden">
                                 <div
                                     className="h-full overflow-y-auto px-3"
-                                    style={{ maxHeight: 'calc(100vh - 300px)' }}
+                                    style={{ maxHeight: 'calc(100vh - 250px)' }}
                                 >
                                     <div className="space-y-3 py-3">
                                         {columnItems.length === 0 ? (

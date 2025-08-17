@@ -125,16 +125,6 @@ export function StaffAssignmentModal({
                                                         <h4 className="font-medium text-gray-900">
                                                             {staff.fullName}
                                                         </h4>
-                                                        <p className="text-sm text-gray-600">
-                                                            Shift:{' '}
-                                                            {staff.shiftName} (
-                                                            {
-                                                                staff.shiftStartTime
-                                                            }{' '}
-                                                            -{' '}
-                                                            {staff.shiftEndTime}
-                                                            )
-                                                        </p>
                                                     </div>
                                                     {selectedStaffId ===
                                                         staff.staffId && (
