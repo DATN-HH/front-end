@@ -48,16 +48,18 @@ export function OdooPOSInterface({
         // Create table object with proper name
         const table = {
             id: tableId,
-            name: tableName || `Table ${tableId}`,
+            name: tableName ?? `Table ${tableId}`,
             status: 'OCCUPIED',
         };
         setSelectedTables([table]);
+        setIsClearOrder(false); // Don't clear order when selecting a table
         setActiveTab(POSTab.REGISTER);
     };
 
     // Handle new order (direct sale)
     const handleNewOrder = () => {
         setSelectedTables([]);
+        setIsClearOrder(false); // Don't clear order when creating new order
         setActiveTab(POSTab.REGISTER);
     };
 
@@ -92,14 +94,25 @@ export function OdooPOSInterface({
         },
     ];
 
+    // Handle tab changes - clear state when appropriate
     useEffect(() => {
-        setSelectedTables([]);
+        // Clear order-related state when switching tabs (except when going to register with a table)
         if (isClearOrder) {
             setCurrentOrderId(null);
             setEditingOrderId(null);
+            setIsClearOrder(false); // Reset the flag
         }
-        setIsClearOrder(true);
-    }, [activeTab]);
+    }, [activeTab, isClearOrder]);
+
+    // Clear selected tables only when explicitly switching away from register
+    const handleTabChange = (newTab: POSTab) => {
+        if (activeTab === POSTab.REGISTER && newTab !== POSTab.REGISTER) {
+            // Switching away from register - clear selected tables
+            setSelectedTables([]);
+            setIsClearOrder(true);
+        }
+        setActiveTab(newTab);
+    };
     return (
         <div className="h-screen bg-gray-100 flex flex-col">
             {/* Header - Odoo Style */}
@@ -116,7 +129,7 @@ export function OdooPOSInterface({
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                                 }`}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => handleTabChange(tab.id)}
                             >
                                 {tab.label}
                             </Button>
