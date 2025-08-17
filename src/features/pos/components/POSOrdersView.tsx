@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, QrCode } from 'lucide-react';
 import { useState } from 'react';
 
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 import PaymentModal from './PaymentModal';
+import { QRCodeModal } from './QRCodeModal';
 
 interface POSOrdersViewProps {
     currentOrderId: number | null;
@@ -30,6 +31,10 @@ export function POSOrdersView({
         POSOrderStatus | 'active' | null
     >(POSOrderStatus.DRAFT);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [selectedOrderForQR, setSelectedOrderForQR] = useState<number | null>(
+        null
+    );
 
     // Fetch orders based on filters with orderType support
     const {
@@ -184,6 +189,11 @@ export function POSOrdersView({
     const canProcessPayment = (order: any): boolean => {
         const status = getOrderStatus(order);
         return status === 'PREPARING';
+    };
+
+    const handleQRPrint = (orderId: number) => {
+        setSelectedOrderForQR(orderId);
+        setQrModalOpen(true);
     };
 
     return (
@@ -513,17 +523,32 @@ export function POSOrdersView({
 
                         {/* Order Actions */}
                         <div className="p-4 border-t border-gray-200 space-y-2">
-                            {/* Load Order button - only show for DRAFT and PREPARING orders */}
-                            {onEditOrder && canLoadOrder(selectedOrder) && (
-                                <Button
-                                    className="w-full bg-blue-600 hover:bg-blue-700"
-                                    onClick={() =>
-                                        onEditOrder(selectedOrder.id)
-                                    }
-                                >
-                                    Load Order
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {/* Load Order button - only show for DRAFT and PREPARING orders */}
+                                {onEditOrder && canLoadOrder(selectedOrder) && (
+                                    <Button
+                                        className="w-full bg-blue-600 hover:bg-blue-700"
+                                        onClick={() =>
+                                            onEditOrder(selectedOrder.id)
+                                        }
+                                    >
+                                        Load Order
+                                    </Button>
+                                )}
+                                {/* Print Self-Order QR button */}
+                                {selectedOrder.orderStatus === 'PREPARING' && (
+                                    <Button
+                                        className="w-full bg-purple-600 hover:bg-purple-700"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQRPrint(selectedOrder.id);
+                                        }}
+                                    >
+                                        <QrCode className="h-4 w-4 mr-2" />
+                                        Print Self-Order QR
+                                    </Button>
+                                )}
+                            </div>
 
                             {/* Payment button - only show for PREPARING orders */}
                             {canProcessPayment(selectedOrder) && (
@@ -567,6 +592,18 @@ export function POSOrdersView({
                         setPaymentModalOpen(false);
                         // Optionally refetch orders data here
                     }}
+                />
+            )}
+
+            {/* QR Code Modal */}
+            {selectedOrderForQR && (
+                <QRCodeModal
+                    isOpen={qrModalOpen}
+                    onClose={() => {
+                        setQrModalOpen(false);
+                        setSelectedOrderForQR(null);
+                    }}
+                    orderId={selectedOrderForQR}
                 />
             )}
         </div>

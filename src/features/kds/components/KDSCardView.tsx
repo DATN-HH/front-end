@@ -66,7 +66,10 @@ export function KDSCardView({ status, title, refreshKey }: KDSCardViewProps) {
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
-                <div className="h-full overflow-y-auto" style={{ maxHeight: 'calc(100vh - 250px)' }}>
+                <div
+                    className="h-full overflow-y-auto"
+                    style={{ maxHeight: 'calc(100vh - 250px)' }}
+                >
                     {items.length === 0 ? (
                         <div className="text-center py-12 text-gray-500">
                             <p>No items in this status</p>

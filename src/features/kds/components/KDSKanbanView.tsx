@@ -21,7 +21,9 @@ export function KDSKanbanView({
     refreshKey,
 }: KDSKanbanViewProps) {
     const getItemsByStatus = (status: KdsItemStatus) => {
-        const filteredItems = items.filter((item) => item.itemStatus === status);
+        const filteredItems = items.filter(
+            (item) => item.itemStatus === status
+        );
 
         // Sort by priority for SEND_TO_KITCHEN status (To Do column)
         if (status === KdsItemStatus.SEND_TO_KITCHEN) {

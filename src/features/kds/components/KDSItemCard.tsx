@@ -80,7 +80,10 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
     return (
         <>
             <Card className="hover:shadow-md transition-shadow h-full w-full max-w-md min-w-[320px]">
-                <div className="grid h-full" style={{ gridTemplateColumns: '40px 1fr 40px' }}>
+                <div
+                    className="grid h-full"
+                    style={{ gridTemplateColumns: '40px 1fr 40px' }}
+                >
                     {/* Left Arrow Column */}
                     <div className="flex items-stretch h-full border-r">
                         {previousStatus && showActions && (
@@ -108,26 +111,37 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
                                         >
                                             {KDS_STATUS_LABELS[item.itemStatus]}
                                         </Badge>
-                                        {item.itemStatus === KdsItemStatus.SEND_TO_KITCHEN && item.priority && (
-                                            <Badge variant="secondary" className="text-xs">
-                                                P{item.priority}
-                                            </Badge>
-                                        )}
+                                        {item.itemStatus ===
+                                            KdsItemStatus.SEND_TO_KITCHEN &&
+                                            item.priority && (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="text-xs"
+                                                >
+                                                    P{item.priority}
+                                                </Badge>
+                                            )}
                                         <div
                                             className={`w-2 h-2 rounded-full ${getPriorityColor(item.waitingTimeMinutes)}`}
                                             title={`Wait time: ${formatWaitingTime(item.waitingTimeMinutes)}`}
                                         />
                                     </div>
                                     <h3 className="font-semibold text-sm text-gray-900 truncate max-w-full">
-                                        {item.isCombo ? item.comboName : item.productName}
-                                        {item.variantName && ` (${item.variantName})`}
+                                        {item.isCombo
+                                            ? item.comboName
+                                            : item.productName}
+                                        {item.variantName &&
+                                            ` (${item.variantName})`}
                                     </h3>
                                     <p className="text-xs text-gray-600 truncate max-w-full">
-                                        #{item.orderId} • {item.tableNumbers || 'Takeaway'}
+                                        #{item.orderId} •{' '}
+                                        {item.tableNumbers || 'Takeaway'}
                                     </p>
                                 </div>
                                 <div className="text-right flex-shrink-0 ml-2">
-                                    <p className="font-bold text-sm whitespace-nowrap">x{item.quantity}</p>
+                                    <p className="font-bold text-sm whitespace-nowrap">
+                                        x{item.quantity}
+                                    </p>
                                 </div>
                             </div>
                         </CardHeader>
@@ -137,24 +151,35 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
                             <div className="space-y-1 mb-3 flex-1">
                                 <div className="flex items-center gap-1 text-xs text-gray-600 truncate">
                                     <Package className="h-3 w-3" />
-                                    <span>{ORDER_TYPE_LABELS[item.orderType]}</span>
+                                    <span>
+                                        {ORDER_TYPE_LABELS[item.orderType]}
+                                    </span>
                                     {item.customerName && (
                                         <>
                                             <span>•</span>
-                                            <span className="truncate">{item.customerName}</span>
+                                            <span className="truncate">
+                                                {item.customerName}
+                                            </span>
                                         </>
                                     )}
                                 </div>
 
                                 <div className="flex items-center gap-1 text-xs text-gray-600 truncate">
                                     <Clock className="h-3 w-3" />
-                                    <span>Wait: {formatWaitingTime(item.waitingTimeMinutes)}</span>
+                                    <span>
+                                        Wait:{' '}
+                                        {formatWaitingTime(
+                                            item.waitingTimeMinutes
+                                        )}
+                                    </span>
                                 </div>
 
                                 {item.assignedUserName && (
                                     <div className="flex items-center gap-1 text-xs text-gray-600 truncate">
                                         <User className="h-3 w-3" />
-                                        <span className="truncate">{item.assignedUserName}</span>
+                                        <span className="truncate">
+                                            {item.assignedUserName}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -169,22 +194,36 @@ export function KDSItemCard({ item, showActions, compact }: KDSItemCardProps) {
                             )}
 
                             {/* Combo Items - Show All */}
-                            {item.isCombo && item.comboItems && item.comboItems.length > 0 && (
-                                <div className="mb-2 overflow-hidden">
-                                    <p className="text-xs font-medium text-gray-600 mb-1">Combo:</p>
-                                    <div className="space-y-0.5">
-                                        {item.comboItems.map((comboItem, index) => (
-                                            <div
-                                                key={index}
-                                                className="text-xs text-gray-600 flex justify-between"
-                                            >
-                                                <span className="truncate flex-1 mr-2">• {comboItem.productName}</span>
-                                                <span className="flex-shrink-0">x{comboItem.quantity}</span>
-                                            </div>
-                                        ))}
+                            {item.isCombo &&
+                                item.comboItems &&
+                                item.comboItems.length > 0 && (
+                                    <div className="mb-2 overflow-hidden">
+                                        <p className="text-xs font-medium text-gray-600 mb-1">
+                                            Combo:
+                                        </p>
+                                        <div className="space-y-0.5">
+                                            {item.comboItems.map(
+                                                (comboItem, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="text-xs text-gray-600 flex justify-between"
+                                                    >
+                                                        <span className="truncate flex-1 mr-2">
+                                                            •{' '}
+                                                            {
+                                                                comboItem.productName
+                                                            }
+                                                        </span>
+                                                        <span className="flex-shrink-0">
+                                                            x
+                                                            {comboItem.quantity}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
                         </CardContent>
                     </div>
 

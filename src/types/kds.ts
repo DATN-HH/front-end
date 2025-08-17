@@ -67,9 +67,7 @@ export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
 // Status transition rules
 export const STATUS_TRANSITIONS: Record<KdsItemStatus, any[]> = {
     [KdsItemStatus.RECEIVED]: [KdsItemStatus.SEND_TO_KITCHEN, null],
-    [KdsItemStatus.SEND_TO_KITCHEN]: [
-        KdsItemStatus.COOKING,
-    ],
+    [KdsItemStatus.SEND_TO_KITCHEN]: [KdsItemStatus.COOKING],
     [KdsItemStatus.COOKING]: [
         KdsItemStatus.READY_TO_SERVE,
         KdsItemStatus.SEND_TO_KITCHEN,
