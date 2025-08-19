@@ -53,7 +53,7 @@ export function POSOrderSummary({
         setSelectedItem(null);
     };
     return (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 overflow-x-hidden">
             {/* Order Items */}
             {items.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
@@ -156,32 +156,32 @@ function OrderItemCard({
 }) {
     const canDelete = canDeleteItem(item.itemStatus);
     return (
-        <div className="border-l-4 border-l-green-500 bg-white p-2 mb-2 shadow-sm">
+        <div className="border-l-4 border-l-green-500 bg-white p-2 mb-2 shadow-sm overflow-hidden">
             {/* Item Header */}
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0"> {/* min-w-0 helps truncate work properly */}
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-gray-900 text-sm truncate">
+                        <h4 className="font-medium text-gray-900 text-sm truncate max-w-[200px]">
                             {item.name}
                         </h4>
                         {item.itemStatus && (
                             <span
-                                className={`px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(item.itemStatus)}`}
+                                className={`px-2 py-0.5 text-xs font-medium rounded-full border whitespace-nowrap ${getStatusColor(item.itemStatus)}`}
                             >
                                 {item.itemStatus}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <span>
+                    <div className="flex items-center gap-1 text-xs text-gray-600 truncate">
+                        <span className="whitespace-nowrap">
                             {formatVND(item.unitPrice)} × {item.quantity}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium whitespace-nowrap">
                             {formatVND(item.totalPrice)}
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                     <Button
                         variant="ghost"
                         size="sm"

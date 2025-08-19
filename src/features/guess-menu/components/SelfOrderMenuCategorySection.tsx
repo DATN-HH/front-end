@@ -1,7 +1,8 @@
 'use client';
 
-import { Clock, Plus, Minus } from 'lucide-react';
+import { Clock, Plus, Minus, ChevronDown, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import {
     MenuProduct,
@@ -13,6 +14,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SelfOrderMenuCategorySectionProps {
     categoryId: number;
@@ -33,15 +47,24 @@ function SelfOrderProductCard({
     onUpdateTempOrder,
 }: SelfOrderProductCardProps) {
     const router = useRouter();
+    const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
+        product.variants?.[0]?.id || null
+    );
 
-    // Find current ordered quantity for this product (both existing and new items)
+    // Find current ordered quantity for this product and variant
     const existingItems = currentOrderItems.filter(
         (item) =>
-            item.productId === product.id && !item.isCombo && item.orderItemId
+            item.productId === product.id &&
+            (!product.variants?.length || item.variantId === selectedVariantId) &&
+            !item.isCombo &&
+            item.orderItemId
     );
     const newItems = currentOrderItems.filter(
         (item) =>
-            item.productId === product.id && !item.isCombo && !item.orderItemId
+            item.productId === product.id &&
+            (!product.variants?.length || item.variantId === selectedVariantId) &&
+            !item.isCombo &&
+            !item.orderItemId
     );
 
     const existingQuantity = existingItems.reduce(
@@ -51,16 +74,22 @@ function SelfOrderProductCard({
     const newQuantity = newItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalQuantity = existingQuantity + newQuantity;
 
+    // Get selected variant details
+    const selectedVariant = product.variants?.find(
+        (v) => v.id === selectedVariantId
+    );
+
     const handleQuantityChange = (increment: boolean) => {
         const targetNewQuantity = increment
             ? newQuantity + 1
             : Math.max(0, newQuantity - 1);
 
-        // Remove all new items for this product first
+        // Remove all new items for this product and variant first
         let filteredItems = currentOrderItems.filter(
             (item) =>
                 !(
                     item.productId === product.id &&
+                    (!product.variants?.length || item.variantId === selectedVariantId) &&
                     !item.isCombo &&
                     !item.orderItemId
                 )
@@ -68,15 +97,29 @@ function SelfOrderProductCard({
 
         // Add new item with the target quantity if > 0
         if (targetNewQuantity > 0) {
-            filteredItems.push({
-                productId: product.id,
-                productName: product.name,
-                quantity: targetNewQuantity,
-                price: product.price,
-                notes: '',
-                isCombo: false,
-                // No orderItemId means this is a new item
-            });
+            if (product.variants?.length > 0) {
+                if (selectedVariant) {
+                    filteredItems.push({
+                        productId: product.id,
+                        variantId: selectedVariant.id,
+                        productName: product.name,
+                        quantity: targetNewQuantity,
+                        price: selectedVariant.price,
+                        notes: '',
+                        isCombo: false,
+                        attributeCombination: selectedVariant.attributeCombination,
+                    });
+                }
+            } else {
+                filteredItems.push({
+                    productId: product.id,
+                    productName: product.name,
+                    quantity: targetNewQuantity,
+                    price: product.price,
+                    notes: '',
+                    isCombo: false,
+                });
+            }
         }
 
         onUpdateTempOrder(filteredItems);
@@ -88,7 +131,11 @@ function SelfOrderProductCard({
                 {/* Product Image */}
                 <div
                     className="aspect-[3/2] relative bg-gray-100 cursor-pointer"
-                    onClick={() => router.push(`/menu/${product.id}`)}
+                    onClick={() => {
+                        if (product.variants?.length > 0) {
+                            router.push(`/menu/${product.id}`);
+                        }
+                    }}
                 >
                     {product.image ? (
                         <img
@@ -115,11 +162,11 @@ function SelfOrderProductCard({
                     <div className="flex items-center justify-between mb-3">
                         <div>
                             <p className="font-semibold text-gray-900">
-                                {product.variants?.length > 0
-                                    ? formatPriceRange(product)
-                                    : formatVietnameseCurrency(
-                                          product.price || 0
-                                      )}
+                                {selectedVariant
+                                    ? formatVietnameseCurrency(selectedVariant.price || 0)
+                                    : product.variants?.length > 0
+                                        ? formatPriceRange(product)
+                                        : formatVietnameseCurrency(product.price || 0)}
                             </p>
                             {product.estimateTime && (
                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -148,6 +195,46 @@ function SelfOrderProductCard({
                         </div>
                     </div>
 
+                    {/* Variant Selector */}
+                    {product.variants && product.variants.length > 0 && (
+                        <div className="mb-3">
+                            <Select
+                                value={selectedVariantId?.toString()}
+                                onValueChange={(value) =>
+                                    setSelectedVariantId(parseInt(value))
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select variant">
+                                        {selectedVariant ? (
+                                            <span className="truncate block">
+                                                {selectedVariant.displayName}
+                                            </span>
+                                        ) : (
+                                            "Select variant"
+                                        )}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {product.variants.map((variant) => (
+                                        <SelectItem
+                                            key={variant.id}
+                                            value={variant.id.toString()}
+                                            className="flex items-center justify-between gap-2"
+                                        >
+                                            <span className="truncate flex-1">
+                                                {variant.displayName} -
+                                            </span>
+                                            <span className="shrink-0 text-gray-500">
+                                                {formatVietnameseCurrency(variant.price || 0)}
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
                     {/* Quantity Controls */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -166,29 +253,24 @@ function SelfOrderProductCard({
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleQuantityChange(true)}
+                                disabled={product.variants?.length > 0 && !selectedVariantId}
                             >
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
 
-                        {product.variants?.length > 0 && (
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                    router.push(`/menu/${product.id}`)
-                                }
-                                className="text-blue-600 hover:text-blue-700"
-                            >
-                                View Options
-                            </Button>
-                        )}
                     </div>
 
                     {existingQuantity > 0 && (
                         <p className="text-xs text-gray-500 mt-2">
                             You already have {existingQuantity} of this item in
                             your order
+                        </p>
+                    )}
+
+                    {product.variants?.length > 0 && !selectedVariantId && (
+                        <p className="text-xs text-orange-500 mt-2">
+                            Please select a size to add this item
                         </p>
                     )}
                 </div>
@@ -213,6 +295,128 @@ function ProductCardSkeleton() {
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+export interface ReviewOrderModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    currentOrderItems: any[];
+    onUpdateTempOrder: (items: any[]) => void;
+}
+
+export function ReviewOrderModal({
+    isOpen,
+    onClose,
+    currentOrderItems,
+    onUpdateTempOrder,
+}: ReviewOrderModalProps) {
+    // Separate existing and new items
+    const existingItems = currentOrderItems.filter((item) => item.orderItemId);
+    const newItems = currentOrderItems.filter((item) => !item.orderItemId);
+
+    // Handle remove new item
+    const handleRemoveItem = (itemToRemove: any) => {
+        const updatedItems = currentOrderItems.filter(
+            (item) => !(
+                item.productId === itemToRemove.productId &&
+                item.variantId === itemToRemove.variantId &&
+                !item.orderItemId
+            )
+        );
+        onUpdateTempOrder(updatedItems);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={() => onClose()}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>Review Order</DialogTitle>
+                </DialogHeader>
+
+                {/* Existing Items Section */}
+                {existingItems.length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-3">Current Order Items</h3>
+                        <div className="space-y-3">
+                            {existingItems.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-start justify-between p-3 bg-gray-50 rounded-lg"
+                                >
+                                    <div className="flex-1">
+                                        <div className="font-medium">
+                                            {item.productName}
+                                            {item.variantId && (
+                                                <span className="text-gray-600">
+                                                    {" - "}{item.attributeCombination}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-sm text-gray-600 mt-1">
+                                            {formatVietnameseCurrency(item.unitPrice)} × {item.quantity}
+                                            {" = "}{formatVietnameseCurrency(item.totalPrice)}
+                                        </div>
+                                        {item.notes && (
+                                            <div className="text-sm text-gray-500 mt-1">
+                                                Note: {item.notes}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* New Items Section */}
+                {newItems.length > 0 ? (
+                    <div>
+                        <h3 className="text-lg font-semibold mb-3">New Items to Add</h3>
+                        <div className="space-y-3">
+                            {newItems.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-start justify-between p-3 bg-blue-50 rounded-lg"
+                                >
+                                    <div className="flex-1">
+                                        <div className="font-medium">
+                                            {item.isCombo ? item.comboName : item.productName}
+                                            {!item.isCombo && item.variantId && (
+                                                <span className="text-gray-600">
+                                                    {" - "}{item.attributeCombination}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-sm text-gray-600 mt-1">
+                                            {formatVietnameseCurrency(item.unitPrice || item.price)} × {item.quantity}
+                                            {" = "}{formatVietnameseCurrency((item.unitPrice || item.price) * item.quantity)}
+                                        </div>
+                                        {item.notes && (
+                                            <div className="text-sm text-gray-500 mt-1">
+                                                Note: {item.notes}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                                        onClick={() => handleRemoveItem(item)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center text-gray-500 py-4">
+                        No new items to add
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -255,18 +459,7 @@ export function SelfOrderMenuCategorySection({
         });
 
     if (error) {
-        return (
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                    {categoryName}
-                </h2>
-                <Card>
-                    <CardContent className="p-6 text-center">
-                        <p className="text-red-600">Failed to load products</p>
-                    </CardContent>
-                </Card>
-            </div>
-        );
+        return null;
     }
 
     if (isLoading) {
@@ -286,21 +479,9 @@ export function SelfOrderMenuCategorySection({
         );
     }
 
+    // Return null if no products available
     if (products.length === 0) {
-        return (
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                    {categoryName}
-                </h2>
-                <Card>
-                    <CardContent className="p-6 text-center">
-                        <p className="text-gray-500">
-                            No products available in this category
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-        );
+        return null;
     }
 
     return (

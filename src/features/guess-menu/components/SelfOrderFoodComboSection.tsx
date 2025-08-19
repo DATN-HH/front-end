@@ -164,7 +164,7 @@ function SelfOrderFoodComboCard({
                             </Button>
                         </div>
 
-                        <Button
+                        {/* <Button
                             size="sm"
                             variant="ghost"
                             onClick={() =>
@@ -173,7 +173,7 @@ function SelfOrderFoodComboCard({
                             className="text-blue-600 hover:text-blue-700"
                         >
                             View Details
-                        </Button>
+                        </Button> */}
                     </div>
 
                     {existingQuantity > 0 && (
