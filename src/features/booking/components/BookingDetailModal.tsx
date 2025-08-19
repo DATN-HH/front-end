@@ -18,6 +18,8 @@ import {
     useConvertBookingToPos,
     canCancelBooking,
 } from '@/api/v1/booking-pos';
+import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -26,10 +28,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCustomToast } from '@/lib/show-toast';
-import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 
 interface BookingDetailModalProps {
     isOpen: boolean;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, Plus, Minus, ChevronDown, Trash2 } from 'lucide-react';
+import { Clock, Plus, Minus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -13,7 +13,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Select,
     SelectContent,
@@ -21,12 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SelfOrderMenuCategorySectionProps {
     categoryId: number;
@@ -87,7 +87,7 @@ function SelfOrderProductCard({
             : Math.max(0, newQuantity - 1);
 
         // Remove all new items for this product and variant first
-        let filteredItems = currentOrderItems.filter(
+        const filteredItems = currentOrderItems.filter(
             (item) =>
                 !(
                     item.productId === product.id &&

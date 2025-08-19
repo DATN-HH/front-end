@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
+import { useState } from 'react';
 
+import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 import {
     useCustomerOrders,
     formatOrderStatus,
@@ -11,13 +12,7 @@ import {
 } from '@/api/v1/preorder-pos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -27,7 +22,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useAuth } from '@/contexts/auth-context';
-import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 
 export default function MyOrdersPage() {
     const { user } = useAuth();

@@ -49,7 +49,7 @@ function SelfOrderFoodComboCard({
             : Math.max(0, newQuantity - 1);
 
         // Remove all new items for this combo first
-        let filteredItems = currentOrderItems.filter(
+        const filteredItems = currentOrderItems.filter(
             (item) =>
                 !(
                     item.comboId === combo.id &&

@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 
+import { useBookingDetail } from '@/api/v1/booking-pos';
 import { OccupancyDetails } from '@/api/v1/pos-table-status';
 import { TableResponse, useDebounce } from '@/api/v1/tables';
-import { useBookingDetail } from '@/api/v1/booking-pos';
+
 import { BookingDetailModal } from '../../BookingDetailModal';
 
 import { TableElement } from './TableElement';

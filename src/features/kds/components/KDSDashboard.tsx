@@ -21,7 +21,6 @@ import { KdsItemStatus, KDS_TABS } from '@/types/kds';
 
 import { KDSCardView } from './KDSCardView';
 import { KDSKanbanView } from './KDSKanbanView';
-import { KDSStatistics } from './KDSStatistics';
 
 export function KDSDashboard() {
     const router = useRouter();

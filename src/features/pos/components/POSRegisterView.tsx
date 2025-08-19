@@ -435,8 +435,8 @@ export function POSRegisterView({
                 orderId: currentOrder?.id,
                 tableIds: tablesToUse?.map((table) => table.id) || [],
                 items: apiItems,
-                customerName: customerName, // Always send customerName, even if empty
-                customerPhone: customerPhone, // Always send customerPhone, even if empty
+                customerName, // Always send customerName, even if empty
+                customerPhone, // Always send customerPhone, even if empty
                 notes: orderNotes || undefined,
                 orderType,
             };

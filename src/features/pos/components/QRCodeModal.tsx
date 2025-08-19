@@ -1,14 +1,14 @@
+import { Printer } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
-import { Printer } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 
 interface QRCodeModalProps {
     isOpen: boolean;

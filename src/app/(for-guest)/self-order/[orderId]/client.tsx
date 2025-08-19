@@ -1,11 +1,13 @@
 'use client';
 
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 
 import { useAllCategories } from '@/api/v1/menu/categories';
 import { usePOSOrder } from '@/api/v1/pos-orders';
 import { useAddItemsToOrder } from '@/api/v1/self-order';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,13 +17,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useCustomToast } from '@/lib/show-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 import { SelfOrderFoodComboSection } from '@/features/guess-menu/components/SelfOrderFoodComboSection';
-import { SelfOrderMenuCategorySection } from '@/features/guess-menu/components/SelfOrderMenuCategorySection';
-import { ReviewOrderModal } from '@/features/guess-menu/components/SelfOrderMenuCategorySection';
-import { Badge } from '@/components/ui/badge';
+import {
+    SelfOrderMenuCategorySection,
+    ReviewOrderModal,
+} from '@/features/guess-menu/components/SelfOrderMenuCategorySection';
+import { useCustomToast } from '@/lib/show-toast';
 
 interface SelfOrderClientProps {
     orderId: string;
