@@ -162,7 +162,7 @@ export function POSRegisterView({
                 editingOrder.tables && editingOrder.tables.length > 0
                     ? editingOrder.tables
                     : editingOrder.tableId && editingOrder.tableName
-                        ? [
+                      ? [
                             {
                                 id: 1, // Mock ID for backward compatibility
                                 tableId: editingOrder.tableId,
@@ -171,7 +171,7 @@ export function POSRegisterView({
                                 notes: null,
                             },
                         ]
-                        : [];
+                      : [];
 
             // Convert items to the expected format for order response
             const responseItems = editingOrder.items.map((item: any) => ({
@@ -290,7 +290,8 @@ export function POSRegisterView({
 
             // Check if customer info actually changed
             const prevInfo = prevCustomerInfoRef.current;
-            const hasChanged = prevInfo.phone !== phone || prevInfo.name !== name;
+            const hasChanged =
+                prevInfo.phone !== phone || prevInfo.name !== name;
 
             // Only update if we have an existing order and customer info has actually changed
             if (currentOrder?.id != null && hasChanged) {
@@ -305,7 +306,9 @@ export function POSRegisterView({
                         // Create a new request with current order items and updated customer info
                         const apiItems = orderItems.map((item) => ({
                             orderItemId: item.orderItemId || undefined,
-                            productId: item.isCombo ? undefined : item.productId,
+                            productId: item.isCombo
+                                ? undefined
+                                : item.productId,
                             variantId: item.variantId || undefined,
                             comboId: item.comboId || undefined,
                             quantity: item.quantity,
@@ -315,7 +318,8 @@ export function POSRegisterView({
 
                         const orderRequest: POSOrderCreateOrUpdateRequest = {
                             orderId: currentOrder?.id,
-                            tableIds: selectedTables?.map((table) => table.id) || [],
+                            tableIds:
+                                selectedTables?.map((table) => table.id) || [],
                             items: apiItems,
                             customerName: name,
                             customerPhone: phone,
@@ -323,7 +327,8 @@ export function POSRegisterView({
                             orderType,
                         };
 
-                        const result = await createOrderMutation.mutateAsync(orderRequest);
+                        const result =
+                            await createOrderMutation.mutateAsync(orderRequest);
 
                         // Update local state from API response
                         setCurrentOrder(result);
@@ -333,12 +338,20 @@ export function POSRegisterView({
                 }, 500); // Reduced to 500ms for better responsiveness
             }
         },
-        [currentOrder?.id, orderItems, selectedTables, orderNotes, orderType, createOrderMutation]
+        [
+            currentOrder?.id,
+            orderItems,
+            selectedTables,
+            orderNotes,
+            orderType,
+            createOrderMutation,
+        ]
     );
 
     // Effect for customer info updates
     useEffect(() => {
-        if (currentOrder?.id) { // Only update if we have an existing order
+        if (currentOrder?.id) {
+            // Only update if we have an existing order
             debouncedUpdateCustomerInfo(customerPhone, customerName);
         }
 
@@ -348,7 +361,12 @@ export function POSRegisterView({
                 clearTimeout(debounceTimerRef.current);
             }
         };
-    }, [customerPhone, customerName, currentOrder?.id, debouncedUpdateCustomerInfo]);
+    }, [
+        customerPhone,
+        customerName,
+        currentOrder?.id,
+        debouncedUpdateCustomerInfo,
+    ]);
 
     // Effect to sync initial selected tables
     useEffect(() => {
@@ -417,8 +435,8 @@ export function POSRegisterView({
                 orderId: currentOrder?.id,
                 tableIds: tablesToUse?.map((table) => table.id) || [],
                 items: apiItems,
-                customerName: customerName,  // Always send customerName, even if empty
-                customerPhone: customerPhone,  // Always send customerPhone, even if empty
+                customerName: customerName, // Always send customerName, even if empty
+                customerPhone: customerPhone, // Always send customerPhone, even if empty
                 notes: orderNotes || undefined,
                 orderType,
             };
@@ -504,10 +522,10 @@ export function POSRegisterView({
             newOrderItems = orderItems.map((item, index) =>
                 index === existingItemIndex
                     ? {
-                        ...item,
-                        quantity: item.quantity + 1,
-                        totalPrice: (item.quantity + 1) * item.unitPrice,
-                    }
+                          ...item,
+                          quantity: item.quantity + 1,
+                          totalPrice: (item.quantity + 1) * item.unitPrice,
+                      }
                     : item
             );
         } else {
@@ -591,10 +609,10 @@ export function POSRegisterView({
                 newOrderItems = orderItems.map((item) =>
                     item.id === itemId
                         ? {
-                            ...item,
-                            quantity: newQuantity,
-                            totalPrice: item.unitPrice * newQuantity,
-                        }
+                              ...item,
+                              quantity: newQuantity,
+                              totalPrice: item.unitPrice * newQuantity,
+                          }
                         : item
                 );
             } else {

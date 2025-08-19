@@ -8,11 +8,14 @@ interface TableElementProps {
     table: TableResponse & {
         posStatus?: POSTableStatus;
         estimatedAvailableTime?: string;
+        occupancyDetails?: any; // Add occupancy details
     };
     isSelected: boolean;
     onClick: (e: React.MouseEvent) => void;
     isDragging: boolean;
     unable?: boolean; // New prop - if true, table appears disabled/unavailable
+    modeView?: 'edit' | 'booking'; // Add mode view prop
+    isSelectable?: boolean; // Add selectable prop
 }
 
 export function TableElement({
@@ -21,6 +24,8 @@ export function TableElement({
     onClick,
     isDragging,
     unable = false,
+    modeView = 'edit',
+    isSelectable = true,
 }: TableElementProps) {
     const getTableTypeDisplay = (tableType: any) => {
         if (typeof tableType === 'object' && tableType) {
@@ -44,17 +49,33 @@ export function TableElement({
     const renderTableShape = () => {
         const tableTypeInfo = getTableTypeDisplay(table.tableType);
 
-        // Keep original table type color, only gray out when unable
-        const color = unable ? '#9ca3af' : tableTypeInfo.color;
+        // In booking mode, allow clicking on booking tables (both current and upcoming) even if they appear occupied
+        const isBookingTable =
+            table.occupancyDetails?.occupationType === 'BOOKING_TABLE';
+        const isUpcomingBooking =
+            table.occupancyDetails?.occupationType === 'UPCOMING_BOOKING';
+        const isAnyBooking = isBookingTable || isUpcomingBooking;
+
+        // Force booking tables to be clickable in booking mode
+        const shouldAllowClick =
+            modeView === 'booking'
+                ? isAnyBooking || (isSelectable && !unable)
+                : isSelectable && !unable;
+
+        // Keep original table type color, only gray out when unable and not a clickable booking
+        const color =
+            unable && !(modeView === 'booking' && isAnyBooking)
+                ? '#9ca3af'
+                : tableTypeInfo.color;
         const icon = renderIcon(tableTypeInfo.icon);
 
         const commonClasses = `
             w-full h-full flex flex-col items-center justify-center
             text-white font-medium transition-all duration-200
-            ${unable ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+            ${shouldAllowClick ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
             ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
-            ${isDragging ? 'opacity-80' : !unable ? 'hover:opacity-90' : ''}
-            ${unable ? 'grayscale' : ''}
+            ${isDragging ? 'opacity-80' : shouldAllowClick ? 'hover:opacity-90' : ''}
+            ${unable && !(modeView === 'booking' && isAnyBooking) ? 'grayscale' : ''}
         `;
 
         const content = (
@@ -71,13 +92,21 @@ export function TableElement({
             </div>
         );
 
+        // Always allow click for any booking tables in booking mode, regardless of other conditions
+        const handleClick =
+            modeView === 'booking' && isAnyBooking
+                ? onClick
+                : shouldAllowClick
+                  ? onClick
+                  : undefined;
+
         switch (table.tableShape) {
             case TableShape.SQUARE:
                 return (
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={unable ? undefined : onClick}
+                        onClick={handleClick}
                     >
                         {content}
                     </div>
@@ -88,7 +117,7 @@ export function TableElement({
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={unable ? undefined : onClick}
+                        onClick={handleClick}
                     >
                         {content}
                     </div>
@@ -99,7 +128,7 @@ export function TableElement({
                     <div
                         className={`${commonClasses} rounded-full border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={unable ? undefined : onClick}
+                        onClick={handleClick}
                     >
                         {content}
                     </div>
@@ -113,7 +142,7 @@ export function TableElement({
                             backgroundColor: color,
                             borderRadius: '50%',
                         }}
-                        onClick={unable ? undefined : onClick}
+                        onClick={handleClick}
                     >
                         {content}
                     </div>
@@ -124,7 +153,7 @@ export function TableElement({
                     <div
                         className={`${commonClasses} rounded-lg border-2 border-white/20`}
                         style={{ backgroundColor: color }}
-                        onClick={unable ? undefined : onClick}
+                        onClick={handleClick}
                     >
                         {content}
                     </div>

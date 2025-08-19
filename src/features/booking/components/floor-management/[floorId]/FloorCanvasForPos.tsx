@@ -5,8 +5,15 @@ import { Rnd } from 'react-rnd';
 
 import { OccupancyDetails } from '@/api/v1/pos-table-status';
 import { TableResponse, useDebounce } from '@/api/v1/tables';
+import { useBookingDetail } from '@/api/v1/booking-pos';
+import { BookingDetailModal } from '../../BookingDetailModal';
 
 import { TableElement } from './TableElement';
+
+// Extended table type with occupancy details
+interface TableWithOccupancy extends TableResponse {
+    occupancyDetails?: OccupancyDetails;
+}
 
 // Component to display occupancy information below tables
 function OccupancyInfo({
@@ -96,9 +103,9 @@ interface FloorCanvasForPosProps {
         createdAt: string;
         updatedAt: string;
     };
-    tables: TableResponse[];
-    selectedTable: TableResponse | null;
-    onTableSelect: (table: TableResponse | null) => void;
+    tables: TableWithOccupancy[];
+    selectedTable: TableWithOccupancy | null;
+    onTableSelect: (table: TableWithOccupancy | null) => void;
     onTableDrop: (
         tableId: number,
         newPosition: { x: number; y: number },
@@ -124,6 +131,8 @@ interface FloorCanvasForPosProps {
     onDragEnd: () => void;
     modeView?: 'edit' | 'booking'; // New prop for view mode
     selectableTables?: number[]; // Array of table IDs that can be selected. If not provided, all tables are selectable
+    onBookingConvert?: (posOrderId: number) => void;
+    onBookingCancel?: () => void;
 }
 
 export function FloorCanvasForPos({
@@ -138,6 +147,8 @@ export function FloorCanvasForPos({
     onDragEnd,
     modeView = 'edit',
     selectableTables,
+    onBookingConvert,
+    onBookingCancel,
 }: FloorCanvasForPosProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -159,6 +170,16 @@ export function FloorCanvasForPos({
             { x?: number; y?: number; width?: number; height?: number }
         >
     >({});
+
+    // Booking modal state
+    const [selectedBookingId, setSelectedBookingId] = useState<number | null>(
+        null
+    );
+    const [showBookingModal, setShowBookingModal] = useState(false);
+
+    // Fetch booking detail when booking is selected
+    const { data: bookingDetail, refetch: refetchBooking } =
+        useBookingDetail(selectedBookingId);
 
     // Debounce pending updates
     const debouncedUpdates = useDebounce(pendingUpdates, 300);
@@ -361,14 +382,40 @@ export function FloorCanvasForPos({
         return Math.max(0, Math.min(1, (pixels - offset) / size));
     };
 
-    const handleTableClick = (
-        table: TableResponse,
-        event: React.MouseEvent
-    ) => {
-        event.stopPropagation();
-        if (table && table.id) {
+    // Handle table click for booking tables
+    const handleTableClick = (table: TableWithOccupancy) => {
+        // Check if this is a booking table (current or upcoming)
+        const isBookingTable =
+            table.occupancyDetails?.occupationType === 'BOOKING_TABLE';
+        const isUpcomingBooking =
+            table.occupancyDetails?.occupationType === 'UPCOMING_BOOKING';
+
+        if (isBookingTable || isUpcomingBooking) {
+            const bookingId = table.occupancyDetails?.bookingId;
+            if (bookingId) {
+                setSelectedBookingId(bookingId);
+                setShowBookingModal(true);
+            }
+        } else {
+            // For non-booking tables, use the original onTableSelect
             onTableSelect(table);
         }
+    };
+
+    // Handle booking conversion success
+    const handleBookingConvert = (posOrderId: number) => {
+        setShowBookingModal(false);
+        setSelectedBookingId(null);
+        onBookingConvert?.(posOrderId);
+        // You might want to refetch table status here
+    };
+
+    // Handle booking cancellation success
+    const handleBookingCancel = () => {
+        setShowBookingModal(false);
+        setSelectedBookingId(null);
+        onBookingCancel?.();
+        // You might want to refetch table status here
     };
 
     const handleCanvasClick = () => {
@@ -577,8 +624,14 @@ export function FloorCanvasForPos({
                             <TableElement
                                 table={table}
                                 isSelected={selectedTable?.id === table.id}
-                                onClick={(e) => handleTableClick(table, e)}
+                                onClick={() => handleTableClick(table)}
                                 isDragging={isDragging}
+                                modeView={modeView}
+                                isSelectable={
+                                    selectableTables
+                                        ? selectableTables.includes(table.id)
+                                        : true
+                                }
                                 unable={
                                     selectableTables
                                         ? !selectableTables.includes(table.id)
@@ -658,6 +711,18 @@ export function FloorCanvasForPos({
                     </div>
                 </div>
             )}
+
+            {/* Booking Detail Modal */}
+            <BookingDetailModal
+                isOpen={showBookingModal}
+                onClose={() => {
+                    setShowBookingModal(false);
+                    setSelectedBookingId(null);
+                }}
+                booking={bookingDetail || null}
+                onConvertSuccess={handleBookingConvert}
+                onCancelSuccess={handleBookingCancel}
+            />
         </div>
     );
 }

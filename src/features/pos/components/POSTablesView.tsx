@@ -268,6 +268,17 @@ function FloorPlanWithBackground({
         }
     };
 
+    // Add handlers for booking operations
+    const handleBookingConvert = (posOrderId: number) => {
+        // Navigate to edit the newly created order
+        onEditOrder(posOrderId);
+    };
+
+    const handleBookingCancel = () => {
+        // Optionally refresh the floor data or show a success message
+        // The table status will be updated automatically when the booking is cancelled
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -308,10 +319,19 @@ function FloorPlanWithBackground({
             const isAvailable = isTableAvailable(currentStatus);
             const hasOrder =
                 occupancyInfo?.occupancyDetails?.occupationType === 'POS_ORDER';
+            const hasBooking =
+                occupancyInfo?.occupancyDetails?.occupationType ===
+                'BOOKING_TABLE';
+            const hasUpcomingBooking =
+                occupancyInfo?.occupancyDetails?.occupationType ===
+                'UPCOMING_BOOKING';
 
-            // Tables are unable (grayed out) if they're occupied but don't have an order
+            // Tables are unable (grayed out) if they're occupied but don't have an order, booking, or upcoming booking
             // Tables with orders should be clickable for editing
-            const isUnable = !isAvailable && !hasOrder;
+            // Tables with bookings should be clickable for booking management
+            // Tables with upcoming bookings should be clickable for booking management
+            const isUnable =
+                !isAvailable && !hasOrder && !hasBooking && !hasUpcomingBooking;
 
             return {
                 ...table,
@@ -347,6 +367,8 @@ function FloorPlanWithBackground({
                     onDragStart={() => {}} // No-op for POS view
                     onDragEnd={() => {}} // No-op for POS view
                     modeView="booking" // Use booking mode to disable editing but allow clicking
+                    onBookingConvert={handleBookingConvert}
+                    onBookingCancel={handleBookingCancel}
                 />
             </div>
         </div>

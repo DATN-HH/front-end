@@ -55,14 +55,16 @@ function SelfOrderProductCard({
     const existingItems = currentOrderItems.filter(
         (item) =>
             item.productId === product.id &&
-            (!product.variants?.length || item.variantId === selectedVariantId) &&
+            (!product.variants?.length ||
+                item.variantId === selectedVariantId) &&
             !item.isCombo &&
             item.orderItemId
     );
     const newItems = currentOrderItems.filter(
         (item) =>
             item.productId === product.id &&
-            (!product.variants?.length || item.variantId === selectedVariantId) &&
+            (!product.variants?.length ||
+                item.variantId === selectedVariantId) &&
             !item.isCombo &&
             !item.orderItemId
     );
@@ -89,7 +91,8 @@ function SelfOrderProductCard({
             (item) =>
                 !(
                     item.productId === product.id &&
-                    (!product.variants?.length || item.variantId === selectedVariantId) &&
+                    (!product.variants?.length ||
+                        item.variantId === selectedVariantId) &&
                     !item.isCombo &&
                     !item.orderItemId
                 )
@@ -107,7 +110,8 @@ function SelfOrderProductCard({
                         price: selectedVariant.price,
                         notes: '',
                         isCombo: false,
-                        attributeCombination: selectedVariant.attributeCombination,
+                        attributeCombination:
+                            selectedVariant.attributeCombination,
                     });
                 }
             } else {
@@ -163,10 +167,14 @@ function SelfOrderProductCard({
                         <div>
                             <p className="font-semibold text-gray-900">
                                 {selectedVariant
-                                    ? formatVietnameseCurrency(selectedVariant.price || 0)
+                                    ? formatVietnameseCurrency(
+                                          selectedVariant.price || 0
+                                      )
                                     : product.variants?.length > 0
-                                        ? formatPriceRange(product)
-                                        : formatVietnameseCurrency(product.price || 0)}
+                                      ? formatPriceRange(product)
+                                      : formatVietnameseCurrency(
+                                            product.price || 0
+                                        )}
                             </p>
                             {product.estimateTime && (
                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -211,7 +219,7 @@ function SelfOrderProductCard({
                                                 {selectedVariant.displayName}
                                             </span>
                                         ) : (
-                                            "Select variant"
+                                            'Select variant'
                                         )}
                                     </SelectValue>
                                 </SelectTrigger>
@@ -226,7 +234,9 @@ function SelfOrderProductCard({
                                                 {variant.displayName} -
                                             </span>
                                             <span className="shrink-0 text-gray-500">
-                                                {formatVietnameseCurrency(variant.price || 0)}
+                                                {formatVietnameseCurrency(
+                                                    variant.price || 0
+                                                )}
                                             </span>
                                         </SelectItem>
                                     ))}
@@ -253,12 +263,14 @@ function SelfOrderProductCard({
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleQuantityChange(true)}
-                                disabled={product.variants?.length > 0 && !selectedVariantId}
+                                disabled={
+                                    product.variants?.length > 0 &&
+                                    !selectedVariantId
+                                }
                             >
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
-
                     </div>
 
                     {existingQuantity > 0 && (
@@ -318,11 +330,12 @@ export function ReviewOrderModal({
     // Handle remove new item
     const handleRemoveItem = (itemToRemove: any) => {
         const updatedItems = currentOrderItems.filter(
-            (item) => !(
-                item.productId === itemToRemove.productId &&
-                item.variantId === itemToRemove.variantId &&
-                !item.orderItemId
-            )
+            (item) =>
+                !(
+                    item.productId === itemToRemove.productId &&
+                    item.variantId === itemToRemove.variantId &&
+                    !item.orderItemId
+                )
         );
         onUpdateTempOrder(updatedItems);
     };
@@ -337,7 +350,9 @@ export function ReviewOrderModal({
                 {/* Existing Items Section */}
                 {existingItems.length > 0 && (
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-3">Current Order Items</h3>
+                        <h3 className="text-lg font-semibold mb-3">
+                            Current Order Items
+                        </h3>
                         <div className="space-y-3">
                             {existingItems.map((item, index) => (
                                 <div
@@ -349,13 +364,20 @@ export function ReviewOrderModal({
                                             {item.productName}
                                             {item.variantId && (
                                                 <span className="text-gray-600">
-                                                    {" - "}{item.attributeCombination}
+                                                    {' - '}
+                                                    {item.attributeCombination}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="text-sm text-gray-600 mt-1">
-                                            {formatVietnameseCurrency(item.unitPrice)} × {item.quantity}
-                                            {" = "}{formatVietnameseCurrency(item.totalPrice)}
+                                            {formatVietnameseCurrency(
+                                                item.unitPrice
+                                            )}{' '}
+                                            × {item.quantity}
+                                            {' = '}
+                                            {formatVietnameseCurrency(
+                                                item.totalPrice
+                                            )}
                                         </div>
                                         {item.notes && (
                                             <div className="text-sm text-gray-500 mt-1">
@@ -372,7 +394,9 @@ export function ReviewOrderModal({
                 {/* New Items Section */}
                 {newItems.length > 0 ? (
                     <div>
-                        <h3 className="text-lg font-semibold mb-3">New Items to Add</h3>
+                        <h3 className="text-lg font-semibold mb-3">
+                            New Items to Add
+                        </h3>
                         <div className="space-y-3">
                             {newItems.map((item, index) => (
                                 <div
@@ -381,16 +405,29 @@ export function ReviewOrderModal({
                                 >
                                     <div className="flex-1">
                                         <div className="font-medium">
-                                            {item.isCombo ? item.comboName : item.productName}
-                                            {!item.isCombo && item.variantId && (
-                                                <span className="text-gray-600">
-                                                    {" - "}{item.attributeCombination}
-                                                </span>
-                                            )}
+                                            {item.isCombo
+                                                ? item.comboName
+                                                : item.productName}
+                                            {!item.isCombo &&
+                                                item.variantId && (
+                                                    <span className="text-gray-600">
+                                                        {' - '}
+                                                        {
+                                                            item.attributeCombination
+                                                        }
+                                                    </span>
+                                                )}
                                         </div>
                                         <div className="text-sm text-gray-600 mt-1">
-                                            {formatVietnameseCurrency(item.unitPrice || item.price)} × {item.quantity}
-                                            {" = "}{formatVietnameseCurrency((item.unitPrice || item.price) * item.quantity)}
+                                            {formatVietnameseCurrency(
+                                                item.unitPrice || item.price
+                                            )}{' '}
+                                            × {item.quantity}
+                                            {' = '}
+                                            {formatVietnameseCurrency(
+                                                (item.unitPrice || item.price) *
+                                                    item.quantity
+                                            )}
                                         </div>
                                         {item.notes && (
                                             <div className="text-sm text-gray-500 mt-1">

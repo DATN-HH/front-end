@@ -159,7 +159,9 @@ function OrderItemCard({
         <div className="border-l-4 border-l-green-500 bg-white p-2 mb-2 shadow-sm overflow-hidden">
             {/* Item Header */}
             <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0"> {/* min-w-0 helps truncate work properly */}
+                <div className="flex-1 min-w-0">
+                    {' '}
+                    {/* min-w-0 helps truncate work properly */}
                     <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-gray-900 text-sm truncate max-w-[200px]">
                             {item.name}

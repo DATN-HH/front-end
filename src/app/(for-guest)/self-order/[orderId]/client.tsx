@@ -189,9 +189,18 @@ export function SelfOrderClient({ orderId }: SelfOrderClientProps) {
                                 className="flex-1 md:flex-none"
                             >
                                 <ShoppingCart className="w-4 h-4 mr-2" />
-                                {tempOrderItems.filter(item => !item.orderItemId).length > 0 && (
-                                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-700">
-                                        {tempOrderItems.filter(item => !item.orderItemId).length}
+                                {tempOrderItems.filter(
+                                    (item) => !item.orderItemId
+                                ).length > 0 && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="ml-2 bg-blue-100 text-blue-700"
+                                    >
+                                        {
+                                            tempOrderItems.filter(
+                                                (item) => !item.orderItemId
+                                            ).length
+                                        }
                                     </Badge>
                                 )}
                             </Button>
@@ -271,28 +280,28 @@ export function SelfOrderClient({ orderId }: SelfOrderClientProps) {
                 <div className="space-y-8 md:space-y-12">
                     {selectedCategory === 'All'
                         ? filteredCategories.map((category) => (
-                            <SelfOrderMenuCategorySection
-                                key={category.id}
-                                categoryId={category.id}
-                                categoryName={category.name}
-                                currentOrderItems={tempOrderItems}
-                                onUpdateTempOrder={setTempOrderItems}
-                            />
-                        ))
+                              <SelfOrderMenuCategorySection
+                                  key={category.id}
+                                  categoryId={category.id}
+                                  categoryName={category.name}
+                                  currentOrderItems={tempOrderItems}
+                                  onUpdateTempOrder={setTempOrderItems}
+                              />
+                          ))
                         : (() => {
-                            const category = categories.find(
-                                (cat) => cat.id === selectedCategory
-                            );
-                            return category ? (
-                                <SelfOrderMenuCategorySection
-                                    key={category.id}
-                                    categoryId={category.id}
-                                    categoryName={category.name}
-                                    currentOrderItems={tempOrderItems}
-                                    onUpdateTempOrder={setTempOrderItems}
-                                />
-                            ) : null;
-                        })()}
+                              const category = categories.find(
+                                  (cat) => cat.id === selectedCategory
+                              );
+                              return category ? (
+                                  <SelfOrderMenuCategorySection
+                                      key={category.id}
+                                      categoryId={category.id}
+                                      categoryName={category.name}
+                                      currentOrderItems={tempOrderItems}
+                                      onUpdateTempOrder={setTempOrderItems}
+                                  />
+                              ) : null;
+                          })()}
                 </div>
 
                 {/* No Results Message */}
@@ -306,4 +315,4 @@ export function SelfOrderClient({ orderId }: SelfOrderClientProps) {
             </div>
         </div>
     );
-} 
+}
