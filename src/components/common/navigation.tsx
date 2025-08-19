@@ -95,7 +95,9 @@ export function Navigation() {
                                     {user?.fullName || user?.username}
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem
+                                    onClick={() => router.push('/my-orders')}
+                                >
                                     <ShoppingBag className="mr-2 h-4 w-4" />
                                     My Orders
                                 </DropdownMenuItem>
@@ -190,7 +192,12 @@ export function Navigation() {
                                                 <Button
                                                     variant="ghost"
                                                     className="w-full justify-start"
-                                                    disabled
+                                                    onClick={() => {
+                                                        setIsOpen(false);
+                                                        router.push(
+                                                            '/my-orders'
+                                                        );
+                                                    }}
                                                 >
                                                     <ShoppingBag className="mr-2 h-4 w-4" />
                                                     My Orders

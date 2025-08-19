@@ -11,12 +11,14 @@ import { Button } from '@/components/ui/button';
 import { POSOrdersView } from './POSOrdersView';
 import { POSRegisterView } from './POSRegisterView';
 import { POSTablesView } from './POSTablesView';
+import { PreOrderList } from './PreOrderList';
 
 // Types based on Odoo research
 export enum POSTab {
     TABLES = 'tables',
     REGISTER = 'register',
     ORDERS = 'orders',
+    PREORDERS = 'preorders',
 }
 
 interface OdooPOSInterfaceProps {
@@ -75,6 +77,13 @@ export function OdooPOSInterface({
         setActiveTab(POSTab.REGISTER);
     };
 
+    // Handle preorder conversion - navigate to register with new order
+    const handlePreOrderConvert = (posOrderId: number) => {
+        setEditingOrderId(posOrderId);
+        setIsClearOrder(false);
+        setActiveTab(POSTab.REGISTER);
+    };
+
     // Tab configuration based on Odoo research
     const tabs = [
         {
@@ -91,6 +100,11 @@ export function OdooPOSInterface({
             id: POSTab.ORDERS,
             label: 'Orders',
             active: activeTab === POSTab.ORDERS,
+        },
+        {
+            id: POSTab.PREORDERS,
+            label: 'PreOrders',
+            active: activeTab === POSTab.PREORDERS,
         },
     ];
 
@@ -182,6 +196,13 @@ export function OdooPOSInterface({
                         currentOrderId={currentOrderId}
                         onOrderSelect={(orderId) => setCurrentOrderId(orderId)}
                         onEditOrder={handleEditOrder}
+                    />
+                )}
+
+                {activeTab === POSTab.PREORDERS && (
+                    <PreOrderList
+                        branchId={selectedBranch?.id || null}
+                        onConvertSuccess={handlePreOrderConvert}
                     />
                 )}
             </div>

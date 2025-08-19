@@ -1,13 +1,26 @@
 'use client';
 
-import { Search, RefreshCw, QrCode } from 'lucide-react';
+import { Search, RefreshCw, QrCode, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { usePOSOrders, POSOrderStatus } from '@/api/v1/pos-orders';
+import { useCancelOrder } from '@/api/v1/preorder-pos';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useCustomToast } from '@/lib/show-toast';
 
 import PaymentModal from './PaymentModal';
 import { QRCodeModal } from './QRCodeModal';
@@ -23,6 +36,7 @@ export function POSOrdersView({
     onOrderSelect,
     onEditOrder,
 }: POSOrdersViewProps) {
+    const { success, error } = useCustomToast();
     const [selectedOrderType, setSelectedOrderType] = useState<
         'dine-in' | 'takeout' | 'delivery'
     >('dine-in');
@@ -35,6 +49,11 @@ export function POSOrdersView({
     const [selectedOrderForQR, setSelectedOrderForQR] = useState<number | null>(
         null
     );
+    const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(
+        null
+    );
+
+    const cancelMutation = useCancelOrder();
 
     // Fetch orders based on filters with orderType support
     const {
@@ -77,6 +96,42 @@ export function POSOrdersView({
         }
 
         return `#${order.id} - Direct Sale`;
+    };
+
+    // Check if order can be cancelled (all items must be RECEIVED or SEND_TO_KITCHEN)
+    const canCancelOrder = (order: any) => {
+        if (
+            !order ||
+            order.orderStatus === 'COMPLETED' ||
+            order.orderStatus === 'CANCELLED'
+        ) {
+            return false;
+        }
+
+        return order.items.every(
+            (item: any) =>
+                item.itemStatus === 'RECEIVED' ||
+                item.itemStatus === 'SEND_TO_KITCHEN'
+        );
+    };
+
+    // Handle cancel order
+    const handleCancelOrder = async (order: any) => {
+        try {
+            setCancellingOrderId(order.id);
+            await cancelMutation.mutateAsync(order.id);
+
+            success(
+                'Success',
+                `Order #${order.orderNumber} has been cancelled successfully`
+            );
+
+            refetch(); // Refresh the orders list
+        } catch (err: any) {
+            error('Error', err.message || 'Failed to cancel order');
+        } finally {
+            setCancellingOrderId(null);
+        }
     };
 
     // Filter orders based on search and type
@@ -549,6 +604,63 @@ export function POSOrdersView({
                                     </Button>
                                 )}
                             </div>
+
+                            {/* Cancel Order button - only show for cancellable orders */}
+                            {canCancelOrder(selectedOrder) && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            variant="destructive"
+                                            className="w-full"
+                                            disabled={
+                                                cancellingOrderId ===
+                                                selectedOrder.id
+                                            }
+                                        >
+                                            {cancellingOrderId ===
+                                            selectedOrder.id ? (
+                                                <>
+                                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                                    Cancelling...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                    Cancel Order
+                                                </>
+                                            )}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                Cancel Order
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to cancel
+                                                Order #
+                                                {selectedOrder.orderNumber}?
+                                                This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                                No, Keep Order
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                                onClick={() =>
+                                                    handleCancelOrder(
+                                                        selectedOrder
+                                                    )
+                                                }
+                                                className="bg-red-600 hover:bg-red-700"
+                                            >
+                                                Yes, Cancel Order
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
 
                             {/* Payment button - only show for PREPARING orders */}
                             {canProcessPayment(selectedOrder) && (
