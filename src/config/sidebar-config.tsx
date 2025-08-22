@@ -122,6 +122,21 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
             ],
         },
         {
+            id: 'orders',
+            label: 'Order Management',
+            icon: <ShoppingCart className="h-5 w-5" />,
+            activePaths: ['/app/orders'],
+            roles: [Role.MANAGER, Role.CASHIER, Role.WAITER],
+            items: [
+                {
+                    href: '/app/orders',
+                    label: 'Orders',
+                    icon: <ClipboardList className="h-4 w-4" />,
+                    roles: [Role.MANAGER, Role.CASHIER, Role.WAITER],
+                },
+            ],
+        },
+        {
             id: 'booking',
             label: 'Reservation',
             icon: <CalendarRange className="h-5 w-5" />,
