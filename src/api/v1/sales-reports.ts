@@ -3,13 +3,17 @@ import qs from 'qs';
 
 import { apiClient } from '@/services/api-client';
 
-import { BaseResponse } from '.';
-
 // Types for Sales Reports API
 export interface SalesReportOrder {
     id: number;
     orderNumber: string;
-    orderStatus: 'DRAFT' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'ORDERED';
+    orderStatus:
+        | 'DRAFT'
+        | 'PREPARING'
+        | 'READY'
+        | 'COMPLETED'
+        | 'CANCELLED'
+        | 'ORDERED';
     orderType: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY';
     paymentType: 'CASH' | 'BANKING' | 'CARD' | 'MOMO' | 'ZALOPAY' | 'VNPAY';
     total: number;
@@ -30,7 +34,13 @@ export interface SalesReportOrdersRequest {
     endDate?: string;
     paymentType?: 'CASH' | 'BANKING' | 'CARD' | 'MOMO' | 'ZALOPAY' | 'VNPAY';
     orderType?: 'DINE_IN' | 'TAKEOUT' | 'DELIVERY';
-    orderStatus?: 'DRAFT' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED' | 'ORDERED';
+    orderStatus?:
+        | 'DRAFT'
+        | 'PREPARING'
+        | 'READY'
+        | 'COMPLETED'
+        | 'CANCELLED'
+        | 'ORDERED';
     branchId?: number;
     customerPhone?: string;
     customerName?: string;

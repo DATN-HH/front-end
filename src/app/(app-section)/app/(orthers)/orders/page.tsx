@@ -1,25 +1,25 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useMemo } from 'react';
 
-import { DataTable } from '@/components/common/Table/DataTable';
-import { FilterDefinition, OperandType } from '@/components/common/Table/types';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProtectedRoute } from '@/components/protected-component';
-import { PageTitle } from '@/components/layouts/app-section/page-title';
-import { Role } from '@/lib/rbac';
 import { SearchCondition } from '@/api/v1';
 import {
     useSalesReportOrders,
     SalesReportOrder,
     SalesReportOrdersRequest,
 } from '@/api/v1/sales-reports';
-import { ClipboardList } from 'lucide-react';
+import { DataTable } from '@/components/common/Table/DataTable';
+import { FilterDefinition, OperandType } from '@/components/common/Table/types';
+import { PageTitle } from '@/components/layouts/app-section/page-title';
+import { ProtectedRoute } from '@/components/protected-component';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Role } from '@/lib/rbac';
 
 // Helper functions for formatting
 const formatCurrency = (amount: number) => {
@@ -105,7 +105,9 @@ function OrderManagementPage() {
         // Handle filters - convert SearchCondition[] to API params
         filters.forEach((filter) => {
             if (filter.data || filter.datas) {
-                const value = filter.datas ? filter.datas.join(',') : filter.data;
+                const value = filter.datas
+                    ? filter.datas.join(',')
+                    : filter.data;
                 (params as any)[filter.fieldName] = value;
             }
         });
@@ -160,9 +162,7 @@ function OrderManagementPage() {
             cell: ({ row }) => {
                 const type = row.getValue('paymentType') as string;
                 return (
-                    <Badge className={getPaymentTypeColor(type)}>
-                        {type}
-                    </Badge>
+                    <Badge className={getPaymentTypeColor(type)}>{type}</Badge>
                 );
             },
         },
@@ -189,7 +189,9 @@ function OrderManagementPage() {
             header: 'Customer',
             cell: ({ row }) => (
                 <div>
-                    <div className="font-medium">{row.getValue('customerName')}</div>
+                    <div className="font-medium">
+                        {row.getValue('customerName')}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                         {row.original.customerPhone}
                     </div>
@@ -276,7 +278,10 @@ function OrderManagementPage() {
     ];
 
     // Handle pagination change
-    const handlePaginationChange = (newPageIndex: number, newPageSize: number) => {
+    const handlePaginationChange = (
+        newPageIndex: number,
+        newPageSize: number
+    ) => {
         setPageIndex(newPageIndex);
         setPageSize(newPageSize);
     };
@@ -315,46 +320,47 @@ function OrderManagementPage() {
 
     return (
         <div className="flex flex-col gap-4 lg:gap-6">
-
             <PageTitle
                 icon={ClipboardList}
                 title="Order Management"
                 left={
-                <Link href="/app/pos/tables">
-                    <Button>Go to POS</Button>
-                </Link>
+                    <Link href="/app/pos/tables">
+                        <Button>Go to POS</Button>
+                    </Link>
                 }
             />
-                    <DataTable
-                        columns={columns}
-                        data={data?.content || []}
-                        tableId="orders-table"
-                        pageIndex={pageIndex}
-                        pageSize={pageSize}
-                        total={data?.totalElements || 0}
-                        currentSorting={sorting}
-                        onPaginationChange={handlePaginationChange}
-                        onSortingChange={handleSortingChange}
-                        onFilterChange={handleFilterChange}
-                        onSearchChange={handleSearchChange}
-                        filterDefinitions={filterDefinitions}
-                        enableSearch={true}
-                        enableColumnVisibility={true}
-                        enableSorting={true}
-                        enablePinning={true}
-                        enableColumnOrdering={true}
-                        enableFiltering={true}
-                        enablePagination={true}
-                        enableExport={true}
-                        loading={isLoading}
-                    />
-                    </div>
+            <DataTable
+                columns={columns}
+                data={data?.content || []}
+                tableId="orders-table"
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                total={data?.totalElements || 0}
+                currentSorting={sorting}
+                onPaginationChange={handlePaginationChange}
+                onSortingChange={handleSortingChange}
+                onFilterChange={handleFilterChange}
+                onSearchChange={handleSearchChange}
+                filterDefinitions={filterDefinitions}
+                enableSearch={true}
+                enableColumnVisibility={true}
+                enableSorting={true}
+                enablePinning={true}
+                enableColumnOrdering={true}
+                enableFiltering={true}
+                enablePagination={true}
+                enableExport={true}
+                loading={isLoading}
+            />
+        </div>
     );
 }
 
 export default function OrderManagementPageWrapper() {
     return (
-        <ProtectedRoute requiredRoles={[Role.MANAGER, Role.CASHIER, Role.WAITER]}>
+        <ProtectedRoute
+            requiredRoles={[Role.MANAGER, Role.CASHIER, Role.WAITER]}
+        >
             <OrderManagementPage />
         </ProtectedRoute>
     );

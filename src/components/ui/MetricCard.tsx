@@ -22,7 +22,8 @@ export function MetricCard({
     isLoading,
     subtitle,
     trend,
-    formatPercentage = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`,
+    formatPercentage = (value: number) =>
+        `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`,
 }: MetricCardProps) {
     if (isLoading) {
         return (
@@ -71,7 +72,9 @@ export function MetricCard({
                     </p>
                 )}
                 {change !== undefined && (
-                    <div className={`text-xs flex items-center ${getTrendColor()} bg-gray-50 px-2 py-1 rounded-full`}>
+                    <div
+                        className={`text-xs flex items-center ${getTrendColor()} bg-gray-50 px-2 py-1 rounded-full`}
+                    >
                         {getTrendIcon()}
                         <span className="ml-1 font-medium">
                             {formatPercentage(change)} from previous period

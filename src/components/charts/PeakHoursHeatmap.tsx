@@ -30,18 +30,18 @@ export function PeakHoursHeatmap({
         );
     }
 
-    const maxOrders = Math.max(...data.map(d => d.orderCount || 0));
-    const minOrders = Math.min(...data.map(d => d.orderCount || 0));
+    const maxOrders = Math.max(...data.map((d) => d.orderCount || 0));
+    const minOrders = Math.min(...data.map((d) => d.orderCount || 0));
 
     // Create 24-hour timeline
     const hours24 = Array.from({ length: 24 }, (_, i) => {
-        const hourData = data.find(d => d.hour === i);
+        const hourData = data.find((d) => d.hour === i);
         return {
             hour: i,
             hourLabel: `${i.toString().padStart(2, '0')}:00`,
             orderCount: hourData?.orderCount || 0,
             percentage: hourData?.percentage || 0,
-            isPeakHour: i === peakHour
+            isPeakHour: i === peakHour,
         };
     });
 
@@ -59,32 +59,44 @@ export function PeakHoursHeatmap({
         <div className="space-y-6">
             {title && (
                 <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-700">{title}</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                        {title}
+                    </h4>
                     <div className="text-xs text-gray-500">
-                        Peak: {peakHour !== undefined ? `${peakHour}:00` : 'N/A'}
+                        Peak:{' '}
+                        {peakHour !== undefined ? `${peakHour}:00` : 'N/A'}
                     </div>
                 </div>
             )}
-            
+
             {/* Peak Hour Highlight */}
             {peakHour !== undefined && (
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <Clock className="h-5 w-5 text-orange-600" />
-                        <span className="text-lg font-bold text-orange-800">{peakHour}:00</span>
+                        <span className="text-lg font-bold text-orange-800">
+                            {peakHour}:00
+                        </span>
                     </div>
                     <div className="text-sm text-orange-700">
-                        Peak Hour - {data.find(d => d.hour === peakHour)?.orderCount || 0} orders
+                        Peak Hour -{' '}
+                        {data.find((d) => d.hour === peakHour)?.orderCount || 0}{' '}
+                        orders
                     </div>
                     <div className="text-xs text-orange-600">
-                        {data.find(d => d.hour === peakHour)?.percentage?.toFixed(1) || 0}% of daily orders
+                        {data
+                            .find((d) => d.hour === peakHour)
+                            ?.percentage?.toFixed(1) || 0}
+                        % of daily orders
                     </div>
                 </div>
             )}
-            
+
             {/* 24-Hour Heatmap */}
             <div className="space-y-4">
-                <div className="text-sm font-medium text-gray-700">24-Hour Activity Heatmap</div>
+                <div className="text-sm font-medium text-gray-700">
+                    24-Hour Activity Heatmap
+                </div>
                 <div className="grid grid-cols-12 gap-1">
                     {hours24.map((hour) => (
                         <div
@@ -98,31 +110,37 @@ export function PeakHoursHeatmap({
                             title={`${hour.hourLabel}: ${hour.orderCount} orders (${hour.percentage.toFixed(1)}%)`}
                         >
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className={`text-xs font-medium ${
-                                    hour.orderCount > maxOrders * 0.6 ? 'text-white' : 'text-gray-700'
-                                }`}>
+                                <span
+                                    className={`text-xs font-medium ${
+                                        hour.orderCount > maxOrders * 0.6
+                                            ? 'text-white'
+                                            : 'text-gray-700'
+                                    }`}
+                                >
                                     {hour.hour}
                                 </span>
                             </div>
-                            
+
                             {/* Tooltip */}
                             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                                <div className="font-medium">{hour.hourLabel}</div>
+                                <div className="font-medium">
+                                    {hour.hourLabel}
+                                </div>
                                 <div>{hour.orderCount} orders</div>
                                 <div>{hour.percentage.toFixed(1)}%</div>
                             </div>
                         </div>
                     ))}
                 </div>
-                
+
                 {/* Hour labels */}
                 <div className="grid grid-cols-12 gap-1 text-xs text-gray-500 text-center">
-                    {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map(hour => (
+                    {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map((hour) => (
                         <div key={hour}>{hour}h</div>
                     ))}
                 </div>
             </div>
-            
+
             {/* Intensity Legend */}
             <div className="flex items-center justify-center gap-2 text-xs">
                 <span className="text-gray-600">Low</span>
@@ -136,13 +154,18 @@ export function PeakHoursHeatmap({
                 </div>
                 <span className="text-gray-600">High</span>
             </div>
-            
+
             {/* Bar Chart for detailed view */}
             <div className="space-y-2">
-                <div className="text-sm font-medium text-gray-700">Hourly Orders Distribution</div>
+                <div className="text-sm font-medium text-gray-700">
+                    Hourly Orders Distribution
+                </div>
                 <div className="h-32 flex items-end gap-1">
                     {data.map((hour) => (
-                        <div key={hour.hour} className="flex-1 flex flex-col items-center group">
+                        <div
+                            key={hour.hour}
+                            className="flex-1 flex flex-col items-center group"
+                        >
                             <div
                                 className={`
                                     w-full transition-all duration-200 rounded-t
@@ -151,7 +174,8 @@ export function PeakHoursHeatmap({
                                 `}
                                 style={{
                                     height: `${maxOrders > 0 ? (hour.orderCount / maxOrders) * 100 : 0}%`,
-                                    minHeight: hour.orderCount > 0 ? '4px' : '0px'
+                                    minHeight:
+                                        hour.orderCount > 0 ? '4px' : '0px',
                                 }}
                             >
                                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">

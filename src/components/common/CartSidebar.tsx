@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 
 import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
+import { CheckoutModal } from '@/components/modals/CheckoutModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -227,6 +228,7 @@ function CartItemCard({
 
 export function CartSidebar() {
     const [isOpen, setIsOpen] = useState(false);
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
     const items = useCartStore((state) => state.items);
     const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -252,229 +254,243 @@ export function CartSidebar() {
     }, [isOpen, items.length, apiResponse, isCalculating, calculatePrices]);
 
     return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="relative">
-                    <ShoppingCart className="h-4 w-4" />
-                    {totalItems > 0 && (
-                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                            {totalItems}
-                        </Badge>
-                    )}
-                </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-lg">
-                <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2">
-                        <ShoppingCart className="h-5 w-5" />
-                        Your Cart ({totalItems} items)
-                    </SheetTitle>
-                </SheetHeader>
+        <>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="relative">
+                        <ShoppingCart className="h-4 w-4" />
+                        {totalItems > 0 && (
+                            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                                {totalItems}
+                            </Badge>
+                        )}
+                    </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-lg">
+                    <SheetHeader>
+                        <SheetTitle className="flex items-center gap-2">
+                            <ShoppingCart className="h-5 w-5" />
+                            Your Cart ({totalItems} items)
+                        </SheetTitle>
+                    </SheetHeader>
 
-                <div className="flex flex-col h-full mt-6">
-                    {items.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center">
-                                <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                    Your cart is empty
-                                </h3>
-                                <p className="text-gray-600">
-                                    Add some delicious items to get started!
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Recalculating notification */}
-                            {isCalculating && !apiResponse && (
-                                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <div className="flex items-center gap-2 text-blue-700 text-sm">
-                                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                        Recalculating prices...
-                                    </div>
+                    <div className="flex flex-col h-full mt-6">
+                        {items.length === 0 ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-center">
+                                    <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        Your cart is empty
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        Add some delicious items to get started!
+                                    </p>
                                 </div>
-                            )}
-
-                            {/* Cart Items */}
-                            <ScrollArea className="flex-1 -mx-6 px-6">
-                                {displayItems.length > 0 && apiResponse
-                                    ? // Show API response items with calculated prices
-                                      displayItems.map((item) => (
-                                          <CartItemCard
-                                              key={item.tempId}
-                                              item={item}
-                                              onUpdateQuantity={(
-                                                  itemId,
-                                                  quantity
-                                              ) => {
-                                                  // Find local item to update
-                                                  const localItem = items.find(
-                                                      (local) => {
-                                                          const localId =
-                                                              local.type ===
-                                                              'food_combo'
-                                                                  ? local.comboId
-                                                                  : local.type ===
-                                                                      'product_variant'
-                                                                    ? local.variantId
-                                                                    : local.productId;
-                                                          return (
-                                                              localId ===
-                                                                  item.id &&
-                                                              local.type.replace(
-                                                                  '_',
-                                                                  ''
-                                                              ) ===
-                                                                  item.type.replace(
-                                                                      '_',
-                                                                      ''
-                                                                  ) &&
-                                                              (local.notes ||
-                                                                  '') ===
-                                                                  (item.note ||
-                                                                      '')
-                                                          );
-                                                      }
-                                                  );
-                                                  if (localItem)
-                                                      updateQuantity(
-                                                          localItem.id,
-                                                          quantity
-                                                      );
-                                              }}
-                                              onRemove={(itemId) => {
-                                                  // Find local item to remove
-                                                  const localItem = items.find(
-                                                      (local) => {
-                                                          const localId =
-                                                              local.type ===
-                                                              'food_combo'
-                                                                  ? local.comboId
-                                                                  : local.type ===
-                                                                      'product_variant'
-                                                                    ? local.variantId
-                                                                    : local.productId;
-                                                          return (
-                                                              localId ===
-                                                                  item.id &&
-                                                              local.type.replace(
-                                                                  '_',
-                                                                  ''
-                                                              ) ===
-                                                                  item.type.replace(
-                                                                      '_',
-                                                                      ''
-                                                                  ) &&
-                                                              (local.notes ||
-                                                                  '') ===
-                                                                  (item.note ||
-                                                                      '')
-                                                          );
-                                                      }
-                                                  );
-                                                  if (localItem)
-                                                      removeItem(localItem.id);
-                                              }}
-                                              isFromApi={true}
-                                          />
-                                      ))
-                                    : // Fallback to local items
-                                      items.map((item) => (
-                                          <CartItemCard
-                                              key={item.id}
-                                              item={item}
-                                              onUpdateQuantity={updateQuantity}
-                                              onRemove={removeItem}
-                                              isFromApi={false}
-                                          />
-                                      ))}
-                            </ScrollArea>
-
-                            {/* Cart Summary */}
-                            <div className="border-t pt-4 mt-4">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>
-                                            Subtotal ({totalItems} items)
-                                            {apiResponse && (
-                                                <span className="inline-flex items-center gap-1 ml-2 text-green-600">
-                                                    <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
-                                                    Calculated
-                                                </span>
-                                            )}
-                                        </span>
-                                        <span>
-                                            {isCalculating ? (
-                                                <span className="text-muted-foreground">
-                                                    Calculating...
-                                                </span>
-                                            ) : (
-                                                formatVietnameseCurrency(
-                                                    totalPrice
-                                                )
-                                            )}
-                                        </span>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Recalculating notification */}
+                                {isCalculating && !apiResponse && (
+                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <div className="flex items-center gap-2 text-blue-700 text-sm">
+                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            Recalculating prices...
+                                        </div>
                                     </div>
-                                    {apiResponse?.totalPromotion && (
-                                        <div className="flex justify-between text-sm text-green-600">
-                                            <span>Promotion Discount</span>
+                                )}
+
+                                {/* Cart Items */}
+                                <ScrollArea className="flex-1 -mx-6 px-6">
+                                    {displayItems.length > 0 && apiResponse
+                                        ? // Show API response items with calculated prices
+                                          displayItems.map((item) => (
+                                              <CartItemCard
+                                                  key={item.tempId}
+                                                  item={item}
+                                                  onUpdateQuantity={(
+                                                      itemId,
+                                                      quantity
+                                                  ) => {
+                                                      // Find local item to update
+                                                      const localItem =
+                                                          items.find(
+                                                              (local) => {
+                                                                  const localId =
+                                                                      local.type ===
+                                                                      'food_combo'
+                                                                          ? local.comboId
+                                                                          : local.type ===
+                                                                              'product_variant'
+                                                                            ? local.variantId
+                                                                            : local.productId;
+                                                                  return (
+                                                                      localId ===
+                                                                          item.id &&
+                                                                      local.type.replace(
+                                                                          '_',
+                                                                          ''
+                                                                      ) ===
+                                                                          item.type.replace(
+                                                                              '_',
+                                                                              ''
+                                                                          ) &&
+                                                                      (local.notes ||
+                                                                          '') ===
+                                                                          (item.note ||
+                                                                              '')
+                                                                  );
+                                                              }
+                                                          );
+                                                      if (localItem)
+                                                          updateQuantity(
+                                                              localItem.id,
+                                                              quantity
+                                                          );
+                                                  }}
+                                                  onRemove={(itemId) => {
+                                                      // Find local item to remove
+                                                      const localItem =
+                                                          items.find(
+                                                              (local) => {
+                                                                  const localId =
+                                                                      local.type ===
+                                                                      'food_combo'
+                                                                          ? local.comboId
+                                                                          : local.type ===
+                                                                              'product_variant'
+                                                                            ? local.variantId
+                                                                            : local.productId;
+                                                                  return (
+                                                                      localId ===
+                                                                          item.id &&
+                                                                      local.type.replace(
+                                                                          '_',
+                                                                          ''
+                                                                      ) ===
+                                                                          item.type.replace(
+                                                                              '_',
+                                                                              ''
+                                                                          ) &&
+                                                                      (local.notes ||
+                                                                          '') ===
+                                                                          (item.note ||
+                                                                              '')
+                                                                  );
+                                                              }
+                                                          );
+                                                      if (localItem)
+                                                          removeItem(
+                                                              localItem.id
+                                                          );
+                                                  }}
+                                                  isFromApi={true}
+                                              />
+                                          ))
+                                        : // Fallback to local items
+                                          items.map((item) => (
+                                              <CartItemCard
+                                                  key={item.id}
+                                                  item={item}
+                                                  onUpdateQuantity={
+                                                      updateQuantity
+                                                  }
+                                                  onRemove={removeItem}
+                                                  isFromApi={false}
+                                              />
+                                          ))}
+                                </ScrollArea>
+
+                                {/* Cart Summary */}
+                                <div className="border-t pt-4 mt-4">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
                                             <span>
-                                                -
-                                                {formatVietnameseCurrency(
-                                                    apiResponse.total -
-                                                        apiResponse.totalPromotion
+                                                Subtotal ({totalItems} items)
+                                                {apiResponse && (
+                                                    <span className="inline-flex items-center gap-1 ml-2 text-green-600">
+                                                        <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
+                                                        Calculated
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span>
+                                                {isCalculating ? (
+                                                    <span className="text-muted-foreground">
+                                                        Calculating...
+                                                    </span>
+                                                ) : (
+                                                    formatVietnameseCurrency(
+                                                        totalPrice
+                                                    )
                                                 )}
                                             </span>
                                         </div>
-                                    )}
-                                    <div className="flex justify-between text-sm">
-                                        <span>Delivery Fee</span>
-                                        <span>Free</span>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between text-lg font-semibold">
-                                        <span>Total</span>
-                                        <span className="text-orange-600">
-                                            {isCalculating ? (
-                                                <span className="text-muted-foreground">
-                                                    Calculating...
+                                        {apiResponse?.totalPromotion && (
+                                            <div className="flex justify-between text-sm text-green-600">
+                                                <span>Promotion Discount</span>
+                                                <span>
+                                                    -
+                                                    {formatVietnameseCurrency(
+                                                        apiResponse.total -
+                                                            apiResponse.totalPromotion
+                                                    )}
                                                 </span>
-                                            ) : (
-                                                formatVietnameseCurrency(
-                                                    apiResponse?.totalPromotion ||
-                                                        totalPrice
-                                                )
-                                            )}
-                                        </span>
+                                            </div>
+                                        )}
+
+                                        <Separator />
+                                        <div className="flex justify-between text-lg font-semibold">
+                                            <span>Total</span>
+                                            <span className="text-orange-600">
+                                                {isCalculating ? (
+                                                    <span className="text-muted-foreground">
+                                                        Calculating...
+                                                    </span>
+                                                ) : (
+                                                    formatVietnameseCurrency(
+                                                        apiResponse?.totalPromotion ||
+                                                            totalPrice
+                                                    )
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="space-y-2 mt-4">
+                                        <Button
+                                            className="w-full bg-orange-500 hover:bg-orange-600"
+                                            disabled={
+                                                isCalculating ||
+                                                totalItems === 0
+                                            }
+                                            onClick={() =>
+                                                setIsCheckoutOpen(true)
+                                            }
+                                        >
+                                            {isCalculating
+                                                ? 'Calculating...'
+                                                : 'Proceed to Checkout'}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            onClick={clearCart}
+                                        >
+                                            Clear Cart
+                                        </Button>
                                     </div>
                                 </div>
+                            </>
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
 
-                                {/* Action Buttons */}
-                                <div className="space-y-2 mt-4">
-                                    <Button
-                                        className="w-full bg-orange-500 hover:bg-orange-600"
-                                        disabled={
-                                            isCalculating || totalItems === 0
-                                        }
-                                    >
-                                        {isCalculating
-                                            ? 'Calculating...'
-                                            : 'Proceed to Checkout'}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={clearCart}
-                                    >
-                                        Clear Cart
-                                    </Button>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </SheetContent>
-        </Sheet>
+            <CheckoutModal
+                isOpen={isCheckoutOpen}
+                onClose={() => setIsCheckoutOpen(false)}
+            />
+        </>
     );
 }
