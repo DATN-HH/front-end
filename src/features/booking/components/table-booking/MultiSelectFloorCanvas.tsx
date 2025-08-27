@@ -20,6 +20,7 @@ interface FloorCanvasProps {
     selectedTables: TableResponse[];
     onTableSelect: (tables: TableResponse[]) => void;
     selectableTables?: number[]; // Array of table IDs that can be selected
+    onTableAvailabilityClick?: (table: TableResponse) => void; // New prop for availability modal
 }
 
 export function MultiSelectFloorCanvas({
@@ -28,6 +29,7 @@ export function MultiSelectFloorCanvas({
     selectedTables,
     onTableSelect,
     selectableTables,
+    onTableAvailabilityClick,
 }: FloorCanvasProps) {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
@@ -132,20 +134,48 @@ export function MultiSelectFloorCanvas({
         return Math.round(ratio * size);
     };
 
+    const [lastClickTime, setLastClickTime] = useState<number>(0);
+    const [lastClickedTableId, setLastClickedTableId] = useState<number | null>(
+        null
+    );
+
     const handleTableClick = (
         table: TableResponse,
         event: React.MouseEvent
     ) => {
         event.stopPropagation();
 
-        // Check if table is selectable
-        if (selectableTables && !selectableTables.includes(table.id)) {
-            return; // Don't allow selection of unavailable tables
+        const isSelectable = selectableTables
+            ? selectableTables.includes(table.id)
+            : true;
+        const isSelected = selectedTables.some((t) => t.id === table.id);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastClickTime;
+
+        // If table is not selectable, always show availability modal
+        if (!isSelectable) {
+            if (onTableAvailabilityClick) {
+                onTableAvailabilityClick(table);
+            }
+            return;
         }
 
-        const isSelected = selectedTables.some((t) => t.id === table.id);
+        // Check for double click on the same table (within 300ms)
+        if (
+            lastClickedTableId === table.id &&
+            timeDiff < 300 &&
+            onTableAvailabilityClick
+        ) {
+            // Double click detected - show availability modal
+            onTableAvailabilityClick(table);
+            return;
+        }
 
-        // Default multi-select mode - toggle table selection
+        // Update click tracking
+        setLastClickTime(currentTime);
+        setLastClickedTableId(table.id);
+
+        // Single click on selectable table - toggle selection
         if (isSelected) {
             // Remove from selection
             onTableSelect(selectedTables.filter((t) => t.id !== table.id));
@@ -219,6 +249,8 @@ export function MultiSelectFloorCanvas({
                                     onClick={(e) => handleTableClick(table, e)}
                                     isDragging={false}
                                     unable={!isSelectable}
+                                    modeView="booking"
+                                    isSelectable={isSelectable}
                                 />
                             </Rnd>
                         );
@@ -239,17 +271,22 @@ export function MultiSelectFloorCanvas({
                 )}
             </div>
 
-            {/* Selection info - only show when table is selected */}
-            {selectedTables.length > 0 && (
-                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded max-w-48">
-                    {selectedTables.length} table
-                    {selectedTables.length > 1 ? 's' : ''} selected
+            {/* Selection info */}
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded max-w-56">
+                {selectedTables.length > 0 ? (
+                    <>
+                        {selectedTables.length} table
+                        {selectedTables.length > 1 ? 's' : ''} selected
+                        <br />
+                    </>
+                ) : null}
+                <span className="opacity-75">
+                    Click available tables to select
                     <br />
-                    <span className="opacity-75">
-                        Click tables to add/remove from selection
-                    </span>
-                </div>
-            )}
+                    {onTableAvailabilityClick &&
+                        'Double-click available or click unavailable tables for availability'}
+                </span>
+            </div>
         </div>
     );
 }

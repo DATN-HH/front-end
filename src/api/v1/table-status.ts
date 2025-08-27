@@ -47,6 +47,33 @@ export interface FloorTablesResponse {
     availableTablesList: AvailableTable[];
 }
 
+// Single Table Daily Status Types
+export interface SingleTableDailyRequest {
+    tableId: number;
+    date: string; // YYYY-MM-DD format
+}
+
+export interface HourlyTableStatus {
+    hour: number; // 0-23
+    status: TableStatus;
+    statusMessage: string;
+    timeSlotStart: string; // ISO datetime
+    timeSlotEnd: string; // ISO datetime
+    bookingId?: number | null;
+    customerName?: string | null;
+    customerPhone?: string | null;
+}
+
+export interface SingleTableDailyResponse {
+    tableId: number;
+    tableName: string;
+    tableType: string;
+    floorName: string;
+    capacity: number;
+    requestedDate: string; // YYYY-MM-DD
+    hourlyStatuses: HourlyTableStatus[];
+}
+
 // API Functions
 export const tableStatusService = {
     // Get floor tables status
@@ -66,9 +93,27 @@ export const tableStatusService = {
             );
         }
     },
+
+    // Get single table daily status
+    async getSingleTableDailyStatus(
+        request: SingleTableDailyRequest
+    ): Promise<BaseResponse<SingleTableDailyResponse>> {
+        try {
+            const response = await apiClient.post(
+                '/table-status/single-table-daily',
+                request
+            );
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                error.response?.data?.message ||
+                    'Failed to fetch single table daily status'
+            );
+        }
+    },
 };
 
-// // React Query Hooks
+// React Query Hooks
 export function useFloorTablesStatus(
     floorId: number,
     dateTime: string,
@@ -87,5 +132,23 @@ export function useFloorTablesStatus(
         staleTime: 5000, // 5 seconds - data is fresh for 5 seconds
         refetchInterval: 5000, // Refetch every 5 seconds
         refetchIntervalInBackground: false, // Only poll when tab is active
+    });
+}
+
+export function useSingleTableDailyStatus(
+    tableId: number,
+    date: string,
+    enabled: boolean = true
+) {
+    return useQuery({
+        queryKey: ['single-table-daily-status', tableId, date],
+        queryFn: () =>
+            tableStatusService.getSingleTableDailyStatus({
+                tableId,
+                date,
+            }),
+        enabled: enabled && !!tableId && !!date,
+        staleTime: 60000, // 1 minute - table daily status is relatively static
+        refetchOnWindowFocus: false,
     });
 }

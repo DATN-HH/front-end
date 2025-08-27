@@ -18,6 +18,7 @@ import {
 import { formatCurrency } from '@/api/v1/table-types';
 import { useTablesByFloor, TableResponse } from '@/api/v1/tables';
 import { WaitlistResponseDto } from '@/api/v1/waitlist';
+import { TableAvailabilityModal } from '@/components/modals/TableAvailabilityModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -92,6 +93,11 @@ export default function TableBookingPage() {
     const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
     const [selectedWaitlist, setSelectedWaitlist] =
         useState<WaitlistResponseDto | null>(null);
+
+    // Table availability modal state
+    const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+    const [selectedTableForAvailability, setSelectedTableForAvailability] =
+        useState<TableResponse | null>(null);
 
     // Toast hook
     const { success, error } = useCustomToast();
@@ -284,6 +290,11 @@ export default function TableBookingPage() {
         setSelectedWaitlist(waitlist);
     }, []);
 
+    const handleTableAvailabilityClick = useCallback((table: TableResponse) => {
+        setSelectedTableForAvailability(table);
+        setShowAvailabilityModal(true);
+    }, []);
+
     const selectedBranchData = useMemo(() => {
         return branches.find((b) => b.id === selectedBranch);
     }, [branches, selectedBranch]);
@@ -327,9 +338,16 @@ export default function TableBookingPage() {
                 selectedTables={selectedTables}
                 onTableSelect={handleTableSelect}
                 selectableTables={selectableTables}
+                onTableAvailabilityClick={handleTableAvailabilityClick}
             />
         );
-    }, [floorData, selectedTables, selectableTables, handleTableSelect]);
+    }, [
+        floorData,
+        selectedTables,
+        selectableTables,
+        handleTableSelect,
+        handleTableAvailabilityClick,
+    ]);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -668,6 +686,18 @@ export default function TableBookingPage() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Table Availability Modal */}
+            <TableAvailabilityModal
+                isOpen={showAvailabilityModal}
+                onClose={() => {
+                    setShowAvailabilityModal(false);
+                    setSelectedTableForAvailability(null);
+                }}
+                tableId={selectedTableForAvailability?.id || null}
+                tableName={selectedTableForAvailability?.tableName || ''}
+                selectedDate={selectedDate}
+            />
         </div>
     );
 }

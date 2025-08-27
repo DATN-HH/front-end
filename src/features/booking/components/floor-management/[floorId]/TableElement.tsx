@@ -56,10 +56,11 @@ export function TableElement({
             table.occupancyDetails?.occupationType === 'UPCOMING_BOOKING';
         const isAnyBooking = isBookingTable || isUpcomingBooking;
 
-        // Force booking tables to be clickable in booking mode
+        // In booking mode, all tables should be clickable for availability viewing
+        // In edit mode, only selectable and not unable tables are clickable
         const shouldAllowClick =
             modeView === 'booking'
-                ? isAnyBooking || (isSelectable && !unable)
+                ? true // All tables clickable in booking mode
                 : isSelectable && !unable;
 
         // Keep original table type color, only gray out when unable and not a clickable booking
@@ -75,11 +76,11 @@ export function TableElement({
             ${shouldAllowClick ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
             ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
             ${isDragging ? 'opacity-80' : shouldAllowClick ? 'hover:opacity-90' : ''}
-            ${unable && !(modeView === 'booking' && isAnyBooking) ? 'grayscale' : ''}
+            ${unable && modeView !== 'booking' ? 'grayscale' : unable && modeView === 'booking' ? 'opacity-75' : ''}
         `;
 
         const content = (
-            <div className="text-center">
+            <div className="text-center relative">
                 <div className="flex items-center justify-center gap-1 mb-1">
                     <span className="hidden sm:block">{icon}</span>
                     <span className="text-xs sm:text-xs md:text-sm lg:text-xs xl:text-sm font-semibold truncate px-1">
@@ -89,13 +90,27 @@ export function TableElement({
                 <div className="text-xs sm:text-xs md:text-sm lg:text-xs xl:text-sm opacity-90 hidden sm:block">
                     {table.capacity} seats
                 </div>
+                {/* Clock icon hint for unavailable tables in booking mode */}
+                {unable && modeView === 'booking' && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg
+                            className="w-2 h-2 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12,6 12,12 16,14" />
+                        </svg>
+                    </div>
+                )}
             </div>
         );
 
-        // Always allow click for any booking tables in booking mode, regardless of other conditions
+        // Allow click for all tables in booking mode, otherwise follow shouldAllowClick
         const handleClick =
-            modeView === 'booking' && isAnyBooking
-                ? onClick
+            modeView === 'booking'
+                ? onClick // All tables clickable in booking mode
                 : shouldAllowClick
                   ? onClick
                   : undefined;
