@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
+import { useBranches } from '@/api/v1/branches';
 import {
     useSalesStatistics,
     useOrderMetrics,
@@ -39,16 +40,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MetricCard } from '@/components/ui/MetricCard';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 
 // Import components and utilities
 import { formatCurrency, formatPercentage } from '@/utils/formatters';
@@ -156,6 +149,10 @@ function RestaurantDashboard() {
     >('DAY');
     const [orderType, setOrderType] = useState<string>('ALL');
     const [paymentType, setPaymentType] = useState<string>('ALL');
+    const [branchId, setBranchId] = useState<string>('ALL');
+
+    // Fetch branches for dropdown
+    const { data: branches } = useBranches();
 
     // API parameters based on user selections
     const apiParams: SalesStatisticsRequest = useMemo(() => {
@@ -165,19 +162,24 @@ function RestaurantDashboard() {
             timePeriod,
         };
 
-        if (orderType && orderType !== 'ALL')
-            params.orderType = orderType as any;
-        if (paymentType && paymentType !== 'ALL')
-            params.paymentType = paymentType as any;
+        if (orderType && orderType !== 'ALL') {
+            params.orderType = orderType as 'DINE_IN' | 'TAKEOUT' | 'DELIVERY';
+        }
+        if (paymentType && paymentType !== 'ALL') {
+            params.paymentType = paymentType as 'CASH' | 'BANKING';
+        }
+        if (branchId && branchId !== 'ALL') {
+            params.branchId = parseInt(branchId);
+        }
 
         return params;
-    }, [startDate, endDate, timePeriod, orderType, paymentType]);
+    }, [startDate, endDate, timePeriod, orderType, paymentType, branchId]);
 
     // Previous period for comparison
     const prevApiParams: SalesStatisticsRequest = useMemo(() => {
         const daysDiff = Math.ceil(
             (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-                (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         );
         const prevEndDate = format(
             subDays(new Date(startDate), 1),
@@ -333,90 +335,81 @@ function RestaurantDashboard() {
                         <Filter className="h-5 w-5 text-orange-500" />
                         Filters & Date Range
                     </CardTitle>
-                    <CardDescription>
-                        Customize your dashboard view with date ranges and
-                        filters
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {/* Quick Date Presets */}
-                    <div>
-                        <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                            Quick Date Ranges
-                        </Label>
-                        <div className="flex flex-wrap gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('today')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                <Calendar className="h-3 w-3 mr-1" />
-                                Today
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('yesterday')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                Yesterday
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('last7days')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                Last 7 Days
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('last30days')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                Last 30 Days
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('thisMonth')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                This Month
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDateRange('lastMonth')}
-                                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
-                            >
-                                Last Month
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleRefresh}
-                                disabled={isLoading}
-                                className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                ) : (
-                                    <RefreshCw className="h-3 w-3 mr-1" />
-                                )}
-                                Refresh
-                            </Button>
-                        </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('today')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Today
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('yesterday')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            Yesterday
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('last7days')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            Last 7 Days
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('last30days')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            Last 30 Days
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('thisMonth')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            This Month
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDateRange('lastMonth')}
+                            className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                        >
+                            Last Month
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRefresh}
+                            disabled={isLoading}
+                            className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                            )}
+                            Refresh
+                        </Button>
                     </div>
 
                     {/* Custom Date Range and Filters */}
-                    <div>
+                    {/* <div>
                         <Label className="text-sm font-medium text-gray-700 mb-3 block">
                             Custom Filters
                         </Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="startDate">Start Date</Label>
                                 <Input
@@ -436,30 +429,6 @@ function RestaurantDashboard() {
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                 />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="timePeriod">Time Period</Label>
-                                <Select
-                                    value={timePeriod}
-                                    onValueChange={(value: any) =>
-                                        setTimePeriod(value)
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="DAY">
-                                            Daily
-                                        </SelectItem>
-                                        <SelectItem value="WEEK">
-                                            Weekly
-                                        </SelectItem>
-                                        <SelectItem value="MONTH">
-                                            Monthly
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="orderType">Order Type</Label>
@@ -487,34 +456,31 @@ function RestaurantDashboard() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="paymentType">
-                                    Payment Type
-                                </Label>
+                                <Label htmlFor="branchId">Branch</Label>
                                 <Select
-                                    value={paymentType}
-                                    onValueChange={setPaymentType}
+                                    value={branchId}
+                                    onValueChange={setBranchId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ALL">
-                                            All Types
+                                            All Branches
                                         </SelectItem>
-                                        <SelectItem value="CASH">
-                                            Cash
-                                        </SelectItem>
-                                        <SelectItem value="CARD">
-                                            Card
-                                        </SelectItem>
-                                        <SelectItem value="DIGITAL_WALLET">
-                                            Digital Wallet
-                                        </SelectItem>
+                                        {branches?.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={branch.id.toString()}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </CardContent>
             </Card>
 
@@ -552,8 +518,8 @@ function RestaurantDashboard() {
                         isLoading
                             ? '...'
                             : formatCurrency(
-                                  orderMetrics?.averageOrderValue ?? 0
-                              )
+                                orderMetrics?.averageOrderValue ?? 0
+                            )
                     }
                     change={avgOrderValueChange}
                     icon={TrendingUp}

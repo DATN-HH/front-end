@@ -1,7 +1,35 @@
 'use client';
 
-import { format } from 'date-fns';
+// Thay thế date-fns bằng hàm format đơn giản
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+    ];
+    return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}`;
+};
 import { ShoppingCart } from 'lucide-react';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from 'recharts';
 
 interface StackedOrderChartProps {
     data: Array<{
@@ -27,7 +55,44 @@ export function StackedOrderChart({ data, title }: StackedOrderChartProps) {
         );
     }
 
-    const maxTotal = Math.max(...data.map((d) => d.totalOrders || 0));
+    // Format dữ liệu cho Recharts
+    const chartData = data.map((item) => ({
+        ...item,
+        formattedPeriod: formatDate(item.period),
+    }));
+
+    // Custom tooltip
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload?.length) {
+            const total = payload.reduce(
+                (sum: number, item: any) => sum + item.value,
+                0
+            );
+
+            return (
+                <div className="bg-gray-900 text-white p-3 rounded-lg shadow-lg border">
+                    <p className="font-semibold mb-2">{label}</p>
+                    <p className="text-sm mb-1">
+                        <span className="font-medium">
+                            Total: {total} orders
+                        </span>
+                    </p>
+                    {payload.map((entry: any, index: number) => (
+                        <p
+                            key={index}
+                            className="text-sm"
+                            style={{ color: entry.color }}
+                        >
+                            <span className="font-medium">
+                                {entry.name}: {entry.value}
+                            </span>
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <div className="space-y-4">
@@ -36,110 +101,58 @@ export function StackedOrderChart({ data, title }: StackedOrderChartProps) {
                     <h4 className="text-sm font-medium text-gray-700">
                         {title}
                     </h4>
-                    <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                            <span>Dine-in</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                            <span>Takeout</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 bg-green-500 rounded"></div>
-                            <span>Delivery</span>
-                        </div>
-                    </div>
                 </div>
             )}
 
-            <div className="relative h-64 w-full bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border">
-                <div className="flex items-end justify-between h-full gap-2">
-                    {data.map((item, index) => {
-                        const dineInHeight =
-                            maxTotal > 0
-                                ? (item.dineInOrders / maxTotal) * 100
-                                : 0;
-                        const takeoutHeight =
-                            maxTotal > 0
-                                ? (item.takeoutOrders / maxTotal) * 100
-                                : 0;
-                        const deliveryHeight =
-                            maxTotal > 0
-                                ? (item.deliveryOrders / maxTotal) * 100
-                                : 0;
+            <div className="h-80 w-full bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                        data={chartData}
+                        margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis
+                            dataKey="formattedPeriod"
+                            tick={{ fontSize: 12, fill: '#666' }}
+                            axisLine={{ stroke: '#e0e0e0' }}
+                        />
+                        <YAxis
+                            tick={{ fontSize: 12, fill: '#666' }}
+                            axisLine={{ stroke: '#e0e0e0' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend
+                            wrapperStyle={{ paddingTop: '20px' }}
+                            iconType="rect"
+                        />
 
-                        return (
-                            <div
-                                key={index}
-                                className="flex flex-col items-center gap-2 flex-1 group"
-                            >
-                                <div
-                                    className="relative w-full flex flex-col"
-                                    style={{ height: '200px' }}
-                                >
-                                    {/* Delivery (top) */}
-                                    {deliveryHeight > 0 && (
-                                        <div
-                                            className="bg-green-500 w-full transition-all duration-300 hover:bg-green-600 relative group/delivery"
-                                            style={{
-                                                height: `${deliveryHeight}%`,
-                                            }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/delivery:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                                Delivery: {item.deliveryOrders}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Takeout (middle) */}
-                                    {takeoutHeight > 0 && (
-                                        <div
-                                            className="bg-blue-500 w-full transition-all duration-300 hover:bg-blue-600 relative group/takeout"
-                                            style={{
-                                                height: `${takeoutHeight}%`,
-                                            }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/takeout:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                                Takeout: {item.takeoutOrders}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Dine-in (bottom) */}
-                                    {dineInHeight > 0 && (
-                                        <div
-                                            className="bg-orange-500 w-full rounded-b transition-all duration-300 hover:bg-orange-600 relative group/dinein"
-                                            style={{
-                                                height: `${dineInHeight}%`,
-                                            }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-orange-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/dinein:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                                Dine-in: {item.dineInOrders}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Total tooltip */}
-                                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                                        Total: {item.totalOrders} orders
-                                    </div>
-                                </div>
-
-                                <span className="text-xs text-muted-foreground font-medium">
-                                    {format(new Date(item.period), 'MMM dd')}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 -ml-8">
-                    <span>{maxTotal}</span>
-                    <span>{Math.round(maxTotal / 2)}</span>
-                    <span>0</span>
-                </div>
+                        <Bar
+                            dataKey="dineInOrders"
+                            stackId="orders"
+                            fill="#f97316"
+                            name="Dine-in"
+                            radius={[0, 0, 4, 4]}
+                        />
+                        <Bar
+                            dataKey="takeoutOrders"
+                            stackId="orders"
+                            fill="#3b82f6"
+                            name="Takeout"
+                        />
+                        <Bar
+                            dataKey="deliveryOrders"
+                            stackId="orders"
+                            fill="#10b981"
+                            name="Delivery"
+                            radius={[4, 4, 0, 0]}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
             </div>
 
             {/* Summary stats */}

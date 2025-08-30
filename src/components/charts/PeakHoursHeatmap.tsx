@@ -156,7 +156,7 @@ export function PeakHoursHeatmap({
             </div>
 
             {/* Bar Chart for detailed view */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
                 <div className="text-sm font-medium text-gray-700">
                     Hourly Orders Distribution
                 </div>
@@ -185,7 +185,7 @@ export function PeakHoursHeatmap({
                         </div>
                     ))}
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }
