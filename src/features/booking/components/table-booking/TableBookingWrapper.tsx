@@ -477,7 +477,6 @@ export default function TableBookingWrapper({
                             selectedTables={selectedTables}
                             selectedDate={selectedDate}
                             onBookingDataChange={handleBookingDataChange}
-                            onSubmit={handleSubmit}
                             isSubmitting={
                                 mode === 'admin'
                                     ? createAdminBookingMutation.isPending

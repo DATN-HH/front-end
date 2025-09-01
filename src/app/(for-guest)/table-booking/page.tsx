@@ -220,20 +220,7 @@ export default function TableBookingPage() {
 
     const handleTableSelect = useCallback((tables: TableResponse[]) => {
         setSelectedTables(tables);
-        const tableIds = tables.map((t) => t.id);
-        const maxCapacity = tables.reduce(
-            (sum, table) => sum + table.capacity,
-            0
-        );
-
-        setBookingData((prev) => ({
-            ...prev,
-            tableIds,
-            guests:
-                maxCapacity > 0
-                    ? Math.min(prev.guests, maxCapacity)
-                    : prev.guests,
-        }));
+        // Remove booking data update - let useEffect handle it
     }, []);
 
     const handleSubmit = useCallback(
@@ -345,10 +332,14 @@ export default function TableBookingPage() {
     }, []);
 
     const handleDateTimeSelect = useCallback(
-        (selectedDateStr: string, selectedHour: number, tableId: number) => {
+        (
+            selectedDateStr: string,
+            selectedHourParam: number,
+            tableId: number
+        ) => {
             // Update date and hour
             setSelectedDate(selectedDateStr);
-            setSelectedHour(selectedHour);
+            setSelectedHour(selectedHourParam);
 
             // Update booking data with new date/time
             const [year, month, day] = selectedDateStr.split('-').map(Number);
@@ -356,7 +347,7 @@ export default function TableBookingPage() {
                 year,
                 month - 1,
                 day,
-                selectedHour,
+                selectedHourParam,
                 0,
                 0,
                 0
@@ -380,21 +371,7 @@ export default function TableBookingPage() {
                         tableToSelect,
                     ];
                     setSelectedTables(newSelectedTables);
-
-                    const newTableIds = newSelectedTables.map((t) => t.id);
-                    const newCapacity = newSelectedTables.reduce(
-                        (sum, t) => sum + t.capacity,
-                        0
-                    );
-
-                    setBookingData((prev) => ({
-                        ...prev,
-                        tableIds: newTableIds,
-                        guests:
-                            newCapacity > 0
-                                ? Math.min(prev.guests, newCapacity)
-                                : prev.guests,
-                    }));
+                    // Remove booking data update for tableIds and guests - let useEffect handle it
                 }
             }
         },
@@ -410,6 +387,42 @@ export default function TableBookingPage() {
             selectableTables?.length === 0
         );
     }, [floorTablesStatus, selectedDate, selectedFloor, selectableTables]);
+
+    // Auto-remove unselectable tables from selectedTables
+    useEffect(() => {
+        if (selectableTables) {
+            setSelectedTables((prevSelectedTables) => {
+                const filteredTables = prevSelectedTables.filter((table) =>
+                    selectableTables.includes(table.id)
+                );
+
+                // Only return new array if there's a difference
+                if (filteredTables.length !== prevSelectedTables.length) {
+                    return filteredTables;
+                } else {
+                    return prevSelectedTables; // No change needed
+                }
+            });
+        }
+    }, [selectableTables]);
+
+    // Update booking data when selectedTables change
+    useEffect(() => {
+        const newTableIds = selectedTables.map((t) => t.id);
+        const newCapacity = selectedTables.reduce(
+            (sum, t) => sum + t.capacity,
+            0
+        );
+
+        setBookingData((prev) => ({
+            ...prev,
+            tableIds: newTableIds,
+            guests:
+                newCapacity > 0
+                    ? Math.min(prev.guests, newCapacity)
+                    : prev.guests,
+        }));
+    }, [selectedTables]);
 
     // Enhanced FloorCanvas that uses table status
     const floorCanvas = useMemo(() => {

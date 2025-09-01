@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 
 import { TableResponse } from '@/api/v1/tables';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -162,15 +161,13 @@ export function BookingForm({
                             id="customerEmail"
                             type="email"
                             placeholder="Enter email address"
-                            value={
-                                bookingData.customerEmail || 'temp@gmail.com'
-                            }
+                            value={bookingData.customerEmail}
                             onChange={(e) =>
                                 onBookingDataChange({
                                     customerEmail: e.target.value,
                                 })
                             }
-                            required={true}
+                            required={isEmailRequired}
                         />
                     </div>
 

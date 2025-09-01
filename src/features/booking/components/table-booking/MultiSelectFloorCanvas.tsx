@@ -167,8 +167,8 @@ export function MultiSelectFloorCanvas({
     };
 
     const handleCanvasClick = () => {
-        // Clear all selections when clicking on empty canvas
-        onTableSelect([]);
+        // Don't clear selections when clicking on empty canvas in booking mode
+        // Keep user selections intact for better UX
     };
 
     return (
@@ -296,7 +296,7 @@ export function MultiSelectFloorCanvas({
                 <span className="opacity-75">
                     Click available tables to select
                     <br />
-                    Click orange eye icon (outside table) for availability
+                    Click EYE ICON for availability
                 </span>
             </div>
         </div>

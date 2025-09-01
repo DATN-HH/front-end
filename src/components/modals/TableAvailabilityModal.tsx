@@ -5,10 +5,8 @@ import {
     Clock,
     Users,
     MapPin,
-    Calendar,
     CheckCircle,
     XCircle,
-    AlertTriangle,
     Loader2,
     ChevronLeft,
     ChevronRight,
@@ -29,7 +27,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
 interface TableAvailabilityModalProps {
@@ -78,7 +75,7 @@ const getStatusInfo = (status: TableStatus) => {
 };
 
 const formatHour = (hour: number) => {
-    return hour.toString().padStart(2, '0') + ':00';
+    return `${hour.toString().padStart(2, '0')}:00`;
 };
 
 // Generate time slots from 6:00 to 23:00

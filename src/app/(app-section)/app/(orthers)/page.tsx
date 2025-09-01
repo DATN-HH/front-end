@@ -40,7 +40,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { MetricCard } from '@/components/ui/MetricCard';
 
 // Import components and utilities
