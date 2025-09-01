@@ -148,32 +148,13 @@ export function MultiSelectFloorCanvas({
         const isSelectable = selectableTables
             ? selectableTables.includes(table.id)
             : true;
-        const isSelected = selectedTables.some((t) => t.id === table.id);
-        const currentTime = Date.now();
-        const timeDiff = currentTime - lastClickTime;
 
-        // If table is not selectable, always show availability modal
+        // If table is not selectable, do nothing on regular click
         if (!isSelectable) {
-            if (onTableAvailabilityClick) {
-                onTableAvailabilityClick(table);
-            }
             return;
         }
 
-        // Check for double click on the same table (within 300ms)
-        if (
-            lastClickedTableId === table.id &&
-            timeDiff < 300 &&
-            onTableAvailabilityClick
-        ) {
-            // Double click detected - show availability modal
-            onTableAvailabilityClick(table);
-            return;
-        }
-
-        // Update click tracking
-        setLastClickTime(currentTime);
-        setLastClickedTableId(table.id);
+        const isSelected = selectedTables.some((t) => t.id === table.id);
 
         // Single click on selectable table - toggle selection
         if (isSelected) {
@@ -251,6 +232,12 @@ export function MultiSelectFloorCanvas({
                                     unable={!isSelectable}
                                     modeView="booking"
                                     isSelectable={isSelectable}
+                                    onAvailabilityClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onTableAvailabilityClick) {
+                                            onTableAvailabilityClick(table);
+                                        }
+                                    }}
                                 />
                             </Rnd>
                         );
@@ -283,8 +270,7 @@ export function MultiSelectFloorCanvas({
                 <span className="opacity-75">
                     Click available tables to select
                     <br />
-                    {onTableAvailabilityClick &&
-                        'Double-click available or click unavailable tables for availability'}
+                    Click purple eye icon (top-right) for availability
                 </span>
             </div>
         </div>

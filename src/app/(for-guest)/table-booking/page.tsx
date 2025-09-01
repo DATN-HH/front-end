@@ -290,11 +290,6 @@ export default function TableBookingPage() {
         setSelectedWaitlist(waitlist);
     }, []);
 
-    const handleTableAvailabilityClick = useCallback((table: TableResponse) => {
-        setSelectedTableForAvailability(table);
-        setShowAvailabilityModal(true);
-    }, []);
-
     const selectedBranchData = useMemo(() => {
         return branches.find((b) => b.id === selectedBranch);
     }, [branches, selectedBranch]);
@@ -316,6 +311,12 @@ export default function TableBookingPage() {
             )
             .map((t: AvailableTable) => t.tableId);
     }, [floorTablesStatus, selectedDate]);
+
+    const handleTableAvailabilityClick = useCallback((table: TableResponse) => {
+        // Only show availability modal, don't auto-select table
+        setSelectedTableForAvailability(table);
+        setShowAvailabilityModal(true);
+    }, []);
 
     // Check if no tables are available for waitlist option
     const noTablesAvailable = useMemo(() => {
