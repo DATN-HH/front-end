@@ -344,6 +344,63 @@ export default function TableBookingPage() {
         setShowAvailabilityModal(true);
     }, []);
 
+    const handleDateTimeSelect = useCallback(
+        (selectedDateStr: string, selectedHour: number, tableId: number) => {
+            // Update date and hour
+            setSelectedDate(selectedDateStr);
+            setSelectedHour(selectedHour);
+
+            // Update booking data with new date/time
+            const [year, month, day] = selectedDateStr.split('-').map(Number);
+            const dateTime = new Date(
+                year,
+                month - 1,
+                day,
+                selectedHour,
+                0,
+                0,
+                0
+            );
+            setBookingData((prev) => ({
+                ...prev,
+                startTime: dateTime.toISOString().slice(0, 16),
+            }));
+
+            // Find the table and select it if not already selected
+            const tableToSelect = floorData?.tables?.find(
+                (t) => t.id === tableId
+            );
+            if (tableToSelect) {
+                const isAlreadySelected = selectedTables.some(
+                    (t) => t.id === tableId
+                );
+                if (!isAlreadySelected) {
+                    const newSelectedTables = [
+                        ...selectedTables,
+                        tableToSelect,
+                    ];
+                    setSelectedTables(newSelectedTables);
+
+                    const newTableIds = newSelectedTables.map((t) => t.id);
+                    const newCapacity = newSelectedTables.reduce(
+                        (sum, t) => sum + t.capacity,
+                        0
+                    );
+
+                    setBookingData((prev) => ({
+                        ...prev,
+                        tableIds: newTableIds,
+                        guests:
+                            newCapacity > 0
+                                ? Math.min(prev.guests, newCapacity)
+                                : prev.guests,
+                    }));
+                }
+            }
+        },
+        [selectedTables, floorData]
+    );
+
     // Check if no tables are available for waitlist option
     const noTablesAvailable = useMemo(() => {
         return (
@@ -754,6 +811,7 @@ export default function TableBookingPage() {
                 tableId={selectedTableForAvailability?.id || null}
                 tableName={selectedTableForAvailability?.tableName || ''}
                 selectedDate={selectedDate}
+                onDateTimeSelect={handleDateTimeSelect}
             />
         </div>
     );

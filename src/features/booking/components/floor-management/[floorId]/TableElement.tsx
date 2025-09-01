@@ -16,7 +16,6 @@ interface TableElementProps {
     unable?: boolean; // New prop - if true, table appears disabled/unavailable
     modeView?: 'edit' | 'booking'; // Add mode view prop
     isSelectable?: boolean; // Add selectable prop
-    onAvailabilityClick?: (e: React.MouseEvent) => void; // New prop for availability icon click
 }
 
 export function TableElement({
@@ -27,7 +26,6 @@ export function TableElement({
     unable = false,
     modeView = 'edit',
     isSelectable = true,
-    onAvailabilityClick,
 }: TableElementProps) {
     const getTableTypeDisplay = (tableType: any) => {
         if (typeof tableType === 'object' && tableType) {
@@ -92,37 +90,6 @@ export function TableElement({
                 <div className="text-xs sm:text-xs md:text-sm lg:text-xs xl:text-sm opacity-90 hidden sm:block">
                     {table.capacity} seats
                 </div>
-                {/* Availability icon for all tables in booking mode */}
-                {modeView === 'booking' && onAvailabilityClick && (
-                    <div
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors cursor-pointer z-20"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAvailabilityClick(e);
-                        }}
-                        title="View table availability"
-                    >
-                        <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                        </svg>
-                    </div>
-                )}
             </div>
         );
 

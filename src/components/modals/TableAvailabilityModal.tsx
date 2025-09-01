@@ -1,6 +1,6 @@
 'use client';
 
-import { format, parse } from 'date-fns';
+import { format, parse, addDays, subDays, isAfter, isToday } from 'date-fns';
 import {
     Clock,
     Users,
@@ -10,8 +10,10 @@ import {
     XCircle,
     AlertTriangle,
     Loader2,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 import {
     useSingleTableDailyStatus,
@@ -36,6 +38,7 @@ interface TableAvailabilityModalProps {
     tableId: number | null;
     tableName: string;
     selectedDate: string; // YYYY-MM-DD format
+    onDateTimeSelect?: (date: string, hour: number, tableId: number) => void; // New callback
 }
 
 const getStatusInfo = (status: TableStatus) => {
@@ -47,6 +50,8 @@ const getStatusInfo = (status: TableStatus) => {
                 bgColor: 'bg-green-50',
                 borderColor: 'border-green-200',
                 label: 'Available',
+                slotStyle:
+                    'bg-green-100 hover:bg-green-200 cursor-pointer border-green-300',
             };
         case TableStatus.OCCUPIED:
             return {
@@ -55,15 +60,10 @@ const getStatusInfo = (status: TableStatus) => {
                 bgColor: 'bg-red-50',
                 borderColor: 'border-red-200',
                 label: 'Occupied',
+                slotStyle:
+                    'bg-red-100 cursor-not-allowed border-red-300 opacity-50',
             };
-        case TableStatus.NEEDS_CLEANING:
-            return {
-                icon: AlertTriangle,
-                color: 'text-orange-600',
-                bgColor: 'bg-orange-50',
-                borderColor: 'border-orange-200',
-                label: 'Cleaning',
-            };
+
         default:
             return {
                 icon: Clock,
@@ -71,77 +71,23 @@ const getStatusInfo = (status: TableStatus) => {
                 bgColor: 'bg-gray-50',
                 borderColor: 'border-gray-200',
                 label: 'Unknown',
+                slotStyle:
+                    'bg-gray-100 cursor-not-allowed border-gray-300 opacity-50',
             };
     }
 };
 
 const formatHour = (hour: number) => {
-    if (hour === 0) return '12:00 AM';
-    if (hour === 12) return '12:00 PM';
-    if (hour < 12) return `${hour}:00 AM`;
-    return `${hour - 12}:00 PM`;
+    return hour.toString().padStart(2, '0') + ':00';
 };
 
-// Group consecutive hours with same status
-const groupConsecutiveHours = (hourlyStatuses: HourlyTableStatus[]) => {
-    if (!hourlyStatuses.length) return [];
-
-    const groups: Array<{
-        status: TableStatus;
-        startHour: number;
-        endHour: number;
-        customerInfo?: {
-            bookingId: number;
-            customerName: string;
-            customerPhone: string;
-        };
-    }> = [];
-
-    let currentGroup = {
-        status: hourlyStatuses[0].status,
-        startHour: hourlyStatuses[0].hour,
-        endHour: hourlyStatuses[0].hour,
-        customerInfo: hourlyStatuses[0].bookingId
-            ? {
-                  bookingId: hourlyStatuses[0].bookingId!,
-                  customerName: hourlyStatuses[0].customerName!,
-                  customerPhone: hourlyStatuses[0].customerPhone!,
-              }
-            : undefined,
-    };
-
-    for (let i = 1; i < hourlyStatuses.length; i++) {
-        const current = hourlyStatuses[i];
-        const isSameBooking =
-            currentGroup.customerInfo?.bookingId === current.bookingId;
-
-        if (
-            current.status === currentGroup.status &&
-            current.hour === currentGroup.endHour + 1 &&
-            isSameBooking
-        ) {
-            // Extend current group
-            currentGroup.endHour = current.hour;
-        } else {
-            // Start new group
-            groups.push(currentGroup);
-            currentGroup = {
-                status: current.status,
-                startHour: current.hour,
-                endHour: current.hour,
-                customerInfo: current.bookingId
-                    ? {
-                          bookingId: current.bookingId,
-                          customerName: current.customerName!,
-                          customerPhone: current.customerPhone!,
-                      }
-                    : undefined,
-            };
-        }
+// Generate time slots from 6:00 to 23:00
+const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 6; hour <= 23; hour++) {
+        slots.push(hour);
     }
-
-    groups.push(currentGroup);
-    return groups;
+    return slots;
 };
 
 export function TableAvailabilityModal({
@@ -150,47 +96,146 @@ export function TableAvailabilityModal({
     tableId,
     tableName,
     selectedDate,
+    onDateTimeSelect,
 }: TableAvailabilityModalProps) {
+    const [currentDate, setCurrentDate] = useState(selectedDate);
+
     const {
         data: tableStatus,
         isLoading,
         error,
     } = useSingleTableDailyStatus(
         tableId || 0,
-        selectedDate,
+        currentDate,
         isOpen && !!tableId
     );
 
-    const availabilityGroups = useMemo(() => {
-        if (!tableStatus?.success) return [];
-        return groupConsecutiveHours(tableStatus.payload.hourlyStatuses);
+    const timeSlots = useMemo(() => generateTimeSlots(), []);
+
+    // Create a map for quick status lookup
+    const statusMap = useMemo(() => {
+        if (!tableStatus?.success) return new Map();
+        const map = new Map<number, HourlyTableStatus>();
+        tableStatus.payload.hourlyStatuses.forEach((status) => {
+            map.set(status.hour, status);
+        });
+        return map;
     }, [tableStatus]);
 
     const availableHoursCount = useMemo(() => {
         if (!tableStatus?.success) return 0;
-        return tableStatus.payload.hourlyStatuses.filter(
-            (h) => h.status === TableStatus.AVAILABLE
-        ).length;
-    }, [tableStatus]);
+        const isCurrentDay = isToday(
+            parse(currentDate, 'yyyy-MM-dd', new Date())
+        );
+        const currentHour = new Date().getHours();
+
+        return timeSlots.filter((hour) => {
+            const status = statusMap.get(hour);
+            const isPastHour = isCurrentDay && hour <= currentHour;
+            return status?.status === TableStatus.AVAILABLE && !isPastHour;
+        }).length;
+    }, [timeSlots, statusMap, tableStatus, currentDate]);
+
+    const canGoToPreviousDay = () => {
+        const prevDate = subDays(
+            parse(currentDate, 'yyyy-MM-dd', new Date()),
+            1
+        );
+        return isToday(prevDate) || isAfter(prevDate, new Date());
+    };
+
+    const goToPreviousDay = () => {
+        if (canGoToPreviousDay()) {
+            const prevDate = format(
+                subDays(parse(currentDate, 'yyyy-MM-dd', new Date()), 1),
+                'yyyy-MM-dd'
+            );
+            setCurrentDate(prevDate);
+        }
+    };
+
+    const goToNextDay = () => {
+        const nextDate = format(
+            addDays(parse(currentDate, 'yyyy-MM-dd', new Date()), 1),
+            'yyyy-MM-dd'
+        );
+        setCurrentDate(nextDate);
+    };
+
+    const handleTimeSlotClick = (hour: number) => {
+        const status = statusMap.get(hour);
+        const isCurrentDay = isToday(
+            parse(currentDate, 'yyyy-MM-dd', new Date())
+        );
+        const currentHour = new Date().getHours();
+        const isPastHour = isCurrentDay && hour <= currentHour;
+
+        if (
+            status?.status === TableStatus.AVAILABLE &&
+            !isPastHour &&
+            onDateTimeSelect &&
+            tableId
+        ) {
+            onDateTimeSelect(currentDate, hour, tableId);
+            onClose(); // Close modal after selection
+        }
+    };
 
     if (!isOpen) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh]">
+            <DialogContent className="max-w-4xl max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Clock className="h-5 w-5" />
                         Table Availability - {tableName}
                     </DialogTitle>
                     <DialogDescription>
-                        Daily availability for{' '}
-                        {format(
-                            parse(selectedDate, 'yyyy-MM-dd', new Date()),
-                            'EEEE, MMMM d, yyyy'
-                        )}
+                        Select your preferred date and time slot
                     </DialogDescription>
                 </DialogHeader>
+
+                {/* Date Navigation */}
+                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={goToPreviousDay}
+                        disabled={!canGoToPreviousDay()}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <div className="text-center">
+                        <div className="text-lg font-semibold">
+                            {format(
+                                parse(currentDate, 'yyyy-MM-dd', new Date()),
+                                'EEEE, MMMM d'
+                            )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            {format(
+                                parse(currentDate, 'yyyy-MM-dd', new Date()),
+                                'yyyy'
+                            )}
+                            {isToday(
+                                parse(currentDate, 'yyyy-MM-dd', new Date())
+                            ) && (
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-2 text-xs"
+                                >
+                                    Today
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" onClick={goToNextDay}>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
 
                 {isLoading && (
                     <div className="flex items-center justify-center py-12">
@@ -219,7 +264,7 @@ export function TableAvailabilityModal({
                     <div className="space-y-6">
                         {/* Table Info */}
                         <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-3 gap-4 text-sm">
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-gray-500" />
                                     <span className="text-gray-600">
@@ -239,135 +284,107 @@ export function TableAvailabilityModal({
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-gray-500" />
-                                    <span className="text-gray-600">Type:</span>
-                                    <span className="font-medium">
-                                        {tableStatus.payload.tableType}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
                                     <CheckCircle className="h-4 w-4 text-green-500" />
                                     <span className="text-gray-600">
                                         Available:
                                     </span>
                                     <span className="font-medium text-green-600">
-                                        {availableHoursCount}/24 hours
+                                        {availableHoursCount}/{timeSlots.length}{' '}
+                                        slots
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Availability Timeline */}
+                        {/* Time Slots Grid */}
                         <div>
                             <h3 className="font-semibold mb-4 flex items-center gap-2">
                                 <Clock className="h-4 w-4" />
-                                Daily Timeline
+                                Available Time Slots
                             </h3>
 
-                            <ScrollArea className="h-64">
-                                <div className="space-y-2">
-                                    {availabilityGroups.map((group, index) => {
-                                        const statusInfo = getStatusInfo(
-                                            group.status
-                                        );
-                                        const StatusIcon = statusInfo.icon;
-                                        const timeRange =
-                                            group.startHour === group.endHour
-                                                ? formatHour(group.startHour)
-                                                : `${formatHour(group.startHour)} - ${formatHour(group.endHour + 1)}`;
+                            <div className="grid grid-cols-6 gap-2">
+                                {timeSlots.map((hour) => {
+                                    const status =
+                                        statusMap.get(hour)?.status ||
+                                        TableStatus.AVAILABLE;
+                                    const statusInfo = getStatusInfo(status);
+                                    const isCurrentDay = isToday(
+                                        parse(
+                                            currentDate,
+                                            'yyyy-MM-dd',
+                                            new Date()
+                                        )
+                                    );
+                                    const currentHour = new Date().getHours();
+                                    const isPastHour =
+                                        isCurrentDay && hour <= currentHour;
+                                    const isAvailable =
+                                        status === TableStatus.AVAILABLE &&
+                                        !isPastHour;
 
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`p-3 rounded-lg border ${statusInfo.bgColor} ${statusInfo.borderColor}`}
-                                            >
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <StatusIcon
-                                                            className={`h-5 w-5 ${statusInfo.color}`}
-                                                        />
-                                                        <div>
-                                                            <div className="font-medium text-gray-900">
-                                                                {timeRange}
-                                                            </div>
-                                                            <Badge
-                                                                variant={
-                                                                    group.status ===
-                                                                    TableStatus.AVAILABLE
-                                                                        ? 'default'
-                                                                        : 'secondary'
-                                                                }
-                                                                className={`mt-1 ${statusInfo.color} text-xs`}
-                                                            >
-                                                                {
-                                                                    statusInfo.label
-                                                                }
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-
-                                                    {group.customerInfo && (
-                                                        <div className="text-right text-sm">
-                                                            {/* <div className="font-medium text-gray-900">
-                                                                {group.customerInfo.customerName}
-                                                            </div>
-                                                            <div className="text-gray-600">
-                                                                {group.customerInfo.customerPhone}
-                                                            </div> */}
-                                                            <div className="text-xs text-gray-500 mt-1">
-                                                                Booking #
-                                                                {
-                                                                    group
-                                                                        .customerInfo
-                                                                        .bookingId
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                    return (
+                                        <button
+                                            key={hour}
+                                            onClick={() =>
+                                                handleTimeSlotClick(hour)
+                                            }
+                                            disabled={!isAvailable}
+                                            className={`
+                                                p-3 rounded-lg border-2 text-sm font-medium transition-all
+                                                ${
+                                                    isPastHour
+                                                        ? 'bg-gray-100 cursor-not-allowed border-gray-300 opacity-50'
+                                                        : statusInfo.slotStyle
+                                                }
+                                                ${isAvailable ? 'hover:shadow-sm active:scale-95' : ''}
+                                            `}
+                                            title={
+                                                isPastHour
+                                                    ? `${formatHour(hour)} - Past time`
+                                                    : isAvailable
+                                                      ? `Select ${formatHour(hour)}`
+                                                      : `${formatHour(hour)} - ${statusInfo.label}`
+                                            }
+                                        >
+                                            <div className="text-center">
+                                                <div className="font-semibold">
+                                                    {formatHour(hour)}
+                                                </div>
+                                                <div className="text-xs mt-1">
+                                                    {isPastHour
+                                                        ? 'Past'
+                                                        : isAvailable
+                                                          ? 'Available'
+                                                          : statusInfo.label}
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </ScrollArea>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Legend */}
+                        <div className="flex items-center justify-center gap-6 text-xs">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+                                <span>Available</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded opacity-50"></div>
+                                <span>Occupied</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded opacity-50"></div>
+                                <span>Past time</span>
+                            </div>
                         </div>
 
                         <Separator />
 
-                        {/* Quick Summary */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                <div className="text-lg font-bold text-green-600">
-                                    {
-                                        tableStatus.payload.hourlyStatuses.filter(
-                                            (h) =>
-                                                h.status ===
-                                                TableStatus.AVAILABLE
-                                        ).length
-                                    }
-                                </div>
-                                <div className="text-xs text-green-700">
-                                    Available Hours
-                                </div>
-                            </div>
-                            <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
-                                <div className="text-lg font-bold text-red-600">
-                                    {
-                                        tableStatus.payload.hourlyStatuses.filter(
-                                            (h) =>
-                                                h.status ===
-                                                TableStatus.OCCUPIED
-                                        ).length
-                                    }
-                                </div>
-                                <div className="text-xs text-red-700">
-                                    Occupied Hours
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Button */}
-                        <div className="flex justify-end">
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-2">
                             <Button onClick={onClose} variant="outline">
                                 Close
                             </Button>
