@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +34,24 @@ export function DateTimeSelector({
     onDurationChange,
     disabled = false,
 }: DateTimeSelectorProps) {
+    // Check if selected date is today
+    const isToday = selectedDate === new Date().toISOString().split('T')[0];
+    const currentHour = new Date().getHours();
+
+    // Generate available hours (6:00 to 23:00)
+    const availableHours = Array.from({ length: 18 }, (_, i) => i + 6); // 6 to 23
+
+    // Filter out past hours if selecting today
+    const selectableHours = isToday
+        ? availableHours.filter((hour) => hour > currentHour)
+        : availableHours;
+
+    useEffect(() => {
+        if (selectedHour !== null && !selectableHours.includes(selectedHour)) {
+            onHourChange(null);
+        }
+    }, [selectedHour, selectableHours, onHourChange]);
+
     return (
         <Card>
             <CardHeader className="pb-2">
@@ -77,9 +96,12 @@ export function DateTimeSelector({
                                 <SelectValue placeholder="Select hour" />
                             </SelectTrigger>
                             <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => (
-                                    <SelectItem key={i} value={i.toString()}>
-                                        {i.toString().padStart(2, '0')}:00
+                                {selectableHours.map((hour) => (
+                                    <SelectItem
+                                        key={hour}
+                                        value={hour.toString()}
+                                    >
+                                        {hour.toString().padStart(2, '0')}:00
                                     </SelectItem>
                                 ))}
                             </SelectContent>

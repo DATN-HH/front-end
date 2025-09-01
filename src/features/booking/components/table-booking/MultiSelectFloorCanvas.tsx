@@ -270,7 +270,7 @@ export function MultiSelectFloorCanvas({
                 <span className="opacity-75">
                     Click available tables to select
                     <br />
-                    Click purple eye icon (top-right) for availability
+                    Click orange eye icon (top-right) for availability
                 </span>
             </div>
         </div>

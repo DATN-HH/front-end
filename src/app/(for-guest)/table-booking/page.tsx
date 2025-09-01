@@ -1,7 +1,7 @@
 'use client';
 
 import { Building, Timer } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { useBranches } from '@/api/v1/branches';
 import { useFloorsByBranch } from '@/api/v1/floors';
@@ -55,6 +55,7 @@ interface BookingData {
 
 export default function TableBookingPage() {
     const { user } = useAuth();
+    const isAutoSelectingRef = useRef(false);
     // Basic selection state
     const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
     const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
@@ -74,7 +75,7 @@ export default function TableBookingPage() {
     const [bookingData, setBookingData] = useState<BookingData>({
         startTime: '',
         duration: 1, // Default 1 hour
-        guests: 2,
+        guests: 1, // Change from 2 to 1
         notes: '',
         branchId: 0,
         floorId: 0,
@@ -110,6 +111,44 @@ export default function TableBookingPage() {
     const { data: floorData, isLoading: tablesLoading } = useTablesByFloor(
         selectedFloor || 0
     );
+
+    // Auto-select first branch when branches are loaded
+    useEffect(() => {
+        if (branches.length > 0 && !selectedBranch) {
+            isAutoSelectingRef.current = true;
+            const firstBranch = branches[0];
+            setSelectedBranch(firstBranch.id);
+            setBookingData((prev) => ({ ...prev, branchId: firstBranch.id }));
+            setTimeout(() => {
+                isAutoSelectingRef.current = false;
+            }, 100);
+        }
+    }, [branches, selectedBranch]);
+
+    // Auto-select first floor when floors are loaded
+    useEffect(() => {
+        if (floors.length > 0 && !selectedFloor && selectedBranch) {
+            const firstFloor = floors[0];
+            setSelectedFloor(firstFloor.id);
+            setBookingData((prev) => ({ ...prev, floorId: firstFloor.id }));
+        }
+    }, [floors, selectedFloor, selectedBranch]);
+
+    // Reset selections when parent changes (but not during auto-select)
+    useEffect(() => {
+        if (selectedBranch && !isAutoSelectingRef.current) {
+            // Only reset floor and tables when branch changes manually
+            setSelectedFloor(null);
+            setSelectedTables([]); // Reset to empty array
+            // Reset to default date and hour
+            setSelectedDate(new Date().toISOString().split('T')[0]);
+            setSelectedHour((new Date().getHours() + 1) % 24);
+        }
+    }, [selectedBranch]);
+
+    useEffect(() => {
+        setSelectedTables([]); // Reset to empty array
+    }, [selectedFloor]);
 
     // Booking API
     const createBookingMutation = useCreateBooking();
@@ -148,19 +187,6 @@ export default function TableBookingPage() {
             bookingData.duration
         )
     );
-
-    // Reset selections when parent changes
-    useEffect(() => {
-        setSelectedFloor(null);
-        setSelectedTables([]); // Reset to empty array
-        // Reset to default date and hour
-        setSelectedDate(new Date().toISOString().split('T')[0]);
-        setSelectedHour((new Date().getHours() + 1) % 24);
-    }, [selectedBranch]);
-
-    useEffect(() => {
-        setSelectedTables([]); // Reset to empty array
-    }, [selectedFloor]);
 
     // Update booking data when selections change
     useEffect(() => {
@@ -401,7 +427,6 @@ export default function TableBookingPage() {
                         onBookingDataChange={(data) =>
                             setBookingData((prev) => ({ ...prev, ...data }))
                         }
-                        onSubmit={handleSubmit}
                         isSubmitting={createBookingMutation.isPending}
                     />
                 </div>
@@ -600,6 +625,37 @@ export default function TableBookingPage() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Book Now Button */}
+                                    <div className="mt-3 pt-3 border-t border-blue-200">
+                                        <Button
+                                            onClick={handleSubmit}
+                                            className="w-full"
+                                            disabled={
+                                                selectedTables.length === 0 ||
+                                                !selectedDate ||
+                                                createBookingMutation.isPending
+                                            }
+                                        >
+                                            {createBookingMutation.isPending
+                                                ? 'Processing...'
+                                                : 'Book Now'}
+                                        </Button>
+
+                                        {selectedTables.length === 0 && (
+                                            <p className="text-xs text-muted-foreground text-center mt-2">
+                                                Please select at least one table
+                                                to continue
+                                            </p>
+                                        )}
+
+                                        {!selectedDate &&
+                                            selectedTables.length > 0 && (
+                                                <p className="text-xs text-muted-foreground text-center mt-2">
+                                                    Please select date and time
+                                                </p>
+                                            )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -622,7 +678,7 @@ export default function TableBookingPage() {
                     setBookingData((prev) => ({
                         ...prev,
                         tableIds: [],
-                        guests: 2,
+                        guests: 1,
                         notes: '',
                     }));
                 }}
@@ -640,7 +696,7 @@ export default function TableBookingPage() {
                     setBookingData((prev) => ({
                         ...prev,
                         tableIds: [],
-                        guests: 2,
+                        guests: 1,
                         notes: '',
                     }));
                 }}

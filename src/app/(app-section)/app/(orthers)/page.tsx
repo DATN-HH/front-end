@@ -179,7 +179,7 @@ function RestaurantDashboard() {
     const prevApiParams: SalesStatisticsRequest = useMemo(() => {
         const daysDiff = Math.ceil(
             (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24)
         );
         const prevEndDate = format(
             subDays(new Date(startDate), 1),
@@ -518,8 +518,8 @@ function RestaurantDashboard() {
                         isLoading
                             ? '...'
                             : formatCurrency(
-                                orderMetrics?.averageOrderValue ?? 0
-                            )
+                                  orderMetrics?.averageOrderValue ?? 0
+                              )
                     }
                     change={avgOrderValueChange}
                     icon={TrendingUp}

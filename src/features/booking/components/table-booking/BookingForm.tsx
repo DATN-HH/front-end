@@ -37,7 +37,6 @@ interface BookingFormProps {
     selectedTables: TableResponse[];
     selectedDate: string;
     onBookingDataChange: (data: Partial<BookingData>) => void;
-    onSubmit: (e: React.FormEvent) => void;
     isSubmitting?: boolean;
     mode?: 'guest' | 'admin';
 }
@@ -46,7 +45,6 @@ export function BookingForm({
     bookingData,
     selectedTables,
     onBookingDataChange,
-    onSubmit,
     isSubmitting = false,
     mode = 'guest',
 }: BookingFormProps) {
@@ -60,14 +58,6 @@ export function BookingForm({
     const isEmailRequired =
         mode === 'admin' && bookingData.paymentType === 'banking';
 
-    // Handle form submission with validation
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Call parent submit handler
-        onSubmit(e);
-    };
-
     return (
         <Card>
             <CardHeader className="pb-2">
@@ -77,7 +67,7 @@ export function BookingForm({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="space-y-3">
                     <div className="space-y-1">
                         <Label
                             htmlFor="guests"
@@ -202,25 +192,7 @@ export function BookingForm({
                             rows={3}
                         />
                     </div>
-
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={!hasSelectedTables || isSubmitting}
-                    >
-                        {isSubmitting
-                            ? 'Processing...'
-                            : mode === 'admin'
-                              ? 'Create Booking'
-                              : 'Book Now'}
-                    </Button>
-
-                    {!hasSelectedTables && (
-                        <p className="text-sm text-muted-foreground text-center">
-                            Please select at least one table to continue
-                        </p>
-                    )}
-                </form>
+                </div>
             </CardContent>
         </Card>
     );
