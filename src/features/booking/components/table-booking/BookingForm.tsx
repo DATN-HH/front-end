@@ -53,9 +53,8 @@ export function BookingForm({
     );
     const hasSelectedTables = selectedTables.length > 0;
 
-    // Check if email is required (when admin mode and banking payment)
-    const isEmailRequired =
-        mode === 'admin' && bookingData.paymentType === 'banking';
+    // Email is always required for table booking
+    const isEmailRequired = true;
 
     return (
         <Card>

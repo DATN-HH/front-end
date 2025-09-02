@@ -1,6 +1,16 @@
 'use client';
 
-import { Clock, MapPin, Phone, User, CheckCircle, Trash2, Calendar, Minus, Plus } from 'lucide-react';
+import {
+    Clock,
+    MapPin,
+    Phone,
+    User,
+    CheckCircle,
+    Trash2,
+    Calendar,
+    Minus,
+    Plus,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
@@ -142,20 +152,23 @@ function MenuBookingPageContent() {
                 const now = new Date();
                 // Set to next hour (or current if it's within business hours)
                 const currentHour = now.getHours();
-                let targetHour = currentHour < 23 ? currentHour + 1 : currentHour;
+                let targetHour =
+                    currentHour < 23 ? currentHour + 1 : currentHour;
 
                 // Ensure it's within business hours (6-23)
                 if (targetHour < 6) targetHour = 6;
                 if (targetHour > 23) targetHour = 6; // Next day 6am
 
-                const targetDate = targetHour === 6 && currentHour > 23
-                    ? new Date(now.getTime() + 24 * 60 * 60 * 1000) // Next day
-                    : now;
+                const targetDate =
+                    targetHour === 6 && currentHour > 23
+                        ? new Date(now.getTime() + 24 * 60 * 60 * 1000) // Next day
+                        : now;
 
                 const dateStr = targetDate.toISOString().split('T')[0];
-                const timeStr = targetHour.toString().padStart(2, '0') + ':00:00';
+                const timeStr =
+                    targetHour.toString().padStart(2, '0') + ':00:00';
 
-                setOrderData(prev => ({
+                setOrderData((prev) => ({
                     ...prev,
                     time: `${dateStr}T${timeStr}`,
                 }));
@@ -252,7 +265,10 @@ function MenuBookingPageContent() {
             }
 
             if (!orderData.time || !orderData.date) {
-                error('Validation Error', 'Please select pickup/dining date and time');
+                error(
+                    'Validation Error',
+                    'Please select pickup/dining date and time'
+                );
                 return;
             }
 
@@ -506,16 +522,23 @@ function MenuBookingPageContent() {
                                                 <Input
                                                     id="customerName"
                                                     placeholder="Your name"
-                                                    value={orderData.customerName}
+                                                    value={
+                                                        orderData.customerName
+                                                    }
                                                     onChange={(e) =>
-                                                        setOrderData((prev) => ({
-                                                            ...prev,
-                                                            customerName:
-                                                                e.target.value,
-                                                        }))
+                                                        setOrderData(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                customerName:
+                                                                    e.target
+                                                                        .value,
+                                                            })
+                                                        )
                                                     }
                                                     className="h-10 pl-10"
-                                                    disabled={hasQueryCustomerName}
+                                                    disabled={
+                                                        hasQueryCustomerName
+                                                    }
                                                 />
                                             </div>
                                         </div>
@@ -531,16 +554,23 @@ function MenuBookingPageContent() {
                                                 <Input
                                                     id="customerPhone"
                                                     placeholder="Phone number"
-                                                    value={orderData.customerPhone}
+                                                    value={
+                                                        orderData.customerPhone
+                                                    }
                                                     onChange={(e) =>
-                                                        setOrderData((prev) => ({
-                                                            ...prev,
-                                                            customerPhone:
-                                                                e.target.value,
-                                                        }))
+                                                        setOrderData(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                customerPhone:
+                                                                    e.target
+                                                                        .value,
+                                                            })
+                                                        )
                                                     }
                                                     className="h-10 pl-10"
-                                                    disabled={hasQueryCustomerPhone}
+                                                    disabled={
+                                                        hasQueryCustomerPhone
+                                                    }
                                                 />
                                             </div>
                                         </div>
@@ -617,7 +647,9 @@ function MenuBookingPageContent() {
                                                         .split('T')[0]
                                                 }
                                                 value={orderData.date}
-                                                disabled={hasQueryDate || hasQueryTime}
+                                                disabled={
+                                                    hasQueryDate || hasQueryTime
+                                                }
                                                 onChange={(e) => {
                                                     const selectedDate =
                                                         e.target.value;
@@ -634,10 +666,14 @@ function MenuBookingPageContent() {
                                                             .toISOString()
                                                             .split('T')[0];
 
-                                                    if (isToday && orderData.time) {
-                                                        const [hours] = orderData.time
-                                                            .split(':')
-                                                            .map(Number);
+                                                    if (
+                                                        isToday &&
+                                                        orderData.time
+                                                    ) {
+                                                        const [hours] =
+                                                            orderData.time
+                                                                .split(':')
+                                                                .map(Number);
                                                         const currentHour =
                                                             now.getHours();
 
@@ -647,13 +683,15 @@ function MenuBookingPageContent() {
                                                             hours <= currentHour
                                                         ) {
                                                             // Set to next valid hour
-                                                            const nextHour = Math.min(
-                                                                Math.max(
-                                                                    currentHour + 1,
-                                                                    6
-                                                                ),
-                                                                23
-                                                            );
+                                                            const nextHour =
+                                                                Math.min(
+                                                                    Math.max(
+                                                                        currentHour +
+                                                                            1,
+                                                                        6
+                                                                    ),
+                                                                    23
+                                                                );
                                                             setOrderData(
                                                                 (current) => ({
                                                                     ...current,
@@ -719,12 +757,16 @@ function MenuBookingPageContent() {
                                                             const isPastHour =
                                                                 isToday &&
                                                                 hour <=
-                                                                currentHour;
+                                                                    currentHour;
 
                                                             return (
                                                                 <SelectItem
-                                                                    key={timeStr}
-                                                                    value={timeStr}
+                                                                    key={
+                                                                        timeStr
+                                                                    }
+                                                                    value={
+                                                                        timeStr
+                                                                    }
                                                                     disabled={
                                                                         isPastHour
                                                                     }
@@ -759,16 +801,20 @@ function MenuBookingPageContent() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <CardTitle className="text-lg font-semibold">
-                                                Order Summary ({totalItems} {totalItems === 1 ? 'item' : 'items'})
+                                                Order Summary ({totalItems}{' '}
+                                                {totalItems === 1
+                                                    ? 'item'
+                                                    : 'items'}
+                                                )
                                             </CardTitle>
                                             {/* <p className="text-sm text-muted-foreground">
-                                                Review your order details
-                                                {apiResponse && (
-                                                    <span className="inline-flex items-center gap-1 ml-2 text-green-600">
-                                                        <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
-                                                        Prices calculated
-                                                    </span>
-                                                )}
+                                        Review your order details
+                                        {apiResponse && (
+                                            <span className="inline-flex items-center gap-1 ml-2 text-green-600">
+                                                <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
+                                                Prices calculated
+                                            </span>
+                                        )}
                                             </p> */}
                                         </div>
                                         <Button
@@ -805,7 +851,9 @@ function MenuBookingPageContent() {
                                                             <div className="flex items-center justify-between mb-2">
                                                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                                                     <h3 className="font-medium text-sm text-gray-900 truncate">
-                                                                        {item.name}
+                                                                        {
+                                                                            item.name
+                                                                        }
                                                                     </h3>
                                                                     <span
                                                                         className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"
@@ -824,10 +872,14 @@ function MenuBookingPageContent() {
                                                             {/* Price and total */}
                                                             <div className="flex justify-between items-center mb-3">
                                                                 <span className="font-medium text-sm text-gray-900">
-                                                                    {formatVietnameseCurrency(item.price)}
+                                                                    {formatVietnameseCurrency(
+                                                                        item.price
+                                                                    )}
                                                                 </span>
                                                                 <span className="font-semibold text-sm text-gray-900">
-                                                                    {formatVietnameseCurrency(item.totalPrice)}
+                                                                    {formatVietnameseCurrency(
+                                                                        item.totalPrice
+                                                                    )}
                                                                 </span>
                                                             </div>
 
@@ -835,19 +887,38 @@ function MenuBookingPageContent() {
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
                                                                     <button
-                                                                        onClick={() => handleUpdateQuantity(item, item.type, item.quantity - 1)}
+                                                                        onClick={() =>
+                                                                            handleUpdateQuantity(
+                                                                                item,
+                                                                                item.type,
+                                                                                item.quantity -
+                                                                                    1
+                                                                            )
+                                                                        }
                                                                         className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
-                                                                        disabled={item.quantity <= 1}
+                                                                        disabled={
+                                                                            item.quantity <=
+                                                                            1
+                                                                        }
                                                                     >
                                                                         <Minus className="h-3 w-3" />
                                                                     </button>
 
                                                                     <span className="w-8 text-center text-sm font-medium text-gray-900">
-                                                                        {item.quantity}
+                                                                        {
+                                                                            item.quantity
+                                                                        }
                                                                     </span>
 
                                                                     <button
-                                                                        onClick={() => handleUpdateQuantity(item, item.type, item.quantity + 1)}
+                                                                        onClick={() =>
+                                                                            handleUpdateQuantity(
+                                                                                item,
+                                                                                item.type,
+                                                                                item.quantity +
+                                                                                    1
+                                                                            )
+                                                                        }
                                                                         className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
                                                                     >
                                                                         <Plus className="h-3 w-3" />
@@ -856,7 +927,12 @@ function MenuBookingPageContent() {
 
                                                                 {/* Delete button */}
                                                                 <button
-                                                                    onClick={() => handleRemoveOrderItem(item, item.type)}
+                                                                    onClick={() =>
+                                                                        handleRemoveOrderItem(
+                                                                            item,
+                                                                            item.type
+                                                                        )
+                                                                    }
                                                                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
                                                                     title="Remove item"
                                                                 >
@@ -867,7 +943,10 @@ function MenuBookingPageContent() {
                                                     ))
                                                 ) : (
                                                     <div className="text-center py-8 text-gray-500">
-                                                        <p className="text-sm">No items in your cart yet</p>
+                                                        <p className="text-sm">
+                                                            No items in your
+                                                            cart yet
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
@@ -883,10 +962,13 @@ function MenuBookingPageContent() {
                                                     placeholder="Any special requests, dietary requirements..."
                                                     value={orderData.notes}
                                                     onChange={(e) =>
-                                                        setOrderData((prev) => ({
-                                                            ...prev,
-                                                            notes: e.target.value,
-                                                        }))
+                                                        setOrderData(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                notes: e.target
+                                                                    .value,
+                                                            })
+                                                        )
                                                     }
                                                     rows={2}
                                                     className="resize-none text-sm"
@@ -907,16 +989,22 @@ function MenuBookingPageContent() {
                                                                 Calculating...
                                                             </span>
                                                         ) : (
-                                                            formatVietnameseCurrency(totalPrice)
+                                                            formatVietnameseCurrency(
+                                                                totalPrice
+                                                            )
                                                         )}
                                                     </span>
                                                 </div>
                                                 {apiResponse?.totalPromotion && (
                                                     <div className="flex justify-between text-sm text-green-600">
-                                                        <span>Promotion Discount</span>
                                                         <span>
-                                                            -{formatVietnameseCurrency(
-                                                                apiResponse.total - apiResponse.totalPromotion
+                                                            Promotion Discount
+                                                        </span>
+                                                        <span>
+                                                            -
+                                                            {formatVietnameseCurrency(
+                                                                apiResponse.total -
+                                                                    apiResponse.totalPromotion
                                                             )}
                                                         </span>
                                                     </div>
@@ -930,7 +1018,8 @@ function MenuBookingPageContent() {
                                                             </span>
                                                         ) : (
                                                             formatVietnameseCurrency(
-                                                                apiResponse?.totalPromotion || totalPrice
+                                                                apiResponse?.totalPromotion ||
+                                                                    totalPrice
                                                             )
                                                         )}
                                                     </span>
@@ -955,8 +1044,8 @@ function MenuBookingPageContent() {
                                                     {createPreOrderMutation.isPending
                                                         ? 'Creating Order...'
                                                         : isCalculating
-                                                            ? 'Calculating...'
-                                                            : 'Place Order'}
+                                                          ? 'Calculating...'
+                                                          : 'Place Order'}
                                                 </Button>
                                             </div>
                                         </div>

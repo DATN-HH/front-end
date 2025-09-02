@@ -7,9 +7,11 @@ import {
     CreditCard,
     Timer,
     Utensils,
+    CheckCircle,
+    AlertCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import {
     CreateBookingResponse,
@@ -52,6 +54,7 @@ export function BookingConfirmDialog({
     const { success, error } = useCustomToast();
     const [showMenuSuggestion, setShowMenuSuggestion] = useState(false);
     const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Use the new payment status check API
     const { data: paymentStatusData, refetch: refetchPaymentStatus } =
@@ -59,6 +62,89 @@ export function BookingConfirmDialog({
             bookingData?.bookingId || 0,
             open && !!bookingData?.bookingId // enabled when dialog is open and bookingId exists
         );
+
+    // Auto-check payment status
+    useEffect(() => {
+        if (open && bookingData?.bookingId) {
+            const checkPaymentStatus = async () => {
+                try {
+                    const result = await refetchPaymentStatus();
+
+                    if (result.data?.success && result.data.payload) {
+                        const paymentStatus = result.data.payload;
+
+                        // Check if status is DEPOSIT_PAID (only successful payment status)
+                        if (paymentStatus.bookingStatus === 'DEPOSIT_PAID') {
+                            // Clear interval
+                            if (intervalRef.current) {
+                                clearInterval(intervalRef.current);
+                                intervalRef.current = null;
+                            }
+
+                            // Call original confirm handler
+                            onConfirm?.();
+
+                            // Show menu suggestion popup
+                            setShowMenuSuggestion(true);
+                        } else if (paymentStatus.expired) {
+                            // Clear interval if expired
+                            if (intervalRef.current) {
+                                clearInterval(intervalRef.current);
+                                intervalRef.current = null;
+                            }
+                            error(
+                                'Booking Expired',
+                                paymentStatus.statusMessage ||
+                                    'This booking has expired. Please make a new reservation.'
+                            );
+                        }
+                        // For all other statuses (BOOKED, etc.), continue checking silently
+                    }
+                } catch (err: any) {
+                    console.error(
+                        'Error checking booking payment status:',
+                        err
+                    );
+                    // Handle specific error codes from API - silently for most errors
+                    if (err.response?.status === 410) {
+                        // Clear interval if expired
+                        if (intervalRef.current) {
+                            clearInterval(intervalRef.current);
+                            intervalRef.current = null;
+                        }
+                        error(
+                            'Booking Expired',
+                            'This booking has expired and payment is no longer possible. Please make a new reservation.'
+                        );
+                    }
+                    // Other errors are handled silently - continue checking
+                }
+            };
+
+            if (bookingData.totalDeposit === 0) {
+                // For zero deposit bookings, check immediately
+                checkPaymentStatus();
+            } else {
+                // For bookings with deposit, start interval checking
+                intervalRef.current = setInterval(checkPaymentStatus, 5000);
+            }
+
+            // Cleanup on unmount or dialog close
+            return () => {
+                if (intervalRef.current) {
+                    clearInterval(intervalRef.current);
+                    intervalRef.current = null;
+                }
+            };
+        }
+    }, [
+        open,
+        bookingData?.bookingId,
+        bookingData?.totalDeposit,
+        refetchPaymentStatus,
+        onConfirm,
+        error,
+    ]);
 
     // Don't return null here - let the dialog show even without data
 
@@ -207,225 +293,121 @@ export function BookingConfirmDialog({
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5" />
-                            Confirm Booking Information
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-gray-50/50">
+                    <DialogHeader className="pb-6">
+                        <DialogTitle className="flex items-center gap-3 text-xl">
+                            <div className="p-2 bg-gray-100 rounded-full">
+                                <CheckCircle className="w-6 h-6 text-gray-600" />
+                            </div>
+                            <div>
+                                <p className="text-xl font-semibold text-gray-900">
+                                    Booking Status
+                                </p>
+                                <p className="text-sm text-gray-600 font-normal">
+                                    Track your reservation & payment
+                                </p>
+                            </div>
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-6">
                         {!bookingData ? (
-                            <div className="flex items-center justify-center py-8">
+                            <div className="flex items-center justify-center py-12">
                                 <div className="text-center">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                                    <p className="text-sm text-gray-500">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-3 border-gray-200 border-t-gray-600 mx-auto mb-4"></div>
+                                    <p className="text-gray-600 font-medium">
                                         Loading booking details...
                                     </p>
                                 </div>
                             </div>
                         ) : (
                             <>
-                                {/* Booking Status */}
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-600">
-                                            Booking ID
-                                        </p>
-                                        <p className="text-lg font-semibold">
-                                            #{bookingData.bookingId}
-                                        </p>
-                                    </div>
-                                    <Badge
-                                        className={getStatusColor(
-                                            bookingData.bookingStatus
-                                        )}
-                                    >
-                                        {getStatusText(
-                                            bookingData.bookingStatus
-                                        )}
-                                    </Badge>
-                                </div>
-
-                                <Separator />
-
-                                {/* Customer Information */}
-                                <div className="space-y-3">
-                                    <h3 className="font-semibold text-lg">
-                                        Customer Information
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-sm text-gray-600">
-                                                Customer Name
-                                            </p>
-                                            <p className="font-medium">
-                                                {bookingData.customerName}
-                                            </p>
+                                {/* Booking Info Card */}
+                                {/* <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                    <div className="text-center space-y-4">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="p-3 bg-gray-50 rounded-full">
+                                                <Calendar className="w-6 h-6 text-gray-600" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 uppercase tracking-wide">Booking ID</p>
+                                                <p className="text-2xl font-bold text-gray-900">
+                                                    #{bookingData.bookingId}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-gray-600">
-                                                Phone Number
-                                            </p>
-                                            <p className="font-medium">
-                                                {bookingData.customerPhone}
-                                            </p>
+                                        <div className="flex justify-center">
+                                            <Badge
+                                                className={`px-4 py-2 text-sm font-medium ${getStatusColor(
+                                                    bookingData.bookingStatus
+                                                )}`}
+                                            >
+                                                {getStatusText(
+                                                    bookingData.bookingStatus
+                                                )}
+                                            </Badge>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
-                                <Separator />
-
-                                {/* Booking Details */}
-                                <div className="space-y-3">
-                                    <h3 className="font-semibold text-lg">
-                                        Booking Details
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-600">
-                                                    Start Time
-                                                </p>
-                                                <p className="font-medium">
-                                                    {formatDateTime(
-                                                        bookingData.startTime
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-600">
-                                                    End Time
-                                                </p>
-                                                <p className="font-medium">
-                                                    {formatDateTime(
-                                                        bookingData.endTime
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-600">
-                                                    Guests
-                                                </p>
-                                                <p className="font-medium">
-                                                    {bookingData.guests} people
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Timer className="w-4 h-4 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-600">
-                                                    Payment Expires
-                                                </p>
-                                                <p className="font-medium text-red-600">
-                                                    {formatExpireTime(
-                                                        bookingData.expireTime
-                                                    )}
-                                                </p>
-                                                {paymentStatusData?.success &&
-                                                    paymentStatusData.payload && (
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            {paymentStatusData
-                                                                .payload
-                                                                .minutesUntilExpiry >
-                                                            0
-                                                                ? `${paymentStatusData.payload.minutesUntilExpiry} minutes left`
-                                                                : paymentStatusData
-                                                                        .payload
-                                                                        .expired
-                                                                  ? 'Expired'
-                                                                  : 'No time limit'}
-                                                        </p>
-                                                    )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {bookingData.notes && (
-                                        <div>
-                                            <p className="text-sm text-gray-600">
-                                                Notes
-                                            </p>
-                                            <p className="font-medium">
-                                                {bookingData.notes}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <Separator />
-
-                                {/* Tables Information */}
-                                <div className="space-y-3">
-                                    <h3 className="font-semibold text-lg">
-                                        Booked Tables
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {bookingData.bookedTables.map(
-                                            (table, index) => (
-                                                <div
-                                                    key={table.tableId}
-                                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                                            <span className="text-sm font-semibold text-blue-600">
-                                                                {index + 1}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium">
-                                                                {
-                                                                    table.tableName
-                                                                }
-                                                            </p>
-                                                            <p className="text-sm text-gray-600">
-                                                                {
-                                                                    table.tableType
-                                                                }
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="font-semibold text-green-600">
-                                                            {formatCurrency(
-                                                                table.deposit
-                                                            )}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">
-                                                            Deposit
-                                                        </p>
-                                                    </div>
+                                {/* Payment Info Card */}
+                                {bookingData.totalDeposit > 0 ? (
+                                    <div className="bg-white border border-green-200 rounded-xl p-6 shadow-sm">
+                                        <div className="text-center space-y-4">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div>
+                                                    <p className="text-sm text-gray-500 uppercase tracking-wide">
+                                                        Total Deposit
+                                                    </p>
+                                                    <p className="text-2xl font-bold text-green-600">
+                                                        {formatCurrency(
+                                                            bookingData.totalDeposit
+                                                        )}
+                                                    </p>
                                                 </div>
-                                            )
-                                        )}
+                                            </div>
+                                            {paymentStatusData?.success &&
+                                                paymentStatusData.payload && (
+                                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Timer className="w-4 h-4 text-amber-600" />
+                                                            <p className="text-sm text-amber-800 font-medium">
+                                                                {paymentStatusData
+                                                                    .payload
+                                                                    .minutesUntilExpiry >
+                                                                0
+                                                                    ? `Payment expires in ${paymentStatusData.payload.minutesUntilExpiry} minutes`
+                                                                    : paymentStatusData
+                                                                            .payload
+                                                                            .expired
+                                                                      ? 'Payment has expired'
+                                                                      : 'No time limit'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                        </div>
                                     </div>
-                                </div>
-
-                                <Separator />
-
-                                {/* Total Deposit */}
-                                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                                    <div className="flex items-center gap-2">
-                                        <CreditCard className="w-5 h-5 text-green-600" />
-                                        <span className="font-semibold text-green-800">
-                                            Total Deposit
-                                        </span>
+                                ) : (
+                                    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                                        <div className="text-center space-y-3">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="p-3 bg-gray-100 rounded-full">
+                                                    <CheckCircle className="w-6 h-6 text-gray-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-lg font-semibold text-gray-900">
+                                                        No Deposit Required
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        Your booking is being
+                                                        processed automatically
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span className="text-xl font-bold text-green-600">
-                                        {formatCurrency(
-                                            bookingData.totalDeposit
-                                        )}
-                                    </span>
-                                </div>
+                                )}
 
                                 {/* Payment QR Code */}
                                 {bookingData.totalDeposit > 0 && (
@@ -441,25 +423,14 @@ export function BookingConfirmDialog({
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex gap-4 pt-6">
                                     <Button
-                                        variant="outline"
+                                        variant="destructive"
                                         onClick={onCancel}
-                                        className="flex-1"
+                                        className="w-full"
                                     >
-                                        Close
+                                        Cancel
                                     </Button>
-                                    {onConfirm && (
-                                        <Button
-                                            onClick={handleConfirm}
-                                            className="flex-1"
-                                            disabled={isCheckingStatus}
-                                        >
-                                            {isCheckingStatus
-                                                ? 'Checking...'
-                                                : 'Confirm'}
-                                        </Button>
-                                    )}
                                 </div>
                             </>
                         )}
@@ -472,45 +443,62 @@ export function BookingConfirmDialog({
                 open={showMenuSuggestion}
                 onOpenChange={setShowMenuSuggestion}
             >
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Utensils className="w-5 h-5 text-green-600" />
-                            Booking Confirmed!
+                <DialogContent className="max-w-lg bg-gradient-to-br from-white to-gray-50/50">
+                    <DialogHeader className="pb-6">
+                        <DialogTitle className="flex items-center gap-3 text-xl">
+                            <div className="p-2 bg-green-100 rounded-full">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-xl font-semibold text-gray-900">
+                                    Booking Confirmed!
+                                </p>
+                                <p className="text-sm text-gray-600 font-normal">
+                                    Your table is reserved
+                                </p>
+                            </div>
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="space-y-4">
-                        <div className="text-center">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Utensils className="w-8 h-8 text-green-600" />
+                    <div className="space-y-6">
+                        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <div className="text-center space-y-4">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                    <Utensils className="w-10 h-10 text-green-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                        Pre-order Your Food?
+                                    </h3>
+                                    <p className="text-gray-600 mb-3">
+                                        Would you like to order food for your
+                                        reservation?
+                                    </p>
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <p className="text-sm text-green-800 italic">
+                                            "Skip the wait and have your meal
+                                            ready when you arrive"
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">
-                                Your table is booked!
-                            </h3>
-                            <p className="text-gray-600 mb-4">
-                                Would you like to pre-order food for your
-                                reservation?
-                            </p>
-                            <p className="text-sm text-gray-500">
-                                Skip the wait and have your meal ready when you
-                                arrive.
-                            </p>
                         </div>
 
-                        <div className="flex gap-3 pt-4">
+                        <div className="flex gap-4 pt-6">
                             <Button
                                 variant="outline"
                                 onClick={() => setShowMenuSuggestion(false)}
-                                className="flex-1"
+                                className="flex-1 h-12 border-gray-300 hover:bg-gray-50"
                             >
-                                No, Thanks
+                                <span className="font-medium">No, Thanks</span>
                             </Button>
                             <Button
                                 onClick={handleMenuBookingRedirect}
-                                className="flex-1"
+                                className="flex-1 h-12"
                             >
-                                Yes, Order Now
+                                <span className="font-medium">
+                                    Yes, Order Now
+                                </span>
                             </Button>
                         </div>
                     </div>

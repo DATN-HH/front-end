@@ -304,99 +304,310 @@ export function CartSidebar() {
                                     {displayItems.length > 0 && apiResponse
                                         ? // Show API response items with calculated prices
                                           displayItems.map((item) => (
-                                              <CartItemCard
+                                              <div
                                                   key={item.tempId}
-                                                  item={item}
-                                                  onUpdateQuantity={(
-                                                      itemId,
-                                                      quantity
-                                                  ) => {
-                                                      // Find local item to update
-                                                      const localItem =
-                                                          items.find(
-                                                              (local) => {
-                                                                  const localId =
-                                                                      local.type ===
-                                                                      'food_combo'
-                                                                          ? local.comboId
-                                                                          : local.type ===
-                                                                              'product_variant'
-                                                                            ? local.variantId
-                                                                            : local.productId;
-                                                                  return (
-                                                                      localId ===
-                                                                          item.id &&
-                                                                      local.type.replace(
-                                                                          '_',
-                                                                          ''
-                                                                      ) ===
-                                                                          item.type.replace(
-                                                                              '_',
-                                                                              ''
-                                                                          ) &&
-                                                                      (local.notes ||
-                                                                          '') ===
-                                                                          (item.note ||
-                                                                              '')
-                                                                  );
+                                                  className="group py-3 px-3 hover:bg-gray-50 rounded-lg transition-colors duration-150 mb-2"
+                                              >
+                                                  {/* Item name with price indicator */}
+                                                  <div className="flex items-center justify-between mb-2">
+                                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                          <h3 className="font-medium text-sm text-gray-900 truncate">
+                                                              {item.name}
+                                                          </h3>
+                                                          <span
+                                                              className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"
+                                                              title="Giá được tính tự động"
+                                                          />
+                                                      </div>
+                                                  </div>
+
+                                                  {/* Note */}
+                                                  {item.note && (
+                                                      <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                                                          {item.note}
+                                                      </p>
+                                                  )}
+
+                                                  {/* Price and total */}
+                                                  <div className="flex justify-between items-center mb-3">
+                                                      <span className="font-medium text-sm text-gray-900">
+                                                          {formatVietnameseCurrency(
+                                                              item.price
+                                                          )}
+                                                      </span>
+                                                      <span className="font-semibold text-sm text-gray-900">
+                                                          {formatVietnameseCurrency(
+                                                              item.totalPrice
+                                                          )}
+                                                      </span>
+                                                  </div>
+
+                                                  {/* Quantity controls and delete */}
+                                                  <div className="flex items-center justify-between">
+                                                      <div className="flex items-center gap-2">
+                                                          <button
+                                                              onClick={() => {
+                                                                  // Find local item to update
+                                                                  const localItem =
+                                                                      items.find(
+                                                                          (
+                                                                              local
+                                                                          ) => {
+                                                                              const localId =
+                                                                                  local.type ===
+                                                                                  'food_combo'
+                                                                                      ? local.comboId
+                                                                                      : local.type ===
+                                                                                          'product_variant'
+                                                                                        ? local.variantId
+                                                                                        : local.productId;
+                                                                              return (
+                                                                                  localId ===
+                                                                                      item.id &&
+                                                                                  local.type.replace(
+                                                                                      '_',
+                                                                                      ''
+                                                                                  ) ===
+                                                                                      item.type.replace(
+                                                                                          '_',
+                                                                                          ''
+                                                                                      ) &&
+                                                                                  (local.notes ||
+                                                                                      '') ===
+                                                                                      (item.note ||
+                                                                                          '')
+                                                                              );
+                                                                          }
+                                                                      );
+                                                                  if (
+                                                                      localItem
+                                                                  ) {
+                                                                      const newQuantity =
+                                                                          item.quantity -
+                                                                          1;
+                                                                      if (
+                                                                          newQuantity <=
+                                                                          0
+                                                                      ) {
+                                                                          removeItem(
+                                                                              localItem.id
+                                                                          );
+                                                                      } else {
+                                                                          updateQuantity(
+                                                                              localItem.id,
+                                                                              newQuantity
+                                                                          );
+                                                                      }
+                                                                  }
+                                                              }}
+                                                              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                              disabled={
+                                                                  item.quantity <=
+                                                                  1
                                                               }
-                                                          );
-                                                      if (localItem)
-                                                          updateQuantity(
-                                                              localItem.id,
-                                                              quantity
-                                                          );
-                                                  }}
-                                                  onRemove={(itemId) => {
-                                                      // Find local item to remove
-                                                      const localItem =
-                                                          items.find(
-                                                              (local) => {
-                                                                  const localId =
-                                                                      local.type ===
-                                                                      'food_combo'
-                                                                          ? local.comboId
-                                                                          : local.type ===
-                                                                              'product_variant'
-                                                                            ? local.variantId
-                                                                            : local.productId;
-                                                                  return (
-                                                                      localId ===
-                                                                          item.id &&
-                                                                      local.type.replace(
-                                                                          '_',
-                                                                          ''
-                                                                      ) ===
-                                                                          item.type.replace(
-                                                                              '_',
-                                                                              ''
-                                                                          ) &&
-                                                                      (local.notes ||
-                                                                          '') ===
-                                                                          (item.note ||
-                                                                              '')
+                                                          >
+                                                              <Minus className="h-3 w-3" />
+                                                          </button>
+
+                                                          <span className="w-8 text-center text-sm font-medium text-gray-900">
+                                                              {item.quantity}
+                                                          </span>
+
+                                                          <button
+                                                              onClick={() => {
+                                                                  // Find local item to update
+                                                                  const localItem =
+                                                                      items.find(
+                                                                          (
+                                                                              local
+                                                                          ) => {
+                                                                              const localId =
+                                                                                  local.type ===
+                                                                                  'food_combo'
+                                                                                      ? local.comboId
+                                                                                      : local.type ===
+                                                                                          'product_variant'
+                                                                                        ? local.variantId
+                                                                                        : local.productId;
+                                                                              return (
+                                                                                  localId ===
+                                                                                      item.id &&
+                                                                                  local.type.replace(
+                                                                                      '_',
+                                                                                      ''
+                                                                                  ) ===
+                                                                                      item.type.replace(
+                                                                                          '_',
+                                                                                          ''
+                                                                                      ) &&
+                                                                                  (local.notes ||
+                                                                                      '') ===
+                                                                                      (item.note ||
+                                                                                          '')
+                                                                              );
+                                                                          }
+                                                                      );
+                                                                  if (localItem)
+                                                                      updateQuantity(
+                                                                          localItem.id,
+                                                                          item.quantity +
+                                                                              1
+                                                                      );
+                                                              }}
+                                                              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                          >
+                                                              <Plus className="h-3 w-3" />
+                                                          </button>
+                                                      </div>
+
+                                                      {/* Delete button */}
+                                                      <button
+                                                          onClick={() => {
+                                                              // Find local item to remove
+                                                              const localItem =
+                                                                  items.find(
+                                                                      (
+                                                                          local
+                                                                      ) => {
+                                                                          const localId =
+                                                                              local.type ===
+                                                                              'food_combo'
+                                                                                  ? local.comboId
+                                                                                  : local.type ===
+                                                                                      'product_variant'
+                                                                                    ? local.variantId
+                                                                                    : local.productId;
+                                                                          return (
+                                                                              localId ===
+                                                                                  item.id &&
+                                                                              local.type.replace(
+                                                                                  '_',
+                                                                                  ''
+                                                                              ) ===
+                                                                                  item.type.replace(
+                                                                                      '_',
+                                                                                      ''
+                                                                                  ) &&
+                                                                              (local.notes ||
+                                                                                  '') ===
+                                                                                  (item.note ||
+                                                                                      '')
+                                                                          );
+                                                                      }
                                                                   );
-                                                              }
-                                                          );
-                                                      if (localItem)
-                                                          removeItem(
-                                                              localItem.id
-                                                          );
-                                                  }}
-                                                  isFromApi={true}
-                                              />
+                                                              if (localItem)
+                                                                  removeItem(
+                                                                      localItem.id
+                                                                  );
+                                                          }}
+                                                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
+                                                          title="Xóa món"
+                                                      >
+                                                          <Trash2 className="h-4 w-4" />
+                                                      </button>
+                                                  </div>
+                                              </div>
                                           ))
                                         : // Fallback to local items
                                           items.map((item) => (
-                                              <CartItemCard
+                                              <div
                                                   key={item.id}
-                                                  item={item}
-                                                  onUpdateQuantity={
-                                                      updateQuantity
-                                                  }
-                                                  onRemove={removeItem}
-                                                  isFromApi={false}
-                                              />
+                                                  className="group py-3 px-3 hover:bg-gray-50 rounded-lg transition-colors duration-150 mb-2"
+                                              >
+                                                  {/* Item name */}
+                                                  <div className="flex items-center justify-between mb-2">
+                                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                          <h3 className="font-medium text-sm text-gray-900 truncate">
+                                                              {item.name}
+                                                          </h3>
+                                                      </div>
+                                                  </div>
+
+                                                  {/* Note */}
+                                                  {item.notes && (
+                                                      <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                                                          {item.notes}
+                                                      </p>
+                                                  )}
+
+                                                  {/* Price and total */}
+                                                  <div className="flex justify-between items-center mb-3">
+                                                      <span className="font-medium text-sm text-gray-900">
+                                                          {formatVietnameseCurrency(
+                                                              item.price
+                                                          )}
+                                                      </span>
+                                                      <span className="font-semibold text-sm text-gray-900">
+                                                          {formatVietnameseCurrency(
+                                                              item.price *
+                                                                  item.quantity
+                                                          )}
+                                                      </span>
+                                                  </div>
+
+                                                  {/* Quantity controls and delete */}
+                                                  <div className="flex items-center justify-between">
+                                                      <div className="flex items-center gap-2">
+                                                          <button
+                                                              onClick={() => {
+                                                                  const newQuantity =
+                                                                      item.quantity -
+                                                                      1;
+                                                                  if (
+                                                                      newQuantity <=
+                                                                      0
+                                                                  ) {
+                                                                      removeItem(
+                                                                          item.id
+                                                                      );
+                                                                  } else {
+                                                                      updateQuantity(
+                                                                          item.id,
+                                                                          newQuantity
+                                                                      );
+                                                                  }
+                                                              }}
+                                                              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                              disabled={
+                                                                  item.quantity <=
+                                                                  1
+                                                              }
+                                                          >
+                                                              <Minus className="h-3 w-3" />
+                                                          </button>
+
+                                                          <span className="w-8 text-center text-sm font-medium text-gray-900">
+                                                              {item.quantity}
+                                                          </span>
+
+                                                          <button
+                                                              onClick={() => {
+                                                                  updateQuantity(
+                                                                      item.id,
+                                                                      item.quantity +
+                                                                          1
+                                                                  );
+                                                              }}
+                                                              className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                          >
+                                                              <Plus className="h-3 w-3" />
+                                                          </button>
+                                                      </div>
+
+                                                      {/* Delete button */}
+                                                      <button
+                                                          onClick={() =>
+                                                              removeItem(
+                                                                  item.id
+                                                              )
+                                                          }
+                                                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
+                                                          title="Xóa món"
+                                                      >
+                                                          <Trash2 className="h-4 w-4" />
+                                                      </button>
+                                                  </div>
+                                              </div>
                                           ))}
                                 </ScrollArea>
 

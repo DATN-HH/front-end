@@ -35,6 +35,7 @@ import { BookingForm } from '@/features/booking/components/table-booking/Booking
 import { DateTimeSelector } from '@/features/booking/components/table-booking/DateTimeSelector';
 import { LocationSelector } from '@/features/booking/components/table-booking/LocationSelector';
 import { MultiSelectFloorCanvas } from '@/features/booking/components/table-booking/MultiSelectFloorCanvas';
+import { PreBookingConfirmModal } from '@/features/booking/components/table-booking/PreBookingConfirmModal';
 import { WaitlistCard } from '@/features/waitlist/components/WaitlistCard';
 import { WaitlistForm } from '@/features/waitlist/components/WaitlistForm';
 import { getIconByName } from '@/lib/icon-utils';
@@ -86,6 +87,7 @@ export default function TableBookingPage() {
     });
 
     // Dialog state
+    const [showPreConfirmDialog, setShowPreConfirmDialog] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [bookingResponse, setBookingResponse] =
         useState<CreateBookingResponse | null>(null);
@@ -102,6 +104,12 @@ export default function TableBookingPage() {
 
     // Toast hook
     const { success, error } = useCustomToast();
+
+    // Email validation helper
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     // API hooks for basic data
     const { data: branches = [], isLoading: branchesLoading } = useBranches();
@@ -224,7 +232,7 @@ export default function TableBookingPage() {
     }, []);
 
     const handleSubmit = useCallback(
-        async (e: React.FormEvent) => {
+        (e: React.FormEvent) => {
             e.preventDefault();
 
             if (
@@ -239,51 +247,54 @@ export default function TableBookingPage() {
                 return;
             }
 
-            const request: CreateBookingRequest = {
-                startTime: selectedDateTimeString,
-                duration: bookingData.duration,
-                guests: bookingData.guests,
-                notes: bookingData.notes || undefined,
-                tableId: bookingData.tableIds,
-                customerName: bookingData.customerName,
-                customerPhone: bookingData.customerPhone,
-                customerEmail: bookingData.customerEmail || undefined,
-            };
-
-            try {
-                const response =
-                    await createBookingMutation.mutateAsync(request);
-
-                if (response.success && response.payload) {
-                    setBookingResponse(response.payload);
-                    setShowConfirmDialog(true);
-                    success('Success', 'Booking created successfully!');
-                } else {
-                    error(
-                        'Booking Failed',
-                        response.message || 'Failed to create booking'
-                    );
-                }
-            } catch (err: any) {
-                console.error('Booking error:', err);
-                const errorMessage =
-                    err.response?.data?.error?.message ||
-                    err.response?.data?.message ||
-                    err.message ||
-                    'Failed to create booking';
-                error('Booking Failed', errorMessage);
-            }
+            // Show pre-booking confirmation modal
+            setShowPreConfirmDialog(true);
         },
-        [
-            selectedTables,
-            selectedDate,
-            selectedDateTime,
-            bookingData,
-            createBookingMutation,
-            success,
-            error,
-        ]
+        [selectedTables, selectedDate, selectedDateTime, error]
     );
+
+    const handleConfirmBooking = useCallback(async () => {
+        const request: CreateBookingRequest = {
+            startTime: selectedDateTimeString,
+            duration: bookingData.duration,
+            guests: bookingData.guests,
+            notes: bookingData.notes || undefined,
+            tableId: bookingData.tableIds,
+            customerName: bookingData.customerName,
+            customerPhone: bookingData.customerPhone,
+            customerEmail: bookingData.customerEmail || undefined,
+        };
+
+        try {
+            const response = await createBookingMutation.mutateAsync(request);
+
+            if (response.success && response.payload) {
+                setBookingResponse(response.payload);
+                setShowPreConfirmDialog(false); // Close pre-confirm modal
+                setShowConfirmDialog(true); // Open booking confirm dialog
+                success('Success', 'Booking created successfully!');
+            } else {
+                error(
+                    'Booking Failed',
+                    response.message || 'Failed to create booking'
+                );
+            }
+        } catch (err: any) {
+            console.error('Booking error:', err);
+            const errorMessage =
+                err.response?.data?.error?.message ||
+                err.response?.data?.message ||
+                err.message ||
+                'Failed to create booking';
+            error('Booking Failed', errorMessage);
+        }
+    }, [
+        selectedDateTimeString,
+        bookingData,
+        createBookingMutation,
+        success,
+        error,
+    ]);
 
     const renderIcon = useCallback((iconName: string) => {
         const IconComponent = getIconByName(iconName);
@@ -704,6 +715,14 @@ export default function TableBookingPage() {
                                             disabled={
                                                 selectedTables.length === 0 ||
                                                 !selectedDate ||
+                                                selectedHour === null ||
+                                                !bookingData.customerName.trim() ||
+                                                !bookingData.customerPhone.trim() ||
+                                                !bookingData.customerEmail.trim() ||
+                                                !isValidEmail(
+                                                    bookingData.customerEmail.trim()
+                                                ) ||
+                                                bookingData.guests < 1 ||
                                                 createBookingMutation.isPending
                                             }
                                         >
@@ -712,19 +731,81 @@ export default function TableBookingPage() {
                                                 : 'Book Now'}
                                         </Button>
 
-                                        {selectedTables.length === 0 && (
-                                            <p className="text-xs text-muted-foreground text-center mt-2">
-                                                Please select at least one table
-                                                to continue
-                                            </p>
-                                        )}
-
-                                        {!selectedDate &&
-                                            selectedTables.length > 0 && (
-                                                <p className="text-xs text-muted-foreground text-center mt-2">
-                                                    Please select date and time
-                                                </p>
-                                            )}
+                                        {/* Validation Messages */}
+                                        {(() => {
+                                            if (selectedTables.length === 0) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please select at least
+                                                        one table to continue
+                                                    </p>
+                                                );
+                                            }
+                                            if (!selectedDate) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please select a date
+                                                    </p>
+                                                );
+                                            }
+                                            if (selectedHour === null) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please select a time
+                                                    </p>
+                                                );
+                                            }
+                                            if (
+                                                !bookingData.customerName.trim()
+                                            ) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please enter your name
+                                                    </p>
+                                                );
+                                            }
+                                            if (
+                                                !bookingData.customerPhone.trim()
+                                            ) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please enter your phone
+                                                        number
+                                                    </p>
+                                                );
+                                            }
+                                            if (
+                                                !bookingData.customerEmail.trim()
+                                            ) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please enter your email
+                                                        address
+                                                    </p>
+                                                );
+                                            }
+                                            if (
+                                                !isValidEmail(
+                                                    bookingData.customerEmail.trim()
+                                                )
+                                            ) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please enter a valid
+                                                        email address
+                                                    </p>
+                                                );
+                                            }
+                                            if (bookingData.guests < 1) {
+                                                return (
+                                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                                        Please select number of
+                                                        guests
+                                                    </p>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -732,6 +813,26 @@ export default function TableBookingPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Pre-Booking Confirmation Modal */}
+            <PreBookingConfirmModal
+                open={showPreConfirmDialog}
+                onOpenChange={setShowPreConfirmDialog}
+                onConfirm={handleConfirmBooking}
+                bookingData={{
+                    startTime: selectedDateTime?.toISOString() || '',
+                    duration: bookingData.duration,
+                    guests: bookingData.guests,
+                    notes: bookingData.notes,
+                    customerName: bookingData.customerName,
+                    customerPhone: bookingData.customerPhone,
+                    customerEmail: bookingData.customerEmail,
+                }}
+                selectedTables={selectedTables}
+                branchName={selectedBranchData?.name}
+                floorName={selectedFloorData?.name}
+                isSubmitting={createBookingMutation.isPending}
+            />
 
             {/* Booking Confirmation Dialog */}
             <BookingConfirmDialog
