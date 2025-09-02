@@ -376,11 +376,11 @@ export function PreOrderConfirmDialog({
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4">
                         <Button
-                            variant="outline"
+                            variant="destructive"
                             onClick={() => onOpenChange(false)}
                             className="flex-1"
                         >
-                            Close
+                            Cancel
                         </Button>
                     </div>
                 </div>

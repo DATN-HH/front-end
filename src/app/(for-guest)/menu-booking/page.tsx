@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, MapPin, Phone, User, CheckCircle, Trash2 } from 'lucide-react';
+import { Clock, MapPin, Phone, User, CheckCircle, Trash2, Calendar, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
@@ -40,6 +40,7 @@ interface OrderData {
     customerName: string;
     customerPhone: string;
     notes: string;
+    date?: string; // Added for date selection
 }
 
 function MenuBookingPageContent() {
@@ -49,13 +50,16 @@ function MenuBookingPageContent() {
     const { success, error } = useCustomToast();
     const {
         items: menuItems,
+        addItem,
+        removeItem,
+        updateQuantity,
         clearItems,
         getTotalItems,
         getTotalPrice,
         isCalculating,
+        calculatePrices,
         apiResponse,
         getItemNameById,
-        removeItem,
     } = useMenuBooking();
 
     const [orderData, setOrderData] = useState<OrderData>({
@@ -72,6 +76,16 @@ function MenuBookingPageContent() {
     );
     const createPreOrderMutation = useCreatePreOrder();
 
+    // Check if coming from table booking
+    const isFromTableBooking = searchParams.get('bookingtableId');
+
+    // Check which fields are pre-filled from query params (should be disabled)
+    const hasQueryBranchId = !!searchParams.get('branchId');
+    const hasQueryTime = !!searchParams.get('time');
+    const hasQueryCustomerName = !!searchParams.get('customerName');
+    const hasQueryCustomerPhone = !!searchParams.get('customerPhone');
+    const hasQueryDate = !!searchParams.get('date');
+
     // Auto-fill data from query params
     useEffect(() => {
         const bookingTableId = searchParams.get('bookingtableId');
@@ -79,24 +93,75 @@ function MenuBookingPageContent() {
         const time = searchParams.get('time');
         const customerName = searchParams.get('customerName');
         const customerPhone = searchParams.get('customerPhone');
+        const date = searchParams.get('date'); // Added date from query params
 
         if (
             bookingTableId ||
             branchId ||
             time ||
             customerName ||
-            customerPhone
+            customerPhone ||
+            date
         ) {
+            // Parse datetime if time parameter is in ISO format (from table booking)
+            let parsedDate = date;
+            let parsedTime = time;
+
+            if (time && time.includes('T')) {
+                // time parameter is full datetime (e.g., "2025-09-02T17:00:00")
+                const dateObj = new Date(time);
+                parsedDate = dateObj.toISOString().split('T')[0]; // "2025-09-02"
+                parsedTime = dateObj.toTimeString().split(' ')[0].slice(0, 5); // "17:00"
+            }
+
             setOrderData((prev) => ({
                 ...prev,
                 bookingTableId: bookingTableId || undefined,
                 branchId: branchId || undefined,
-                time: time || undefined,
+                time: parsedTime || undefined,
                 customerName: customerName || '',
                 customerPhone: customerPhone || '',
+                date: parsedDate || undefined,
             }));
         }
     }, [searchParams]);
+
+    // Auto-select first branch and set current date/time if not from table booking
+    useEffect(() => {
+        if (!isFromTableBooking) {
+            // Auto-select first branch if not selected
+            if (branches && branches.length > 0 && !orderData.branchId) {
+                setOrderData((prev) => ({
+                    ...prev,
+                    branchId: branches[0].id.toString(),
+                }));
+            }
+
+            // Auto-set current date/time if not set
+            if (!orderData.time) {
+                const now = new Date();
+                // Set to next hour (or current if it's within business hours)
+                const currentHour = now.getHours();
+                let targetHour = currentHour < 23 ? currentHour + 1 : currentHour;
+
+                // Ensure it's within business hours (6-23)
+                if (targetHour < 6) targetHour = 6;
+                if (targetHour > 23) targetHour = 6; // Next day 6am
+
+                const targetDate = targetHour === 6 && currentHour > 23
+                    ? new Date(now.getTime() + 24 * 60 * 60 * 1000) // Next day
+                    : now;
+
+                const dateStr = targetDate.toISOString().split('T')[0];
+                const timeStr = targetHour.toString().padStart(2, '0') + ':00:00';
+
+                setOrderData(prev => ({
+                    ...prev,
+                    time: `${dateStr}T${timeStr}`,
+                }));
+            }
+        }
+    }, [branches, isFromTableBooking, orderData.branchId, orderData.time]);
 
     // Calculate totals from context
     const totalItems = getTotalItems();
@@ -149,6 +214,27 @@ function MenuBookingPageContent() {
         }
     };
 
+    // Handle updating quantity for an item
+    const handleUpdateQuantity = (
+        apiItem: any,
+        itemType: 'product' | 'variant' | 'combo',
+        newQuantity: number
+    ) => {
+        // Find the corresponding local item
+        const localItem = menuItems.find((item) => {
+            const itemId = item.comboId || item.variantId || item.productId;
+            return (
+                itemId === apiItem.id &&
+                item.type === itemType &&
+                (item.notes || '') === (apiItem.note || '')
+            );
+        });
+
+        if (localItem) {
+            updateQuantity(localItem.id, newQuantity);
+        }
+    };
+
     const handleOrderTypeChange = (type: 'dine-in' | 'takeaway') => {
         setOrderData((prev) => ({ ...prev, type }));
     };
@@ -165,8 +251,8 @@ function MenuBookingPageContent() {
                 return;
             }
 
-            if (!orderData.time) {
-                error('Validation Error', 'Please select pickup/dining time');
+            if (!orderData.time || !orderData.date) {
+                error('Validation Error', 'Please select pickup/dining date and time');
                 return;
             }
 
@@ -207,7 +293,7 @@ function MenuBookingPageContent() {
                 bookingTableId: orderData.bookingTableId
                     ? Number(orderData.bookingTableId)
                     : undefined,
-                time: orderData.time,
+                time: `${orderData.date}T${orderData.time}:00`, // ISO format: yyyy-MM-ddTHH:mm:ss
                 customerName: orderData.customerName,
                 customerPhone: orderData.customerPhone,
                 notes: orderData.notes || undefined,
@@ -230,20 +316,32 @@ function MenuBookingPageContent() {
         }
     };
 
-    const isFromTableBooking = searchParams.get('bookingtableId');
     const selectedBranch = branches?.find(
         (b) => b.id.toString() === orderData.branchId
     );
 
-    const formatBookingTime = (timeString: string) => {
-        const date = new Date(timeString);
-        return date.toLocaleString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+    const formatBookingTime = (timeString: string, dateString?: string) => {
+        if (dateString) {
+            // If we have separate date and time strings, combine them
+            const date = new Date(`${dateString}T${timeString}:00`);
+            return date.toLocaleString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+        } else {
+            // Assume timeString is already in full datetime format
+            const date = new Date(timeString);
+            return date.toLocaleString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+        }
     };
 
     return (
@@ -270,7 +368,7 @@ function MenuBookingPageContent() {
                                     <p className="text-sm mt-1">
                                         Booking ID: #{isFromTableBooking}
                                         {orderData.time &&
-                                            ` • ${formatBookingTime(orderData.time)}`}
+                                            ` • ${formatBookingTime(orderData.time, orderData.date)}`}
                                     </p>
                                 </div>
                             </div>
@@ -283,7 +381,7 @@ function MenuBookingPageContent() {
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Main Content - Left Side on Desktop */}
                     <div className="flex-1 space-y-8">
-                        {/* Order Type & Branch Selection */}
+                        {/* Order Type & Customer Info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             {/* Order Type */}
                             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -384,141 +482,262 @@ function MenuBookingPageContent() {
                                 </CardContent>
                             </Card>
 
-                            {/* Branch Selection */}
+                            {/* Customer Information */}
                             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
                                 <CardHeader className="pb-3 space-y-1">
                                     <CardTitle className="text-lg font-semibold">
-                                        Branch
+                                        Customer Info
                                     </CardTitle>
                                     <p className="text-sm text-muted-foreground">
-                                        Select your preferred location
+                                        Enter your contact details
                                     </p>
                                 </CardHeader>
                                 <CardContent className="pt-0">
-                                    <Select
-                                        value={orderData.branchId}
-                                        onValueChange={(value) =>
-                                            setOrderData((prev) => ({
-                                                ...prev,
-                                                branchId: value,
-                                            }))
-                                        }
-                                        disabled={!!isFromTableBooking}
-                                    >
-                                        <SelectTrigger className="h-10 bg-white">
-                                            <SelectValue placeholder="Select branch" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {branches?.map((branch) => (
-                                                <SelectItem
-                                                    key={branch.id}
-                                                    value={branch.id.toString()}
-                                                >
-                                                    {branch.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {selectedBranch && (
-                                        <div className="mt-4 p-3 bg-gray-50 rounded-lg space-y-2">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <MapPin className="h-4 w-4" />
-                                                <p className="truncate">
-                                                    {selectedBranch.address}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Phone className="h-4 w-4" />
-                                                <p>{selectedBranch.phone}</p>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label
+                                                htmlFor="customerName"
+                                                className="text-sm font-medium"
+                                            >
+                                                Name
+                                            </Label>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                                <Input
+                                                    id="customerName"
+                                                    placeholder="Your name"
+                                                    value={orderData.customerName}
+                                                    onChange={(e) =>
+                                                        setOrderData((prev) => ({
+                                                            ...prev,
+                                                            customerName:
+                                                                e.target.value,
+                                                        }))
+                                                    }
+                                                    className="h-10 pl-10"
+                                                    disabled={hasQueryCustomerName}
+                                                />
                                             </div>
                                         </div>
-                                    )}
+                                        <div className="space-y-2">
+                                            <Label
+                                                htmlFor="customerPhone"
+                                                className="text-sm font-medium"
+                                            >
+                                                Phone
+                                            </Label>
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                                <Input
+                                                    id="customerPhone"
+                                                    placeholder="Phone number"
+                                                    value={orderData.customerPhone}
+                                                    onChange={(e) =>
+                                                        setOrderData((prev) => ({
+                                                            ...prev,
+                                                            customerPhone:
+                                                                e.target.value,
+                                                        }))
+                                                    }
+                                                    className="h-10 pl-10"
+                                                    disabled={hasQueryCustomerPhone}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Time Selection */}
+                        {/* Branch & Preferred Time */}
                         <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
                             <CardHeader className="pb-3 space-y-1">
                                 <CardTitle className="text-lg font-semibold">
-                                    Preferred Time
+                                    Branch & Preferred Time
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground">
-                                    Choose when you'd like to receive your order
+                                    Choose your preferred branch and time
                                 </p>
                             </CardHeader>
                             <CardContent className="pt-0">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     <div className="space-y-2">
                                         <Label
-                                            htmlFor="orderDate"
+                                            htmlFor="branch"
+                                            className="text-sm font-medium"
+                                        >
+                                            Branch
+                                        </Label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
+                                            <Select
+                                                value={
+                                                    orderData.branchId?.toString() ||
+                                                    ''
+                                                }
+                                                onValueChange={(value) =>
+                                                    setOrderData((prev) => ({
+                                                        ...prev,
+                                                        branchId: value,
+                                                    }))
+                                                }
+                                                disabled={hasQueryBranchId}
+                                            >
+                                                <SelectTrigger className="h-10 pl-10">
+                                                    <SelectValue placeholder="Select branch" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {branches?.map((branch) => (
+                                                        <SelectItem
+                                                            key={branch.id}
+                                                            value={branch.id.toString()}
+                                                        >
+                                                            {branch.name}
+                                                        </SelectItem>
+                                                    )) || []}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label
+                                            htmlFor="date"
                                             className="text-sm font-medium"
                                         >
                                             Date
                                         </Label>
                                         <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
                                             <Input
-                                                id="orderDate"
+                                                id="date"
                                                 type="date"
-                                                value={
-                                                    orderData.time
-                                                        ? orderData.time.split(
-                                                              'T'
-                                                          )[0]
-                                                        : ''
+                                                min={
+                                                    new Date()
+                                                        .toISOString()
+                                                        .split('T')[0]
                                                 }
-                                                onChange={(e) =>
+                                                value={orderData.date}
+                                                disabled={hasQueryDate || hasQueryTime}
+                                                onChange={(e) => {
+                                                    const selectedDate =
+                                                        e.target.value;
                                                     setOrderData((prev) => ({
                                                         ...prev,
-                                                        time: `${e.target.value}T${
-                                                            prev.time?.split(
-                                                                'T'
-                                                            )[1] || '12:00:00'
-                                                        }`,
-                                                    }))
-                                                }
+                                                        date: selectedDate,
+                                                    }));
+
+                                                    // If selecting today's date and current time is past 23:00 or selected time is in the past
+                                                    const now = new Date();
+                                                    const isToday =
+                                                        selectedDate ===
+                                                        now
+                                                            .toISOString()
+                                                            .split('T')[0];
+
+                                                    if (isToday && orderData.time) {
+                                                        const [hours] = orderData.time
+                                                            .split(':')
+                                                            .map(Number);
+                                                        const currentHour =
+                                                            now.getHours();
+
+                                                        if (
+                                                            hours < 6 ||
+                                                            hours > 23 ||
+                                                            hours <= currentHour
+                                                        ) {
+                                                            // Set to next valid hour
+                                                            const nextHour = Math.min(
+                                                                Math.max(
+                                                                    currentHour + 1,
+                                                                    6
+                                                                ),
+                                                                23
+                                                            );
+                                                            setOrderData(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    time: `${nextHour
+                                                                        .toString()
+                                                                        .padStart(
+                                                                            2,
+                                                                            '0'
+                                                                        )}:00`,
+                                                                })
+                                                            );
+                                                        }
+                                                    }
+                                                }}
                                                 className="h-10 pl-10"
-                                                disabled={!!isFromTableBooking}
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label
-                                            htmlFor="orderTime"
+                                            htmlFor="time"
                                             className="text-sm font-medium"
                                         >
                                             Time
                                         </Label>
                                         <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                                            <Input
-                                                id="orderTime"
-                                                type="time"
-                                                value={
-                                                    orderData.time
-                                                        ? orderData.time
-                                                              .split('T')[1]
-                                                              ?.substring(0, 5)
-                                                        : ''
-                                                }
-                                                onChange={(e) =>
+                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
+                                            <Select
+                                                value={orderData.time}
+                                                onValueChange={(value) =>
                                                     setOrderData((prev) => ({
                                                         ...prev,
-                                                        time: `${
-                                                            prev.time?.split(
-                                                                'T'
-                                                            )[0] ||
-                                                            new Date()
-                                                                .toISOString()
-                                                                .split('T')[0]
-                                                        }T${e.target.value}:00`,
+                                                        time: value,
                                                     }))
                                                 }
-                                                className="h-10 pl-10"
-                                                disabled={!!isFromTableBooking}
-                                            />
+                                                disabled={hasQueryTime}
+                                            >
+                                                <SelectTrigger className="h-10 pl-10">
+                                                    <SelectValue placeholder="Select time" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {Array.from(
+                                                        { length: 18 },
+                                                        (_, i) => {
+                                                            const hour = i + 6; // 6 AM to 11 PM
+                                                            const timeStr = `${hour
+                                                                .toString()
+                                                                .padStart(
+                                                                    2,
+                                                                    '0'
+                                                                )}:00`;
+
+                                                            // Check if this hour should be disabled (past time on current date)
+                                                            const isToday =
+                                                                orderData.date ===
+                                                                new Date()
+                                                                    .toISOString()
+                                                                    .split(
+                                                                        'T'
+                                                                    )[0];
+                                                            const currentHour =
+                                                                new Date().getHours();
+                                                            const isPastHour =
+                                                                isToday &&
+                                                                hour <=
+                                                                currentHour;
+
+                                                            return (
+                                                                <SelectItem
+                                                                    key={timeStr}
+                                                                    value={timeStr}
+                                                                    disabled={
+                                                                        isPastHour
+                                                                    }
+                                                                >
+                                                                    {timeStr}
+                                                                    {isPastHour &&
+                                                                        ' (Past)'}
+                                                                </SelectItem>
+                                                            );
+                                                        }
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
                                 </div>
@@ -531,86 +750,36 @@ function MenuBookingPageContent() {
                         </div>
                     </div>
 
-                    {/* Order Summary - Right Side on Desktop, Bottom on Mobile */}
+                    {/* Order Summary - Right Side Sidebar */}
                     <div className="lg:w-[400px]">
                         <div className="lg:sticky lg:top-[80px] space-y-6">
-                            {/* Customer Information */}
-                            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                                <CardHeader className="pb-3 space-y-1">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Customer Info
-                                    </CardTitle>
-                                    <p className="text-sm text-muted-foreground">
-                                        Enter your contact details
-                                    </p>
-                                </CardHeader>
-                                <CardContent className="pt-0 space-y-4">
-                                    <div className="space-y-2">
-                                        <Label
-                                            htmlFor="customerName"
-                                            className="text-sm font-medium"
-                                        >
-                                            Name
-                                        </Label>
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                                            <Input
-                                                id="customerName"
-                                                placeholder="Your name"
-                                                value={orderData.customerName}
-                                                onChange={(e) =>
-                                                    setOrderData((prev) => ({
-                                                        ...prev,
-                                                        customerName:
-                                                            e.target.value,
-                                                    }))
-                                                }
-                                                className="h-10 pl-10"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label
-                                            htmlFor="customerPhone"
-                                            className="text-sm font-medium"
-                                        >
-                                            Phone
-                                        </Label>
-                                        <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                                            <Input
-                                                id="customerPhone"
-                                                placeholder="Phone number"
-                                                value={orderData.customerPhone}
-                                                onChange={(e) =>
-                                                    setOrderData((prev) => ({
-                                                        ...prev,
-                                                        customerPhone:
-                                                            e.target.value,
-                                                    }))
-                                                }
-                                                className="h-10 pl-10"
-                                            />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
                             {/* Order Summary */}
                             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
                                 <CardHeader className="pb-3 space-y-1">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Order Summary
-                                    </CardTitle>
-                                    <p className="text-sm text-muted-foreground">
-                                        Review your order details
-                                        {apiResponse && (
-                                            <span className="inline-flex items-center gap-1 ml-2 text-green-600">
-                                                <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
-                                                Prices calculated
-                                            </span>
-                                        )}
-                                    </p>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-lg font-semibold">
+                                                Order Summary ({totalItems} {totalItems === 1 ? 'item' : 'items'})
+                                            </CardTitle>
+                                            {/* <p className="text-sm text-muted-foreground">
+                                                Review your order details
+                                                {apiResponse && (
+                                                    <span className="inline-flex items-center gap-1 ml-2 text-green-600">
+                                                        <span className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"></span>
+                                                        Prices calculated
+                                                    </span>
+                                                )}
+                                            </p> */}
+                                        </div>
+                                        <Button
+                                            onClick={clearItems}
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-xs border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                                        >
+                                            Clear
+                                        </Button>
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="pt-0">
                                     {totalItems === 0 ? (
@@ -624,118 +793,83 @@ function MenuBookingPageContent() {
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            {/* Selected Items List */}
-                                            <div className="space-y-3 max-h-[240px] overflow-y-auto pr-2">
-                                                {orderItems.length > 0
-                                                    ? orderItems.map((item) => (
-                                                          <div
-                                                              key={item.tempId}
-                                                              className="flex justify-between items-start py-2 group hover:bg-gray-50 rounded-lg px-2 -mx-2"
-                                                          >
-                                                              <div className="flex-1 min-w-0">
-                                                                  <div className="flex items-center gap-1">
-                                                                      <p className="font-medium text-sm">
-                                                                          {
-                                                                              item.name
-                                                                          }
-                                                                      </p>
-                                                                      <span
-                                                                          className="inline-flex items-center justify-center w-2 h-2 bg-green-500 rounded-full"
-                                                                          title="Price calculated by system"
-                                                                      ></span>
-                                                                  </div>
-                                                                  {item.note && (
-                                                                      <p className="text-muted-foreground text-xs mt-0.5">
-                                                                          {
-                                                                              item.note
-                                                                          }
-                                                                      </p>
-                                                                  )}
-                                                              </div>
-                                                              <div className="flex items-center gap-3">
-                                                                  <div className="text-right">
-                                                                      <p className="font-medium text-sm">
-                                                                          {
-                                                                              item.quantity
-                                                                          }
-                                                                          x{' '}
-                                                                          {formatVietnameseCurrency(
-                                                                              item.price
-                                                                          )}
-                                                                      </p>
-                                                                      <p className="text-muted-foreground text-xs mt-0.5">
-                                                                          {formatVietnameseCurrency(
-                                                                              item.totalPrice
-                                                                          )}
-                                                                      </p>
-                                                                  </div>
-                                                                  <button
-                                                                      onClick={() =>
-                                                                          handleRemoveOrderItem(
-                                                                              item,
-                                                                              item.type
-                                                                          )
-                                                                      }
-                                                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
-                                                                      title="Remove item"
-                                                                  >
-                                                                      <Trash2 className="h-4 w-4" />
-                                                                  </button>
-                                                              </div>
-                                                          </div>
-                                                      ))
-                                                    : // Fallback to local items if API data not available
-                                                      menuItems.map((item) => (
-                                                          <div
-                                                              key={item.id}
-                                                              className="flex justify-between items-start py-2 group hover:bg-gray-50 rounded-lg px-2 -mx-2"
-                                                          >
-                                                              <div className="flex-1 min-w-0">
-                                                                  <p className="font-medium text-sm">
-                                                                      {
-                                                                          item.name
-                                                                      }
-                                                                  </p>
-                                                                  {item.notes && (
-                                                                      <p className="text-muted-foreground text-xs mt-0.5">
-                                                                          {
-                                                                              item.notes
-                                                                          }
-                                                                      </p>
-                                                                  )}
-                                                              </div>
-                                                              <div className="flex items-center gap-3">
-                                                                  <div className="text-right">
-                                                                      <p className="font-medium text-sm">
-                                                                          {
-                                                                              item.quantity
-                                                                          }
-                                                                          x{' '}
-                                                                          {formatVietnameseCurrency(
-                                                                              item.price
-                                                                          )}
-                                                                      </p>
-                                                                      <p className="text-muted-foreground text-xs mt-0.5">
-                                                                          {formatVietnameseCurrency(
-                                                                              item.price *
-                                                                                  item.quantity
-                                                                          )}
-                                                                      </p>
-                                                                  </div>
-                                                                  <button
-                                                                      onClick={() =>
-                                                                          removeItem(
-                                                                              item.id
-                                                                          )
-                                                                      }
-                                                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
-                                                                      title="Remove item"
-                                                                  >
-                                                                      <Trash2 className="h-4 w-4" />
-                                                                  </button>
-                                                              </div>
-                                                          </div>
-                                                      ))}
+                                            {/* Selected Items List - Scrollable */}
+                                            <div className="space-y-3 max-h-[35vh] lg:max-h-[35vh] overflow-y-auto pr-2">
+                                                {orderItems.length > 0 ? (
+                                                    orderItems.map((item) => (
+                                                        <div
+                                                            key={item.tempId}
+                                                            className="group py-3 px-3 hover:bg-gray-50 rounded-lg transition-colors duration-150"
+                                                        >
+                                                            {/* Item name with price indicator */}
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                                    <h3 className="font-medium text-sm text-gray-900 truncate">
+                                                                        {item.name}
+                                                                    </h3>
+                                                                    <span
+                                                                        className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"
+                                                                        title="Giá được tính tự động"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Note */}
+                                                            {item.note && (
+                                                                <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                                                                    {item.note}
+                                                                </p>
+                                                            )}
+
+                                                            {/* Price and total */}
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <span className="font-medium text-sm text-gray-900">
+                                                                    {formatVietnameseCurrency(item.price)}
+                                                                </span>
+                                                                <span className="font-semibold text-sm text-gray-900">
+                                                                    {formatVietnameseCurrency(item.totalPrice)}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Quantity controls and delete */}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => handleUpdateQuantity(item, item.type, item.quantity - 1)}
+                                                                        className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                                        disabled={item.quantity <= 1}
+                                                                    >
+                                                                        <Minus className="h-3 w-3" />
+                                                                    </button>
+
+                                                                    <span className="w-8 text-center text-sm font-medium text-gray-900">
+                                                                        {item.quantity}
+                                                                    </span>
+
+                                                                    <button
+                                                                        onClick={() => handleUpdateQuantity(item, item.type, item.quantity + 1)}
+                                                                        className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                                                                    >
+                                                                        <Plus className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Delete button */}
+                                                                <button
+                                                                    onClick={() => handleRemoveOrderItem(item, item.type)}
+                                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700"
+                                                                    title="Remove item"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-8 text-gray-500">
+                                                        <p className="text-sm">No items in your cart yet</p>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <Separator />
@@ -749,13 +883,10 @@ function MenuBookingPageContent() {
                                                     placeholder="Any special requests, dietary requirements..."
                                                     value={orderData.notes}
                                                     onChange={(e) =>
-                                                        setOrderData(
-                                                            (prev) => ({
-                                                                ...prev,
-                                                                notes: e.target
-                                                                    .value,
-                                                            })
-                                                        )
+                                                        setOrderData((prev) => ({
+                                                            ...prev,
+                                                            notes: e.target.value,
+                                                        }))
                                                     }
                                                     rows={2}
                                                     className="resize-none text-sm"
@@ -764,7 +895,7 @@ function MenuBookingPageContent() {
 
                                             <Separator />
 
-                                            {/* Total Summary */}
+                                            {/* Total Breakdown */}
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">
@@ -776,22 +907,16 @@ function MenuBookingPageContent() {
                                                                 Calculating...
                                                             </span>
                                                         ) : (
-                                                            formatVietnameseCurrency(
-                                                                totalPrice
-                                                            )
+                                                            formatVietnameseCurrency(totalPrice)
                                                         )}
                                                     </span>
                                                 </div>
                                                 {apiResponse?.totalPromotion && (
                                                     <div className="flex justify-between text-sm text-green-600">
+                                                        <span>Promotion Discount</span>
                                                         <span>
-                                                            Promotion Discount
-                                                        </span>
-                                                        <span>
-                                                            -
-                                                            {formatVietnameseCurrency(
-                                                                apiResponse.total -
-                                                                    apiResponse.totalPromotion
+                                                            -{formatVietnameseCurrency(
+                                                                apiResponse.total - apiResponse.totalPromotion
                                                             )}
                                                         </span>
                                                     </div>
@@ -805,15 +930,14 @@ function MenuBookingPageContent() {
                                                             </span>
                                                         ) : (
                                                             formatVietnameseCurrency(
-                                                                apiResponse?.totalPromotion ||
-                                                                    totalPrice
+                                                                apiResponse?.totalPromotion || totalPrice
                                                             )
                                                         )}
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-3 pt-3">
+                                            <div className="pt-3">
                                                 <Button
                                                     onClick={handlePlaceOrder}
                                                     className="w-full bg-orange-500 hover:bg-orange-600 h-11 text-base"
@@ -822,6 +946,7 @@ function MenuBookingPageContent() {
                                                         !orderData.customerPhone ||
                                                         !orderData.branchId ||
                                                         !orderData.time ||
+                                                        !orderData.date ||
                                                         totalItems === 0 ||
                                                         isCalculating ||
                                                         createPreOrderMutation.isPending
@@ -830,15 +955,8 @@ function MenuBookingPageContent() {
                                                     {createPreOrderMutation.isPending
                                                         ? 'Creating Order...'
                                                         : isCalculating
-                                                          ? 'Calculating...'
-                                                          : 'Place Order'}
-                                                </Button>
-                                                <Button
-                                                    onClick={clearItems}
-                                                    variant="outline"
-                                                    className="w-full h-9 text-sm border-gray-300"
-                                                >
-                                                    Clear Cart
+                                                            ? 'Calculating...'
+                                                            : 'Place Order'}
                                                 </Button>
                                             </div>
                                         </div>
