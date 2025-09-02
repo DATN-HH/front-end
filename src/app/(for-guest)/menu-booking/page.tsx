@@ -35,7 +35,8 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/auth-context';
 import { MenuBookingContent } from '@/features/pre-order/components/MenuBookingContent';
-import { PreOrderConfirmDialog } from '@/features/pre-order/components/PreOrderConfirmDialog';
+import { PreOrderConfirmInfoModal } from '@/features/pre-order/components/PreOrderConfirmInfoModal';
+import { PreOrderConfirmModal } from '@/features/pre-order/components/PreOrderConfirmModal';
 import {
     MenuBookingProvider,
     useMenuBooking,
@@ -81,6 +82,8 @@ function MenuBookingPageContent() {
 
     // Pre-order states
     const [showPreOrderDialog, setShowPreOrderDialog] = useState(false);
+    const [showPreOrderConfirmModal, setShowPreOrderConfirmModal] =
+        useState(false);
     const [preOrderData, setPreOrderData] = useState<PreOrderResponse | null>(
         null
     );
@@ -165,8 +168,7 @@ function MenuBookingPageContent() {
                         : now;
 
                 const dateStr = targetDate.toISOString().split('T')[0];
-                const timeStr =
-                    targetHour.toString().padStart(2, '0') + ':00:00';
+                const timeStr = `${targetHour.toString().padStart(2, '0')}:00:00`;
 
                 setOrderData((prev) => ({
                     ...prev,
@@ -253,30 +255,35 @@ function MenuBookingPageContent() {
     };
 
     const handlePlaceOrder = async () => {
+        // Validate required fields
+        if (
+            !orderData.customerName ||
+            !orderData.customerPhone ||
+            !orderData.branchId
+        ) {
+            error('Validation Error', 'Please fill in all required fields');
+            return;
+        }
+
+        if (!orderData.time || !orderData.date) {
+            error(
+                'Validation Error',
+                'Please select pickup/dining date and time'
+            );
+            return;
+        }
+
+        if (menuItems.length === 0) {
+            error('Validation Error', 'Please add items to your order');
+            return;
+        }
+
+        // Show confirmation modal instead of directly placing order
+        setShowPreOrderConfirmModal(true);
+    };
+
+    const handleConfirmPlaceOrder = async () => {
         try {
-            // Validate required fields
-            if (
-                !orderData.customerName ||
-                !orderData.customerPhone ||
-                !orderData.branchId
-            ) {
-                error('Validation Error', 'Please fill in all required fields');
-                return;
-            }
-
-            if (!orderData.time || !orderData.date) {
-                error(
-                    'Validation Error',
-                    'Please select pickup/dining date and time'
-                );
-                return;
-            }
-
-            if (menuItems.length === 0) {
-                error('Validation Error', 'Please add items to your order');
-                return;
-            }
-
             // Convert menu items to API format
             const orderItems = {
                 foodCombo: menuItems
@@ -321,7 +328,8 @@ function MenuBookingPageContent() {
                 await createPreOrderMutation.mutateAsync(preOrderRequest);
 
             setPreOrderData(result);
-            setShowPreOrderDialog(true);
+            setShowPreOrderConfirmModal(false); // Close confirm modal
+            setShowPreOrderDialog(true); // Show payment dialog
             success('Success', 'Pre-order created successfully!');
         } catch (err: any) {
             console.error('Failed to create pre-order:', err);
@@ -1057,14 +1065,44 @@ function MenuBookingPageContent() {
                 </div>
             </div>
 
-            {/* Pre-order Confirm Dialog */}
-            <PreOrderConfirmDialog
+            {/* Pre-Order Confirmation Modal */}
+            <PreOrderConfirmModal
+                open={showPreOrderConfirmModal}
+                onOpenChange={setShowPreOrderConfirmModal}
+                onConfirm={handleConfirmPlaceOrder}
+                orderData={{
+                    branchId: orderData.branchId || '',
+                    branchName: selectedBranch?.name,
+                    date: orderData.date || '',
+                    time: orderData.time || '',
+                    customerName: orderData.customerName,
+                    customerPhone: orderData.customerPhone,
+                    customerEmail: undefined, // OrderData doesn't have customerEmail field
+                    specialNotes: orderData.notes,
+                }}
+                orderItems={menuItems.map((item) => ({
+                    id: item.productId || item.comboId || item.variantId || 0,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    imageUrl: undefined, // MenuBookingItem doesn't have image field
+                }))}
+                totalPrice={totalPrice}
+                isSubmitting={createPreOrderMutation.isPending}
+            />
+
+            {/* Pre-order Confirm Info Modal */}
+            <PreOrderConfirmInfoModal
                 open={showPreOrderDialog}
                 onOpenChange={setShowPreOrderDialog}
                 preOrderData={preOrderData}
+                onCancel={() => {
+                    setShowPreOrderDialog(false);
+                }}
                 onPaymentSuccess={() => {
                     clearItems();
                     setPreOrderData(null);
+                    setShowPreOrderDialog(false);
                 }}
             />
         </div>

@@ -1,15 +1,6 @@
 'use client';
 
-import {
-    Calendar,
-    Clock,
-    Users,
-    CreditCard,
-    Timer,
-    Utensils,
-    CheckCircle,
-    AlertCircle,
-} from 'lucide-react';
+import { Timer, Utensils, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
@@ -18,7 +9,6 @@ import {
     useCheckBookingPaymentStatus,
 } from '@/api/v1/table-booking';
 import { formatCurrency } from '@/api/v1/table-types';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -26,7 +16,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import { useCustomToast } from '@/lib/show-toast';
 
 import { PaymentQRCode } from './PaymentQRCode';

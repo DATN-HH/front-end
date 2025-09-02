@@ -3,7 +3,6 @@
 import {
     Calendar,
     Clock,
-    Users,
     MapPin,
     Phone,
     User,
@@ -11,10 +10,10 @@ import {
     Utensils,
     CheckCircle,
     Mail,
+    ShoppingBag,
 } from 'lucide-react';
 
-import { formatCurrency } from '@/api/v1/table-types';
-import { TableResponse } from '@/api/v1/tables';
+import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,63 +21,62 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { getIconByName } from '@/lib/icon-utils';
 
-interface PreBookingConfirmModalProps {
+interface MenuItem {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+    imageUrl?: string;
+}
+
+interface PreOrderConfirmModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
-    bookingData: {
-        startTime: string;
-        duration: number;
-        guests: number;
-        notes: string;
+    orderData: {
+        branchId: string;
+        branchName?: string;
+        date: string;
+        time: string;
         customerName: string;
         customerPhone: string;
         customerEmail?: string;
+        specialNotes?: string;
     };
-    selectedTables: TableResponse[];
-    branchName?: string;
-    floorName?: string;
+    orderItems: MenuItem[];
+    totalPrice: number;
     isSubmitting?: boolean;
 }
 
-export function PreBookingConfirmModal({
+export function PreOrderConfirmModal({
     open,
     onOpenChange,
     onConfirm,
-    bookingData,
-    selectedTables,
-    branchName,
-    floorName,
+    orderData,
+    orderItems,
+    totalPrice,
     isSubmitting = false,
-}: PreBookingConfirmModalProps) {
-    const formatDateTime = (dateTimeString: string) => {
-        const date = new Date(dateTimeString);
-        return date.toLocaleString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+}: PreOrderConfirmModalProps) {
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+        try {
+            const date = new Date(`${dateStr}T${timeStr}:00`);
+            return date.toLocaleString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        } catch (error) {
+            return `${dateStr} at ${timeStr}`;
+        }
     };
 
-    const totalDeposit = selectedTables.reduce(
-        (sum, table) => sum + table.tableType.depositForBooking,
-        0
-    );
+    // Use the imported formatVietnameseCurrency function
 
-    const totalCapacity = selectedTables.reduce(
-        (sum, table) => sum + table.capacity,
-        0
-    );
-
-    const renderIcon = (iconName: string) => {
-        const IconComponent = getIconByName(iconName);
-        return <IconComponent className="w-4 h-4" />;
-    };
+    const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,10 +88,10 @@ export function PreBookingConfirmModal({
                         </div>
                         <div>
                             <p className="text-xl font-semibold text-gray-900">
-                                Confirm Your Booking
+                                Confirm Your Order
                             </p>
                             <p className="text-sm text-gray-600 font-normal">
-                                Please review your booking details
+                                Please review your pre-order details
                             </p>
                         </div>
                     </DialogTitle>
@@ -116,7 +114,7 @@ export function PreBookingConfirmModal({
                                         Name
                                     </p>
                                     <p className="font-semibold text-gray-900">
-                                        {bookingData.customerName}
+                                        {orderData.customerName}
                                     </p>
                                 </div>
                             </div>
@@ -129,11 +127,11 @@ export function PreBookingConfirmModal({
                                         Phone
                                     </p>
                                     <p className="font-semibold text-gray-900">
-                                        {bookingData.customerPhone}
+                                        {orderData.customerPhone}
                                     </p>
                                 </div>
                             </div>
-                            {bookingData.customerEmail && (
+                            {orderData.customerEmail && (
                                 <div className="flex items-center gap-3 sm:col-span-2">
                                     <div className="p-2 bg-gray-100 rounded-lg">
                                         <Mail className="w-4 h-4 text-gray-600" />
@@ -143,7 +141,7 @@ export function PreBookingConfirmModal({
                                             Email
                                         </p>
                                         <p className="font-semibold text-gray-900">
-                                            {bookingData.customerEmail}
+                                            {orderData.customerEmail}
                                         </p>
                                     </div>
                                 </div>
@@ -151,11 +149,11 @@ export function PreBookingConfirmModal({
                         </div>
                     </div>
 
-                    {/* Booking Details Card */}
+                    {/* Order Details Card */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-green-600" />
-                            Booking Details
+                            Order Details
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center gap-3">
@@ -164,26 +162,11 @@ export function PreBookingConfirmModal({
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide">
-                                        Location
+                                        Branch
                                     </p>
                                     <p className="font-semibold text-gray-900">
-                                        {branchName}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                        {floorName}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-100 rounded-lg">
-                                    <Calendar className="w-4 h-4 text-green-600" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                                        Date & Time
-                                    </p>
-                                    <p className="font-semibold text-gray-900">
-                                        {formatDateTime(bookingData.startTime)}
+                                        {orderData.branchName ||
+                                            `Branch #${orderData.branchId}`}
                                     </p>
                                 </div>
                             </div>
@@ -193,66 +176,69 @@ export function PreBookingConfirmModal({
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide">
-                                        Duration
+                                        Pickup Time
                                     </p>
                                     <p className="font-semibold text-gray-900">
-                                        {bookingData.duration} hour
-                                        {bookingData.duration > 1 ? 's' : ''}
+                                        {formatDateTime(
+                                            orderData.date,
+                                            orderData.time
+                                        )}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-green-100 rounded-lg">
-                                    <Users className="w-4 h-4 text-green-600" />
+                                    <ShoppingBag className="w-4 h-4 text-green-600" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-wide">
-                                        Guests
+                                        Total Items
                                     </p>
                                     <p className="font-semibold text-gray-900">
-                                        {bookingData.guests} guest
-                                        {bookingData.guests > 1 ? 's' : ''}
+                                        {totalItems} item
+                                        {totalItems > 1 ? 's' : ''}
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Tables Card */}
+                    {/* Order Items Card */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <Utensils className="w-4 h-4 text-purple-600" />
-                            Selected Tables ({selectedTables.length})
+                            Order Items ({orderItems.length})
                         </h3>
                         <div className="space-y-3">
-                            {selectedTables.map((table) => (
+                            {orderItems.map((item) => (
                                 <div
-                                    key={table.id}
+                                    key={item.id}
                                     className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-lg hover:shadow-sm transition-shadow"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 bg-purple-100 rounded-lg">
-                                            {renderIcon(table.tableType.icon)}
+                                            <Utensils className="w-4 h-4 text-purple-600" />
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-900">
-                                                {table.tableName}
+                                                {item.name}
                                             </p>
                                             <p className="text-sm text-gray-600">
-                                                {table.capacity} seats •{' '}
-                                                {table.tableType.tableType}
+                                                Quantity: {item.quantity}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-purple-600">
-                                            {formatCurrency(
-                                                table.tableType
-                                                    .depositForBooking
+                                            {formatVietnameseCurrency(
+                                                item.price * item.quantity
                                             )}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            deposit
+                                            {formatVietnameseCurrency(
+                                                item.price
+                                            )}
+                                            /each
                                         </p>
                                     </div>
                                 </div>
@@ -260,15 +246,15 @@ export function PreBookingConfirmModal({
                         </div>
                     </div>
 
-                    {/* Notes Card */}
-                    {bookingData.notes && (
+                    {/* Special Notes Card */}
+                    {orderData.specialNotes && (
                         <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                             <h3 className="font-semibold text-gray-900 mb-3">
                                 Special Notes
                             </h3>
                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                                 <p className="text-sm text-amber-800 italic">
-                                    "{bookingData.notes}"
+                                    "{orderData.specialNotes}"
                                 </p>
                             </div>
                         </div>
@@ -279,20 +265,20 @@ export function PreBookingConfirmModal({
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
                                 <CreditCard className="w-5 h-5 text-gray-600" />
-                                Booking Summary
+                                Order Summary
                             </h3>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <p className="text-gray-600">Total Capacity</p>
+                                <p className="text-gray-600">Total Items</p>
                                 <p className="text-xl font-bold text-gray-900">
-                                    {totalCapacity} seats
+                                    {totalItems} items
                                 </p>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <p className="text-gray-600">Total Deposit</p>
+                                <p className="text-gray-600">Total Amount</p>
                                 <p className="text-xl font-bold text-gray-900">
-                                    {formatCurrency(totalDeposit)}
+                                    {formatVietnameseCurrency(totalPrice)}
                                 </p>
                             </div>
                         </div>
@@ -317,10 +303,10 @@ export function PreBookingConfirmModal({
                                 {isSubmitting ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 inline-block" />
-                                        Creating...
+                                        Placing Order...
                                     </>
                                 ) : (
-                                    'Confirm & Book'
+                                    'Confirm & Place Order'
                                 )}
                             </span>
                         </Button>
