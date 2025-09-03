@@ -9,8 +9,6 @@ import {
     QrCode,
     Loader2,
     AlertCircle,
-    Copy,
-    ExternalLink,
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useState, useEffect, useCallback } from 'react';
@@ -411,7 +409,7 @@ export function OrderDetailsModal({
                                             </div>
                                         )}
 
-                                        <div className="space-y-2">
+                                        {/* <div className="space-y-2">
                                             <Button
                                                 onClick={handleOpenPaymentLink}
                                                 variant="outline"
@@ -429,7 +427,7 @@ export function OrderDetailsModal({
                                                 <Copy className="mr-2 h-4 w-4" />
                                                 Copy Payment Link
                                             </Button>
-                                        </div>
+                                        </div> */}
 
                                         <div className="text-xs text-gray-500 text-center">
                                             Amount:{' '}

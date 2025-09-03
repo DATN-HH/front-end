@@ -12,6 +12,8 @@ export interface BranchResponseDto {
     phone?: string;
     managerId?: number;
     status: Status;
+    lat?: number;
+    lng?: number;
     createdAt: string;
     createdBy: number;
     updatedAt: string;

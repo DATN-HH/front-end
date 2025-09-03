@@ -728,7 +728,7 @@ export default function TableBookingPage() {
                                         >
                                             {createBookingMutation.isPending
                                                 ? 'Processing...'
-                                                : 'Book Now'}
+                                                : 'Book Table'}
                                         </Button>
 
                                         {/* Validation Messages */}

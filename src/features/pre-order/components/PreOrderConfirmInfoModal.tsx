@@ -454,6 +454,7 @@ export function PreOrderConfirmInfoModal({
                                 <Button
                                     variant="destructive"
                                     onClick={onCancel}
+                                    className="w-full"
                                 >
                                     Cancel
                                 </Button>

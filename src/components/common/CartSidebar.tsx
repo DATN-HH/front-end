@@ -17,7 +17,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
     SheetContent,
@@ -268,10 +267,22 @@ export function CartSidebar() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-lg">
                     <SheetHeader>
-                        <SheetTitle className="flex items-center gap-2">
-                            <ShoppingCart className="h-5 w-5" />
-                            Your Cart ({totalItems} items)
-                        </SheetTitle>
+                        <div className="flex items-center justify-between">
+                            <SheetTitle className="flex items-center gap-2">
+                                <ShoppingCart className="h-5 w-5" />
+                                Your Cart ({totalItems} items)
+                            </SheetTitle>
+                            {items.length > 0 && (
+                                <Button
+                                    onClick={clearCart}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600 mr-5"
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
                     </SheetHeader>
 
                     <div className="flex flex-col h-full mt-6">
@@ -614,7 +625,7 @@ export function CartSidebar() {
                                 {/* Cart Summary */}
                                 <div className="border-t pt-4 mt-4">
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
+                                        {/* <div className="flex justify-between text-sm">
                                             <span>
                                                 Subtotal ({totalItems} items)
                                                 {apiResponse && (
@@ -643,13 +654,13 @@ export function CartSidebar() {
                                                     -
                                                     {formatVietnameseCurrency(
                                                         apiResponse.total -
-                                                            apiResponse.totalPromotion
+                                                        apiResponse.totalPromotion
                                                     )}
                                                 </span>
                                             </div>
-                                        )}
+                                        )} */}
 
-                                        <Separator />
+                                        {/* <Separator /> */}
                                         <div className="flex justify-between text-lg font-semibold">
                                             <span>Total</span>
                                             <span className="text-orange-600">
