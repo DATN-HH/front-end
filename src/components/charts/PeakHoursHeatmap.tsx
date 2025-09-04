@@ -1,6 +1,7 @@
 'use client';
 
 import { Clock } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 interface PeakHoursHeatmapProps {
     data: Array<{
@@ -19,6 +20,10 @@ export function PeakHoursHeatmap({
     peakHour,
     title,
 }: PeakHoursHeatmapProps) {
+    const [hoveredHour, setHoveredHour] = useState<number | null>(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, show: false });
+    const containerRef = useRef<HTMLDivElement>(null);
+
     if (!data || data.length === 0) {
         return (
             <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -33,15 +38,16 @@ export function PeakHoursHeatmap({
     const maxOrders = Math.max(...data.map((d) => d.orderCount || 0));
     const minOrders = Math.min(...data.map((d) => d.orderCount || 0));
 
-    // Create 24-hour timeline
-    const hours24 = Array.from({ length: 24 }, (_, i) => {
-        const hourData = data.find((d) => d.hour === i);
+    // Create 6-23 hour timeline (18 hours)
+    const businessHours = Array.from({ length: 18 }, (_, i) => {
+        const hour = i + 6; // Start from 6h
+        const hourData = data.find((d) => d.hour === hour);
         return {
-            hour: i,
-            hourLabel: `${i.toString().padStart(2, '0')}:00`,
+            hour,
+            hourLabel: `${hour.toString().padStart(2, '0')}:00`,
             orderCount: hourData?.orderCount || 0,
             percentage: hourData?.percentage || 0,
-            isPeakHour: i === peakHour,
+            isPeakHour: hour === peakHour,
         };
     });
 
@@ -55,8 +61,30 @@ export function PeakHoursHeatmap({
         return 'bg-blue-600';
     };
 
+    const handleMouseEnter = (hour: number, event: React.MouseEvent) => {
+        setHoveredHour(hour);
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const containerRect = containerRef.current?.getBoundingClientRect();
+
+        if (containerRect) {
+            setTooltipPosition({
+                x: rect.left - containerRect.left + rect.width / 2,
+                y: rect.top - containerRect.top - 10,
+                show: true
+            });
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredHour(null);
+        setTooltipPosition(prev => ({ ...prev, show: false }));
+    };
+
+    const getHourData = (hour: number) => businessHours.find(h => h.hour === hour);
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" ref={containerRef}>
             {title && (
                 <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-gray-700">
@@ -92,53 +120,74 @@ export function PeakHoursHeatmap({
                 </div>
             )}
 
-            {/* 24-Hour Heatmap */}
+            {/* Business Hours Heatmap (6h-23h) */}
             <div className="space-y-4">
                 <div className="text-sm font-medium text-gray-700">
-                    24-Hour Activity Heatmap
+                    Business Hours Activity (6h - 23h)
                 </div>
-                <div className="grid grid-cols-12 gap-1">
-                    {hours24.map((hour) => (
-                        <div
-                            key={hour.hour}
-                            className={`
-                                relative aspect-square rounded transition-all duration-200 cursor-pointer
-                                ${getIntensityColor(hour.orderCount)}
-                                ${hour.isPeakHour ? 'ring-2 ring-orange-500 ring-offset-1' : ''}
-                                hover:scale-110 hover:z-10
-                            `}
-                            title={`${hour.hourLabel}: ${hour.orderCount} orders (${hour.percentage.toFixed(1)}%)`}
-                        >
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span
-                                    className={`text-xs font-medium ${
-                                        hour.orderCount > maxOrders * 0.6
+
+                {/* Heatmap Grid - 18 columns for 6h-23h */}
+                <div className="relative">
+                    <div className="grid grid-cols-9 gap-2">
+                        {businessHours.map((hour, index) => (
+                            <div
+                                key={hour.hour}
+                                className={`
+                                    relative aspect-square rounded-lg transition-all duration-200 cursor-pointer
+                                    ${getIntensityColor(hour.orderCount)}
+                                    ${hour.isPeakHour ? 'ring-2 ring-orange-500 ring-offset-1' : ''}
+                                    hover:scale-105 hover:shadow-md hover:z-10
+                                `}
+                                onMouseEnter={(e) => handleMouseEnter(hour.hour, e)}
+                                onMouseLeave={handleMouseLeave}
+                            >
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span
+                                        className={`text-xs font-medium ${hour.orderCount > maxOrders * 0.6
                                             ? 'text-white'
                                             : 'text-gray-700'
-                                    }`}
-                                >
-                                    {hour.hour}
-                                </span>
-                            </div>
-
-                            {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                                <div className="font-medium">
-                                    {hour.hourLabel}
+                                            }`}
+                                    >
+                                        {hour.hour}
+                                    </span>
                                 </div>
-                                <div>{hour.orderCount} orders</div>
-                                <div>{hour.percentage.toFixed(1)}%</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Custom Tooltip */}
+                    {tooltipPosition.show && hoveredHour !== null && (
+                        <div
+                            className="absolute pointer-events-none z-50 transform -translate-x-1/2 -translate-y-full"
+                            style={{
+                                left: tooltipPosition.x,
+                                top: tooltipPosition.y,
+                            }}
+                        >
+                            <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl border border-gray-700 min-w-[160px]">
+                                <div className="text-center space-y-1">
+                                    <div className="text-sm font-bold text-orange-300">
+                                        {getHourData(hoveredHour)?.hourLabel}
+                                    </div>
+                                    <div className="text-lg font-bold text-white">
+                                        {getHourData(hoveredHour)?.orderCount || 0}
+                                        <span className="text-xs text-gray-300 ml-1">orders</span>
+                                    </div>
+                                    <div className="text-sm text-blue-300">
+                                        {getHourData(hoveredHour)?.percentage.toFixed(1) || 0}% of total orders
+                                    </div>
+                                    {hoveredHour === peakHour && (
+                                        <div className="text-xs text-orange-300 font-medium border-t border-gray-600 pt-1 mt-2">
+                                            🔥 Peak Hour
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    ))}
+                    )}
                 </div>
 
-                {/* Hour labels */}
-                <div className="grid grid-cols-12 gap-1 text-xs text-gray-500 text-center">
-                    {[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map((hour) => (
-                        <div key={hour}>{hour}h</div>
-                    ))}
-                </div>
+
             </div>
 
             {/* Intensity Legend */}
@@ -154,38 +203,6 @@ export function PeakHoursHeatmap({
                 </div>
                 <span className="text-gray-600">High</span>
             </div>
-
-            {/* Bar Chart for detailed view */}
-            {/* <div className="space-y-2">
-                <div className="text-sm font-medium text-gray-700">
-                    Hourly Orders Distribution
-                </div>
-                <div className="h-32 flex items-end gap-1">
-                    {data.map((hour) => (
-                        <div
-                            key={hour.hour}
-                            className="flex-1 flex flex-col items-center group"
-                        >
-                            <div
-                                className={`
-                                    w-full transition-all duration-200 rounded-t
-                                    ${hour.isPeakHour ? 'bg-orange-500' : 'bg-blue-500'}
-                                    hover:opacity-80
-                                `}
-                                style={{
-                                    height: `${maxOrders > 0 ? (hour.orderCount / maxOrders) * 100 : 0}%`,
-                                    minHeight:
-                                        hour.orderCount > 0 ? '4px' : '0px',
-                                }}
-                            >
-                                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                    {hour.hourLabel}: {hour.orderCount} orders
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div> */}
         </div>
     );
 }
