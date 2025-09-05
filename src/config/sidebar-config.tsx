@@ -19,6 +19,9 @@ import {
     Calculator,
     ChefHat,
     ShoppingBag,
+    MessageSquare,
+    Star,
+    TrendingUp,
 } from 'lucide-react';
 
 import { Role, employeeRole } from '@/lib/rbac';
@@ -153,6 +156,33 @@ export const SIDEBAR_CONFIG: SidebarConfig = {
                     href: '/app/reservation/pre-order',
                     label: 'Pre-order',
                     icon: <ShoppingBag className="h-4 w-4" />,
+                    roles: [Role.MANAGER],
+                },
+            ],
+        },
+        {
+            id: 'feedback',
+            label: 'Feedback Management',
+            icon: <MessageSquare className="h-5 w-5" />,
+            activePaths: ['/app/feedback'],
+            roles: [Role.MANAGER], // Only managers can access feedback management
+            items: [
+                {
+                    href: '/app/feedback',
+                    label: 'Feedback Dashboard',
+                    icon: <BarChart4 className="h-4 w-4" />,
+                    roles: [Role.MANAGER],
+                },
+                {
+                    href: '/app/feedback/analytics',
+                    label: 'Feedback Analytics',
+                    icon: <TrendingUp className="h-4 w-4" />,
+                    roles: [Role.MANAGER],
+                },
+                {
+                    href: '/app/feedback/reports',
+                    label: 'Feedback Reports',
+                    icon: <ClipboardList className="h-4 w-4" />,
                     roles: [Role.MANAGER],
                 },
             ],
