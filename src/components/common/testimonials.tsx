@@ -43,18 +43,20 @@ export function TestimonialsSection() {
                     page: 0,
                     size: 6,
                     minRating: 4,
-                    status: 'RESPONDED' // Only show feedback that has been responded to
+                    status: 'RESPONDED', // Only show feedback that has been responded to
                 });
 
                 const feedbackData = response.data || [];
-                const formattedTestimonials: Testimonial[] = feedbackData.map((feedback: any) => ({
-                    id: feedback.id,
-                    customerName: feedback.customerName,
-                    rating: feedback.overallRating,
-                    reviewText: feedback.reviewText,
-                    branchName: feedback.branch?.name || 'Main Branch',
-                    date: feedback.createdAt
-                }));
+                const formattedTestimonials: Testimonial[] = feedbackData.map(
+                    (feedback: any) => ({
+                        id: feedback.id,
+                        customerName: feedback.customerName,
+                        rating: feedback.overallRating,
+                        reviewText: feedback.reviewText,
+                        branchName: feedback.branch?.name || 'Main Branch',
+                        date: feedback.createdAt,
+                    })
+                );
 
                 setTestimonials(formattedTestimonials);
             } catch (error) {
@@ -78,7 +80,10 @@ export function TestimonialsSection() {
                         <div className="h-4 bg-gray-300 rounded w-96 mx-auto mb-8"></div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-white rounded-lg p-6 shadow">
+                                <div
+                                    key={i}
+                                    className="bg-white rounded-lg p-6 shadow"
+                                >
                                     <div className="h-4 bg-gray-300 rounded mb-2"></div>
                                     <div className="h-4 bg-gray-300 rounded mb-4 w-3/4"></div>
                                     <div className="h-20 bg-gray-300 rounded"></div>
@@ -99,7 +104,8 @@ export function TestimonialsSection() {
                         What Our Guests Say
                     </h2>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Discover why our customers love dining with us through their authentic experiences and reviews
+                        Discover why our customers love dining with us through
+                        their authentic experiences and reviews
                     </p>
                 </div>
 
@@ -118,7 +124,10 @@ export function TestimonialsSection() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {testimonials.slice(0, 3).map((testimonial) => (
-                            <Card key={testimonial.id} className="hover:shadow-lg transition-shadow duration-300">
+                            <Card
+                                key={testimonial.id}
+                                className="hover:shadow-lg transition-shadow duration-300"
+                            >
                                 <CardContent className="p-6">
                                     <div className="flex items-start gap-4 mb-4">
                                         <Quote className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
@@ -127,14 +136,19 @@ export function TestimonialsSection() {
                                                 <h3 className="font-semibold text-gray-900">
                                                     {testimonial.customerName}
                                                 </h3>
-                                                <StarRating rating={testimonial.rating} />
+                                                <StarRating
+                                                    rating={testimonial.rating}
+                                                />
                                             </div>
                                             <p className="text-sm text-gray-500 mb-3">
-                                                {testimonial.branchName} • {new Date(testimonial.date).toLocaleDateString()}
+                                                {testimonial.branchName} •{' '}
+                                                {new Date(
+                                                    testimonial.date
+                                                ).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     <p className="text-gray-700 leading-relaxed">
                                         {testimonial.reviewText}
                                     </p>
