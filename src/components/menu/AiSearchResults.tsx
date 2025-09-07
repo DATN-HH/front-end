@@ -3,7 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Clock, DollarSign, MessageCircle, Package, Plus, Sparkles } from 'lucide-react';
+import {
+    Clock,
+    DollarSign,
+    MessageCircle,
+    Package,
+    Plus,
+    Sparkles,
+} from 'lucide-react';
 
 import { AiSearchResponse } from '@/api/v1/menu/ai-search';
 import { formatVietnameseCurrency } from '@/api/v1/menu/menu-products';
@@ -26,7 +33,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
     const addProduct = useCartStore((state) => state.addProduct);
     const addFoodCombo = useCartStore((state) => state.addFoodCombo);
     const addProductVariant = useCartStore((state) => state.addProductVariant);
-    
+
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [selectedCombo, setSelectedCombo] = useState<any>(null);
     const [showProductDialog, setShowProductDialog] = useState(false);
@@ -88,7 +95,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
     // Handle adding a product to cart
     const handleAddProductClick = (product: any) => {
         setSelectedProduct(product);
-        
+
         // Check if product has variants
         if (product.variants && product.variants.length > 0) {
             setShowVariantDialog(true);
@@ -104,42 +111,59 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
     };
 
     // Handle adding product to cart from dialog
-    const handleAddProductToCart = (quantity: number, notes?: string, customizations?: string[]) => {
+    const handleAddProductToCart = (
+        quantity: number,
+        notes?: string,
+        customizations?: string[]
+    ) => {
         if (!selectedProduct) return;
-        
+
         addProduct(selectedProduct, {
             quantity,
             notes,
-            customizations
+            customizations,
         });
-        
+
         success('Added to Cart', `${selectedProduct.name} added to cart`);
         setShowProductDialog(false);
     };
 
     // Handle adding combo to cart from dialog
-    const handleAddComboToCart = (quantity: number, notes?: string, customizations?: string[]) => {
+    const handleAddComboToCart = (
+        quantity: number,
+        notes?: string,
+        customizations?: string[]
+    ) => {
         if (!selectedCombo) return;
-        
+
         addFoodCombo(selectedCombo, {
             quantity,
             notes,
-            customizations
+            customizations,
         });
-        
+
         success('Added to Cart', `${selectedCombo.name} added to cart`);
         setShowComboDialog(false);
     };
 
     // Handle variant product add to cart
-    const handleAddProductVariant = (product: any, variant: any, quantity: number, note?: string, customizations?: string[]) => {
+    const handleAddProductVariant = (
+        product: any,
+        variant: any,
+        quantity: number,
+        note?: string,
+        customizations?: string[]
+    ) => {
         addProductVariant(product, variant, {
             quantity,
             notes: note,
-            customizations
+            customizations,
         });
-        
-        success('Added to Cart', `${product.name} (${variant.name}) added to cart`);
+
+        success(
+            'Added to Cart',
+            `${product.name} (${variant.name}) added to cart`
+        );
         setShowVariantDialog(false);
     };
 
@@ -147,7 +171,10 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
     const getComboItemsList = (combo: any) => {
         if (!combo.comboItems || combo.comboItems.length === 0) return '';
         return combo.comboItems
-            .map((item: any) => `${item.quantity}x ${item.productName || item.name}`)
+            .map(
+                (item: any) =>
+                    `${item.quantity}x ${item.productName || item.name}`
+            )
             .join(', ');
     };
 
@@ -186,14 +213,16 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                             </span>
                         </div>
                     </div>
-                    
+
                     {/* Desktop Grid */}
                     <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 gap-4">
                         {foodCombo.map((combo: any) => (
-                            <Card 
-                                key={combo.id} 
+                            <Card
+                                key={combo.id}
                                 className="group hover:shadow-md transition-all duration-300 overflow-hidden"
-                                onClick={() => router.push(`/menu/food-combo/${combo.id}`)}
+                                onClick={() =>
+                                    router.push(`/menu/food-combo/${combo.id}`)
+                                }
                             >
                                 <CardContent className="p-0">
                                     {/* Image Section */}
@@ -206,7 +235,8 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 onError={(e) => {
-                                                    e.currentTarget.src = '/placeholder.svg';
+                                                    e.currentTarget.src =
+                                                        '/placeholder.svg';
                                                 }}
                                             />
                                         ) : (
@@ -214,7 +244,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                 <Package className="h-10 w-10 text-gray-400" />
                                             </div>
                                         )}
-                                        
+
                                         {/* Combo Badge */}
                                         <div className="absolute top-2 left-2">
                                             <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
@@ -223,37 +253,43 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                             </Badge>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Content Section */}
                                     <div className="p-3 space-y-2">
                                         {/* Title */}
                                         <h3 className="font-semibold text-base text-gray-900 line-clamp-1 group-hover:text-orange-600 transition-colors cursor-pointer">
                                             {combo.name}
                                         </h3>
-                                        
+
                                         {/* Description */}
                                         <p className="text-xs text-gray-600 line-clamp-2">
                                             {combo.description}
                                         </p>
-                                        
+
                                         {/* Combo Items Preview - if available */}
-                                        {combo.comboItems && combo.comboItems.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-medium text-gray-500 mb-1">
-                                                    Includes:
-                                                </p>
-                                                <p className="text-xs text-gray-600 line-clamp-1">
-                                                    {getComboItemsList(combo)}
-                                                </p>
-                                            </div>
-                                        )}
-                                        
+                                        {combo.comboItems &&
+                                            combo.comboItems.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-medium text-gray-500 mb-1">
+                                                        Includes:
+                                                    </p>
+                                                    <p className="text-xs text-gray-600 line-clamp-1">
+                                                        {getComboItemsList(
+                                                            combo
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            )}
+
                                         {/* Price and Time */}
                                         <div className="flex items-center justify-between pt-2">
                                             <div className="text-lg font-bold text-orange-600">
-                                                {formatVietnameseCurrency(combo.effectivePrice || combo.price)}
+                                                {formatVietnameseCurrency(
+                                                    combo.effectivePrice ||
+                                                        combo.price
+                                                )}
                                             </div>
-                                            
+
                                             {combo.estimateTime && (
                                                 <div className="flex items-center text-xs text-gray-500">
                                                     <Clock className="w-3 h-3 mr-1" />
@@ -261,7 +297,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {/* Action Button */}
                                         <Button
                                             onClick={(e) => {
@@ -280,14 +316,16 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                             </Card>
                         ))}
                     </div>
-                    
+
                     {/* Mobile List */}
                     <div className="md:hidden space-y-3">
                         {foodCombo.map((combo: any) => (
                             <Card
                                 key={combo.id}
                                 className="group hover:shadow-md transition-all duration-300"
-                                onClick={() => router.push(`/menu/food-combo/${combo.id}`)}
+                                onClick={() =>
+                                    router.push(`/menu/food-combo/${combo.id}`)
+                                }
                             >
                                 <CardContent className="p-0">
                                     <div className="flex">
@@ -301,7 +339,8 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                     className="object-cover rounded-l-lg"
                                                     sizes="80px"
                                                     onError={(e) => {
-                                                        e.currentTarget.src = '/placeholder.svg';
+                                                        e.currentTarget.src =
+                                                            '/placeholder.svg';
                                                     }}
                                                 />
                                             ) : (
@@ -309,46 +348,58 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                     <Package className="h-6 w-6 text-gray-400" />
                                                 </div>
                                             )}
-                                            
+
                                             <div className="absolute top-1 left-1">
                                                 <Badge className="bg-orange-500 text-white text-xs px-1 py-0.5">
                                                     Combo
                                                 </Badge>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Content */}
                                         <div className="flex-1 p-3 min-w-0">
                                             <div className="space-y-1">
                                                 <h4 className="font-medium text-gray-900 line-clamp-1 text-sm hover:text-orange-600 transition-colors cursor-pointer">
                                                     {combo.name}
                                                 </h4>
-                                                
+
                                                 {/* Items list */}
-                                                {combo.comboItems && combo.comboItems.length > 0 && (
-                                                    <p className="text-xs text-gray-600 line-clamp-1">
-                                                        {getComboItemsList(combo)}
-                                                    </p>
-                                                )}
-                                                
+                                                {combo.comboItems &&
+                                                    combo.comboItems.length >
+                                                        0 && (
+                                                        <p className="text-xs text-gray-600 line-clamp-1">
+                                                            {getComboItemsList(
+                                                                combo
+                                                            )}
+                                                        </p>
+                                                    )}
+
                                                 <div className="flex items-center justify-between pt-1">
                                                     <div className="text-base font-bold text-orange-600">
-                                                        {formatVietnameseCurrency(combo.effectivePrice || combo.price)}
+                                                        {formatVietnameseCurrency(
+                                                            combo.effectivePrice ||
+                                                                combo.price
+                                                        )}
                                                     </div>
-                                                    
+
                                                     <div className="flex flex-col items-end gap-1">
                                                         {combo.estimateTime && (
                                                             <div className="flex items-center text-xs text-gray-500">
                                                                 <Clock className="w-3 h-3 mr-1" />
-                                                                {combo.estimateTime} min
+                                                                {
+                                                                    combo.estimateTime
+                                                                }{' '}
+                                                                min
                                                             </div>
                                                         )}
-                                                        
+
                                                         <Button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 e.preventDefault();
-                                                                handleAddComboClick(combo);
+                                                                handleAddComboClick(
+                                                                    combo
+                                                                );
                                                             }}
                                                             size="sm"
                                                             className="bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1"
@@ -374,14 +425,16 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                     <h4 className="text-lg font-semibold mb-4">
                         Recommended Items
                     </h4>
-                    
+
                     {/* Desktop Grid */}
                     <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {products.map((product: any) => (
-                            <Card 
+                            <Card
                                 key={product.id}
                                 className="group hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                                onClick={() => router.push(`/menu/${product.id}`)}
+                                onClick={() =>
+                                    router.push(`/menu/${product.id}`)
+                                }
                             >
                                 <CardContent className="p-0">
                                     {/* Product Image */}
@@ -393,7 +446,8 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                                 loading="lazy"
                                                 onError={(e) => {
-                                                    e.currentTarget.src = '/placeholder.svg';
+                                                    e.currentTarget.src =
+                                                        '/placeholder.svg';
                                                 }}
                                             />
                                         ) : (
@@ -420,17 +474,30 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1 text-sm text-gray-500">
                                                 <Clock className="w-4 h-4" />
-                                                <span>{product.estimateTime}min</span>
+                                                <span>
+                                                    {product.estimateTime}min
+                                                </span>
                                             </div>
 
                                             <div className="font-semibold text-green-600">
-                                                {formatVietnameseCurrency(product.price)}
-                                                {product.variants && product.variants.length > 0 && (
-                                                    <div className="text-xs text-gray-500">
-                                                        {product.variants.length} variant
-                                                        {product.variants.length > 1 ? 's' : ''}
-                                                    </div>
+                                                {formatVietnameseCurrency(
+                                                    product.price
                                                 )}
+                                                {product.variants &&
+                                                    product.variants.length >
+                                                        0 && (
+                                                        <div className="text-xs text-gray-500">
+                                                            {
+                                                                product.variants
+                                                                    .length
+                                                            }{' '}
+                                                            variant
+                                                            {product.variants
+                                                                .length > 1
+                                                                ? 's'
+                                                                : ''}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
 
@@ -451,14 +518,16 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                             </Card>
                         ))}
                     </div>
-                    
+
                     {/* Mobile List */}
                     <div className="md:hidden space-y-3">
                         {products.map((product: any) => (
                             <div
                                 key={product.id}
                                 className="flex bg-white rounded-lg shadow-sm border p-3 cursor-pointer hover:shadow-md transition-shadow"
-                                onClick={() => router.push(`/menu/${product.id}`)}
+                                onClick={() =>
+                                    router.push(`/menu/${product.id}`)
+                                }
                             >
                                 <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
                                     {product.image ? (
@@ -467,7 +536,8 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                             alt={product.name}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                e.currentTarget.src = '/placeholder.svg';
+                                                e.currentTarget.src =
+                                                    '/placeholder.svg';
                                             }}
                                         />
                                     ) : (
@@ -475,17 +545,18 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                             <Package className="h-8 w-8 text-gray-400" />
                                         </div>
                                     )}
-                                    
-                                    {product.variants && product.variants.length > 0 && (
-                                        <div className="absolute top-1 right-1">
-                                            <Badge
-                                                variant="secondary"
-                                                className="text-xs px-1 py-0"
-                                            >
-                                                {product.variants.length}
-                                            </Badge>
-                                        </div>
-                                    )}
+
+                                    {product.variants &&
+                                        product.variants.length > 0 && (
+                                            <div className="absolute top-1 right-1">
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="text-xs px-1 py-0"
+                                                >
+                                                    {product.variants.length}
+                                                </Badge>
+                                            </div>
+                                        )}
                                 </div>
 
                                 <div className="flex-1 ml-3 min-w-0">
@@ -495,7 +566,9 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                         </h3>
                                         <div className="flex-shrink-0">
                                             <span className="text-sm font-bold text-green-600">
-                                                {formatVietnameseCurrency(product.price)}
+                                                {formatVietnameseCurrency(
+                                                    product.price
+                                                )}
                                             </span>
                                         </div>
                                     </div>
@@ -507,15 +580,24 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1 text-xs text-gray-500">
                                             <Clock className="h-3 w-3" />
-                                            <span>{product.estimateTime}min</span>
-                                            
-                                            {product.variants && product.variants.length > 0 && (
-                                                <span className="text-xs ml-2">
-                                                    {product.variants.length}{' '}
-                                                    variant
-                                                    {product.variants.length > 1 ? 's' : ''}
-                                                </span>
-                                            )}
+                                            <span>
+                                                {product.estimateTime}min
+                                            </span>
+
+                                            {product.variants &&
+                                                product.variants.length > 0 && (
+                                                    <span className="text-xs ml-2">
+                                                        {
+                                                            product.variants
+                                                                .length
+                                                        }{' '}
+                                                        variant
+                                                        {product.variants
+                                                            .length > 1
+                                                            ? 's'
+                                                            : ''}
+                                                    </span>
+                                                )}
                                         </div>
 
                                         <Button
@@ -536,7 +618,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                     </div>
                 </div>
             )}
-            
+
             {/* Add to Cart Dialogs */}
             {selectedProduct && (
                 <>
@@ -549,7 +631,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                         onAddToCart={handleAddProductToCart}
                         formatPrice={formatVietnameseCurrency}
                     />
-                    
+
                     <ProductVariantDialog
                         open={showVariantDialog}
                         onOpenChange={setShowVariantDialog}
@@ -558,14 +640,16 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                     />
                 </>
             )}
-            
+
             {selectedCombo && (
                 <AddToCartDialog
                     open={showComboDialog}
                     onOpenChange={setShowComboDialog}
                     title={selectedCombo.name}
                     description={getComboItemsList(selectedCombo)}
-                    price={selectedCombo.effectivePrice || selectedCombo.price || 0}
+                    price={
+                        selectedCombo.effectivePrice || selectedCombo.price || 0
+                    }
                     onAddToCart={handleAddComboToCart}
                     formatPrice={formatVietnameseCurrency}
                 />

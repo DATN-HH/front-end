@@ -1,6 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef, MouseEvent as ReactMouseEvent } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    MouseEvent as ReactMouseEvent,
+} from 'react';
 
 interface VoiceWaveAnimationProps {
     isListening: boolean;
@@ -13,17 +18,24 @@ export function VoiceWaveAnimation({
     isListening,
     finalTranscript = '',
     interimTranscript = '',
-    onRequestStop
+    onRequestStop,
 }: VoiceWaveAnimationProps) {
-    const [animationState, setAnimationState] = useState<'idle' | 'active' | 'finish'>('idle');
-    const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+    const [animationState, setAnimationState] = useState<
+        'idle' | 'active' | 'finish'
+    >('idle');
+    const [ripples, setRipples] = useState<
+        Array<{ id: number; x: number; y: number }>
+    >([]);
     const modalRef = useRef<HTMLDivElement>(null);
     const nextRippleId = useRef<number>(0);
-    
+
     // Handle clicks outside or inside the popup
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(event.target as Node)
+            ) {
                 // Click was outside the modal, dismiss it and stop recording if we're in active state
                 if (animationState === 'active') {
                     setAnimationState('idle');
@@ -34,14 +46,15 @@ export function VoiceWaveAnimation({
                 }
             }
         }
-        
+
         // Add event listener only when animation is active
         if (animationState !== 'idle') {
             document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
+            return () =>
+                document.removeEventListener('mousedown', handleClickOutside);
         }
     }, [animationState, onRequestStop]);
-    
+
     // Handle clicks directly on the modal with ripple effect
     const handleModalClick = (e: ReactMouseEvent<HTMLDivElement>) => {
         // Add ripple effect
@@ -49,24 +62,26 @@ export function VoiceWaveAnimation({
             const rect = modalRef.current.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             // Create new ripple
             const newRipple = {
                 id: nextRippleId.current,
                 x,
-                y
+                y,
             };
             nextRippleId.current += 1;
-            
+
             // Add new ripple to state
-            setRipples(ripples => [...ripples, newRipple]);
-            
+            setRipples((ripples) => [...ripples, newRipple]);
+
             // Remove ripple after animation completes
             setTimeout(() => {
-                setRipples(ripples => ripples.filter(r => r.id !== newRipple.id));
+                setRipples((ripples) =>
+                    ripples.filter((r) => r.id !== newRipple.id)
+                );
             }, 800); // Match the animation duration
         }
-        
+
         // Handle stop request
         if (isListening && onRequestStop) {
             onRequestStop();
@@ -99,15 +114,15 @@ export function VoiceWaveAnimation({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-            <div 
-                ref={modalRef} 
-                className="bg-orange-500 dark:bg-orange-600 rounded-lg p-4 shadow-xl w-[300px] h-[200px] mx-auto animate-fade-in cursor-pointer flex items-center justify-center overflow-hidden relative" 
+            <div
+                ref={modalRef}
+                className="bg-orange-500 dark:bg-orange-600 rounded-lg p-4 shadow-xl w-[300px] h-[200px] mx-auto animate-fade-in cursor-pointer flex items-center justify-center overflow-hidden relative"
                 onClick={handleModalClick}
                 role="dialog"
                 aria-label="Speech Recognition Dialog"
             >
                 {/* Render ripple elements */}
-                {ripples.map(ripple => (
+                {ripples.map((ripple) => (
                     <span
                         key={ripple.id}
                         className="absolute rounded-full bg-white bg-opacity-30 animate-ripple pointer-events-none"
@@ -116,13 +131,12 @@ export function VoiceWaveAnimation({
                             top: ripple.y,
                             width: '10px',
                             height: '10px',
-                            transform: 'translate(-50%, -50%)'
+                            transform: 'translate(-50%, -50%)',
                         }}
                     />
                 ))}
-                
-                <div className="flex flex-col items-center">
 
+                <div className="flex flex-col items-center">
                     {/* Voice wave animation */}
                     <div className="flex items-center justify-center h-full w-full">
                         {animationState === 'active' ? (
@@ -133,7 +147,7 @@ export function VoiceWaveAnimation({
                                         className="w-2 sm:w-2.5 md:w-3 bg-white rounded-full animate-sound-wave"
                                         style={{
                                             height: `${Math.random() * 40 + 20}px`,
-                                            animationDelay: `${i * 0.1}s`
+                                            animationDelay: `${i * 0.1}s`,
                                         }}
                                     ></div>
                                 ))}
@@ -144,7 +158,7 @@ export function VoiceWaveAnimation({
                                         className="w-2 sm:w-2.5 md:w-3 bg-white rounded-full animate-sound-wave"
                                         style={{
                                             height: `${Math.random() * 40 + 20}px`,
-                                            animationDelay: `${(i + 8) * 0.1}s`
+                                            animationDelay: `${(i + 8) * 0.1}s`,
                                         }}
                                     ></div>
                                 ))}
@@ -153,8 +167,6 @@ export function VoiceWaveAnimation({
                             <div className="text-2xl text-green-500">✓</div>
                         )}
                     </div>
-
-
                 </div>
             </div>
         </div>

@@ -30,7 +30,7 @@ export default function MenuPage() {
     const [isAiSearchEnabled, setIsAiSearchEnabled] = useState(false);
     const [aiSearchResults, setAiSearchResults] = useState<any>(null);
     const [isAiSearching, setIsAiSearching] = useState(false);
-const [speechLanguage, setSpeechLanguage] = useState('vi-VN'); // Vietnamese by default
+    const [speechLanguage, setSpeechLanguage] = useState('vi-VN'); // Vietnamese by default
 
     // Fetch categories data
     const { data: categoriesData, isLoading: categoriesLoading } =
@@ -158,12 +158,17 @@ const [speechLanguage, setSpeechLanguage] = useState('vi-VN'); // Vietnamese by 
                                     {/* Speech Recognition Button - Only show when AI search is enabled */}
                                     {isAiSearchEnabled && (
                                         <div className="relative group">
-                                            <SpeechRecognition 
+                                            <SpeechRecognition
                                                 onTranscript={(text) => {
                                                     if (text && text.trim()) {
-                                                        console.log('Received transcript:', text);
+                                                        console.log(
+                                                            'Received transcript:',
+                                                            text
+                                                        );
                                                         // Update search query with transcript text
-                                                        handleSearchChange(text);
+                                                        handleSearchChange(
+                                                            text
+                                                        );
                                                         // Automatically submit after speech recognition with short delay
                                                         setTimeout(() => {
                                                             if (text.trim()) {
@@ -177,19 +182,31 @@ const [speechLanguage, setSpeechLanguage] = useState('vi-VN'); // Vietnamese by 
                                             />
                                             {/* Tooltip for speech button */}
                                             <div className="absolute -top-10 right-0 bg-black bg-opacity-80 text-white text-xs rounded px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                Click to speak in {speechLanguage === 'vi-VN' ? 'Vietnamese' : 
-                                                                  speechLanguage === 'en-US' ? 'English' : 
-                                                                  speechLanguage === 'fr-FR' ? 'French' : 
-                                                                  speechLanguage === 'ja-JP' ? 'Japanese' : 
-                                                                  speechLanguage === 'zh-CN' ? 'Chinese' : 'selected language'}
+                                                Click to speak in{' '}
+                                                {speechLanguage === 'vi-VN'
+                                                    ? 'Vietnamese'
+                                                    : speechLanguage === 'en-US'
+                                                      ? 'English'
+                                                      : speechLanguage ===
+                                                          'fr-FR'
+                                                        ? 'French'
+                                                        : speechLanguage ===
+                                                            'ja-JP'
+                                                          ? 'Japanese'
+                                                          : speechLanguage ===
+                                                              'zh-CN'
+                                                            ? 'Chinese'
+                                                            : 'selected language'}
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {/* AI Toggle Button */}
                                     <Button
                                         variant={
-                                            isAiSearchEnabled ? 'default' : 'ghost'
+                                            isAiSearchEnabled
+                                                ? 'default'
+                                                : 'ghost'
                                         }
                                         size="sm"
                                         className={`h-8 w-8 p-0 transition-all duration-300 ${
@@ -243,33 +260,54 @@ const [speechLanguage, setSpeechLanguage] = useState('vi-VN'); // Vietnamese by 
                                         <div className="flex items-center gap-2 truncate">
                                             <Globe className="h-4 w-4 flex-shrink-0" />
                                             <span className="truncate">
-                                                {speechLanguage === 'vi-VN' ? 'Vietnamese' : 
-                                                 speechLanguage === 'en-US' ? 'English' : 
-                                                 speechLanguage === 'fr-FR' ? 'French' : 
-                                                 speechLanguage === 'ja-JP' ? 'Japanese' : 
-                                                 speechLanguage === 'zh-CN' ? 'Chinese' : 'Language'}
+                                                {speechLanguage === 'vi-VN'
+                                                    ? 'Vietnamese'
+                                                    : speechLanguage === 'en-US'
+                                                      ? 'English'
+                                                      : speechLanguage ===
+                                                          'fr-FR'
+                                                        ? 'French'
+                                                        : speechLanguage ===
+                                                            'ja-JP'
+                                                          ? 'Japanese'
+                                                          : speechLanguage ===
+                                                              'zh-CN'
+                                                            ? 'Chinese'
+                                                            : 'Language'}
                                             </span>
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
                                             <SelectLabel>Languages</SelectLabel>
-                                            <SelectItem value="vi-VN">Vietnamese</SelectItem>
-                                            <SelectItem value="en-US">English</SelectItem>
-                                            <SelectItem value="fr-FR">French</SelectItem>
-                                            <SelectItem value="ja-JP">Japanese</SelectItem>
-                                            <SelectItem value="zh-CN">Chinese</SelectItem>
+                                            <SelectItem value="vi-VN">
+                                                Vietnamese
+                                            </SelectItem>
+                                            <SelectItem value="en-US">
+                                                English
+                                            </SelectItem>
+                                            <SelectItem value="fr-FR">
+                                                French
+                                            </SelectItem>
+                                            <SelectItem value="ja-JP">
+                                                Japanese
+                                            </SelectItem>
+                                            <SelectItem value="zh-CN">
+                                                Chinese
+                                            </SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
                             )}
-                            
+
                             {/* Category Filter */}
                             <Select
                                 value={selectedCategory.toString()}
                                 onValueChange={(value) =>
                                     setSelectedCategory(
-                                        value === 'All' ? 'All' : parseInt(value)
+                                        value === 'All'
+                                            ? 'All'
+                                            : parseInt(value)
                                     )
                                 }
                             >
