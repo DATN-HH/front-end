@@ -21,7 +21,11 @@ export function PeakHoursHeatmap({
     title,
 }: PeakHoursHeatmapProps) {
     const [hoveredHour, setHoveredHour] = useState<number | null>(null);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, show: false });
+    const [tooltipPosition, setTooltipPosition] = useState({
+        x: 0,
+        y: 0,
+        show: false,
+    });
     const containerRef = useRef<HTMLDivElement>(null);
 
     if (!data || data.length === 0) {
@@ -71,17 +75,18 @@ export function PeakHoursHeatmap({
             setTooltipPosition({
                 x: rect.left - containerRect.left + rect.width / 2,
                 y: rect.top - containerRect.top - 10,
-                show: true
+                show: true,
             });
         }
     };
 
     const handleMouseLeave = () => {
         setHoveredHour(null);
-        setTooltipPosition(prev => ({ ...prev, show: false }));
+        setTooltipPosition((prev) => ({ ...prev, show: false }));
     };
 
-    const getHourData = (hour: number) => businessHours.find(h => h.hour === hour);
+    const getHourData = (hour: number) =>
+        businessHours.find((h) => h.hour === hour);
 
     return (
         <div className="space-y-6" ref={containerRef}>
@@ -138,15 +143,18 @@ export function PeakHoursHeatmap({
                                     ${hour.isPeakHour ? 'ring-2 ring-orange-500 ring-offset-1' : ''}
                                     hover:scale-105 hover:shadow-md hover:z-10
                                 `}
-                                onMouseEnter={(e) => handleMouseEnter(hour.hour, e)}
+                                onMouseEnter={(e) =>
+                                    handleMouseEnter(hour.hour, e)
+                                }
                                 onMouseLeave={handleMouseLeave}
                             >
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <span
-                                        className={`text-xs font-medium ${hour.orderCount > maxOrders * 0.6
-                                            ? 'text-white'
-                                            : 'text-gray-700'
-                                            }`}
+                                        className={`text-xs font-medium ${
+                                            hour.orderCount > maxOrders * 0.6
+                                                ? 'text-white'
+                                                : 'text-gray-700'
+                                        }`}
                                     >
                                         {hour.hour}
                                     </span>
@@ -170,11 +178,17 @@ export function PeakHoursHeatmap({
                                         {getHourData(hoveredHour)?.hourLabel}
                                     </div>
                                     <div className="text-lg font-bold text-white">
-                                        {getHourData(hoveredHour)?.orderCount || 0}
-                                        <span className="text-xs text-gray-300 ml-1">orders</span>
+                                        {getHourData(hoveredHour)?.orderCount ||
+                                            0}
+                                        <span className="text-xs text-gray-300 ml-1">
+                                            orders
+                                        </span>
                                     </div>
                                     <div className="text-sm text-blue-300">
-                                        {getHourData(hoveredHour)?.percentage.toFixed(1) || 0}% of total orders
+                                        {getHourData(
+                                            hoveredHour
+                                        )?.percentage.toFixed(1) || 0}
+                                        % of total orders
                                     </div>
                                     {hoveredHour === peakHour && (
                                         <div className="text-xs text-orange-300 font-medium border-t border-gray-600 pt-1 mt-2">
@@ -186,8 +200,6 @@ export function PeakHoursHeatmap({
                         </div>
                     )}
                 </div>
-
-
             </div>
 
             {/* Intensity Legend */}

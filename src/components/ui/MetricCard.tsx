@@ -21,11 +21,14 @@ function Sparkline({ data, trend, className }: SparklineProps) {
     const padding = 2;
     const width = 80;
     const height = 24;
-    const chartHeight = height - (padding * 2);
+    const chartHeight = height - padding * 2;
 
     const points = data.map((value, index) => {
         const x = (index / (data.length - 1)) * width;
-        const y = range === 0 ? height / 2 : padding + chartHeight - ((value - min) / range) * chartHeight;
+        const y =
+            range === 0
+                ? height / 2
+                : padding + chartHeight - ((value - min) / range) * chartHeight;
         return `${x},${y}`;
     });
 
@@ -37,20 +40,22 @@ function Sparkline({ data, trend, className }: SparklineProps) {
     const areaPath = `${pathData} L ${lastPoint[0]},${height - padding} L ${firstPoint[0]},${height - padding} Z`;
 
     const getColors = () => {
-        if (trend === 'up') return {
-            stroke: '#059669', // emerald-600
-            fill: '#d1fae5', // emerald-100
-            gradient: ['#10b981', '#34d399'] // emerald-500 to emerald-400
-        };
-        if (trend === 'down') return {
-            stroke: '#dc2626', // red-600  
-            fill: '#fecaca', // red-200
-            gradient: ['#ef4444', '#f87171'] // red-500 to red-400
-        };
+        if (trend === 'up')
+            return {
+                stroke: '#059669', // emerald-600
+                fill: '#d1fae5', // emerald-100
+                gradient: ['#10b981', '#34d399'], // emerald-500 to emerald-400
+            };
+        if (trend === 'down')
+            return {
+                stroke: '#dc2626', // red-600
+                fill: '#fecaca', // red-200
+                gradient: ['#ef4444', '#f87171'], // red-500 to red-400
+            };
         return {
             stroke: '#4b5563', // gray-600
-            fill: '#e5e7eb', // gray-200  
-            gradient: ['#6b7280', '#9ca3af'] // gray-500 to gray-400
+            fill: '#e5e7eb', // gray-200
+            gradient: ['#6b7280', '#9ca3af'], // gray-500 to gray-400
         };
     };
 
@@ -66,9 +71,23 @@ function Sparkline({ data, trend, className }: SparklineProps) {
             >
                 {/* Gradient Definition */}
                 <defs>
-                    <linearGradient id={`gradient-${trend}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor={colors.gradient[0]} stopOpacity="0.3" />
-                        <stop offset="100%" stopColor={colors.gradient[1]} stopOpacity="0.1" />
+                    <linearGradient
+                        id={`gradient-${trend}`}
+                        x1="0%"
+                        y1="0%"
+                        x2="0%"
+                        y2="100%"
+                    >
+                        <stop
+                            offset="0%"
+                            stopColor={colors.gradient[0]}
+                            stopOpacity="0.3"
+                        />
+                        <stop
+                            offset="100%"
+                            stopColor={colors.gradient[1]}
+                            stopOpacity="0.1"
+                        />
                     </linearGradient>
                 </defs>
 
@@ -93,7 +112,12 @@ function Sparkline({ data, trend, className }: SparklineProps) {
                 {/* Data points */}
                 {data.map((value, index) => {
                     const x = (index / (data.length - 1)) * width;
-                    const y = range === 0 ? height / 2 : padding + chartHeight - ((value - min) / range) * chartHeight;
+                    const y =
+                        range === 0
+                            ? height / 2
+                            : padding +
+                              chartHeight -
+                              ((value - min) / range) * chartHeight;
 
                     // Highlight first and last points
                     const isEndPoint = index === 0 || index === data.length - 1;
@@ -103,10 +127,10 @@ function Sparkline({ data, trend, className }: SparklineProps) {
                             key={index}
                             cx={x}
                             cy={y}
-                            r={isEndPoint ? "2.5" : "1.5"}
+                            r={isEndPoint ? '2.5' : '1.5'}
                             fill="white"
                             stroke={colors.stroke}
-                            strokeWidth={isEndPoint ? "2" : "1.5"}
+                            strokeWidth={isEndPoint ? '2' : '1.5'}
                             opacity="1"
                             className="transition-all duration-200"
                         />
@@ -115,9 +139,15 @@ function Sparkline({ data, trend, className }: SparklineProps) {
             </svg>
 
             {/* Background subtle glow effect */}
-            <div className={`absolute inset-0 rounded-md opacity-20 ${trend === 'up' ? 'bg-green-100' :
-                trend === 'down' ? 'bg-red-100' : 'bg-gray-100'
-                }`} />
+            <div
+                className={`absolute inset-0 rounded-md opacity-20 ${
+                    trend === 'up'
+                        ? 'bg-green-100'
+                        : trend === 'down'
+                          ? 'bg-red-100'
+                          : 'bg-gray-100'
+                }`}
+            />
         </div>
     );
 }
@@ -146,7 +176,6 @@ export function MetricCard({
         `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`,
     sparklineData,
 }: MetricCardProps) {
-
     if (isLoading) {
         return (
             <Card className="hover:shadow-md transition-shadow duration-200">
@@ -188,7 +217,9 @@ export function MetricCard({
                 <div className="flex items-end justify-between">
                     <div className="flex-1">
                         <div className="text-2xl font-bold text-gray-900 mb-1 transition-all duration-300">
-                            {typeof value === 'number' ? value.toLocaleString() : value}
+                            {typeof value === 'number'
+                                ? value.toLocaleString()
+                                : value}
                         </div>
                         {subtitle && (
                             <p className="text-xs text-gray-600 mb-2 font-medium">
@@ -201,7 +232,8 @@ export function MetricCard({
                             >
                                 {getTrendIcon()}
                                 <span className="ml-1 font-medium">
-                                    {formatPercentage(change)} from previous period
+                                    {formatPercentage(change)} from previous
+                                    period
                                 </span>
                             </div>
                         )}

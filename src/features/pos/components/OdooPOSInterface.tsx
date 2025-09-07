@@ -1,11 +1,13 @@
 'use client';
 
-import { Settings, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { type BranchResponseDto } from '@/api/v1/branches';
 import { type FloorResponse } from '@/api/v1/floors';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
 
 // Import POS components
 import { POSOrdersView } from './POSOrdersView';
@@ -34,6 +36,8 @@ export function OdooPOSInterface({
     selectedBranch,
     onBranchSelect,
 }: OdooPOSInterfaceProps) {
+    const router = useRouter();
+    const { user, getDefaultRedirectByRole } = useAuth();
     const [activeTab, setActiveTab] = useState<POSTab>(POSTab.TABLES);
     const [selectedFloor, setSelectedFloor] = useState<FloorResponse | null>(
         floors.length > 0 ? floors[0] : null
@@ -84,6 +88,16 @@ export function OdooPOSInterface({
         setActiveTab(POSTab.REGISTER);
     };
 
+    // Handle back to app navigation
+    const handleBackToApp = () => {
+        if (user && user.userRoles && user.userRoles.length > 0) {
+            const defaultRoute = getDefaultRedirectByRole(user.userRoles[0].role);
+            router.push(defaultRoute);
+        } else {
+            router.push('/');
+        }
+    };
+
     // Tab configuration based on Odoo research
     const tabs = [
         {
@@ -93,7 +107,7 @@ export function OdooPOSInterface({
         },
         {
             id: POSTab.REGISTER,
-            label: 'Register',
+            label: 'Menu',
             active: activeTab === POSTab.REGISTER,
         },
         {
@@ -107,6 +121,13 @@ export function OdooPOSInterface({
             active: activeTab === POSTab.PREORDERS,
         },
     ];
+
+    // Auto-select first floor when floors are loaded
+    useEffect(() => {
+        if (floors.length > 0 && !selectedFloor) {
+            setSelectedFloor(floors[0]);
+        }
+    }, [floors, selectedFloor]);
 
     // Handle tab changes - clear state when appropriate
     useEffect(() => {
@@ -138,11 +159,10 @@ export function OdooPOSInterface({
                             <Button
                                 key={tab.id}
                                 variant={tab.active ? 'default' : 'ghost'}
-                                className={`px-6 py-2 font-medium transition-colors ${
-                                    tab.active
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                                }`}
+                                className={`px-6 py-2 font-medium transition-colors ${tab.active
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                    }`}
                                 onClick={() => handleTabChange(tab.id)}
                             >
                                 {tab.label}
@@ -150,13 +170,16 @@ export function OdooPOSInterface({
                         ))}
                     </div>
 
-                    {/* Right: Controls */}
+                    {/* Right: Back to App */}
                     <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                            <Settings className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-5 h-5" />
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleBackToApp}
+                            className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white hover:bg-blue-700"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span>Back to App</span>
                         </Button>
                     </div>
                 </div>

@@ -178,7 +178,7 @@ function RestaurantDashboard() {
     const prevApiParams: SalesStatisticsRequest = useMemo(() => {
         const daysDiff = Math.ceil(
             (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24)
         );
         const prevEndDate = format(
             subDays(new Date(startDate), 1),
@@ -332,11 +332,16 @@ function RestaurantDashboard() {
         const lastMonthEnd = format(endOfMonth(lastMonth), 'yyyy-MM-dd');
 
         if (startDate === todayStr && endDate === todayStr) return 'today';
-        if (startDate === yesterdayStr && endDate === yesterdayStr) return 'yesterday';
-        if (startDate === last7DaysStart && endDate === todayStr) return 'last7days';
-        if (startDate === last30DaysStart && endDate === todayStr) return 'last30days';
-        if (startDate === thisMonthStart && endDate === thisMonthEnd) return 'thisMonth';
-        if (startDate === lastMonthStart && endDate === lastMonthEnd) return 'lastMonth';
+        if (startDate === yesterdayStr && endDate === yesterdayStr)
+            return 'yesterday';
+        if (startDate === last7DaysStart && endDate === todayStr)
+            return 'last7days';
+        if (startDate === last30DaysStart && endDate === todayStr)
+            return 'last30days';
+        if (startDate === thisMonthStart && endDate === thisMonthEnd)
+            return 'thisMonth';
+        if (startDate === lastMonthStart && endDate === lastMonthEnd)
+            return 'lastMonth';
         return null;
     };
 
@@ -363,69 +368,99 @@ function RestaurantDashboard() {
                     {/* Quick Date Presets */}
                     <div className="flex flex-wrap gap-2">
                         <Button
-                            variant={activeDateRange === 'today' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'today'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('today')}
-                            className={`transition-all duration-200 ${activeDateRange === 'today'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'today'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             <Calendar className="h-3 w-3 mr-1" />
                             Today
                         </Button>
                         <Button
-                            variant={activeDateRange === 'yesterday' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'yesterday'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('yesterday')}
-                            className={`transition-all duration-200 ${activeDateRange === 'yesterday'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'yesterday'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             Yesterday
                         </Button>
                         <Button
-                            variant={activeDateRange === 'last7days' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'last7days'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('last7days')}
-                            className={`transition-all duration-200 ${activeDateRange === 'last7days'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'last7days'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             Last 7 Days
                         </Button>
                         <Button
-                            variant={activeDateRange === 'last30days' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'last30days'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('last30days')}
-                            className={`transition-all duration-200 ${activeDateRange === 'last30days'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'last30days'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             Last 30 Days
                         </Button>
                         <Button
-                            variant={activeDateRange === 'thisMonth' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'thisMonth'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('thisMonth')}
-                            className={`transition-all duration-200 ${activeDateRange === 'thisMonth'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'thisMonth'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             This Month
                         </Button>
                         <Button
-                            variant={activeDateRange === 'lastMonth' ? 'default' : 'outline'}
+                            variant={
+                                activeDateRange === 'lastMonth'
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setDateRange('lastMonth')}
-                            className={`transition-all duration-200 ${activeDateRange === 'lastMonth'
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
-                                : 'hover:bg-orange-50 hover:border-orange-300'
-                                }`}
+                            className={`transition-all duration-200 ${
+                                activeDateRange === 'lastMonth'
+                                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 shadow-md'
+                                    : 'hover:bg-orange-50 hover:border-orange-300'
+                            }`}
                         >
                             Last Month
                         </Button>
@@ -540,7 +575,11 @@ function RestaurantDashboard() {
                     subtitle="Total sales revenue"
                     trend={revenueChange >= 0 ? 'up' : 'down'}
                     formatPercentage={formatPercentage}
-                    sparklineData={salesStats?.timeSeriesData?.slice(-7).map(d => d.revenue) || []}
+                    sparklineData={
+                        salesStats?.timeSeriesData
+                            ?.slice(-7)
+                            .map((d) => d.revenue) || []
+                    }
                 />
 
                 <MetricCard
@@ -552,7 +591,11 @@ function RestaurantDashboard() {
                     subtitle="Number of orders"
                     trend={ordersChange >= 0 ? 'up' : 'down'}
                     formatPercentage={formatPercentage}
-                    sparklineData={orderMetrics?.timeSeriesData?.slice(-7).map(d => d.totalOrders) || []}
+                    sparklineData={
+                        orderMetrics?.timeSeriesData
+                            ?.slice(-7)
+                            .map((d) => d.totalOrders) || []
+                    }
                 />
 
                 <MetricCard
@@ -561,8 +604,8 @@ function RestaurantDashboard() {
                         isLoading
                             ? '...'
                             : formatCurrency(
-                                orderMetrics?.averageOrderValue ?? 0
-                            )
+                                  orderMetrics?.averageOrderValue ?? 0
+                              )
                     }
                     change={avgOrderValueChange}
                     icon={TrendingUp}
@@ -570,7 +613,11 @@ function RestaurantDashboard() {
                     subtitle="Average per order"
                     trend={avgOrderValueChange >= 0 ? 'up' : 'down'}
                     formatPercentage={formatPercentage}
-                    sparklineData={orderMetrics?.timeSeriesData?.slice(-7).map(d => d.averageOrderValue) || []}
+                    sparklineData={
+                        orderMetrics?.timeSeriesData
+                            ?.slice(-7)
+                            .map((d) => d.averageOrderValue) || []
+                    }
                 />
 
                 <MetricCard
@@ -596,7 +643,11 @@ function RestaurantDashboard() {
                     subtitle="Total quantity of items sold"
                     trend="neutral"
                     formatPercentage={formatPercentage}
-                    sparklineData={productStats?.timeSeriesData?.slice(-7).map(d => d.totalQuantity) || []}
+                    sparklineData={
+                        productStats?.timeSeriesData
+                            ?.slice(-7)
+                            .map((d) => d.totalQuantity) || []
+                    }
                 />
 
                 <MetricCard
@@ -611,7 +662,11 @@ function RestaurantDashboard() {
                     subtitle="Different products sold"
                     trend="neutral"
                     formatPercentage={formatPercentage}
-                    sparklineData={productStats?.timeSeriesData?.slice(-7).map(d => d.uniqueProducts) || []}
+                    sparklineData={
+                        productStats?.timeSeriesData
+                            ?.slice(-7)
+                            .map((d) => d.uniqueProducts) || []
+                    }
                 />
             </div>
 
@@ -701,7 +756,8 @@ function RestaurantDashboard() {
                                 Peak Hours Analysis
                             </CardTitle>
                             <CardDescription>
-                                Business hours activity heatmap (6h-23h) and hourly distribution
+                                Business hours activity heatmap (6h-23h) and
+                                hourly distribution
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-6">
