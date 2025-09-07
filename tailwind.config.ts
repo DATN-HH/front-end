@@ -92,11 +92,23 @@ const config = {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "sound-wave": {
+          "0%": { height: "10px" },
+          "50%": { height: "40px" },
+          "100%": { height: "10px" },
+        },
+        "ripple": {
+          "0%": { transform: "scale(0)", opacity: "0.7" },
+          "50%": { transform: "scale(1.5)", opacity: "0.4" },
+          "100%": { transform: "scale(2)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.6s ease-out",
+        "sound-wave": "sound-wave 0.9s ease-in-out infinite",
+        "ripple": "ripple 0.8s ease-out",
       },
       fontFamily: {
         serif: ["Georgia", "Times New Roman", "serif"],
