@@ -91,7 +91,9 @@ export function OdooPOSInterface({
     // Handle back to app navigation
     const handleBackToApp = () => {
         if (user && user.userRoles && user.userRoles.length > 0) {
-            const defaultRoute = getDefaultRedirectByRole(user.userRoles[0].role);
+            const defaultRoute = getDefaultRedirectByRole(
+                user.userRoles[0].role
+            );
             router.push(defaultRoute);
         } else {
             router.push('/');
@@ -159,10 +161,11 @@ export function OdooPOSInterface({
                             <Button
                                 key={tab.id}
                                 variant={tab.active ? 'default' : 'ghost'}
-                                className={`px-6 py-2 font-medium transition-colors ${tab.active
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                                    }`}
+                                className={`px-6 py-2 font-medium transition-colors ${
+                                    tab.active
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleTabChange(tab.id)}
                             >
                                 {tab.label}
