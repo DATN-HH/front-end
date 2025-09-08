@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 import { LocationsSection } from './components/LocationsSection';
+import { TestimonialsSection } from '@/components/common/testimonials';
 
 export default function HomePage() {
     return (
@@ -249,6 +250,9 @@ export default function HomePage() {
 
             {/* Locations */}
             <LocationsSection />
+
+            {/* Customer Testimonials */}
+            <TestimonialsSection />
 
             {/* Call to Action */}
             <section className="py-20 px-4 bg-gray-900 text-white">

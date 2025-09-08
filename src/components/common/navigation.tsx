@@ -32,6 +32,7 @@ const navItems = [
     { href: '/menu', label: 'Menu' },
     { href: '/table-booking', label: 'Table Booking' },
     { href: '/menu-booking', label: 'Pre-Order' },
+    { href: '/feedback', label: 'Feedback' },
     { href: '/contact', label: 'Contact' },
 ];
 
