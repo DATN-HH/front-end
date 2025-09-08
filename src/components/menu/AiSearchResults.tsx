@@ -75,7 +75,9 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
         );
     }
 
-    const { foodCombo, products, summary } = results.data;
+    const { foodCombo, products } = results.data;
+    // Summary might be added in a future API version but is not in the current type
+    const summary = (results.data as any).summary;
     const hasResults = foodCombo.length > 0 || products.length > 0;
 
     if (!hasResults) {
@@ -188,7 +190,7 @@ export function AiSearchResults({ results, isLoading }: AiSearchResultsProps) {
                     </h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    {summary ? (
+                    {summary && typeof summary === 'string' ? (
                         <span className="flex items-start gap-2">
                             <MessageCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                             <span>{summary}</span>

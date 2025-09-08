@@ -76,10 +76,10 @@ export function SpeechRecognition({
         if (!isSupported || disabled) return;
 
         try {
-            // @ts-ignore - TypeScript doesn't know about webkitSpeechRecognition
-            const SpeechRecognition =
+            // Using our type declaration for SpeechRecognition API
+            const SpeechRecognitionAPI =
                 window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
+            const recognition = new SpeechRecognitionAPI();
 
             // Save recognition instance to ref for cleanup
             recognitionRef.current = recognition;
@@ -199,11 +199,11 @@ export function SpeechRecognition({
                                 // Only restart if we're still supposed to be listening
                                 try {
                                     // Create a new recognition instance for better cross-browser compatibility
-                                    const SpeechRecognition =
+                                    const SpeechRecognitionAPI =
                                         window.SpeechRecognition ||
                                         window.webkitSpeechRecognition;
                                     const newRecognition =
-                                        new SpeechRecognition();
+                                        new SpeechRecognitionAPI();
 
                                     // Copy over all the event handlers and properties
                                     newRecognition.lang = language;
