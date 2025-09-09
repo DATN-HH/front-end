@@ -269,7 +269,7 @@ export default function UnifiedCategoriesPage() {
                         </Select>
 
                         {/* Migration Source Filter */}
-                        <Select
+                        {/* <Select
                             value={filters.migrationSource}
                             onValueChange={(value) =>
                                 setFilters({
@@ -290,7 +290,7 @@ export default function UnifiedCategoriesPage() {
                                     Migrated from POS
                                 </SelectItem>
                             </SelectContent>
-                        </Select>
+                        </Select> */}
 
                         {/* Sort */}
                         <Select
@@ -428,7 +428,7 @@ export default function UnifiedCategoriesPage() {
                                                 </div>
 
                                                 <div className="flex items-center space-x-4">
-                                                    <div className="text-right text-sm">
+                                                    {/* <div className="text-right text-sm">
                                                         <p className="font-medium">
                                                             {category.productsCount ||
                                                                 0}{' '}
@@ -453,7 +453,7 @@ export default function UnifiedCategoriesPage() {
                                                                 }
                                                             </p>
                                                         )}
-                                                    </div>
+                                                    </div> */}
 
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger

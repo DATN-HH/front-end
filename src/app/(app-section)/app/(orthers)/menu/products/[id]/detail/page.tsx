@@ -795,7 +795,7 @@ export default function ProductDetailPage() {
                     )}
 
                     {/* Settings */}
-                    <Card>
+                    {/* <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Settings className="h-5 w-5" />
@@ -834,7 +834,7 @@ export default function ProductDetailPage() {
                                 </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
 
                     {/* Metadata */}
                     <Card>

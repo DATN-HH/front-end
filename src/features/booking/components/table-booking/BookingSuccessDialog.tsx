@@ -343,7 +343,7 @@ export function BookingSuccessDialog({
                                     <p className="text-sm text-gray-600 mt-2">
                                         Scan QR code to pay via banking
                                     </p>
-                                    {bookingData.paymentUrl && (
+                                    {/* {bookingData.paymentUrl && (
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -357,7 +357,7 @@ export function BookingSuccessDialog({
                                         >
                                             Open Payment Link
                                         </Button>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
                         )}

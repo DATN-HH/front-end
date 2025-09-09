@@ -102,6 +102,18 @@ export default function NewFoodComboPage() {
             newErrors.name = 'Combo name is required';
         }
 
+        if (!formData.price || formData.price.trim() === '') {
+            newErrors.price = 'Price is required';
+        } else if (Number(formData.price) <= 0) {
+            newErrors.price = 'Price must be greater than 0';
+        }
+
+        if (!formData.estimateTime || formData.estimateTime.trim() === '') {
+            newErrors.estimateTime = 'Estimate time is required';
+        } else if (Number(formData.estimateTime) <= 0) {
+            newErrors.estimateTime = 'Estimate time must be greater than 0';
+        }
+
         if (comboItems.length === 0) {
             newErrors.comboItems =
                 'At least one product must be added to the combo';
@@ -204,12 +216,10 @@ export default function NewFoodComboPage() {
             const requestData: FoodComboCreateRequest = {
                 name: formData.name,
                 description: formData.description || undefined,
-                price: formData.price ? Number(formData.price) : undefined,
+                price: Number(formData.price),
                 cost: formData.cost ? Number(formData.cost) : undefined,
                 internalReference: formData.internalReference || undefined,
-                estimateTime: formData.estimateTime
-                    ? Number(formData.estimateTime)
-                    : undefined,
+                estimateTime: Number(formData.estimateTime),
                 categoryId: formData.categoryId
                     ? Number(formData.categoryId)
                     : undefined,
@@ -271,7 +281,7 @@ export default function NewFoodComboPage() {
         setProductModal({
             isOpen: true,
             products: products.filter(
-                (p) => p.status === 'ACTIVE' && p.canBeSold
+                (p) => p.price && p.price > 0 // Filter products that have a price
             ),
             searchTerm: '',
             selectedProducts: new Set(),
@@ -291,8 +301,8 @@ export default function NewFoodComboPage() {
         const trimmedSearchTerm = searchTerm.trim().toLowerCase();
         const filtered = products.filter(
             (p) =>
-                p.status === 'ACTIVE' &&
-                p.canBeSold &&
+                p.price &&
+                p.price > 0 && // Filter products that have a price
                 (p.name.toLowerCase().includes(trimmedSearchTerm) ||
                     p.internalReference
                         ?.toLowerCase()
@@ -482,7 +492,10 @@ export default function NewFoodComboPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="price">Price (VND)</Label>
+                                <Label htmlFor="price">
+                                    Price (VND){' '}
+                                    <span className="text-red-500">*</span>
+                                </Label>
                                 <Input
                                     id="price"
                                     type="number"
@@ -494,15 +507,21 @@ export default function NewFoodComboPage() {
                                         })
                                     }
                                     placeholder="Enter price"
+                                    className={
+                                        errors.price ? 'border-red-500' : ''
+                                    }
                                     required
                                 />
-                                {/* <p className="text-xs text-gray-500">
-                                    Leave empty to auto-calculate from items
-                                </p> */}
+                                {errors.price && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.price}
+                                    </p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="estimateTime">
-                                    Estimate Time (minutes)
+                                    Estimate Time (minutes){' '}
+                                    <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
                                     id="estimateTime"
@@ -515,7 +534,17 @@ export default function NewFoodComboPage() {
                                         })
                                     }
                                     placeholder="0"
+                                    className={
+                                        errors.estimateTime
+                                            ? 'border-red-500'
+                                            : ''
+                                    }
                                 />
+                                {errors.estimateTime && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.estimateTime}
+                                    </p>
+                                )}
                             </div>
                         </div>
 

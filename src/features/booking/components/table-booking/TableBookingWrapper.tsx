@@ -29,6 +29,7 @@ import { DateTimeSelector } from '@/features/booking/components/table-booking/Da
 import { LocationSelector } from '@/features/booking/components/table-booking/LocationSelector';
 import { MultiSelectFloorCanvas } from '@/features/booking/components/table-booking/MultiSelectFloorCanvas';
 import { useCustomToast } from '@/lib/show-toast';
+import { Button } from '@/components/ui/button';
 
 interface BookingData {
     startTime: string;
@@ -532,20 +533,42 @@ export default function TableBookingWrapper({
                             </Card>
                         )}
 
-                        {/* Cancel button for admin mode */}
-                        {mode === 'admin' && onCancel && (
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <button
-                                        type="button"
-                                        onClick={onCancel}
-                                        className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                </CardContent>
-                            </Card>
-                        )}
+                        {/* Action buttons */}
+                        <div className="space-y-3">
+                            {/* Submit button */}
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={
+                                    selectedTables.length === 0 ||
+                                    !bookingData.customerName.trim() ||
+                                    !bookingData.customerPhone.trim() ||
+                                    (mode === 'admin'
+                                        ? createAdminBookingMutation.isPending
+                                        : createBookingMutation.isPending)
+                                }
+                                className="w-full px-4 py-2 rounded-md"
+                                size="lg"
+                            >
+                                {mode === 'admin'
+                                    ? createAdminBookingMutation.isPending
+                                        ? 'Creating Reservation...'
+                                        : 'Create Reservation'
+                                    : createBookingMutation.isPending
+                                      ? 'Booking Table...'
+                                      : 'Book Table'}
+                            </Button>
+
+                            {/* Cancel button for admin mode */}
+                            {mode === 'admin' && onCancel && (
+                                <Button
+                                    variant="outline"
+                                    onClick={onCancel}
+                                    className="w-full px-4 py-2 rounded-md"
+                                >
+                                    Cancel
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

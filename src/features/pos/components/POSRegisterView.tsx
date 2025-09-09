@@ -122,15 +122,15 @@ export function POSRegisterView({
         onOrderCreated?.(0); // Pass 0 to indicate a new order
     };
 
-
-
     // Use tables from all floors
     const tables = allTables;
 
     // Get unique floor IDs for table status fetching
     const floorIds = useMemo(() => {
         const uniqueFloorIds = [
-            ...new Set((tables || []).map((table) => table.floorId).filter(Boolean)),
+            ...new Set(
+                (tables || []).map((table) => table.floorId).filter(Boolean)
+            ),
         ];
         return uniqueFloorIds as number[];
     }, [tables]);
@@ -280,7 +280,7 @@ export function POSRegisterView({
                 editingOrder.tables && editingOrder.tables.length > 0
                     ? editingOrder.tables
                     : editingOrder.tableId && editingOrder.tableName
-                        ? [
+                      ? [
                             {
                                 id: 1, // Mock ID for backward compatibility
                                 tableId: editingOrder.tableId,
@@ -289,7 +289,7 @@ export function POSRegisterView({
                                 notes: null,
                             },
                         ]
-                        : [];
+                      : [];
 
             // Convert items to the expected format for order response
             const responseItems = editingOrder.items.map((item: any) => ({
@@ -640,10 +640,10 @@ export function POSRegisterView({
             newOrderItems = orderItems.map((item, index) =>
                 index === existingItemIndex
                     ? {
-                        ...item,
-                        quantity: item.quantity + 1,
-                        totalPrice: (item.quantity + 1) * item.unitPrice,
-                    }
+                          ...item,
+                          quantity: item.quantity + 1,
+                          totalPrice: (item.quantity + 1) * item.unitPrice,
+                      }
                     : item
             );
         } else {
@@ -727,10 +727,10 @@ export function POSRegisterView({
                 newOrderItems = orderItems.map((item) =>
                     item.id === itemId
                         ? {
-                            ...item,
-                            quantity: newQuantity,
-                            totalPrice: item.unitPrice * newQuantity,
-                        }
+                              ...item,
+                              quantity: newQuantity,
+                              totalPrice: item.unitPrice * newQuantity,
+                          }
                         : item
                 );
             } else {
@@ -789,10 +789,11 @@ export function POSRegisterView({
                             <Button
                                 key={tab.id}
                                 variant={tab.active ? 'default' : 'ghost'}
-                                className={`flex-1 h-12 rounded-none border-0 ${tab.active
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                                    }`}
+                                className={`flex-1 h-12 rounded-none border-0 ${
+                                    tab.active
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                }`}
                                 onClick={() => setActiveLeftTab(tab.id)}
                             >
                                 <tab.icon className="w-4 h-4 mr-2" />
@@ -808,7 +809,8 @@ export function POSRegisterView({
                         {/* Order Header */}
                         <div className="p-3 border-b border-gray-200">
                             {/* Order ID Display */}
-                            {(currentOrder?.id || selectedTables.length > 0) && (
+                            {(currentOrder?.id ||
+                                selectedTables.length > 0) && (
                                 <div className="mb-3 px-2 py-1.5 bg-blue-50 rounded-md">
                                     {currentOrder?.id && (
                                         <div className="text-xs font-medium text-blue-800">
@@ -830,7 +832,12 @@ export function POSRegisterView({
                             <div className="mb-3">
                                 <div className="grid grid-cols-2 gap-2 mb-2">
                                     <div>
-                                        <Label htmlFor="customerPhone" className="text-xs text-gray-600">Phone</Label>
+                                        <Label
+                                            htmlFor="customerPhone"
+                                            className="text-xs text-gray-600"
+                                        >
+                                            Phone
+                                        </Label>
                                         <Input
                                             id="customerPhone"
                                             value={customerPhone}
@@ -838,12 +845,19 @@ export function POSRegisterView({
                                                 setCustomerPhone(e.target.value)
                                             }
                                             placeholder="Phone number"
-                                            disabled={createOrderMutation.isPending}
+                                            disabled={
+                                                createOrderMutation.isPending
+                                            }
                                             className="h-7 text-xs"
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="customerName" className="text-xs text-gray-600">Name</Label>
+                                        <Label
+                                            htmlFor="customerName"
+                                            className="text-xs text-gray-600"
+                                        >
+                                            Name
+                                        </Label>
                                         <Input
                                             id="customerName"
                                             value={customerName}
@@ -851,7 +865,9 @@ export function POSRegisterView({
                                                 setCustomerName(e.target.value)
                                             }
                                             placeholder="Customer name"
-                                            disabled={createOrderMutation.isPending}
+                                            disabled={
+                                                createOrderMutation.isPending
+                                            }
                                             className="h-7 text-xs"
                                         />
                                     </div>
@@ -859,7 +875,12 @@ export function POSRegisterView({
 
                                 {/* Order Notes */}
                                 <div className="mb-2">
-                                    <Label htmlFor="orderNotes" className="text-xs text-gray-600">Order Notes</Label>
+                                    <Label
+                                        htmlFor="orderNotes"
+                                        className="text-xs text-gray-600"
+                                    >
+                                        Order Notes
+                                    </Label>
                                     <Input
                                         id="orderNotes"
                                         value={orderNotes}
@@ -867,7 +888,10 @@ export function POSRegisterView({
                                             setOrderNotes(e.target.value);
                                             // Auto update order with new notes if order exists
                                             if (currentOrder?.id) {
-                                                debouncedUpdateCustomerInfo(customerPhone, customerName);
+                                                debouncedUpdateCustomerInfo(
+                                                    customerPhone,
+                                                    customerName
+                                                );
                                             }
                                         }}
                                         placeholder="Add notes for this order..."
@@ -907,13 +931,17 @@ export function POSRegisterView({
                             <div className="space-y-2">
                                 <div className="space-y-1">
                                     <div className="flex justify-between text-xs">
-                                        <span className="text-gray-600">Subtotal</span>
+                                        <span className="text-gray-600">
+                                            Subtotal
+                                        </span>
                                         <span className="font-medium">
                                             {formatVND(subtotal)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-xs">
-                                        <span className="text-gray-600">Tax (10%)</span>
+                                        <span className="text-gray-600">
+                                            Tax (10%)
+                                        </span>
                                         <span className="font-medium">
                                             {formatVND(tax)}
                                         </span>
@@ -955,7 +983,10 @@ export function POSRegisterView({
                                 </div>
                                 {selectedTables.length > 0 && (
                                     <div className="text-xs text-blue-600">
-                                        Tables: {selectedTables.map(t => t.name).join(', ')}
+                                        Tables:{' '}
+                                        {selectedTables
+                                            .map((t) => t.name)
+                                            .join(', ')}
                                     </div>
                                 )}
                             </div>
@@ -1005,31 +1036,53 @@ export function POSRegisterView({
                                     <h3 className="text-xs font-medium text-gray-900">
                                         Select Tables
                                     </h3>
-                                    {!isLoadingTableStatus && tables && tables.length > 0 && (
-                                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                                            <span>Total: {tables.length}</span>
-                                            <span className="flex items-center gap-1">
-                                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                {
-                                                    tables.filter((table) => {
-                                                        const tableStatus = allTableStatuses.get(table.id);
-                                                        const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                                        return isTableAvailable(status);
-                                                    }).length
-                                                }
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                {
-                                                    tables.filter((table) => {
-                                                        const tableStatus = allTableStatuses.get(table.id);
-                                                        const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                                        return !isTableAvailable(status);
-                                                    }).length
-                                                }
-                                            </span>
-                                        </div>
-                                    )}
+                                    {!isLoadingTableStatus &&
+                                        tables &&
+                                        tables.length > 0 && (
+                                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                <span>
+                                                    Total: {tables.length}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                    {
+                                                        tables.filter(
+                                                            (table) => {
+                                                                const tableStatus =
+                                                                    allTableStatuses.get(
+                                                                        table.id
+                                                                    );
+                                                                const status =
+                                                                    tableStatus?.currentStatus ||
+                                                                    POSTableStatus.AVAILABLE;
+                                                                return isTableAvailable(
+                                                                    status
+                                                                );
+                                                            }
+                                                        ).length
+                                                    }
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                                    {
+                                                        tables.filter(
+                                                            (table) => {
+                                                                const tableStatus =
+                                                                    allTableStatuses.get(
+                                                                        table.id
+                                                                    );
+                                                                const status =
+                                                                    tableStatus?.currentStatus ||
+                                                                    POSTableStatus.AVAILABLE;
+                                                                return !isTableAvailable(
+                                                                    status
+                                                                );
+                                                            }
+                                                        ).length
+                                                    }
+                                                </span>
+                                            </div>
+                                        )}
                                 </div>
 
                                 {/* {selectedTables.length > 0 && (
@@ -1044,7 +1097,9 @@ export function POSRegisterView({
                                     <div className="flex items-center justify-center h-24 bg-gray-50 rounded-md">
                                         <div className="text-center">
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mx-auto mb-1"></div>
-                                            <p className="text-xs text-gray-600">Loading table status...</p>
+                                            <p className="text-xs text-gray-600">
+                                                Loading table status...
+                                            </p>
                                         </div>
                                     </div>
                                 ) : tables && tables.length > 0 ? (
@@ -1052,180 +1107,357 @@ export function POSRegisterView({
                                         {/* Group tables by floor */}
                                         {(() => {
                                             // Group tables by floorName
-                                            const tablesByFloor = tables.reduce((acc, table) => {
-                                                const floorName = table.floorName || 'Unknown Floor';
-                                                if (!acc[floorName]) {
-                                                    acc[floorName] = [];
-                                                }
-                                                acc[floorName].push(table);
-                                                return acc;
-                                            }, {} as Record<string, typeof tables>);
+                                            const tablesByFloor = tables.reduce(
+                                                (acc, table) => {
+                                                    const floorName =
+                                                        table.floorName ||
+                                                        'Unknown Floor';
+                                                    if (!acc[floorName]) {
+                                                        acc[floorName] = [];
+                                                    }
+                                                    acc[floorName].push(table);
+                                                    return acc;
+                                                },
+                                                {} as Record<
+                                                    string,
+                                                    typeof tables
+                                                >
+                                            );
 
                                             return Object.entries(tablesByFloor)
-                                                .sort(([a], [b]) => a.localeCompare(b))
-                                                .map(([floorName, floorTables]) => (
-                                                    <div key={floorName} className="border-b border-gray-100 last:border-b-0">
-                                                        {/* Floor Header */}
-                                                        <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 border-b border-gray-200 z-10">
-                                                            <div className="flex items-center justify-between">
-                                                                <h4 className="text-xs font-semibold text-gray-800 flex items-center">
-                                                                    <div className="w-1.5 h-4 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full mr-2"></div>
-                                                                    {floorName}
-                                                                </h4>
-                                                                <div className="flex items-center gap-3 text-xs">
-                                                                    <span className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
-                                                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                                                        <span className="text-green-700 font-medium">
-                                                                            {floorTables.filter(table => {
-                                                                                const tableStatus = allTableStatuses.get(table.id);
-                                                                                const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                                                                return isTableAvailable(status);
-                                                                            }).length}
+                                                .sort(([a], [b]) =>
+                                                    a.localeCompare(b)
+                                                )
+                                                .map(
+                                                    ([
+                                                        floorName,
+                                                        floorTables,
+                                                    ]) => (
+                                                        <div
+                                                            key={floorName}
+                                                            className="border-b border-gray-100 last:border-b-0"
+                                                        >
+                                                            {/* Floor Header */}
+                                                            <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 border-b border-gray-200 z-10">
+                                                                <div className="flex items-center justify-between">
+                                                                    <h4 className="text-xs font-semibold text-gray-800 flex items-center">
+                                                                        <div className="w-1.5 h-4 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full mr-2"></div>
+                                                                        {
+                                                                            floorName
+                                                                        }
+                                                                    </h4>
+                                                                    <div className="flex items-center gap-3 text-xs">
+                                                                        <span className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                                                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                                                            <span className="text-green-700 font-medium">
+                                                                                {
+                                                                                    floorTables.filter(
+                                                                                        (
+                                                                                            table
+                                                                                        ) => {
+                                                                                            const tableStatus =
+                                                                                                allTableStatuses.get(
+                                                                                                    table.id
+                                                                                                );
+                                                                                            const status =
+                                                                                                tableStatus?.currentStatus ||
+                                                                                                POSTableStatus.AVAILABLE;
+                                                                                            return isTableAvailable(
+                                                                                                status
+                                                                                            );
+                                                                                        }
+                                                                                    )
+                                                                                        .length
+                                                                                }
+                                                                            </span>
                                                                         </span>
-                                                                    </span>
-                                                                    <span className="flex items-center gap-1 px-2 py-1 bg-red-100 rounded-full">
-                                                                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                                                                        <span className="text-red-700 font-medium">
-                                                                            {floorTables.filter(table => {
-                                                                                const tableStatus = allTableStatuses.get(table.id);
-                                                                                const status = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                                                                return !isTableAvailable(status);
-                                                                            }).length}
+                                                                        <span className="flex items-center gap-1 px-2 py-1 bg-red-100 rounded-full">
+                                                                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                                                            <span className="text-red-700 font-medium">
+                                                                                {
+                                                                                    floorTables.filter(
+                                                                                        (
+                                                                                            table
+                                                                                        ) => {
+                                                                                            const tableStatus =
+                                                                                                allTableStatuses.get(
+                                                                                                    table.id
+                                                                                                );
+                                                                                            const status =
+                                                                                                tableStatus?.currentStatus ||
+                                                                                                POSTableStatus.AVAILABLE;
+                                                                                            return !isTableAvailable(
+                                                                                                status
+                                                                                            );
+                                                                                        }
+                                                                                    )
+                                                                                        .length
+                                                                                }
+                                                                            </span>
                                                                         </span>
-                                                                    </span>
-                                                                    <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium">
-                                                                        {floorTables.length}
-                                                                    </span>
+                                                                        <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium">
+                                                                            {
+                                                                                floorTables.length
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Floor Tables */}
+                                                            <div className="p-3">
+                                                                <div className="grid grid-cols-3 gap-2">
+                                                                    {floorTables
+                                                                        .sort(
+                                                                            (
+                                                                                a,
+                                                                                b
+                                                                            ) => {
+                                                                                // Sort by table name/number
+                                                                                const aNum =
+                                                                                    parseInt(
+                                                                                        a.name.replace(
+                                                                                            /\D/g,
+                                                                                            ''
+                                                                                        )
+                                                                                    ) ||
+                                                                                    0;
+                                                                                const bNum =
+                                                                                    parseInt(
+                                                                                        b.name.replace(
+                                                                                            /\D/g,
+                                                                                            ''
+                                                                                        )
+                                                                                    ) ||
+                                                                                    0;
+                                                                                return (
+                                                                                    aNum -
+                                                                                        bNum ||
+                                                                                    a.name.localeCompare(
+                                                                                        b.name
+                                                                                    )
+                                                                                );
+                                                                            }
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                table
+                                                                            ) => {
+                                                                                const isSelected =
+                                                                                    selectedTables.some(
+                                                                                        (
+                                                                                            selected
+                                                                                        ) =>
+                                                                                            selected.id ===
+                                                                                            table.id
+                                                                                    );
+
+                                                                                // Get real-time table status and occupancy
+                                                                                const tableStatus =
+                                                                                    allTableStatuses.get(
+                                                                                        table.id
+                                                                                    );
+                                                                                const occupancyInfo =
+                                                                                    allTableOccupancy.get(
+                                                                                        table.id
+                                                                                    );
+                                                                                const realTimeStatus =
+                                                                                    tableStatus?.currentStatus ||
+                                                                                    POSTableStatus.AVAILABLE;
+                                                                                const isOccupied =
+                                                                                    shouldDisableTable(
+                                                                                        realTimeStatus
+                                                                                    );
+
+                                                                                // Can select if: available OR already selected (to allow deselection)
+                                                                                const canSelect =
+                                                                                    !isOccupied ||
+                                                                                    isSelected;
+
+                                                                                // Get detailed status text
+                                                                                let statusText =
+                                                                                    'Available';
+                                                                                let statusColor =
+                                                                                    'text-green-600';
+
+                                                                                if (
+                                                                                    isOccupied &&
+                                                                                    occupancyInfo?.occupancyDetails
+                                                                                ) {
+                                                                                    const details =
+                                                                                        occupancyInfo.occupancyDetails;
+                                                                                    if (
+                                                                                        details.occupationType ===
+                                                                                        'POS_ORDER'
+                                                                                    ) {
+                                                                                        statusText = `Order #${details.orderId}`;
+                                                                                        statusColor =
+                                                                                            'text-orange-600';
+                                                                                    } else if (
+                                                                                        details.occupationType ===
+                                                                                            'BOOKING_TABLE' ||
+                                                                                        details.occupationType ===
+                                                                                            'UPCOMING_BOOKING'
+                                                                                    ) {
+                                                                                        const startTime =
+                                                                                            details.startTime
+                                                                                                ? new Date(
+                                                                                                      details.startTime
+                                                                                                  ).toLocaleTimeString(
+                                                                                                      [],
+                                                                                                      {
+                                                                                                          hour: '2-digit',
+                                                                                                          minute: '2-digit',
+                                                                                                      }
+                                                                                                  )
+                                                                                                : '';
+                                                                                        statusText = `Booking ${startTime}`;
+                                                                                        statusColor =
+                                                                                            'text-blue-600';
+                                                                                    } else {
+                                                                                        statusText =
+                                                                                            getTableStatusText(
+                                                                                                realTimeStatus
+                                                                                            );
+                                                                                        statusColor =
+                                                                                            'text-red-600';
+                                                                                    }
+                                                                                } else if (
+                                                                                    isOccupied
+                                                                                ) {
+                                                                                    statusText =
+                                                                                        getTableStatusText(
+                                                                                            realTimeStatus
+                                                                                        );
+                                                                                    statusColor =
+                                                                                        'text-red-600';
+                                                                                }
+
+                                                                                return (
+                                                                                    <Button
+                                                                                        key={
+                                                                                            table.id
+                                                                                        }
+                                                                                        variant="outline"
+                                                                                        size="sm"
+                                                                                        className={`h-18 flex flex-col items-center justify-center gap-1 p-2 text-xs border-2 transition-all duration-200 relative overflow-hidden ${
+                                                                                            !canSelect
+                                                                                                ? 'opacity-50 grayscale cursor-not-allowed border-gray-300'
+                                                                                                : isSelected
+                                                                                                  ? 'border-green-500 bg-gradient-to-br from-green-50 to-green-100 shadow-lg ring-2 ring-green-200 transform scale-105'
+                                                                                                  : isOccupied
+                                                                                                    ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100 hover:bg-red-100'
+                                                                                                    : 'border-gray-300 bg-gradient-to-br from-white to-gray-50 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100'
+                                                                                        }`}
+                                                                                        onClick={() => {
+                                                                                            if (
+                                                                                                !canSelect ||
+                                                                                                createOrderMutation.isPending
+                                                                                            )
+                                                                                                return;
+
+                                                                                            let newTables;
+                                                                                            if (
+                                                                                                isSelected
+                                                                                            ) {
+                                                                                                newTables =
+                                                                                                    selectedTables.filter(
+                                                                                                        (
+                                                                                                            t
+                                                                                                        ) =>
+                                                                                                            t.id !==
+                                                                                                            table.id
+                                                                                                    );
+                                                                                            } else {
+                                                                                                const newTable =
+                                                                                                    {
+                                                                                                        id: table.id,
+                                                                                                        name: table.name,
+                                                                                                        status: table.status,
+                                                                                                    };
+                                                                                                newTables =
+                                                                                                    [
+                                                                                                        ...selectedTables,
+                                                                                                        newTable,
+                                                                                                    ];
+                                                                                            }
+                                                                                            setSelectedTables(
+                                                                                                newTables
+                                                                                            );
+
+                                                                                            // Auto update order if exists
+                                                                                            if (
+                                                                                                currentOrder?.id
+                                                                                            ) {
+                                                                                                createOrUpdateOrder(
+                                                                                                    orderItems,
+                                                                                                    newTables
+                                                                                                );
+                                                                                            }
+                                                                                        }}
+                                                                                        disabled={
+                                                                                            createOrderMutation.isPending ||
+                                                                                            !canSelect
+                                                                                        }
+                                                                                    >
+                                                                                        {/* Status indicator dot */}
+                                                                                        <div className="absolute top-1.5 right-1.5">
+                                                                                            <div
+                                                                                                className={`w-2 h-2 rounded-full shadow-sm ${
+                                                                                                    isSelected
+                                                                                                        ? 'bg-green-500'
+                                                                                                        : isOccupied
+                                                                                                          ? 'bg-red-500'
+                                                                                                          : 'bg-green-400'
+                                                                                                }`}
+                                                                                            ></div>
+                                                                                        </div>
+
+                                                                                        <span
+                                                                                            className={`font-bold text-sm ${
+                                                                                                isSelected
+                                                                                                    ? 'text-green-800'
+                                                                                                    : 'text-gray-800'
+                                                                                            }`}
+                                                                                        >
+                                                                                            {
+                                                                                                table.name
+                                                                                            }
+                                                                                        </span>
+
+                                                                                        <span
+                                                                                            className={`text-xs text-center leading-tight font-medium ${
+                                                                                                isSelected
+                                                                                                    ? 'text-green-700'
+                                                                                                    : statusColor
+                                                                                            }`}
+                                                                                        >
+                                                                                            {
+                                                                                                statusText
+                                                                                            }
+                                                                                        </span>
+
+                                                                                        {!canSelect && (
+                                                                                            <span className="text-xs text-red-600 font-bold bg-red-200 px-1.5 py-0.5 rounded-full">
+                                                                                                Unavailable
+                                                                                            </span>
+                                                                                        )}
+
+                                                                                        {/* Selection checkmark */}
+                                                                                        {isSelected && (
+                                                                                            <div className="absolute top-1 left-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                                                                                                <div className="w-1.5 h-1 border-l-2 border-b-2 border-white transform rotate-[-45deg] -translate-y-0.5"></div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </Button>
+                                                                                );
+                                                                            }
+                                                                        )}
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        {/* Floor Tables */}
-                                                        <div className="p-3">
-                                                            <div className="grid grid-cols-3 gap-2">
-                                                                {floorTables
-                                                                    .sort((a, b) => {
-                                                                        // Sort by table name/number
-                                                                        const aNum = parseInt(a.name.replace(/\D/g, '')) || 0;
-                                                                        const bNum = parseInt(b.name.replace(/\D/g, '')) || 0;
-                                                                        return aNum - bNum || a.name.localeCompare(b.name);
-                                                                    })
-                                                                    .map((table) => {
-                                                                        const isSelected = selectedTables.some(
-                                                                            (selected) => selected.id === table.id
-                                                                        );
-
-                                                                        // Get real-time table status and occupancy
-                                                                        const tableStatus = allTableStatuses.get(table.id);
-                                                                        const occupancyInfo = allTableOccupancy.get(table.id);
-                                                                        const realTimeStatus = tableStatus?.currentStatus || POSTableStatus.AVAILABLE;
-                                                                        const isOccupied = shouldDisableTable(realTimeStatus);
-
-                                                                        // Can select if: available OR already selected (to allow deselection)
-                                                                        const canSelect = !isOccupied || isSelected;
-
-                                                                        // Get detailed status text
-                                                                        let statusText = 'Available';
-                                                                        let statusColor = 'text-green-600';
-
-                                                                        if (isOccupied && occupancyInfo?.occupancyDetails) {
-                                                                            const details = occupancyInfo.occupancyDetails;
-                                                                            if (details.occupationType === 'POS_ORDER') {
-                                                                                statusText = `Order #${details.orderId}`;
-                                                                                statusColor = 'text-orange-600';
-                                                                            } else if (
-                                                                                details.occupationType === 'BOOKING_TABLE' ||
-                                                                                details.occupationType === 'UPCOMING_BOOKING'
-                                                                            ) {
-                                                                                const startTime = details.startTime
-                                                                                    ? new Date(details.startTime).toLocaleTimeString([], {
-                                                                                        hour: '2-digit',
-                                                                                        minute: '2-digit',
-                                                                                    })
-                                                                                    : '';
-                                                                                statusText = `Booking ${startTime}`;
-                                                                                statusColor = 'text-blue-600';
-                                                                            } else {
-                                                                                statusText = getTableStatusText(realTimeStatus);
-                                                                                statusColor = 'text-red-600';
-                                                                            }
-                                                                        } else if (isOccupied) {
-                                                                            statusText = getTableStatusText(realTimeStatus);
-                                                                            statusColor = 'text-red-600';
-                                                                        }
-
-                                                                        return (
-                                                                            <Button
-                                                                                key={table.id}
-                                                                                variant="outline"
-                                                                                size="sm"
-                                                                                className={`h-18 flex flex-col items-center justify-center gap-1 p-2 text-xs border-2 transition-all duration-200 relative overflow-hidden ${!canSelect
-                                                                                    ? 'opacity-50 grayscale cursor-not-allowed border-gray-300'
-                                                                                    : isSelected
-                                                                                        ? 'border-green-500 bg-gradient-to-br from-green-50 to-green-100 shadow-lg ring-2 ring-green-200 transform scale-105'
-                                                                                        : isOccupied
-                                                                                            ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100 hover:bg-red-100'
-                                                                                            : 'border-gray-300 bg-gradient-to-br from-white to-gray-50 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100'
-                                                                                    }`}
-                                                                                onClick={() => {
-                                                                                    if (!canSelect || createOrderMutation.isPending) return;
-
-                                                                                    let newTables;
-                                                                                    if (isSelected) {
-                                                                                        newTables = selectedTables.filter((t) => t.id !== table.id);
-                                                                                    } else {
-                                                                                        const newTable = {
-                                                                                            id: table.id,
-                                                                                            name: table.name,
-                                                                                            status: table.status,
-                                                                                        };
-                                                                                        newTables = [...selectedTables, newTable];
-                                                                                    }
-                                                                                    setSelectedTables(newTables);
-
-                                                                                    // Auto update order if exists
-                                                                                    if (currentOrder?.id) {
-                                                                                        createOrUpdateOrder(orderItems, newTables);
-                                                                                    }
-                                                                                }}
-                                                                                disabled={createOrderMutation.isPending || !canSelect}
-                                                                            >
-                                                                                {/* Status indicator dot */}
-                                                                                <div className="absolute top-1.5 right-1.5">
-                                                                                    <div className={`w-2 h-2 rounded-full shadow-sm ${isSelected ? 'bg-green-500' :
-                                                                                        isOccupied ? 'bg-red-500' : 'bg-green-400'
-                                                                                        }`}></div>
-                                                                                </div>
-
-                                                                                <span className={`font-bold text-sm ${isSelected ? 'text-green-800' : 'text-gray-800'
-                                                                                    }`}>
-                                                                                    {table.name}
-                                                                                </span>
-
-                                                                                <span className={`text-xs text-center leading-tight font-medium ${isSelected ? 'text-green-700' : statusColor
-                                                                                    }`}>
-                                                                                    {statusText}
-                                                                                </span>
-
-                                                                                {!canSelect && (
-                                                                                    <span className="text-xs text-red-600 font-bold bg-red-200 px-1.5 py-0.5 rounded-full">
-                                                                                        Unavailable
-                                                                                    </span>
-                                                                                )}
-
-                                                                                {/* Selection checkmark */}
-                                                                                {isSelected && (
-                                                                                    <div className="absolute top-1 left-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                                                                                        <div className="w-1.5 h-1 border-l-2 border-b-2 border-white transform rotate-[-45deg] -translate-y-0.5"></div>
-                                                                                    </div>
-                                                                                )}
-                                                                            </Button>
-                                                                        );
-                                                                    })}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ));
+                                                    )
+                                                );
                                         })()}
                                     </div>
                                 ) : (
@@ -1244,7 +1476,8 @@ export function POSRegisterView({
                                     Take Away Order
                                 </div>
                                 <div className="text-xs text-green-600 mt-0.5">
-                                    No table selection required for take away orders.
+                                    No table selection required for take away
+                                    orders.
                                 </div>
                             </div>
                         )}

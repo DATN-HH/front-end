@@ -344,7 +344,7 @@ export function PreOrderSuccessDialog({
                                     <p className="text-sm text-gray-600 mt-2">
                                         Scan QR code to pay via banking
                                     </p>
-                                    {preOrderData.paymentUrl && (
+                                    {/* {preOrderData.paymentUrl && (
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -358,7 +358,7 @@ export function PreOrderSuccessDialog({
                                         >
                                             Open Payment Link
                                         </Button>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
                         )}

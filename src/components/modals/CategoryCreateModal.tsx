@@ -42,17 +42,11 @@ import { useCustomToast } from '@/lib/show-toast';
 const categorySchema = z.object({
     code: z
         .string()
-        .optional()
+        .min(1, 'Code is required')
+        .min(2, 'Code must be at least 2 characters')
+        .max(20, 'Code must be at most 20 characters')
         .refine(
-            (val) => !val || val.length >= 2,
-            'Code must be at least 2 characters'
-        )
-        .refine(
-            (val) => !val || val.length <= 20,
-            'Code must be at most 20 characters'
-        )
-        .refine(
-            (val) => !val || /^[A-Z0-9_]+$/.test(val),
+            (val) => /^[A-Z0-9_]+$/.test(val),
             'Code must contain only uppercase letters, numbers, and underscores'
         ),
     name: z
@@ -96,7 +90,7 @@ export function CategoryCreateModal({
             name: '',
             description: '',
             status: 'ACTIVE',
-            parentId: parentCategory?.id.toString() || '',
+            parentId: parentCategory?.id.toString() || 'root',
             sequence: '',
             image: '',
         },
@@ -114,7 +108,7 @@ export function CategoryCreateModal({
     const onSubmit = async (data: CategoryFormValues) => {
         try {
             const categoryData: CategoryCreateRequest = {
-                code: data.code || undefined,
+                code: data.code,
                 name: data.name,
                 description: data.description || undefined,
                 status: data.status,
@@ -283,7 +277,7 @@ export function CategoryCreateModal({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">
+                                            <SelectItem value="root">
                                                 No Parent (Root Category)
                                             </SelectItem>
                                             {allCategories

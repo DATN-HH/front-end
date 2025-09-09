@@ -1,6 +1,7 @@
 'use client';
 
-import { Package, ChevronRight } from 'lucide-react';
+import { Package, ChevronRight, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 
 import { useAllFoodCombos } from '@/api/v1/menu/food-combos';
 import { Button } from '@/components/ui/button';
@@ -14,11 +15,16 @@ interface FoodComboSectionProps {
 
 export function FoodComboSection({ className = '' }: FoodComboSectionProps) {
     const { data: combos = [], isLoading, error } = useAllFoodCombos();
+    const [isExpanded, setIsExpanded] = useState(true);
 
     // Filter only active combos that can be sold
     const availableCombos = combos.filter(
         (combo) => combo.status === 'ACTIVE' && combo.canBeSold
     );
+
+    const handleViewAllClick = () => {
+        setIsExpanded(!isExpanded);
+    };
 
     if (isLoading) {
         return (
@@ -120,52 +126,37 @@ export function FoodComboSection({ className = '' }: FoodComboSectionProps) {
                     <Button
                         variant="ghost"
                         className="text-orange-600 hover:text-orange-700"
+                        onClick={handleViewAllClick}
                     >
-                        View All
-                        <ChevronRight className="w-4 h-4 ml-1" />
+                        {isExpanded ? 'Show Less' : 'View All'}
+                        {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 ml-1" />
+                        ) : (
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                        )}
                     </Button>
                 )}
             </div>
 
             {/* Desktop Grid */}
             <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {availableCombos.slice(0, 10).map((combo) => (
+                {(isExpanded
+                    ? availableCombos
+                    : availableCombos.slice(0, 10)
+                ).map((combo) => (
                     <FoodComboCard key={combo.id} combo={combo} />
                 ))}
             </div>
 
             {/* Mobile List */}
             <div className="md:hidden space-y-3">
-                {availableCombos.slice(0, 8).map((combo) => (
+                {(isExpanded
+                    ? availableCombos
+                    : availableCombos.slice(0, 8)
+                ).map((combo) => (
                     <FoodComboCardMobile key={combo.id} combo={combo} />
                 ))}
             </div>
-
-            {/* Show more button - Desktop */}
-            {availableCombos.length > 10 && (
-                <div className="hidden md:block text-center">
-                    <Button
-                        variant="outline"
-                        className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                    >
-                        View All Combos ({availableCombos.length - 10} more)
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                </div>
-            )}
-
-            {/* Show more button - Mobile */}
-            {availableCombos.length > 8 && (
-                <div className="md:hidden text-center">
-                    <Button
-                        variant="outline"
-                        className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                    >
-                        View All Combos ({availableCombos.length - 8} more)
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }

@@ -467,7 +467,7 @@ export function ProductCreateModal({
                         </div>
 
                         {/* Product Settings */}
-                        <div className="space-y-4">
+                        {/* <div className="space-y-4">
                             <h3 className="text-lg font-medium">
                                 Product Settings
                             </h3>
@@ -525,7 +525,7 @@ export function ProductCreateModal({
                                     )}
                                 />
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="flex justify-end space-x-2 pt-4 border-t">
                             <Button
