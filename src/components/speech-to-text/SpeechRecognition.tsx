@@ -49,10 +49,11 @@ export function SpeechRecognition({
         }
 
         // Check if we're running on HTTPS or localhost
-        const isSecureContext = window.location.protocol === 'https:' || 
-                               window.location.hostname === 'localhost' || 
-                               window.location.hostname === '127.0.0.1';
-        
+        const isSecureContext =
+            window.location.protocol === 'https:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+
         if (!isSecureContext) {
             console.warn('Speech recognition requires HTTPS or localhost');
             setIsSupported(false);
@@ -104,7 +105,7 @@ export function SpeechRecognition({
             recognition.continuous = true; // Keep listening continuously
             recognition.interimResults = true; // Get interim results
             recognition.maxAlternatives = 1;
-            
+
             // Additional stability settings for different browsers
             try {
                 // Set timeout to prevent automatic stopping
@@ -112,7 +113,10 @@ export function SpeechRecognition({
                     (recognition as any).grammars = null;
                 }
             } catch (e) {
-                console.warn('Could not set additional recognition properties:', e);
+                console.warn(
+                    'Could not set additional recognition properties:',
+                    e
+                );
             }
 
             // Set up event handlers
@@ -171,7 +175,9 @@ export function SpeechRecognition({
                     event.error === 'network' ||
                     event.error === 'service-not-allowed'
                 ) {
-                    console.warn(`Speech recognition network issue: ${event.error} - continuing in offline mode`);
+                    console.warn(
+                        `Speech recognition network issue: ${event.error} - continuing in offline mode`
+                    );
                     // Don't stop listening, just log the error
                     // The recognition might still work for basic speech detection
                     return;
@@ -204,7 +210,9 @@ export function SpeechRecognition({
                 }
 
                 // For other non-critical errors, just log them but continue
-                console.warn(`Non-critical speech recognition error: ${event.error} - continuing...`);
+                console.warn(
+                    `Non-critical speech recognition error: ${event.error} - continuing...`
+                );
             };
 
             recognition.onend = () => {
@@ -328,12 +336,12 @@ export function SpeechRecognition({
         // Request microphone permission before starting
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices
-                .getUserMedia({ 
+                .getUserMedia({
                     audio: {
                         echoCancellation: true,
                         noiseSuppression: true,
-                        autoGainControl: true
-                    } 
+                        autoGainControl: true,
+                    },
                 })
                 .then((stream) => {
                     console.log('Microphone access granted');

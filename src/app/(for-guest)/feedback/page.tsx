@@ -37,9 +37,21 @@ import {
 import { RestaurantFeedbackForm } from '@/features/feedback/components/RestaurantFeedbackForm';
 import { ProductFeedbackForm } from '@/features/feedback/components/ProductFeedbackForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useCustomToast } from '@/lib/show-toast';
-import { format, isThisYear, isThisMonth, startOfYear, startOfMonth } from 'date-fns';
+import {
+    format,
+    isThisYear,
+    isThisMonth,
+    startOfYear,
+    startOfMonth,
+} from 'date-fns';
 import { managerFeedbackAPI } from '@/api/v1/feedback';
 import { useBranches } from '@/api/v1/branches';
 import { useAllProducts } from '@/api/v1/menu/products';
@@ -62,7 +74,6 @@ interface Review {
     images?: string[];
     categoryRatings?: Record<string, number>;
 }
-
 
 const StarRating = ({
     rating,
@@ -302,28 +313,36 @@ export default function FeedbackPage() {
     const [activeTab, setActiveTab] = useState('restaurant');
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Fetch branches using API
-    const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useBranches({
+    const {
+        data: branchesData,
+        isLoading: branchesLoading,
+        error: branchesError,
+    } = useBranches({
         page: 0,
         size: 1000,
         sortBy: 'name',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
     });
-    
+
     // Fetch products using API
-    const { data: productsData, isLoading: productsLoading, error: productsError } = useAllProducts();
-    
+    const {
+        data: productsData,
+        isLoading: productsLoading,
+        error: productsError,
+    } = useAllProducts();
+
     // Filters and sorting
     const [filters, setFilters] = useState({
         starRating: 'ALL',
         dateSort: 'NEWEST',
-        timeFilter: 'ALL'
+        timeFilter: 'ALL',
     });
-    
+
     // Filter and sort reviews
     const filteredAndSortedReviews = reviews
-        .filter(review => {
+        .filter((review) => {
             // Star rating filter
             if (filters.starRating !== 'ALL') {
                 const targetRating = parseInt(filters.starRating);
@@ -331,38 +350,43 @@ export default function FeedbackPage() {
                     return false;
                 }
             }
-            
+
             // Time filter
             const reviewDate = new Date(review.createdAt);
             if (filters.timeFilter === 'THIS_YEAR' && !isThisYear(reviewDate)) {
                 return false;
             }
-            if (filters.timeFilter === 'THIS_MONTH' && !isThisMonth(reviewDate)) {
+            if (
+                filters.timeFilter === 'THIS_MONTH' &&
+                !isThisMonth(reviewDate)
+            ) {
                 return false;
             }
-            
+
             return true;
         })
         .sort((a, b) => {
             const dateA = new Date(a.createdAt).getTime();
             const dateB = new Date(b.createdAt).getTime();
-            
+
             if (filters.dateSort === 'NEWEST') {
                 return dateB - dateA; // Newest first
             } else {
                 return dateA - dateB; // Oldest first
             }
         });
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const reviewsPerPage = 5;
-    const totalPages = Math.ceil(filteredAndSortedReviews.length / reviewsPerPage);
+    const totalPages = Math.ceil(
+        filteredAndSortedReviews.length / reviewsPerPage
+    );
     const paginatedReviews = filteredAndSortedReviews.slice(
         (currentPage - 1) * reviewsPerPage,
         currentPage * reviewsPerPage
     );
-    
+
     // Reset to first page when filters change
     useEffect(() => {
         setCurrentPage(1);
@@ -375,29 +399,31 @@ export default function FeedbackPage() {
             try {
                 const response = await managerFeedbackAPI.getAllFeedback({
                     page: 0,
-                    size: 100 // Get all feedback for customer view
+                    size: 100, // Get all feedback for customer view
                 });
-                
+
                 // Transform API data to match Review interface
-                const transformedReviews: Review[] = response.data.map(feedback => ({
-                    id: feedback.id,
-                    customerName: feedback.customerName,
-                    overallRating: feedback.overallRating,
-                    title: feedback.title,
-                    reviewText: feedback.reviewText,
-                    createdAt: feedback.createdAt,
-                    branchName: feedback.branchName,
-                    productName: feedback.productName,
-                    feedbackType: feedback.feedbackType,
-                    feedbackStatus: feedback.feedbackStatus,
-                    responseText: feedback.responseText,
-                    responseDate: feedback.responseDate,
-                    respondedBy: feedback.respondedBy,
-                    respondedByName: feedback.respondedByName,
-                    images: feedback.images || [],
-                    categoryRatings: feedback.categoryRatings
-                }));
-                
+                const transformedReviews: Review[] = response.data.map(
+                    (feedback) => ({
+                        id: feedback.id,
+                        customerName: feedback.customerName,
+                        overallRating: feedback.overallRating,
+                        title: feedback.title,
+                        reviewText: feedback.reviewText,
+                        createdAt: feedback.createdAt,
+                        branchName: feedback.branchName,
+                        productName: feedback.productName,
+                        feedbackType: feedback.feedbackType,
+                        feedbackStatus: feedback.feedbackStatus,
+                        responseText: feedback.responseText,
+                        responseDate: feedback.responseDate,
+                        respondedBy: feedback.respondedBy,
+                        respondedByName: feedback.respondedByName,
+                        images: feedback.images || [],
+                        categoryRatings: feedback.categoryRatings,
+                    })
+                );
+
                 setReviews(transformedReviews);
             } catch (error) {
                 console.error('Failed to load feedback:', error);
@@ -413,26 +439,29 @@ export default function FeedbackPage() {
     const handleResponse = async (reviewId: number, responseText: string) => {
         try {
             // Use the real API to respond to feedback
-            const updatedFeedback = await managerFeedbackAPI.respondToFeedback(reviewId, {
-                responseText: responseText
-            });
-            
+            const updatedFeedback = await managerFeedbackAPI.respondToFeedback(
+                reviewId,
+                {
+                    responseText: responseText,
+                }
+            );
+
             // Update the review with the response
-            setReviews(prevReviews => 
-                prevReviews.map(review => 
-                    review.id === reviewId 
+            setReviews((prevReviews) =>
+                prevReviews.map((review) =>
+                    review.id === reviewId
                         ? {
-                            ...review,
-                            responseText: updatedFeedback.responseText,
-                            responseDate: updatedFeedback.responseDate,
-                            respondedBy: updatedFeedback.respondedBy,
-                            respondedByName: updatedFeedback.respondedByName,
-                            feedbackStatus: 'RESPONDED' as const
-                        }
+                              ...review,
+                              responseText: updatedFeedback.responseText,
+                              responseDate: updatedFeedback.responseDate,
+                              respondedBy: updatedFeedback.respondedBy,
+                              respondedByName: updatedFeedback.respondedByName,
+                              feedbackStatus: 'RESPONDED' as const,
+                          }
                         : review
                 )
             );
-            
+
             toast.success('Success', 'Response sent successfully!');
         } catch (error: any) {
             console.error('Failed to send response:', error);
@@ -447,50 +476,54 @@ export default function FeedbackPage() {
             try {
                 const response = await managerFeedbackAPI.getAllFeedback({
                     page: 0,
-                    size: 100
+                    size: 100,
                 });
-                
-                const transformedReviews: Review[] = response.data.map(feedback => ({
-                    id: feedback.id,
-                    customerName: feedback.customerName,
-                    overallRating: feedback.overallRating,
-                    title: feedback.title,
-                    reviewText: feedback.reviewText,
-                    createdAt: feedback.createdAt,
-                    branchName: feedback.branchName,
-                    productName: feedback.productName,
-                    feedbackType: feedback.feedbackType,
-                    feedbackStatus: feedback.feedbackStatus,
-                    responseText: feedback.responseText,
-                    responseDate: feedback.responseDate,
-                    respondedBy: feedback.respondedBy,
-                    respondedByName: feedback.respondedByName,
-                    images: feedback.images || [],
-                    categoryRatings: feedback.categoryRatings
-                }));
-                
+
+                const transformedReviews: Review[] = response.data.map(
+                    (feedback) => ({
+                        id: feedback.id,
+                        customerName: feedback.customerName,
+                        overallRating: feedback.overallRating,
+                        title: feedback.title,
+                        reviewText: feedback.reviewText,
+                        createdAt: feedback.createdAt,
+                        branchName: feedback.branchName,
+                        productName: feedback.productName,
+                        feedbackType: feedback.feedbackType,
+                        feedbackStatus: feedback.feedbackStatus,
+                        responseText: feedback.responseText,
+                        responseDate: feedback.responseDate,
+                        respondedBy: feedback.respondedBy,
+                        respondedByName: feedback.respondedByName,
+                        images: feedback.images || [],
+                        categoryRatings: feedback.categoryRatings,
+                    })
+                );
+
                 setReviews(transformedReviews);
             } catch (error) {
                 console.error('Failed to reload feedback:', error);
             }
         };
-        
+
         loadFeedback();
         toast.success('Success', 'Thank you for your feedback!');
     };
 
     // Transform branches data to the format expected by the forms
-    const branches = branchesData?.map(branch => ({
-        id: branch.id,
-        name: branch.name
-    })) || [];
+    const branches =
+        branchesData?.map((branch) => ({
+            id: branch.id,
+            name: branch.name,
+        })) || [];
 
     // Transform products data to the format expected by the forms
-    const products = productsData?.map(product => ({
-        id: product.id,
-        name: product.name,
-        category: product.category?.name || 'Uncategorized'
-    })) || [];
+    const products =
+        productsData?.map((product) => ({
+            id: product.id,
+            name: product.name,
+            category: product.category?.name || 'Uncategorized',
+        })) || [];
 
     // Calculate average rating
     const averageRating =
@@ -512,7 +545,10 @@ export default function FeedbackPage() {
                         <div className="h-32 bg-gray-200 rounded"></div>
                         <div className="space-y-4">
                             {Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="h-48 bg-gray-200 rounded"></div>
+                                <div
+                                    key={i}
+                                    className="h-48 bg-gray-200 rounded"
+                                ></div>
                             ))}
                         </div>
                     </div>
@@ -531,9 +567,10 @@ export default function FeedbackPage() {
                             Failed to load data
                         </h3>
                         <p className="text-gray-500 mb-4">
-                            There was an error loading the required data. Please try again.
+                            There was an error loading the required data. Please
+                            try again.
                         </p>
-                        <button 
+                        <button
                             onClick={() => window.location.reload()}
                             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
@@ -640,14 +677,19 @@ export default function FeedbackPage() {
                                     Total Reviews
                                 </div>
                             </div>
-                            
+
                             {/* Star breakdown - Interactive like Play Store */}
                             <div className="flex-1">
                                 <div className="text-sm font-medium text-gray-700 mb-2">
                                     Rating Distribution
                                     {filters.starRating !== 'ALL' && (
-                                        <button 
-                                            onClick={() => setFilters({...filters, starRating: 'ALL'})}
+                                        <button
+                                            onClick={() =>
+                                                setFilters({
+                                                    ...filters,
+                                                    starRating: 'ALL',
+                                                })
+                                            }
                                             className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
                                         >
                                             Clear filter
@@ -656,50 +698,81 @@ export default function FeedbackPage() {
                                 </div>
                                 <div className="space-y-1">
                                     {[5, 4, 3, 2, 1].map((rating) => {
-                                        const count = reviews.filter(r => r.overallRating === rating).length;
-                                        const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
-                                        const isSelected = filters.starRating === rating.toString();
+                                        const count = reviews.filter(
+                                            (r) => r.overallRating === rating
+                                        ).length;
+                                        const percentage =
+                                            totalReviews > 0
+                                                ? (count / totalReviews) * 100
+                                                : 0;
+                                        const isSelected =
+                                            filters.starRating ===
+                                            rating.toString();
                                         const isDisabled = count === 0;
-                                        
+
                                         return (
                                             <button
                                                 key={rating}
                                                 onClick={() => {
                                                     if (!isDisabled) {
                                                         setFilters({
-                                                            ...filters, 
-                                                            starRating: isSelected ? 'ALL' : rating.toString()
+                                                            ...filters,
+                                                            starRating:
+                                                                isSelected
+                                                                    ? 'ALL'
+                                                                    : rating.toString(),
                                                         });
                                                     }
                                                 }}
                                                 disabled={isDisabled}
                                                 className={`flex items-center gap-2 text-sm w-full p-1 rounded transition-all duration-200 ${
-                                                    isSelected 
-                                                        ? 'bg-blue-50 border border-blue-200 shadow-sm' 
-                                                        : isDisabled 
-                                                        ? 'opacity-50 cursor-not-allowed' 
-                                                        : 'hover:bg-gray-50 cursor-pointer'
+                                                    isSelected
+                                                        ? 'bg-blue-50 border border-blue-200 shadow-sm'
+                                                        : isDisabled
+                                                          ? 'opacity-50 cursor-not-allowed'
+                                                          : 'hover:bg-gray-50 cursor-pointer'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-1 w-12">
-                                                    <span className={isSelected ? 'font-medium text-blue-700' : ''}>{rating}</span>
-                                                    <Star size={12} className={`${
-                                                        isSelected 
-                                                            ? 'fill-blue-400 text-blue-400' 
-                                                            : 'fill-yellow-400 text-yellow-400'
-                                                    }`} />
+                                                    <span
+                                                        className={
+                                                            isSelected
+                                                                ? 'font-medium text-blue-700'
+                                                                : ''
+                                                        }
+                                                    >
+                                                        {rating}
+                                                    </span>
+                                                    <Star
+                                                        size={12}
+                                                        className={`${
+                                                            isSelected
+                                                                ? 'fill-blue-400 text-blue-400'
+                                                                : 'fill-yellow-400 text-yellow-400'
+                                                        }`}
+                                                    />
                                                 </div>
                                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                                    <div 
+                                                    <div
                                                         className={`h-2 rounded-full transition-all duration-300 ${
-                                                            isSelected ? 'bg-blue-400' : 'bg-yellow-400'
+                                                            isSelected
+                                                                ? 'bg-blue-400'
+                                                                : 'bg-yellow-400'
                                                         }`}
-                                                        style={{ width: `${percentage}%` }}
+                                                        style={{
+                                                            width: `${percentage}%`,
+                                                        }}
                                                     ></div>
                                                 </div>
-                                                <span className={`w-8 text-right ${
-                                                    isSelected ? 'font-medium text-blue-700' : 'text-gray-500'
-                                                }`}>{count}</span>
+                                                <span
+                                                    className={`w-8 text-right ${
+                                                        isSelected
+                                                            ? 'font-medium text-blue-700'
+                                                            : 'text-gray-500'
+                                                    }`}
+                                                >
+                                                    {count}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -712,12 +785,24 @@ export default function FeedbackPage() {
                     <div className="bg-white rounded-lg border p-4 mb-6">
                         <div className="flex items-center gap-2 mb-3">
                             <Filter size={16} className="text-gray-600" />
-                            <span className="text-sm font-medium text-gray-700">Sort & Filter Options</span>
+                            <span className="text-sm font-medium text-gray-700">
+                                Sort & Filter Options
+                            </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-medium text-gray-600 mb-1 block">Sort by Date</label>
-                                <Select value={filters.dateSort} onValueChange={(value) => setFilters({...filters, dateSort: value})}>
+                                <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                    Sort by Date
+                                </label>
+                                <Select
+                                    value={filters.dateSort}
+                                    onValueChange={(value) =>
+                                        setFilters({
+                                            ...filters,
+                                            dateSort: value,
+                                        })
+                                    }
+                                >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -737,39 +822,66 @@ export default function FeedbackPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            
+
                             <div>
-                                <label className="text-xs font-medium text-gray-600 mb-1 block">Time Period</label>
-                                <Select value={filters.timeFilter} onValueChange={(value) => setFilters({...filters, timeFilter: value})}>
+                                <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                    Time Period
+                                </label>
+                                <Select
+                                    value={filters.timeFilter}
+                                    onValueChange={(value) =>
+                                        setFilters({
+                                            ...filters,
+                                            timeFilter: value,
+                                        })
+                                    }
+                                >
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="ALL">All Time</SelectItem>
-                                        <SelectItem value="THIS_YEAR">This Year</SelectItem>
-                                        <SelectItem value="THIS_MONTH">This Month</SelectItem>
+                                        <SelectItem value="ALL">
+                                            All Time
+                                        </SelectItem>
+                                        <SelectItem value="THIS_YEAR">
+                                            This Year
+                                        </SelectItem>
+                                        <SelectItem value="THIS_MONTH">
+                                            This Month
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
-                        
+
                         {/* Active filters display */}
-                        {(filters.starRating !== 'ALL' || filters.timeFilter !== 'ALL' || filters.dateSort !== 'NEWEST') && (
+                        {(filters.starRating !== 'ALL' ||
+                            filters.timeFilter !== 'ALL' ||
+                            filters.dateSort !== 'NEWEST') && (
                             <div className="mt-4 pt-3 border-t">
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                     <span>Showing:</span>
                                     {filters.starRating !== 'ALL' && (
-                                        <Badge variant="outline">{filters.starRating} stars</Badge>
+                                        <Badge variant="outline">
+                                            {filters.starRating} stars
+                                        </Badge>
                                     )}
                                     {filters.timeFilter !== 'ALL' && (
                                         <Badge variant="outline">
-                                            {filters.timeFilter === 'THIS_YEAR' ? 'This Year' : 'This Month'}
+                                            {filters.timeFilter === 'THIS_YEAR'
+                                                ? 'This Year'
+                                                : 'This Month'}
                                         </Badge>
                                     )}
                                     {filters.dateSort !== 'NEWEST' && (
-                                        <Badge variant="outline">Oldest First</Badge>
+                                        <Badge variant="outline">
+                                            Oldest First
+                                        </Badge>
                                     )}
-                                    <span className="ml-auto">{filteredAndSortedReviews.length} of {totalReviews} reviews</span>
+                                    <span className="ml-auto">
+                                        {filteredAndSortedReviews.length} of{' '}
+                                        {totalReviews} reviews
+                                    </span>
                                 </div>
                             </div>
                         )}
@@ -786,8 +898,8 @@ export default function FeedbackPage() {
                                     No reviews yet
                                 </h3>
                                 <p className="text-gray-500 mb-4">
-                                    {reviews.length === 0 
-                                        ? 'Be the first to share your experience with us!' 
+                                    {reviews.length === 0
+                                        ? 'Be the first to share your experience with us!'
                                         : 'No reviews match your current filters. Try adjusting the filters above.'}
                                 </p>
                                 <Button onClick={() => setIsFormOpen(true)}>
@@ -804,31 +916,52 @@ export default function FeedbackPage() {
                                     onResponse={handleResponse}
                                 />
                             ))}
-                            
+
                             {/* Pagination */}
                             {totalPages > 1 && (
                                 <div className="flex items-center justify-between mt-6">
                                     <div className="text-sm text-gray-700">
-                                        Showing {(currentPage - 1) * reviewsPerPage + 1} to {Math.min(currentPage * reviewsPerPage, filteredAndSortedReviews.length)} of {filteredAndSortedReviews.length} reviews
+                                        Showing{' '}
+                                        {(currentPage - 1) * reviewsPerPage + 1}{' '}
+                                        to{' '}
+                                        {Math.min(
+                                            currentPage * reviewsPerPage,
+                                            filteredAndSortedReviews.length
+                                        )}{' '}
+                                        of {filteredAndSortedReviews.length}{' '}
+                                        reviews
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            onClick={() =>
+                                                setCurrentPage(
+                                                    Math.max(1, currentPage - 1)
+                                                )
+                                            }
                                             disabled={currentPage === 1}
                                         >
                                             <ChevronLeft size={16} />
                                             Previous
                                         </Button>
-                                        
+
                                         <div className="flex items-center gap-1">
-                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                            {Array.from(
+                                                { length: totalPages },
+                                                (_, i) => i + 1
+                                            ).map((page) => (
                                                 <Button
                                                     key={page}
-                                                    variant={page === currentPage ? "default" : "outline"}
+                                                    variant={
+                                                        page === currentPage
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
                                                     size="sm"
-                                                    onClick={() => setCurrentPage(page)}
+                                                    onClick={() =>
+                                                        setCurrentPage(page)
+                                                    }
                                                     className="w-8 h-8 p-0"
                                                 >
                                                     {page}
@@ -839,8 +972,17 @@ export default function FeedbackPage() {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                            disabled={currentPage === totalPages}
+                                            onClick={() =>
+                                                setCurrentPage(
+                                                    Math.min(
+                                                        totalPages,
+                                                        currentPage + 1
+                                                    )
+                                                )
+                                            }
+                                            disabled={
+                                                currentPage === totalPages
+                                            }
                                         >
                                             Next
                                             <ChevronRight size={16} />
