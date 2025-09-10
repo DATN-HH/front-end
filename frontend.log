@@ -1,0 +1,646 @@
+$ next dev --turbopack
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.2.49:3001
+
+ ✓ Starting...
+ ✓ Ready in 614ms
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+
+ ○ Compiling /menu ...
+ ✓ Compiled /menu in 1509ms
+ GET /menu 200 in 1768ms
+ ✓ Compiled / in 428ms
+ GET / 200 in 527ms
+ GET /menu 200 in 23ms
+ ✓ Compiled in 87ms
+ ✓ Compiled in 64ms
+ GET /menu 200 in 208ms
+ ✓ Compiled /feedback in 445ms
+ GET /feedback 200 in 463ms
+ ✓ Compiled /_not-found/page in 157ms
+ GET /[object%20Object] 404 in 177ms
+ ✓ Compiled /login in 460ms
+ GET /login 200 in 484ms
+ GET /feedback 200 in 19ms
+ GET /[object%20Object] 404 in 23ms
+ GET /[object%20Object] 404 in 23ms
+ ✓ Compiled /app/feedback in 261ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.80ixl1tm0hu'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.80ixl1tm0hu'
+}
+ ✓ Compiled /_error in 351ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.4pmftuytmyd'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.4pmftuytmyd'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.80ixl1tm0hu'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.80ixl1tm0hu'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.3ubq26aaq0t'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.3ubq26aaq0t'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.zlj3l105snb'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.zlj3l105snb'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.06o4uorjf25i'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.06o4uorjf25i'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.e0sjhmdzvuf'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.e0sjhmdzvuf'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.2j109eibgam'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.2j109eibgam'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.cqm3mviqkpc'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.cqm3mviqkpc'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.wbak7kbieaj'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.wbak7kbieaj'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.1cd6kfdi7ug'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.1cd6kfdi7ug'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.esgqmnsjmg7'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.esgqmnsjmg7'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.tr106enez2j'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.tr106enez2j'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.lhijjn0qgwr'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/static/development/_buildManifest.js.tmp.lhijjn0qgwr'
+}
+ ⨯ ./src/app/(app-section)/app/feedback/page.tsx:4:1
+Module not found: Can't resolve '@/features/feedback/components/ManagerFeedbackDashboard'
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mManagerFeedbackDashboard[39m } [36mfrom[39m [32m'@/features/feedback/components/ManagerFeedbackDashboard'[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m[0m
+[0m [90m 6 |[39m [90m// Mock data for development/testing[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mockFeedbackData [33m=[39m [[0m
+
+Import map: aliased to relative './src/features/feedback/components/ManagerFeedbackDashboard' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/(app-section)/app/feedback/page.tsx:4:1
+Module not found: Can't resolve '@/features/feedback/components/ManagerFeedbackDashboard'
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mManagerFeedbackDashboard[39m } [36mfrom[39m [32m'@/features/feedback/components/ManagerFeedbackDashboard'[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m[0m
+[0m [90m 6 |[39m [90m// Mock data for development/testing[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mockFeedbackData [33m=[39m [[0m
+
+Import map: aliased to relative './src/features/feedback/components/ManagerFeedbackDashboard' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/(app-section)/app/feedback/page.tsx:4:1
+Module not found: Can't resolve '@/features/feedback/components/ManagerFeedbackDashboard'
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mManagerFeedbackDashboard[39m } [36mfrom[39m [32m'@/features/feedback/components/ManagerFeedbackDashboard'[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m[0m
+[0m [90m 6 |[39m [90m// Mock data for development/testing[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mockFeedbackData [33m=[39m [[0m
+
+Import map: aliased to relative './src/features/feedback/components/ManagerFeedbackDashboard' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ⨯ ./src/app/(app-section)/app/feedback/page.tsx:4:1
+Module not found: Can't resolve '@/features/feedback/components/ManagerFeedbackDashboard'
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mManagerFeedbackDashboard[39m } [36mfrom[39m [32m'@/features/feedback/components/ManagerFeedbackDashboard'[39m[33m;[39m[0m
+[0m [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m[0m
+[0m [90m 6 |[39m [90m// Mock data for development/testing[39m[0m
+[0m [90m 7 |[39m [36mconst[39m mockFeedbackData [33m=[39m [[0m
+
+Import map: aliased to relative './src/features/feedback/components/ManagerFeedbackDashboard' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ✓ Compiled in 73ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/feedback/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ GET /feedback 200 in 291ms
+ GET /feedback 200 in 40ms
+ ✓ Compiled in 123ms
+ ✓ Compiled in 70ms
+ ✓ Compiled in 71ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 120ms
+ ⨯ ReferenceError: mockBranches is not defined
+    at FeedbackPage (src/app/(for-guest)/feedback/page.tsx:512:54)
+  510 |                                     >
+  511 |                                         <RestaurantFeedbackForm
+> 512 |                                             branches={mockBranches}
+      |                                                      ^
+  513 |                                             onSuccess={handleFormSuccess}
+  514 |                                             onCancel={() =>
+  515 |                                                 setIsFormOpen(false) {
+  digest: '936830738'
+}
+ GET /feedback 500 in 272ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 79ms
+ GET /feedback 200 in 185ms
+ ✓ Compiled in 74ms
+ ✓ Compiled /feedback in 22ms
+ GET /feedback 200 in 755ms
+ GET /feedback 200 in 531ms
+ GET /feedback 200 in 68ms
+ ✓ Compiled /_not-found/page in 21ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ GET /feedback 200 in 81ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ✓ Compiled /login in 4ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ GET /feedback 200 in 63ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/(for-guest)/login/page/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/app/_not-found/page/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/huannguyen/da/front-end/.next/server/pages/_app/build-manifest.json'
+}
+ ✓ Compiled in 769ms
+[?25h

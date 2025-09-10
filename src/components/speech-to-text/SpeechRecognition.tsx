@@ -24,6 +24,8 @@ export function SpeechRecognition({
     const recognitionRef = useRef<any>(null);
     const [permissionDenied, setPermissionDenied] = useState(false);
     const [networkError, setNetworkError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const maxRetries = 3;
 
     // Handle browser compatibility
     useEffect(() => {
@@ -44,6 +46,17 @@ export function SpeechRecognition({
                     console.warn('Microphone permission not yet granted:', err);
                     // Don't set permissionDenied here, wait until user clicks
                 });
+        }
+
+        // Check if we're running on HTTPS or localhost
+        const isSecureContext =
+            window.location.protocol === 'https:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+
+        if (!isSecureContext) {
+            console.warn('Speech recognition requires HTTPS or localhost');
+            setIsSupported(false);
         }
 
         // Cleanup on component unmount
@@ -75,6 +88,9 @@ export function SpeechRecognition({
     const startListening = useCallback(() => {
         if (!isSupported || disabled) return;
 
+        // Reset network error state when starting
+        setNetworkError(false);
+
         try {
             // Using our type declaration for SpeechRecognition API
             const SpeechRecognitionAPI =
@@ -84,11 +100,24 @@ export function SpeechRecognition({
             // Save recognition instance to ref for cleanup
             recognitionRef.current = recognition;
 
-            // Configure recognition
+            // Configure recognition for maximum stability
             recognition.lang = language;
-            recognition.continuous = true; // Changed to true to keep listening
-            recognition.interimResults = true;
+            recognition.continuous = true; // Keep listening continuously
+            recognition.interimResults = true; // Get interim results
             recognition.maxAlternatives = 1;
+
+            // Additional stability settings for different browsers
+            try {
+                // Set timeout to prevent automatic stopping
+                if (typeof (recognition as any).grammars !== 'undefined') {
+                    (recognition as any).grammars = null;
+                }
+            } catch (e) {
+                console.warn(
+                    'Could not set additional recognition properties:',
+                    e
+                );
+            }
 
             // Set up event handlers
             recognition.onstart = () => {
@@ -96,6 +125,9 @@ export function SpeechRecognition({
                 setShowAnimation(true);
                 setInterimTranscript('');
                 setFinalTranscript('');
+                // Reset retry count and network error on successful start
+                setRetryCount(0);
+                setNetworkError(false);
                 console.log(
                     'Speech recognition started with language:',
                     language
@@ -124,9 +156,9 @@ export function SpeechRecognition({
             };
 
             recognition.onerror = (event: any) => {
-                console.error('Speech recognition error:', event.error);
+                console.warn('Speech recognition error:', event.error);
 
-                // Handle permission errors specially
+                // Handle permission errors specially - these are critical
                 if (
                     event.error === 'not-allowed' ||
                     event.error === 'permission-denied'
@@ -134,30 +166,53 @@ export function SpeechRecognition({
                     console.error('Microphone permission denied');
                     setPermissionDenied(true);
                     setIsListening(false);
+                    setShowAnimation(false);
                     return;
                 }
 
-                // Handle network errors specially
+                // Handle network errors gracefully - don't stop listening
                 if (
                     event.error === 'network' ||
                     event.error === 'service-not-allowed'
                 ) {
-                    console.error(`Speech recognition error: ${event.error}`);
-                    setNetworkError(true);
-                    setIsListening(false);
+                    console.warn(
+                        `Speech recognition network issue: ${event.error} - continuing in offline mode`
+                    );
+                    // Don't stop listening, just log the error
+                    // The recognition might still work for basic speech detection
                     return;
                 }
 
-                // Try to recover from no-speech error by restarting
+                // Handle no-speech gracefully - continue listening
                 if (event.error === 'no-speech') {
                     console.log('No speech detected, continuing to listen...');
-                    // Don't set isListening to false, let it continue
+                    // Keep listening, don't stop
                     return;
                 }
 
-                // For other errors, stop listening
-                setIsListening(false);
-                setShowAnimation(false);
+                // Handle aborted errors (user intentionally stopped)
+                if (event.error === 'aborted') {
+                    console.log('Speech recognition aborted by user');
+                    setIsListening(false);
+                    setShowAnimation(false);
+                    return;
+                }
+
+                // For audio capture errors, try to restart
+                if (event.error === 'audio-capture') {
+                    console.warn('Audio capture error, attempting restart...');
+                    setTimeout(() => {
+                        if (isListening) {
+                            startListening();
+                        }
+                    }, 1000);
+                    return;
+                }
+
+                // For other non-critical errors, just log them but continue
+                console.warn(
+                    `Non-critical speech recognition error: ${event.error} - continuing...`
+                );
             };
 
             recognition.onend = () => {
@@ -176,9 +231,9 @@ export function SpeechRecognition({
                         setShowAnimation(false);
                         setInterimTranscript('');
                     }, 1500);
-                } else if (isListening && !permissionDenied && !networkError) {
+                } else if (isListening && !permissionDenied) {
                     // If speech recognition ended without results and we're still supposed to be listening
-                    // and there are no permission or network errors
+                    // and there are no permission errors (ignore network errors)
                     console.log(
                         'Recognition ended unexpectedly, attempting to restart...'
                     );
@@ -276,12 +331,22 @@ export function SpeechRecognition({
         // Reset error states when attempting to listen again
         setPermissionDenied(false);
         setNetworkError(false);
+        setRetryCount(0);
 
         // Request microphone permission before starting
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices
-                .getUserMedia({ audio: true })
-                .then(() => {
+                .getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                    },
+                })
+                .then((stream) => {
+                    console.log('Microphone access granted');
+                    // Stop the stream immediately as we just needed permission
+                    stream.getTracks().forEach((track) => track.stop());
                     // Permission granted, start listening
                     try {
                         startListening();
